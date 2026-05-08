@@ -1,0 +1,7 @@
+import {
+  "miaom/BitLogger/bitlogger" @lib,
+}
+
+options(
+  "is-main": true,
+)

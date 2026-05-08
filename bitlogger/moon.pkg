@@ -1,0 +1,7 @@
+import {
+  "moonbitlang/core/array",
+  "moonbitlang/core/builtin",
+  "moonbitlang/core/env" @env,
+  "moonbitlang/core/json",
+  "moonbitlang/core/ref",
+}
