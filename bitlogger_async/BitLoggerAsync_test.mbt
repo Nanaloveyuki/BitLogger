@@ -1,5 +1,6 @@
 async test "shutdown drains pending records" {
   let written : Ref[Array[String]] = Ref::new([])
+  let flushes : Ref[Int] = Ref::new(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(rec) {
       written.val.push(rec.message)
@@ -7,9 +8,15 @@ async test "shutdown drains pending records" {
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
+      max_batch=4,
+      flush=AsyncFlushPolicy::Batch,
     ),
     min_level=@bitlogger.Level::Info,
     target="async.test",
+    flush=fn(_) {
+      flushes.val += 1
+      1
+    },
   )
 
   @async.with_task_group(group => {
@@ -23,9 +30,15 @@ async test "shutdown drains pending records" {
   inspect(logger.is_running(), content="false")
   inspect(logger.has_failed(), content="false")
   inspect(logger.pending_count(), content="0")
+  inspect(match logger.flush_policy() {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Batch")
   inspect(written.val.length(), content="2")
   inspect(written.val[0], content="one")
   inspect(written.val[1], content="two")
+  inspect(flushes.val, content="1")
 }
 
 async test "close clear counts abandoned records as dropped" {
@@ -77,15 +90,23 @@ test "async logger config stringify roundtrips stable fields" {
     AsyncLoggerConfig::new(
       max_pending=8,
       overflow=AsyncOverflowPolicy::DropOldest,
+      max_batch=3,
+      flush=AsyncFlushPolicy::Batch,
     ),
   )
   let config = parse_async_logger_config_text(text)
   inspect(config.max_pending, content="8")
+  inspect(config.max_batch, content="3")
   inspect(match config.overflow {
     AsyncOverflowPolicy::Blocking => "Blocking"
     AsyncOverflowPolicy::DropOldest => "DropOldest"
     AsyncOverflowPolicy::DropNewest => "DropNewest"
   }, content="DropOldest")
+  inspect(match config.flush {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Batch")
 }
 
 test "async build config stringify roundtrips nested logger and async fields" {
@@ -100,6 +121,8 @@ test "async build config stringify roundtrips nested logger and async fields" {
       async_config=AsyncLoggerConfig::new(
         max_pending=2,
         overflow=AsyncOverflowPolicy::DropNewest,
+        max_batch=5,
+        flush=AsyncFlushPolicy::Shutdown,
       ),
     ),
   )
@@ -108,9 +131,15 @@ test "async build config stringify roundtrips nested logger and async fields" {
   inspect(config.logger.target, content="async.roundtrip")
   inspect(config.logger.timestamp, content="true")
   inspect(config.async_config.max_pending, content="2")
+  inspect(config.async_config.max_batch, content="5")
   inspect(match config.async_config.overflow {
     AsyncOverflowPolicy::Blocking => "Blocking"
     AsyncOverflowPolicy::DropOldest => "DropOldest"
     AsyncOverflowPolicy::DropNewest => "DropNewest"
   }, content="DropNewest")
+  inspect(match config.async_config.flush {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
 }

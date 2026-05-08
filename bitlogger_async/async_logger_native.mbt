@@ -8,16 +8,31 @@ pub(all) enum AsyncOverflowPolicy {
   DropNewest
 }
 
+pub(all) enum AsyncFlushPolicy {
+  Never
+  Batch
+  Shutdown
+}
+
 pub struct AsyncLoggerConfig {
   max_pending : Int
   overflow : AsyncOverflowPolicy
+  max_batch : Int
+  flush : AsyncFlushPolicy
 }
 
 pub fn AsyncLoggerConfig::new(
   max_pending~ : Int = 0,
   overflow~ : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
+  max_batch~ : Int = 1,
+  flush~ : AsyncFlushPolicy = AsyncFlushPolicy::Never,
 ) -> AsyncLoggerConfig {
-  { max_pending, overflow }
+  {
+    max_pending,
+    overflow,
+    max_batch: if max_batch <= 1 { 1 } else { max_batch },
+    flush,
+  }
 }
 
 fn parse_async_overflow(name : String) -> AsyncOverflowPolicy raise {
@@ -27,6 +42,16 @@ fn parse_async_overflow(name : String) -> AsyncOverflowPolicy raise {
     "DROPLATEST" => AsyncOverflowPolicy::DropNewest
     "DROPNEWEST" => AsyncOverflowPolicy::DropNewest
     _ => raise Failure::Failure("Unsupported async overflow policy: " + name)
+  }
+}
+
+fn parse_async_flush(name : String) -> AsyncFlushPolicy raise {
+  match name.to_upper() {
+    "NEVER" => AsyncFlushPolicy::Never
+    "NONE" => AsyncFlushPolicy::Never
+    "BATCH" => AsyncFlushPolicy::Batch
+    "SHUTDOWN" => AsyncFlushPolicy::Shutdown
+    _ => raise Failure::Failure("Unsupported async flush policy: " + name)
   }
 }
 
@@ -50,16 +75,41 @@ pub fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise
     }
     None => AsyncOverflowPolicy::Blocking
   }
-  AsyncLoggerConfig::new(max_pending=max_pending, overflow=overflow)
+  let max_batch = match obj.get("max_batch") {
+    Some(value) => match value.as_number() {
+      Some(number) => number.to_int()
+      None => raise Failure::Failure("Expected number at async_config.max_batch")
+    }
+    None => 1
+  }
+  let flush = match obj.get("flush") {
+    Some(value) => match value.as_string() {
+      Some(text) => parse_async_flush(text)
+      None => raise Failure::Failure("Expected string at async_config.flush")
+    }
+    None => AsyncFlushPolicy::Never
+  }
+  AsyncLoggerConfig::new(
+    max_pending=max_pending,
+    overflow=overflow,
+    max_batch=max_batch,
+    flush=flush,
+  )
 }
 
 pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "max_pending": @json_parser.JsonValue::Number(config.max_pending.to_double()),
+    "max_batch": @json_parser.JsonValue::Number(config.max_batch.to_double()),
     "overflow": @json_parser.JsonValue::String(match config.overflow {
       AsyncOverflowPolicy::Blocking => "Blocking"
       AsyncOverflowPolicy::DropOldest => "DropOldest"
       AsyncOverflowPolicy::DropNewest => "DropNewest"
+    }),
+    "flush": @json_parser.JsonValue::String(match config.flush {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
     }),
   })
 }
@@ -128,7 +178,10 @@ pub struct AsyncLogger[S] {
   target : String
   timestamp : Bool
   overflow : AsyncOverflowPolicy
+  max_batch : Int
+  flush_policy : AsyncFlushPolicy
   sink : S
+  flush_sink : (S) -> Int
   context_fields : Array[@bitlogger.Field]
   filter : (@bitlogger.Record) -> Bool
   patch : @bitlogger.RecordPatch
@@ -146,13 +199,17 @@ pub fn[S] async_logger(
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
   target~ : String = "",
+  flush~ : (S) -> Int = fn(_) { 0 },
 ) -> AsyncLogger[S] {
   {
     min_level,
     target,
     timestamp: false,
     overflow: config.overflow,
+    max_batch: config.max_batch,
+    flush_policy: config.flush,
     sink,
+    flush_sink: flush,
     context_fields: [],
     filter: fn(_) { true },
     patch: @bitlogger.identity_patch(),
@@ -363,6 +420,10 @@ pub fn[S] AsyncLogger::last_error(self : AsyncLogger[S]) -> String {
   self.last_error.val
 }
 
+pub fn[S] AsyncLogger::flush_policy(self : AsyncLogger[S]) -> AsyncFlushPolicy {
+  self.flush_policy
+}
+
 pub fn[S] AsyncLogger::close(self : AsyncLogger[S], clear? : Bool = false) -> Unit {
   self.is_closed.val = true
   if clear {
@@ -410,6 +471,30 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
     if logger.pending_count.val > 0 {
       logger.pending_count.val -= 1
     }
+    for drained = 1; drained < logger.max_batch; {
+      let next = logger.queue.try_get() catch {
+        err if err is AsyncLoggerClosed => None
+        err => raise err
+      }
+      match next {
+        Some(next) => {
+          logger.sink.write(next)
+          if logger.pending_count.val > 0 {
+            logger.pending_count.val -= 1
+          }
+          continue drained + 1
+        }
+        None => break
+      }
+    }
+    match logger.flush_policy {
+      AsyncFlushPolicy::Batch => ignore((logger.flush_sink)(logger.sink))
+      _ => ()
+    }
+  }
+  match logger.flush_policy {
+    AsyncFlushPolicy::Shutdown => ignore((logger.flush_sink)(logger.sink))
+    _ => ()
   }
 }
 
@@ -437,6 +522,7 @@ pub fn build_async_logger(
     config=config.async_config,
     min_level=logger.min_level,
     target=logger.target,
+    flush=fn(sink) { sink.flush() },
   ).with_timestamp(enabled=logger.timestamp)
 }
 

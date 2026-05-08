@@ -8,16 +8,31 @@ pub(all) enum AsyncOverflowPolicy {
   DropNewest
 }
 
+pub(all) enum AsyncFlushPolicy {
+  Never
+  Batch
+  Shutdown
+}
+
 pub struct AsyncLoggerConfig {
   max_pending : Int
   overflow : AsyncOverflowPolicy
+  max_batch : Int
+  flush : AsyncFlushPolicy
 }
 
 pub fn AsyncLoggerConfig::new(
   max_pending~ : Int = 0,
   overflow~ : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
+  max_batch~ : Int = 1,
+  flush~ : AsyncFlushPolicy = AsyncFlushPolicy::Never,
 ) -> AsyncLoggerConfig {
-  { max_pending, overflow }
+  {
+    max_pending,
+    overflow,
+    max_batch: if max_batch <= 1 { 1 } else { max_batch },
+    flush,
+  }
 }
 
 pub struct AsyncLogger[S] {}
@@ -76,11 +91,13 @@ pub fn async_logger[S : @bitlogger.Sink](
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
   target~ : String = "",
+  flush~ : (S) -> Int = fn(_) { 0 },
 ) -> AsyncLogger[S] {
   ignore(sink)
   ignore(config)
   ignore(min_level)
   ignore(target)
+  ignore(flush)
   abort("bitlogger_async currently only supports native/llvm backends")
 }
 
@@ -170,6 +187,11 @@ pub fn[S] AsyncLogger::has_failed(self : AsyncLogger[S]) -> Bool {
 }
 
 pub fn[S] AsyncLogger::last_error(self : AsyncLogger[S]) -> String {
+  ignore(self)
+  abort("bitlogger_async currently only supports native/llvm backends")
+}
+
+pub fn[S] AsyncLogger::flush_policy(self : AsyncLogger[S]) -> AsyncFlushPolicy {
   ignore(self)
   abort("bitlogger_async currently only supports native/llvm backends")
 }
