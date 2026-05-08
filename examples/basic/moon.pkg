@@ -1,5 +1,5 @@
 import {
-  "miaom/BitLogger/bitlogger" @lib,
+  "Nanaloveyuki/BitLogger/bitlogger" @lib,
 }
 
 options(
