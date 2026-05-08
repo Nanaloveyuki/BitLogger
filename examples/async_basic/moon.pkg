@@ -1,0 +1,11 @@
+import {
+  "Nanaloveyuki/BitLogger/bitlogger" @lib,
+  "Nanaloveyuki/BitLogger/bitlogger_async" @lib_async,
+  "moonbitlang/async" @async,
+}
+
+supported_targets = "+native"
+
+options(
+  is_main: true,
+)

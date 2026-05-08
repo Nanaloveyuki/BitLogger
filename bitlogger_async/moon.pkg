@@ -1,0 +1,16 @@
+import {
+  "Nanaloveyuki/BitLogger/bitlogger" @bitlogger,
+  "moonbitlang/async" @async,
+  "moonbitlang/async/aqueue" @aqueue,
+  "moonbitlang/core/env" @env,
+  "moonbitlang/core/ref",
+}
+
+supported_targets = "+native"
+
+options(
+  targets: {
+    "async_logger_native.mbt": [ "native", "llvm" ],
+    "async_logger_stub.mbt": [ "js", "wasm", "wasm-gc" ],
+  },
+)

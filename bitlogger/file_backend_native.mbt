@@ -32,28 +32,28 @@ fn string_to_c_bytes(str : String) -> Bytes {
 }
 
 #external
-priv type NativeFileHandle
+type NativeFileHandle
 
 #borrow(path, mode)
-extern "c" fn file_open_ffi(path : Bytes, mode : Bytes) -> NativeFileHandle = "fopen"
+extern "C" fn file_open_ffi(path : Bytes, mode : Bytes) -> NativeFileHandle = "fopen"
 
-extern "c" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "%null?"
+extern "C" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "moonbitlang_async_pointer_is_null"
 
 #borrow(buffer)
-extern "c" fn file_write_ffi(
+extern "C" fn file_write_ffi(
   buffer : Bytes,
   size : Int,
   count : Int,
   handle : NativeFileHandle,
 ) -> Int = "fwrite"
 
-extern "c" fn file_flush_ffi(handle : NativeFileHandle) -> Int = "fflush"
+extern "C" fn file_flush_ffi(handle : NativeFileHandle) -> Int = "fflush"
 
-extern "c" fn file_close_ffi(handle : NativeFileHandle) -> Int = "fclose"
+extern "C" fn file_close_ffi(handle : NativeFileHandle) -> Int = "fclose"
 
 pub struct FileHandle {
-  raw : NativeFileHandle
   path : String
+  raw : NativeFileHandle
 }
 
 fn open_file_handle_internal(path : String, append : Bool) -> FileHandle? {
