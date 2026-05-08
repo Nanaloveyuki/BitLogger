@@ -1,2 +1,20 @@
-# MoonBit Dev Doc
-docs/dev/
+# MoonBit build artifacts
+_build/
+
+# Editor / IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local env / temp
+*.log
+*.tmp
+*.bak
+
+# Dev Documentations
+docs/dev/*
