@@ -2,20 +2,32 @@
 
 BitLogger is a minimal structured logger for MoonBit.
 
-## Features
+BitLogger 是一个基于 MoonBit 的结构化日志库。
+
+## Features / 特性
 
 - log levels: `Trace`, `Debug`, `Info`, `Warn`, `Error`
+- 日志级别：`Trace`、`Debug`、`Info`、`Warn`、`Error`
 - structured key-value fields
+- 结构化字段：`field("key", "value")`
 - sink abstraction
+- sink 抽象与组合边界
 - default global console logger
+- 默认全局 logger 辅助函数
 - context fields via `with_context_fields(...)`
+- 通过 `with_context_fields(...)` 添加上下文字段
 - child target composition via `child(...)`
+- 通过 `child(...)` 组合层级 target
 - optional timestamps via `with_timestamp()`
+- 通过 `with_timestamp()` 启用时间戳
 - JSON console output via `json_console_sink()`
+- `json_console_sink()` 提供 JSON 控制台输出
 - sink composition via `fanout_sink(...)`
+- `fanout_sink(...)` 支持多 sink 组合
 - custom callback sink via `callback_sink(...)`
+- `callback_sink(...)` 支持自定义外部集成
 
-## Example
+## Example / 示例
 
 ```mbt check
 test {
@@ -43,8 +55,22 @@ test {
 }
 ```
 
-## Notes
+```mbt check
+test {
+  let logger = Logger::new(console_sink(), target="app").child("worker")
+  logger.info("ready")
+}
+```
 
-Current MVP includes plain-text output, JSON console output, context fields, child target composition, and simple sink fanout.
-The intended public entry points are `Logger`, sink constructor helpers, `field(...)`, and the default global logger helpers.
-Next useful steps are file sink and buffered or async delivery.
+```mbt check
+test {
+  let logger = Logger::new(
+    callback_sink(fn(rec) {
+      println("callback saw [\{rec.target}] \{rec.message}")
+    }),
+    target="hook",
+  )
+  logger.info("hello")
+}
+```
+
