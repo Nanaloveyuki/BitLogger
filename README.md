@@ -181,3 +181,11 @@ if native_files_supported() {
 - 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.text_formatter`、`queue`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime
+
+## 🧵 异步层
+
+- 当前已新增独立 package：`bitlogger_async/`
+- 异步层基于 `moonbitlang/async`，提供 `AsyncLogger`、`async_logger(...)`、后台 `run()` worker 与有界 async queue
+- 当前 async API 已支持 `with_context_fields(...)`、`with_filter(...)`、`with_patch(...)`、`with_target(...)`、`child(...)`
+- 推荐启动方式见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
+- 这层目前仅面向 `native/llvm` backend；它是独立 adapter，不会污染现有同步 core

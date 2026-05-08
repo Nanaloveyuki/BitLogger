@@ -170,3 +170,11 @@ if native_files_supported() {
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.text_formatter`, and `queue`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
+
+## Async Layer
+
+- A separate `bitlogger_async/` package is now included.
+- It uses `moonbitlang/async` and provides `AsyncLogger`, `async_logger(...)`, a background `run()` worker, and bounded async queue delivery.
+- The current async API already supports `with_context_fields(...)`, `with_filter(...)`, `with_patch(...)`, `with_target(...)`, and `child(...)`.
+- The recommended startup pattern is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
+- This layer currently targets `native/llvm` only and remains isolated from the synchronous logger core.
