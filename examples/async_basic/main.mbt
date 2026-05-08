@@ -21,7 +21,6 @@ async fn main {
     logger.info("one", fields=[@lib.field("token", "secret")])
     logger.child("worker").info("two")
     logger.with_target("skip.demo").info("three")
-    logger.wait_idle()
-    logger.close()
+    logger.shutdown()
   })
 }

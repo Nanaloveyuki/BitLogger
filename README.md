@@ -187,6 +187,8 @@ if native_files_supported() {
 - 当前已新增独立 package：`bitlogger_async/`
 - 异步层基于 `moonbitlang/async`，提供 `AsyncLogger`、`async_logger(...)`、后台 `run()` worker 与有界 async queue
 - 当前 async API 已支持 `with_context_fields(...)`、`with_filter(...)`、`with_patch(...)`、`with_target(...)`、`child(...)`
+- 当前建议用 `shutdown()` 收口 worker；它会在默认模式下先等待队列清空，再关闭 queue 并等待 worker 退出
+- 当前已支持基础生命周期观测：`is_closed()`、`is_running()`、`has_failed()`、`last_error()`
 - 推荐启动方式见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
 - 这层目前仅面向 `native/llvm` backend；它是独立 adapter，不会污染现有同步 core
 

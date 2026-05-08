@@ -94,6 +94,10 @@ pub struct AsyncLogger[S] {
   queue : @async.Queue[@bitlogger.Record]
   pending_count : Ref[Int]
   dropped_count : Ref[Int]
+  is_closed : Ref[Bool]
+  is_running : Ref[Bool]
+  has_failed : Ref[Bool]
+  last_error : Ref[String]
 }
 
 pub fn[S] async_logger(
@@ -114,6 +118,10 @@ pub fn[S] async_logger(
     queue: @async.Queue::new(kind=queue_kind_of(config)),
     pending_count: Ref::new(0),
     dropped_count: Ref::new(0),
+    is_closed: Ref::new(false),
+    is_running: Ref::new(false),
+    has_failed: Ref::new(false),
+    last_error: Ref::new(""),
   }
 }
 
@@ -298,27 +306,82 @@ pub fn[S] AsyncLogger::dropped_count(self : AsyncLogger[S]) -> Int {
   self.dropped_count.val
 }
 
+pub fn[S] AsyncLogger::is_closed(self : AsyncLogger[S]) -> Bool {
+  self.is_closed.val
+}
+
+pub fn[S] AsyncLogger::is_running(self : AsyncLogger[S]) -> Bool {
+  self.is_running.val
+}
+
+pub fn[S] AsyncLogger::has_failed(self : AsyncLogger[S]) -> Bool {
+  self.has_failed.val
+}
+
+pub fn[S] AsyncLogger::last_error(self : AsyncLogger[S]) -> String {
+  self.last_error.val
+}
+
 pub fn[S] AsyncLogger::close(self : AsyncLogger[S], clear? : Bool = false) -> Unit {
+  self.is_closed.val = true
+  if clear {
+    let abandoned = self.pending_count.val
+    if abandoned > 0 {
+      self.dropped_count.val += abandoned
+      self.pending_count.val = 0
+    }
+  }
   self.queue.close(error=AsyncLoggerClosed, clear=clear)
 }
 
-pub async fn[S] AsyncLogger::wait_idle(self : AsyncLogger[S]) -> Unit {
-  while self.pending_count() > 0 {
+pub async fn[S] AsyncLogger::shutdown(self : AsyncLogger[S], clear? : Bool = false) -> Unit {
+  if clear {
+    self.close(clear=true)
+  } else {
+    self.wait_idle()
+    if self.pending_count() > 0 {
+      self.close(clear=true)
+    } else {
+      self.close()
+    }
+  }
+  while self.is_running() {
     @async.pause()
   }
 }
 
-pub async fn[S : @bitlogger.Sink] AsyncLogger::run(self : AsyncLogger[S]) -> Unit {
+pub async fn[S] AsyncLogger::wait_idle(self : AsyncLogger[S]) -> Unit {
+  while self.pending_count() > 0 && self.is_running() {
+    @async.pause()
+  }
+}
+
+async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
   while true {
-    let rec = self.queue.get() catch {
+    let rec = logger.queue.get() catch {
       err if err is AsyncLoggerClosed => break
       err => raise err
     }
-    self.sink.write(rec)
-    if self.pending_count.val > 0 {
-      self.pending_count.val -= 1
+    logger.sink.write(rec)
+    if logger.pending_count.val > 0 {
+      logger.pending_count.val -= 1
     }
   }
+}
+
+pub async fn[S : @bitlogger.Sink] AsyncLogger::run(self : AsyncLogger[S]) -> Unit {
+  self.is_running.val = true
+  self.has_failed.val = false
+  self.last_error.val = ""
+  run_worker(self) catch {
+    err => {
+      self.has_failed.val = true
+      self.last_error.val = err.to_string()
+      self.is_running.val = false
+      raise err
+    }
+  }
+  self.is_running.val = false
 }
 
 pub fn build_async_logger(

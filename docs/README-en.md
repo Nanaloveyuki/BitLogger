@@ -176,6 +176,8 @@ if native_files_supported() {
 - A separate `bitlogger_async/` package is now included.
 - It uses `moonbitlang/async` and provides `AsyncLogger`, `async_logger(...)`, a background `run()` worker, and bounded async queue delivery.
 - The current async API already supports `with_context_fields(...)`, `with_filter(...)`, `with_patch(...)`, `with_target(...)`, and `child(...)`.
+- `shutdown()` is now the recommended way to stop the async worker. By default it waits for the queue to drain, closes the queue, and then waits for the worker to exit.
+- Basic lifecycle observability is also available through `is_closed()`, `is_running()`, `has_failed()`, and `last_error()`.
 - The recommended startup pattern is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
 - This layer currently targets `native/llvm` only and remains isolated from the synchronous logger core.
 
