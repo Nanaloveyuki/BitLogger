@@ -189,12 +189,13 @@ if native_files_supported() {
 - 当前 async API 已支持 `with_context_fields(...)`、`with_filter(...)`、`with_patch(...)`、`with_target(...)`、`child(...)`
 - 当前建议用 `shutdown()` 收口 worker；它会在默认模式下先等待队列清空，再关闭 queue 并等待 worker 退出
 - 当前已支持基础生命周期观测：`is_closed()`、`is_running()`、`has_failed()`、`last_error()`
+- 当前 async worker 已支持 `max_batch` 批量消费，以及 `flush=Never|Batch|Shutdown` 的基础 flush 策略
 - 推荐启动方式见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
 - 这层目前仅面向 `native/llvm` backend；它是独立 adapter，不会污染现有同步 core
 
 ### Async Config
 
-- 当前已支持 `parse_async_logger_build_config_text(...)` 与 `build_async_logger(...)`
+- 当前已支持 `parse_async_logger_config_text(...)`、`stringify_async_logger_config(...)`、`parse_async_logger_build_config_text(...)` 与 `build_async_logger(...)`
 - JSON 顶层结构分为两个字段：`logger` 与 `async_config`
-- `logger` 完全复用同步 `LoggerConfig` 的 schema；`async_config` 当前支持 `max_pending` 与 `overflow`
+- `logger` 完全复用同步 `LoggerConfig` 的 schema；`async_config` 当前支持 `max_pending`、`overflow`、`max_batch` 与 `flush`
 - 当前推荐写法可直接参考 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)

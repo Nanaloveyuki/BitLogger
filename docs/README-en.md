@@ -178,12 +178,13 @@ if native_files_supported() {
 - The current async API already supports `with_context_fields(...)`, `with_filter(...)`, `with_patch(...)`, `with_target(...)`, and `child(...)`.
 - `shutdown()` is now the recommended way to stop the async worker. By default it waits for the queue to drain, closes the queue, and then waits for the worker to exit.
 - Basic lifecycle observability is also available through `is_closed()`, `is_running()`, `has_failed()`, and `last_error()`.
+- The async worker now supports batched queue draining via `max_batch` and basic flush policies through `flush=Never|Batch|Shutdown`.
 - The recommended startup pattern is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
 - This layer currently targets `native/llvm` only and remains isolated from the synchronous logger core.
 
 ### Async Config
 
-- `parse_async_logger_build_config_text(...)` and `build_async_logger(...)` are now available.
+- `parse_async_logger_config_text(...)`, `stringify_async_logger_config(...)`, `parse_async_logger_build_config_text(...)`, and `build_async_logger(...)` are now available.
 - The JSON root is split into `logger` and `async_config`.
-- `logger` fully reuses the synchronous `LoggerConfig` schema, while `async_config` currently supports `max_pending` and `overflow`.
+- `logger` fully reuses the synchronous `LoggerConfig` schema, while `async_config` currently supports `max_pending`, `overflow`, `max_batch`, and `flush`.
 - The recommended config-driven startup flow is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
