@@ -1,13 +1,13 @@
 {
   "name": "Nanaloveyuki/BitLogger",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "readme": "README.mbt.md",
-  "repository": "",
+  "repository": "https://github.com/Nanaloveyuki/BitLogger",
   "license": "MIT",
   "keywords": [
     "logger",
     "logging",
     "moonbit"
   ],
-  "description": "A minimal structured logger for MoonBit."
+  "description": "A structured logger for MoonBit."
 }
