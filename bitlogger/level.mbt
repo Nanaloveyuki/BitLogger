@@ -6,7 +6,7 @@ pub(all) enum Level {
   Error
 }
 
-fn Level::priority(self : Level) -> Int {
+pub fn Level::priority(self : Level) -> Int {
   match self {
     Level::Trace => 10
     Level::Debug => 20
@@ -26,6 +26,6 @@ pub fn Level::label(self : Level) -> String {
   }
 }
 
-fn Level::enabled(self : Level, min_level : Level) -> Bool {
+pub fn Level::enabled(self : Level, min_level : Level) -> Bool {
   self.priority() >= min_level.priority()
 }

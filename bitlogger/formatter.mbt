@@ -1,3 +1,25 @@
+pub type RecordFormatter = (Record) -> String
+
+pub struct TextFormatter {
+  show_timestamp : Bool
+  show_level : Bool
+  show_target : Bool
+  show_fields : Bool
+  separator : String
+  field_separator : String
+}
+
+pub fn text_formatter(
+  show_timestamp~ : Bool = true,
+  show_level~ : Bool = true,
+  show_target~ : Bool = true,
+  show_fields~ : Bool = true,
+  separator~ : String = " ",
+  field_separator~ : String = " ",
+) -> TextFormatter {
+  { show_timestamp, show_level, show_target, show_fields, separator, field_separator }
+}
+
 fn fields_to_json(fields : Array[Field]) -> Json {
   let obj : Map[String, Json] = {}
   for item in fields {
@@ -6,26 +28,32 @@ fn fields_to_json(fields : Array[Field]) -> Json {
   Json::object(obj)
 }
 
-fn format_record(rec : Record) -> String {
-  let prefix = if rec.timestamp_ms == 0UL {
-    "[\{rec.level.label()}]"
-  } else {
-    "[\{rec.timestamp_ms.to_string()}] [\{rec.level.label()}]"
+fn format_fields(fields : Array[Field], separator : String) -> String {
+  fields.map(fn(f) { "\{f.key}=\{f.value}" }).join(separator)
+}
+
+pub fn format_text(rec : Record, formatter~ : TextFormatter = text_formatter()) -> String {
+  let parts : Array[String] = []
+  if formatter.show_timestamp && rec.timestamp_ms != 0UL {
+    parts.push("[\{rec.timestamp_ms.to_string()}]")
   }
-  let base = if rec.target == "" {
-    "\{prefix} \{rec.message}"
-  } else {
-    "\{prefix} [\{rec.target}] \{rec.message}"
+  if formatter.show_level {
+    parts.push("[\{rec.level.label()}]")
   }
-  if rec.fields.length() == 0 {
+  if formatter.show_target && rec.target != "" {
+    parts.push("[\{rec.target}]")
+  }
+  parts.push(rec.message)
+  let base = parts.join(formatter.separator)
+  if !formatter.show_fields || rec.fields.length() == 0 {
     base
   } else {
-    let details = rec.fields.map(fn(f) { "\{f.key}=\{f.value}" }).join(" ")
-    "\{base} \{details}"
+    let details = format_fields(rec.fields, formatter.field_separator)
+    "\{base}\{formatter.separator}\{details}"
   }
 }
 
-fn format_record_json(rec : Record) -> String {
+pub fn format_json(rec : Record) -> String {
   let obj : Map[String, Json] = {
     "level": Json::string(rec.level.label()),
     "message": Json::string(rec.message),
