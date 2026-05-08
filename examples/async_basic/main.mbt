@@ -1,14 +1,14 @@
 async fn main {
-  let logger = @lib_async.async_logger(
-    @lib.text_console_sink(@lib.text_formatter(show_timestamp=false, separator=" | ")),
-    config=@lib_async.AsyncLoggerConfig::new(
-      max_pending=2,
-      overflow=@lib_async.AsyncOverflowPolicy::DropOldest,
-    ),
-    min_level=@lib.Level::Info,
-    target="async.demo",
-  )
-    .with_timestamp()
+  let config = @lib_async.parse_async_logger_build_config_text(
+    "{\"logger\":{\"min_level\":\"info\",\"target\":\"async.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"separator\":\" | \"}}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  ) catch {
+    err => {
+      ignore(err)
+      return
+    }
+  }
+
+  let logger = @lib_async.build_async_logger(config)
     .with_context_fields([@lib.field("service", "bitlogger")])
     .with_filter(@lib.target_has_prefix("async"))
     .with_patch(@lib.compose_patches([

@@ -20,6 +20,68 @@ pub fn AsyncLoggerConfig::new(
   { max_pending, overflow }
 }
 
+fn parse_async_overflow(name : String) -> AsyncOverflowPolicy raise {
+  match name.to_upper() {
+    "BLOCKING" => AsyncOverflowPolicy::Blocking
+    "DROPOLDEST" => AsyncOverflowPolicy::DropOldest
+    "DROPLATEST" => AsyncOverflowPolicy::DropNewest
+    "DROPNEWEST" => AsyncOverflowPolicy::DropNewest
+    _ => raise Failure::Failure("Unsupported async overflow policy: " + name)
+  }
+}
+
+fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise {
+  let root = @json_parser.parse(input)
+  let obj = match root.as_object() {
+    Some(obj) => obj
+    None => raise Failure::Failure("Expected object for async logger config")
+  }
+  let max_pending = match obj.get("max_pending") {
+    Some(value) => match value.as_number() {
+      Some(number) => number.to_int()
+      None => raise Failure::Failure("Expected number at async_config.max_pending")
+    }
+    None => 0
+  }
+  let overflow = match obj.get("overflow") {
+    Some(value) => match value.as_string() {
+      Some(text) => parse_async_overflow(text)
+      None => raise Failure::Failure("Expected string at async_config.overflow")
+    }
+    None => AsyncOverflowPolicy::Blocking
+  }
+  AsyncLoggerConfig::new(max_pending=max_pending, overflow=overflow)
+}
+
+pub struct AsyncLoggerBuildConfig {
+  logger : @bitlogger.LoggerConfig
+  async_config : AsyncLoggerConfig
+}
+
+pub fn AsyncLoggerBuildConfig::new(
+  logger~ : @bitlogger.LoggerConfig = @bitlogger.default_logger_config(),
+  async_config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
+) -> AsyncLoggerBuildConfig {
+  { logger, async_config }
+}
+
+pub fn parse_async_logger_build_config_text(input : String) -> AsyncLoggerBuildConfig raise {
+  let root = @json_parser.parse(input)
+  let obj = match root.as_object() {
+    Some(obj) => obj
+    None => raise Failure::Failure("Expected object at async logger build config root")
+  }
+  let logger = match obj.get("logger") {
+    Some(value) => @bitlogger.parse_logger_config_text(@json_parser.stringify(value))
+    None => @bitlogger.default_logger_config()
+  }
+  let async_config = match obj.get("async_config") {
+    Some(value) => parse_async_logger_config_text(@json_parser.stringify(value))
+    None => AsyncLoggerConfig::new()
+  }
+  AsyncLoggerBuildConfig::new(logger=logger, async_config=async_config)
+}
+
 pub struct AsyncLogger[S] {
   min_level : @bitlogger.Level
   target : String
@@ -257,4 +319,25 @@ pub async fn[S : @bitlogger.Sink] AsyncLogger::run(self : AsyncLogger[S]) -> Uni
       self.pending_count.val -= 1
     }
   }
+}
+
+pub fn build_async_logger(
+  config : AsyncLoggerBuildConfig,
+) -> AsyncLogger[@bitlogger.RuntimeSink] {
+  let logger = @bitlogger.build_logger(config.logger)
+  async_logger(
+    logger.sink,
+    config=config.async_config,
+    min_level=logger.min_level,
+    target=logger.target,
+  ).with_timestamp(enabled=logger.timestamp)
+}
+
+pub fn build_async_text_logger(config : AsyncLoggerBuildConfig) -> AsyncLogger[@bitlogger.FormattedConsoleSink] {
+  async_logger(
+    @bitlogger.text_console_sink(config.logger.sink.text_formatter.to_formatter()),
+    config=config.async_config,
+    min_level=config.logger.min_level,
+    target=config.logger.target,
+  ).with_timestamp(enabled=config.logger.timestamp)
 }
