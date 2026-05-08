@@ -189,3 +189,10 @@ if native_files_supported() {
 - 当前 async API 已支持 `with_context_fields(...)`、`with_filter(...)`、`with_patch(...)`、`with_target(...)`、`child(...)`
 - 推荐启动方式见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
 - 这层目前仅面向 `native/llvm` backend；它是独立 adapter，不会污染现有同步 core
+
+### Async Config
+
+- 当前已支持 `parse_async_logger_build_config_text(...)` 与 `build_async_logger(...)`
+- JSON 顶层结构分为两个字段：`logger` 与 `async_config`
+- `logger` 完全复用同步 `LoggerConfig` 的 schema；`async_config` 当前支持 `max_pending` 与 `overflow`
+- 当前推荐写法可直接参考 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)

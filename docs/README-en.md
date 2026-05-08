@@ -178,3 +178,10 @@ if native_files_supported() {
 - The current async API already supports `with_context_fields(...)`, `with_filter(...)`, `with_patch(...)`, `with_target(...)`, and `child(...)`.
 - The recommended startup pattern is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
 - This layer currently targets `native/llvm` only and remains isolated from the synchronous logger core.
+
+### Async Config
+
+- `parse_async_logger_build_config_text(...)` and `build_async_logger(...)` are now available.
+- The JSON root is split into `logger` and `async_config`.
+- `logger` fully reuses the synchronous `LoggerConfig` schema, while `async_config` currently supports `max_pending` and `overflow`.
+- The recommended config-driven startup flow is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
