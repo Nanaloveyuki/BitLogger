@@ -100,4 +100,16 @@ fn main {
   queued_logger.info("queued two")
   queued_logger.info("queued three")
   ignore(queued_logger.sink.flush())
+
+  let config_logger = @lib.parse_and_build_logger(
+    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  ) catch {
+    err => {
+      ignore(err)
+      println("config error")
+      return
+    }
+  }
+  config_logger.info("configured from json")
+  ignore(config_logger.flush())
 }

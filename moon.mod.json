@@ -1,6 +1,9 @@
 {
   "name": "Nanaloveyuki/BitLogger",
   "version": "0.2.0",
+  "deps": {
+    "maria/json_parser": "0.1.1"
+  },
   "readme": "README.mbt.md",
   "repository": "https://github.com/Nanaloveyuki/BitLogger",
   "license": "MIT",
