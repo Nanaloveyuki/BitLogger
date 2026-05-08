@@ -138,6 +138,21 @@ logger.info("hello", fields=[field("mode", "pretty")])
 
 </details>
 
+<details><summary>JSON 配置加载示例</summary>
+
+```moonbit
+let config = parse_logger_config_text(
+  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+)
+
+let logger = build_logger(config)
+
+logger.info("configured from json")
+ignore(logger.flush())
+```
+
+</details>
+
 <details><summary>native 文件 sink 示例</summary>
 
 ```moonbit
@@ -159,3 +174,10 @@ if native_files_supported() {
 
 - [Mooncake 文档页](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
 - [English README](./docs/README-en.md)
+
+## 📝 配置说明
+
+- 当前提供 JSON 配置层：`parse_logger_config_text(...)`、`stringify_logger_config(...)`、`build_logger(...)`
+- 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.text_formatter`、`queue`
+- 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
+- `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime

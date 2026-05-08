@@ -38,6 +38,10 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - 支持 `queued_sink(...)`、`with_queue(...)`、有界积压与溢出策略
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, and `text_console_sink(...)`
 - 支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)` 等文本格式化能力
+- JSON config parsing via `parse_logger_config_text(...)` and `stringify_logger_config(...)`
+- 支持 `parse_logger_config_text(...)`、`stringify_logger_config(...)` 进行最小 JSON 配置读写
+- config-driven logger assembly via `build_logger(...)`
+- 支持 `build_logger(...)` 将配置组装为可直接使用的 logger
 - native-only file output via `file_sink(...)`
 - 支持 `file_sink(...)`，但当前仅保证 `native/llvm` backend 可用
 
@@ -143,6 +147,17 @@ test {
   let formatter = text_formatter(show_timestamp=false, separator=" | ")
   let logger = Logger::new(text_console_sink(formatter), target="pretty")
   logger.info("hello", fields=[field("mode", "pretty")])
+}
+```
+
+```mbt check
+test {
+  let config = parse_logger_config_text(
+    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  )
+  let logger = build_logger(config)
+  logger.info("configured from json")
+  ignore(logger.flush())
 }
 ```
 

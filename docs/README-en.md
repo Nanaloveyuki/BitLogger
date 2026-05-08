@@ -130,6 +130,19 @@ let logger = Logger::new(text_console_sink(formatter), target="pretty")
 logger.info("hello", fields=[field("mode", "pretty")])
 ```
 
+JSON config loading:
+
+```moonbit
+let config = parse_logger_config_text(
+  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+)
+
+let logger = build_logger(config)
+
+logger.info("configured from json")
+ignore(logger.flush())
+```
+
 Native file sink:
 
 ```moonbit
@@ -150,3 +163,10 @@ if native_files_supported() {
 
 - [Mooncake package page](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
 - [Chinese README](../README.md)
+
+## Config Notes
+
+- BitLogger now includes a JSON config layer via `parse_logger_config_text(...)`, `stringify_logger_config(...)`, and `build_logger(...)`.
+- Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.text_formatter`, and `queue`.
+- Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
+- `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
