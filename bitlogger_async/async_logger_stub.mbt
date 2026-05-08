@@ -39,6 +39,38 @@ pub fn parse_async_logger_build_config_text(input : String) -> AsyncLoggerBuildC
   abort("bitlogger_async currently only supports native/llvm backends")
 }
 
+pub fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise {
+  ignore(input)
+  abort("bitlogger_async currently only supports native/llvm backends")
+}
+
+pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.JsonValue {
+  ignore(config)
+  abort("bitlogger_async currently only supports native/llvm backends")
+}
+
+pub fn stringify_async_logger_config(config : AsyncLoggerConfig, pretty~ : Bool = false) -> String {
+  ignore(config)
+  ignore(pretty)
+  abort("bitlogger_async currently only supports native/llvm backends")
+}
+
+pub fn async_logger_build_config_to_json(
+  config : AsyncLoggerBuildConfig,
+) -> @json_parser.JsonValue {
+  ignore(config)
+  abort("bitlogger_async currently only supports native/llvm backends")
+}
+
+pub fn stringify_async_logger_build_config(
+  config : AsyncLoggerBuildConfig,
+  pretty~ : Bool = false,
+) -> String {
+  ignore(config)
+  ignore(pretty)
+  abort("bitlogger_async currently only supports native/llvm backends")
+}
+
 pub fn async_logger[S : @bitlogger.Sink](
   sink : S,
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),

@@ -30,7 +30,7 @@ fn parse_async_overflow(name : String) -> AsyncOverflowPolicy raise {
   }
 }
 
-fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise {
+pub fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise {
   let root = @json_parser.parse(input)
   let obj = match root.as_object() {
     Some(obj) => obj
@@ -51,6 +51,26 @@ fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise {
     None => AsyncOverflowPolicy::Blocking
   }
   AsyncLoggerConfig::new(max_pending=max_pending, overflow=overflow)
+}
+
+pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.JsonValue {
+  @json_parser.JsonValue::Object({
+    "max_pending": @json_parser.JsonValue::Number(config.max_pending.to_double()),
+    "overflow": @json_parser.JsonValue::String(match config.overflow {
+      AsyncOverflowPolicy::Blocking => "Blocking"
+      AsyncOverflowPolicy::DropOldest => "DropOldest"
+      AsyncOverflowPolicy::DropNewest => "DropNewest"
+    }),
+  })
+}
+
+pub fn stringify_async_logger_config(config : AsyncLoggerConfig, pretty~ : Bool = false) -> String {
+  let value = async_logger_config_to_json(config)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
 }
 
 pub struct AsyncLoggerBuildConfig {
@@ -80,6 +100,27 @@ pub fn parse_async_logger_build_config_text(input : String) -> AsyncLoggerBuildC
     None => AsyncLoggerConfig::new()
   }
   AsyncLoggerBuildConfig::new(logger=logger, async_config=async_config)
+}
+
+pub fn async_logger_build_config_to_json(
+  config : AsyncLoggerBuildConfig,
+) -> @json_parser.JsonValue {
+  @json_parser.JsonValue::Object({
+    "logger": @bitlogger.logger_config_to_json(config.logger),
+    "async_config": async_logger_config_to_json(config.async_config),
+  })
+}
+
+pub fn stringify_async_logger_build_config(
+  config : AsyncLoggerBuildConfig,
+  pretty~ : Bool = false,
+) -> String {
+  let value = async_logger_build_config_to_json(config)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
 }
 
 pub struct AsyncLogger[S] {
@@ -351,7 +392,10 @@ pub async fn[S] AsyncLogger::shutdown(self : AsyncLogger[S], clear? : Bool = fal
 }
 
 pub async fn[S] AsyncLogger::wait_idle(self : AsyncLogger[S]) -> Unit {
-  while self.pending_count() > 0 && self.is_running() {
+  while self.pending_count() > 0 {
+    if self.has_failed() {
+      break
+    }
     @async.pause()
   }
 }
