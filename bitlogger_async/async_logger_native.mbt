@@ -18,6 +18,7 @@ pub struct AsyncLoggerConfig {
   max_pending : Int
   overflow : AsyncOverflowPolicy
   max_batch : Int
+  linger_ms : Int
   flush : AsyncFlushPolicy
 }
 
@@ -25,12 +26,14 @@ pub fn AsyncLoggerConfig::new(
   max_pending~ : Int = 0,
   overflow~ : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
   max_batch~ : Int = 1,
+  linger_ms~ : Int = 0,
   flush~ : AsyncFlushPolicy = AsyncFlushPolicy::Never,
 ) -> AsyncLoggerConfig {
   {
     max_pending,
     overflow,
     max_batch: if max_batch <= 1 { 1 } else { max_batch },
+    linger_ms: if linger_ms < 0 { 0 } else { linger_ms },
     flush,
   }
 }
@@ -82,6 +85,13 @@ pub fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise
     }
     None => 1
   }
+  let linger_ms = match obj.get("linger_ms") {
+    Some(value) => match value.as_number() {
+      Some(number) => number.to_int()
+      None => raise Failure::Failure("Expected number at async_config.linger_ms")
+    }
+    None => 0
+  }
   let flush = match obj.get("flush") {
     Some(value) => match value.as_string() {
       Some(text) => parse_async_flush(text)
@@ -93,6 +103,7 @@ pub fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise
     max_pending=max_pending,
     overflow=overflow,
     max_batch=max_batch,
+    linger_ms=linger_ms,
     flush=flush,
   )
 }
@@ -101,6 +112,7 @@ pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.J
   @json_parser.JsonValue::Object({
     "max_pending": @json_parser.JsonValue::Number(config.max_pending.to_double()),
     "max_batch": @json_parser.JsonValue::Number(config.max_batch.to_double()),
+    "linger_ms": @json_parser.JsonValue::Number(config.linger_ms.to_double()),
     "overflow": @json_parser.JsonValue::String(match config.overflow {
       AsyncOverflowPolicy::Blocking => "Blocking"
       AsyncOverflowPolicy::DropOldest => "DropOldest"
@@ -179,6 +191,7 @@ pub struct AsyncLogger[S] {
   timestamp : Bool
   overflow : AsyncOverflowPolicy
   max_batch : Int
+  linger_ms : Int
   flush_policy : AsyncFlushPolicy
   sink : S
   flush_sink : (S) -> Int
@@ -207,6 +220,7 @@ pub fn[S] async_logger(
     timestamp: false,
     overflow: config.overflow,
     max_batch: config.max_batch,
+    linger_ms: config.linger_ms,
     flush_policy: config.flush,
     sink,
     flush_sink: flush,
@@ -484,7 +498,25 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
           }
           continue drained + 1
         }
-        None => break
+        None => {
+          if logger.linger_ms <= 0 {
+            break
+          }
+          let waited = @async.with_timeout_opt(logger.linger_ms, () => logger.queue.get()) catch {
+            err if err is AsyncLoggerClosed => None
+            err => raise err
+          }
+          match waited {
+            Some(next) => {
+              logger.sink.write(next)
+              if logger.pending_count.val > 0 {
+                logger.pending_count.val -= 1
+              }
+              continue drained + 1
+            }
+            None => break
+          }
+        }
       }
     }
     match logger.flush_policy {

@@ -18,6 +18,7 @@ pub struct AsyncLoggerConfig {
   max_pending : Int
   overflow : AsyncOverflowPolicy
   max_batch : Int
+  linger_ms : Int
   flush : AsyncFlushPolicy
 }
 
@@ -25,12 +26,14 @@ pub fn AsyncLoggerConfig::new(
   max_pending~ : Int = 0,
   overflow~ : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
   max_batch~ : Int = 1,
+  linger_ms~ : Int = 0,
   flush~ : AsyncFlushPolicy = AsyncFlushPolicy::Never,
 ) -> AsyncLoggerConfig {
   {
     max_pending,
     overflow,
     max_batch: if max_batch <= 1 { 1 } else { max_batch },
+    linger_ms: if linger_ms < 0 { 0 } else { linger_ms },
     flush,
   }
 }

@@ -9,6 +9,7 @@ async test "shutdown drains pending records" {
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
       max_batch=4,
+      linger_ms=10,
       flush=AsyncFlushPolicy::Batch,
     ),
     min_level=@bitlogger.Level::Info,
@@ -91,12 +92,14 @@ test "async logger config stringify roundtrips stable fields" {
       max_pending=8,
       overflow=AsyncOverflowPolicy::DropOldest,
       max_batch=3,
+      linger_ms=25,
       flush=AsyncFlushPolicy::Batch,
     ),
   )
   let config = parse_async_logger_config_text(text)
   inspect(config.max_pending, content="8")
   inspect(config.max_batch, content="3")
+  inspect(config.linger_ms, content="25")
   inspect(match config.overflow {
     AsyncOverflowPolicy::Blocking => "Blocking"
     AsyncOverflowPolicy::DropOldest => "DropOldest"
@@ -122,6 +125,7 @@ test "async build config stringify roundtrips nested logger and async fields" {
         max_pending=2,
         overflow=AsyncOverflowPolicy::DropNewest,
         max_batch=5,
+        linger_ms=40,
         flush=AsyncFlushPolicy::Shutdown,
       ),
     ),
@@ -132,6 +136,7 @@ test "async build config stringify roundtrips nested logger and async fields" {
   inspect(config.logger.timestamp, content="true")
   inspect(config.async_config.max_pending, content="2")
   inspect(config.async_config.max_batch, content="5")
+  inspect(config.async_config.linger_ms, content="40")
   inspect(match config.async_config.overflow {
     AsyncOverflowPolicy::Blocking => "Blocking"
     AsyncOverflowPolicy::DropOldest => "DropOldest"
