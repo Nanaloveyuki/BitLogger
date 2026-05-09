@@ -45,9 +45,25 @@ pub impl Sink for JsonConsoleSink with write(self, rec) {
 }
 
 pub struct FileSink {
+  path : String
+  append : Bool
   handle : Ref[FileHandle?]
   formatter : RecordFormatter
   auto_flush : Bool
+  rotation : FileRotation?
+  rotation_failures : Ref[Int]
+}
+
+pub struct FileRotation {
+  max_bytes : Int
+  max_backups : Int
+}
+
+pub fn file_rotation(max_bytes : Int, max_backups~ : Int = 1) -> FileRotation {
+  {
+    max_bytes: if max_bytes <= 0 { 1 } else { max_bytes },
+    max_backups: if max_backups <= 0 { 1 } else { max_backups },
+  }
 }
 
 pub fn native_files_supported() -> Bool {
@@ -58,14 +74,19 @@ pub fn file_sink(
   path : String,
   append~ : Bool = true,
   auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
   formatter~ : RecordFormatter = fn(rec) {
     format_text(rec)
   },
 ) -> FileSink {
   {
+    path,
+    append,
     handle: Ref::new(open_file_handle_internal(path, append)),
     formatter,
     auto_flush,
+    rotation,
+    rotation_failures: Ref::new(0),
   }
 }
 
@@ -91,14 +112,79 @@ pub fn FileSink::close(self : FileSink) -> Bool {
   }
 }
 
+pub fn FileSink::rotation_failures(self : FileSink) -> Int {
+  self.rotation_failures.val
+}
+
+fn rotated_file_path(path : String, index : Int) -> String {
+  "\{path}.\{index}"
+}
+
+fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
+  let closed = match sink.handle.val {
+    None => true
+    Some(handle) => {
+      let ok = close_file_handle_internal(handle)
+      sink.handle.val = None
+      ok
+    }
+  }
+  if !closed {
+    return false
+  }
+  if rotation.max_backups > 0 {
+    ignore(remove_file_internal(rotated_file_path(sink.path, rotation.max_backups)))
+    for index = rotation.max_backups - 1; index >= 1; {
+      let from_path = rotated_file_path(sink.path, index)
+      let to_path = rotated_file_path(sink.path, index + 1)
+      ignore(rename_file_internal(from_path, to_path))
+      continue index - 1
+    }
+    ignore(rename_file_internal(sink.path, rotated_file_path(sink.path, 1)))
+  } else {
+    ignore(remove_file_internal(sink.path))
+  }
+  sink.handle.val = open_file_handle_internal(sink.path, false)
+  sink.handle.val is Some(_)
+}
+
+fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
+  match sink.rotation {
+    None => true
+    Some(rotation) => match sink.handle.val {
+      None => false
+      Some(handle) => {
+        let size = file_size_internal(handle)
+        if size + next_line_bytes <= rotation.max_bytes {
+          true
+        } else {
+          let rotated = rotate_file_sink_internal(sink, rotation)
+          if !rotated {
+            sink.rotation_failures.val += 1
+          }
+          rotated
+        }
+      }
+    }
+  }
+}
+
 pub impl Sink for FileSink with write(self, rec) {
   match self.handle.val {
     None => ()
-    Some(handle) => {
+    Some(_) => {
       let line = "\{(self.formatter)(rec)}\n"
-      ignore(write_file_handle_internal(handle, line))
-      if self.auto_flush {
-        ignore(flush_file_handle_internal(handle))
+      let can_write = rotate_if_needed_internal(self, string_byte_length_internal(line))
+      if can_write {
+        match self.handle.val {
+          None => ()
+          Some(active) => {
+            ignore(write_file_handle_internal(active, line))
+            if self.auto_flush {
+              ignore(flush_file_handle_internal(active))
+            }
+          }
+        }
       }
     }
   }

@@ -62,6 +62,24 @@ test "logger config parser reads formatter and queue options" {
   }
 }
 
+test "logger config parser reads file rotation options" {
+  let config = parse_logger_config_text(
+    "{\"sink\":{\"kind\":\"file\",\"path\":\"bitlogger.log\",\"rotation\":{\"max_bytes\":128,\"max_backups\":3}}}",
+  )
+  inspect(match config.sink.kind {
+    SinkKind::File => "File"
+    _ => "other"
+  }, content="File")
+  inspect(config.sink.path, content="bitlogger.log")
+  match config.sink.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="128")
+      inspect(rotation.max_backups, content="3")
+    }
+    None => inspect(false, content="true")
+  }
+}
+
 test "logger config stringify roundtrips stable fields" {
   let text = stringify_logger_config(
     LoggerConfig::new(
@@ -89,6 +107,27 @@ test "logger config stringify roundtrips stable fields" {
   inspect(config.timestamp, content="true")
   inspect(config.sink.text_formatter.separator, content=" | ")
   inspect(config.sink.text_formatter.template, content="[{level}] {target} {message}")
+}
+
+test "logger config stringify roundtrips file rotation fields" {
+  let text = stringify_logger_config(
+    LoggerConfig::new(
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="bitlogger.log",
+        rotation=Some(file_rotation(256, max_backups=2)),
+      ),
+    ),
+  )
+  let config = parse_logger_config_text(text)
+  inspect(config.sink.path, content="bitlogger.log")
+  match config.sink.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="256")
+      inspect(rotation.max_backups, content="2")
+    }
+    None => inspect(false, content="true")
+  }
 }
 
 test "build logger from config supports queued text console" {

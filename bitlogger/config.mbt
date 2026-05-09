@@ -68,6 +68,7 @@ pub struct SinkConfig {
   path : String
   append : Bool
   auto_flush : Bool
+  rotation : FileRotation?
   text_formatter : TextFormatterConfig
 }
 
@@ -76,6 +77,7 @@ pub fn SinkConfig::new(
   path~ : String = "",
   append~ : Bool = true,
   auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
   text_formatter~ : TextFormatterConfig = default_text_formatter_config(),
 ) -> SinkConfig {
   {
@@ -83,6 +85,7 @@ pub fn SinkConfig::new(
     path,
     append,
     auto_flush,
+    rotation,
     text_formatter,
   }
 }
@@ -360,6 +363,14 @@ fn parse_queue_config(value : @json_parser.JsonValue) -> QueueConfig raise Confi
   )
 }
 
+fn parse_file_rotation_config(value : @json_parser.JsonValue) -> FileRotation raise ConfigError {
+  let obj = expect_object(value, "sink.rotation")
+  file_rotation(
+    get_int(obj, "max_bytes", default=1),
+    max_backups=get_int(obj, "max_backups", default=1),
+  )
+}
+
 fn parse_sink_config(value : @json_parser.JsonValue) -> SinkConfig raise ConfigError {
   let obj = expect_object(value, "sink")
   let kind = parse_sink_kind(get_string(obj, "kind", default="console"))
@@ -379,6 +390,10 @@ fn parse_sink_config(value : @json_parser.JsonValue) -> SinkConfig raise ConfigE
     path=path,
     append=get_bool(obj, "append", default=true),
     auto_flush=get_bool(obj, "auto_flush", default=true),
+    rotation=match obj.get("rotation") {
+      None => None
+      Some(inner) => Some(parse_file_rotation_config(inner))
+    },
     text_formatter=formatter,
   )
 }
@@ -425,14 +440,26 @@ fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.J
   })
 }
 
-fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
+fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
+    "max_bytes": @json_parser.JsonValue::Number(config.max_bytes.to_double()),
+    "max_backups": @json_parser.JsonValue::Number(config.max_backups.to_double()),
+  })
+}
+
+fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
+  let obj : Map[String, @json_parser.JsonValue] = {
     "kind": @json_parser.JsonValue::String(sink_kind_label(config.kind)),
     "path": @json_parser.JsonValue::String(config.path),
     "append": @json_parser.JsonValue::Bool(config.append),
     "auto_flush": @json_parser.JsonValue::Bool(config.auto_flush),
     "text_formatter": text_formatter_config_to_json(config.text_formatter),
-  })
+  }
+  match config.rotation {
+    None => ()
+    Some(rotation) => obj["rotation"] = file_rotation_config_to_json(rotation)
+  }
+  @json_parser.JsonValue::Object(obj)
 }
 
 pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {
@@ -470,6 +497,7 @@ fn build_runtime_sink(config : SinkConfig) -> RuntimeSink {
         config.path,
         append=config.append,
         auto_flush=config.auto_flush,
+        rotation=config.rotation,
         formatter=fn(rec) {
           format_text(rec, formatter=config.text_formatter.to_formatter())
         },

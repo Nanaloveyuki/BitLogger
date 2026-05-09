@@ -99,6 +99,59 @@ test "file sink availability reflects backend support" {
   }
 }
 
+test "file sink rotation config normalizes invalid inputs" {
+  let rotation = file_rotation(0, max_backups=0)
+  inspect(rotation.max_bytes, content="1")
+  inspect(rotation.max_backups, content="1")
+}
+
+test "file sink tracks rotation failures on unavailable backend" {
+  let sink = file_sink("bitlogger-rotate.log", rotation=Some(file_rotation(1, max_backups=1)))
+  sink.write(record(Level::Info, "a"))
+  if sink.is_available() {
+    inspect(sink.rotation_failures(), content="0")
+    ignore(sink.close())
+  } else {
+    inspect(sink.rotation_failures(), content="0")
+  }
+}
+
+test "file sink can rotate on native backend" {
+  let path = "bitlogger-rotate-native.log"
+  ignore(remove_file_internal(path))
+  ignore(remove_file_internal(path + ".1"))
+  ignore(remove_file_internal(path + ".2"))
+  let sink = file_sink(
+    path,
+    auto_flush=true,
+    rotation=Some(file_rotation(20, max_backups=2)),
+    formatter=fn(rec) { rec.message },
+  )
+  if sink.is_available() {
+    sink.write(record(Level::Info, "1234567890"))
+    sink.write(record(Level::Info, "abcdefghij"))
+    let current = open_file_handle_internal(path, true)
+    let rotated = open_file_handle_internal(path + ".1", true)
+    inspect(current is Some(_), content="true")
+    inspect(rotated is Some(_), content="true")
+    match current {
+      None => ()
+      Some(handle) => ignore(close_file_handle_internal(handle))
+    }
+    match rotated {
+      None => ()
+      Some(handle) => ignore(close_file_handle_internal(handle))
+    }
+    inspect(sink.rotation_failures(), content="0")
+    inspect(sink.close(), content="true")
+    ignore(remove_file_internal(path))
+    ignore(remove_file_internal(path + ".1"))
+    ignore(remove_file_internal(path + ".2"))
+  } else {
+    inspect(sink.rotation_failures(), content="0")
+  }
+}
+
 test "json formatter keeps structured shape" {
   let rec = record(
     Level::Error,

@@ -42,8 +42,8 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - 支持 `parse_logger_config_text(...)`、`stringify_logger_config(...)` 进行最小 JSON 配置读写
 - config-driven logger assembly via `build_logger(...)`
 - 支持 `build_logger(...)` 将配置组装为可直接使用的 logger
-- native-only file output via `file_sink(...)`
-- 支持 `file_sink(...)`，但当前仅保证 `native/llvm` backend 可用
+- native-only file output via `file_sink(...)`, with basic size rotation and backup retention
+- 支持 `file_sink(...)`、基础 size rotation 与 backup retention，但当前仅保证 `native/llvm` backend 可用
 
 ## Example / 示例
 
@@ -174,10 +174,19 @@ test {
 ```mbt check
 test {
   if native_files_supported() {
-    let logger = Logger::new(file_sink("bitlogger.log"), target="file")
+    let logger = Logger::new(
+      file_sink("bitlogger.log", rotation=Some(file_rotation(128, max_backups=2))),
+      target="file",
+    )
     logger.info("hello", fields=[field("kind", "file")])
     ignore(logger.sink.flush())
     ignore(logger.sink.close())
   }
 }
 ```
+
+## File Rotation / 文件轮转
+
+- basic rotation is size-based / 当前基础轮转为按文件大小触发
+- `file_rotation(max_bytes, max_backups=...)` controls threshold and retained backups / `file_rotation(max_bytes, max_backups=...)` 控制触发阈值和保留备份数
+- JSON config uses `sink.rotation.max_bytes` and `sink.rotation.max_backups` / JSON 配置使用 `sink.rotation.max_bytes` 与 `sink.rotation.max_backups`

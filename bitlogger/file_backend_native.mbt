@@ -51,6 +51,16 @@ extern "C" fn file_flush_ffi(handle : NativeFileHandle) -> Int = "fflush"
 
 extern "C" fn file_close_ffi(handle : NativeFileHandle) -> Int = "fclose"
 
+extern "C" fn file_seek_ffi(handle : NativeFileHandle, offset : Int, origin : Int) -> Int = "fseek"
+
+extern "C" fn file_tell_ffi(handle : NativeFileHandle) -> Int = "ftell"
+
+#borrow(from_path, to_path)
+extern "C" fn file_rename_ffi(from_path : Bytes, to_path : Bytes) -> Int = "rename"
+
+#borrow(path)
+extern "C" fn file_remove_ffi(path : Bytes) -> Int = "remove"
+
 pub struct FileHandle {
   path : String
   raw : NativeFileHandle
@@ -78,6 +88,28 @@ fn flush_file_handle_internal(handle : FileHandle) -> Bool {
 
 fn close_file_handle_internal(handle : FileHandle) -> Bool {
   file_close_ffi(handle.raw) == 0
+}
+
+fn file_size_internal(handle : FileHandle) -> Int {
+  ignore(file_seek_ffi(handle.raw, 0, 2))
+  let size = file_tell_ffi(handle.raw)
+  if size < 0 {
+    0
+  } else {
+    size
+  }
+}
+
+fn rename_file_internal(from_path : String, to_path : String) -> Bool {
+  file_rename_ffi(string_to_c_bytes(from_path), string_to_c_bytes(to_path)) == 0
+}
+
+fn remove_file_internal(path : String) -> Bool {
+  file_remove_ffi(string_to_c_bytes(path)) == 0
+}
+
+fn string_byte_length_internal(content : String) -> Int {
+  string_to_c_bytes(content).length() - 1
 }
 
 fn native_files_supported_internal() -> Bool {

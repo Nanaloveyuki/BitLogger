@@ -24,7 +24,7 @@ BitLogger currently provides:
 - bounded backlog with `QueueOverflowPolicy::DropNewest` and `QueueOverflowPolicy::DropOldest`
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
 - formatter-based callback integration via `formatted_callback_sink(...)`
-- native-only file output via `file_sink(...)`
+- native-only file output via `file_sink(...)`, with basic size rotation and backup retention
 - `native_files_supported()` for backend capability detection
 - default global logger helpers
 
@@ -151,7 +151,10 @@ Native file sink:
 
 ```moonbit
 if native_files_supported() {
-  let logger = Logger::new(file_sink("bitlogger.log"), target="file")
+  let logger = Logger::new(
+    file_sink("bitlogger.log", rotation=Some(file_rotation(128, max_backups=2))),
+    target="file",
+  )
   logger.info("hello", fields=[field("kind", "file")])
   ignore(logger.sink.flush())
   ignore(logger.sink.close())
@@ -171,7 +174,8 @@ if native_files_supported() {
 ## Config Notes
 
 - BitLogger now includes a JSON config layer via `parse_logger_config_text(...)`, `stringify_logger_config(...)`, and `build_logger(...)`.
-- Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.text_formatter`, and `queue`.
+- Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
+- `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.

@@ -49,7 +49,10 @@ fn main {
 
   if @lib.native_files_supported() {
     let file_logger = @lib.Logger::new(
-      @lib.file_sink("bitlogger-example.log"),
+      @lib.file_sink(
+        "bitlogger-example.log",
+        rotation=Some(@lib.file_rotation(128, max_backups=2)),
+      ),
       min_level=@lib.Level::Info,
       target="file",
     )
