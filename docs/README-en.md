@@ -22,7 +22,7 @@ BitLogger currently provides:
 - patch helpers such as `prefix_message(...)`, `append_fields(...)`, and `redact_fields(...)`
 - explicit queued delivery via `queued_sink(...)` and `with_queue(...)`
 - bounded backlog with `QueueOverflowPolicy::DropNewest` and `QueueOverflowPolicy::DropOldest`
-- configurable text formatting via `text_formatter(...)`, `format_text(...)`, and `text_console_sink(...)`
+- configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
 - formatter-based callback integration via `formatted_callback_sink(...)`
 - native-only file output via `file_sink(...)`
 - `native_files_supported()` for backend capability detection
@@ -124,7 +124,11 @@ ignore(logger.sink.flush())
 Custom text formatter:
 
 ```moonbit
-let formatter = text_formatter(show_timestamp=false, separator=" | ")
+let formatter = text_formatter(
+  show_timestamp=false,
+  field_separator=",",
+  template="[{level}] {target} {message} :: {fields}",
+)
 let logger = Logger::new(text_console_sink(formatter), target="pretty")
 
 logger.info("hello", fields=[field("mode", "pretty")])
@@ -134,7 +138,7 @@ JSON config loading:
 
 ```moonbit
 let config = parse_logger_config_text(
-  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
 )
 
 let logger = build_logger(config)
@@ -168,6 +172,7 @@ if native_files_supported() {
 
 - BitLogger now includes a JSON config layer via `parse_logger_config_text(...)`, `stringify_logger_config(...)`, and `build_logger(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.text_formatter`, and `queue`.
+- `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
 

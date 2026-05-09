@@ -35,7 +35,13 @@ fn main {
   callback_logger.info("callback sink ready")
 
   let pretty_logger = @lib.Logger::new(
-    @lib.text_console_sink(@lib.text_formatter(show_timestamp=false, separator=" | ")),
+    @lib.text_console_sink(
+      @lib.text_formatter(
+        show_timestamp=false,
+        field_separator=",",
+        template="[{level}] {target} {message} :: {fields}",
+      ),
+    ),
     min_level=@lib.Level::Info,
     target="pretty",
   )
@@ -102,7 +108,7 @@ fn main {
   ignore(queued_logger.sink.flush())
 
   let config_logger = @lib.parse_and_build_logger(
-    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
   ) catch {
     err => {
       ignore(err)

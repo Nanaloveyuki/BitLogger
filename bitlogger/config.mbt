@@ -16,6 +16,7 @@ pub struct TextFormatterConfig {
   show_fields : Bool
   separator : String
   field_separator : String
+  template : String
 }
 
 pub fn TextFormatterConfig::new(
@@ -25,6 +26,7 @@ pub fn TextFormatterConfig::new(
   show_fields~ : Bool = true,
   separator~ : String = " ",
   field_separator~ : String = " ",
+  template~ : String = "",
 ) -> TextFormatterConfig {
   {
     show_timestamp,
@@ -33,6 +35,7 @@ pub fn TextFormatterConfig::new(
     show_fields,
     separator,
     field_separator,
+    template,
   }
 }
 
@@ -44,6 +47,7 @@ pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextForm
     show_fields=self.show_fields,
     separator=self.separator,
     field_separator=self.field_separator,
+    template=self.template,
   )
 }
 
@@ -344,6 +348,7 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
     show_fields=get_bool(obj, "show_fields", default=true),
     separator=get_string(obj, "separator", default=" "),
     field_separator=get_string(obj, "field_separator", default=" "),
+    template=get_string(obj, "template", default=""),
   )
 }
 
@@ -416,6 +421,7 @@ fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.J
     "show_fields": @json_parser.JsonValue::Bool(config.show_fields),
     "separator": @json_parser.JsonValue::String(config.separator),
     "field_separator": @json_parser.JsonValue::String(config.field_separator),
+    "template": @json_parser.JsonValue::String(config.template),
   })
 }
 

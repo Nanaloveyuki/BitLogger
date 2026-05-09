@@ -7,6 +7,7 @@ pub struct TextFormatter {
   show_fields : Bool
   separator : String
   field_separator : String
+  template : String
 }
 
 pub fn text_formatter(
@@ -16,8 +17,17 @@ pub fn text_formatter(
   show_fields~ : Bool = true,
   separator~ : String = " ",
   field_separator~ : String = " ",
+  template~ : String = "",
 ) -> TextFormatter {
-  { show_timestamp, show_level, show_target, show_fields, separator, field_separator }
+  {
+    show_timestamp,
+    show_level,
+    show_target,
+    show_fields,
+    separator,
+    field_separator,
+    template,
+  }
 }
 
 fn fields_to_json(fields : Array[Field]) -> Json {
@@ -32,7 +42,54 @@ fn format_fields(fields : Array[Field], separator : String) -> String {
   fields.map(fn(f) { "\{f.key}=\{f.value}" }).join(separator)
 }
 
+fn timestamp_text(rec : Record, formatter : TextFormatter) -> String {
+  if formatter.show_timestamp && rec.timestamp_ms != 0UL {
+    rec.timestamp_ms.to_string()
+  } else {
+    ""
+  }
+}
+
+fn level_text(rec : Record, formatter : TextFormatter) -> String {
+  if formatter.show_level {
+    rec.level.label()
+  } else {
+    ""
+  }
+}
+
+fn target_text(rec : Record, formatter : TextFormatter) -> String {
+  if formatter.show_target && rec.target != "" {
+    rec.target
+  } else {
+    ""
+  }
+}
+
+fn fields_text(rec : Record, formatter : TextFormatter) -> String {
+  if formatter.show_fields && rec.fields.length() != 0 {
+    format_fields(rec.fields, formatter.field_separator)
+  } else {
+    ""
+  }
+}
+
+fn render_template(rec : Record, formatter : TextFormatter) -> String {
+  formatter.template
+    .replace_all(old="{timestamp}", new=timestamp_text(rec, formatter))
+    .replace_all(old="{timestamp_ms}", new=timestamp_text(rec, formatter))
+    .replace_all(old="{level}", new=level_text(rec, formatter))
+    .replace_all(old="{target}", new=target_text(rec, formatter))
+    .replace_all(old="{message}", new=rec.message)
+    .replace_all(old="{fields}", new=fields_text(rec, formatter))
+    .trim()
+    .to_owned()
+}
+
 pub fn format_text(rec : Record, formatter~ : TextFormatter = text_formatter()) -> String {
+  if formatter.template != "" {
+    return render_template(rec, formatter)
+  }
   let parts : Array[String] = []
   if formatter.show_timestamp && rec.timestamp_ms != 0UL {
     parts.push("[\{rec.timestamp_ms.to_string()}]")

@@ -41,6 +41,35 @@ test "text formatter can emit message only" {
   inspect(format_text(rec, formatter=message_only), content="just message")
 }
 
+test "text formatter supports template rendering" {
+  let rec = record(
+    Level::Info,
+    "template hello",
+    timestamp_ms=123UL,
+    target="svc.api",
+    fields=[field("user", "alice"), field("request_id", "42")],
+  )
+  let formatter = text_formatter(
+    separator=" | ",
+    field_separator=",",
+    template="[{level}] {target} {message} :: {fields} @{timestamp}",
+  )
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="[INFO] svc.api template hello :: user=alice,request_id=42 @123",
+  )
+}
+
+test "text formatter template respects disabled fields" {
+  let rec = record(Level::Warn, "just message", target="svc")
+  let formatter = text_formatter(
+    show_target=false,
+    show_fields=false,
+    template="[{level}] {target}{message}{fields}",
+  )
+  inspect(format_text(rec, formatter=formatter), content="[WARN] just message")
+}
+
 test "formatted callback sink receives rendered text" {
   let rendered : Ref[String] = Ref::new("")
   let sink = text_callback_sink(

@@ -36,8 +36,8 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - 支持 `with_patch(...)`、`patch_sink(...)` 以及常见 record patch helper
 - explicit queued delivery via `queued_sink(...)` and `with_queue(...)`
 - 支持 `queued_sink(...)`、`with_queue(...)`、有界积压与溢出策略
-- configurable text formatting via `text_formatter(...)`, `format_text(...)`, and `text_console_sink(...)`
-- 支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)` 等文本格式化能力
+- configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
+- 支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)` 以及模板化 `template` 文本输出
 - JSON config parsing via `parse_logger_config_text(...)` and `stringify_logger_config(...)`
 - 支持 `parse_logger_config_text(...)`、`stringify_logger_config(...)` 进行最小 JSON 配置读写
 - config-driven logger assembly via `build_logger(...)`
@@ -144,7 +144,11 @@ test {
 
 ```mbt check
 test {
-  let formatter = text_formatter(show_timestamp=false, separator=" | ")
+  let formatter = text_formatter(
+    show_timestamp=false,
+    field_separator=",",
+    template="[{level}] {target} {message} :: {fields}",
+  )
   let logger = Logger::new(text_console_sink(formatter), target="pretty")
   logger.info("hello", fields=[field("mode", "pretty")])
 }
@@ -153,13 +157,19 @@ test {
 ```mbt check
 test {
   let config = parse_logger_config_text(
-    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
   )
   let logger = build_logger(config)
   logger.info("configured from json")
   ignore(logger.flush())
 }
 ```
+
+## Formatter Template / 模板格式
+
+- supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
+- disabled or missing parts render as empty text / 被关闭或缺失的部分会渲染为空字符串
+- `template` is intentionally a simple token replacement layer, not a full DSL / `template` 当前刻意保持为轻量 token 替换层，而不是完整 DSL
 
 ```mbt check
 test {

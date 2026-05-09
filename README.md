@@ -23,7 +23,7 @@ BitLogger 是一个基于 MoonBit 编写的结构化日志库。
 - 🔎 可复用过滤：提供 `target_has_prefix(...)`、`message_contains(...)`、`level_at_least(...)`、`field_equals(...)` 等过滤辅助函数。
 - 🩹 可变换 Record：支持 `with_patch(...)`、`patch_sink(...)` 与脱敏/补字段/message 变换 helper。
 - 📮 显式队列：支持 `queued_sink(...)` / `with_queue(...)`、有界积压与溢出策略，作为后续 async sink 的 runtime-safe 基础。
-- 🧾 可配置文本格式：支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)` 和 `formatted_callback_sink(...)`。
+- 🧾 可配置文本格式：支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)`、`formatted_callback_sink(...)` 与模板化 `template` 输出。
 - 💾 Native 文件输出：支持 `file_sink(...)`，但当前仅保证 `native/llvm` backend 可用。
 - 📦 面向 MoonBit：API 和工程结构围绕 MoonBit 的 package / visibility / toolchain 现实约束设计。
 
@@ -130,7 +130,11 @@ ignore(logger.sink.flush())
 <details><summary>自定义文本 formatter 示例</summary>
 
 ```moonbit
-let formatter = text_formatter(show_timestamp=false, separator=" | ")
+let formatter = text_formatter(
+  show_timestamp=false,
+  field_separator=",",
+  template="[{level}] {target} {message} :: {fields}",
+)
 let logger = Logger::new(text_console_sink(formatter), target="pretty")
 
 logger.info("hello", fields=[field("mode", "pretty")])
@@ -142,7 +146,7 @@ logger.info("hello", fields=[field("mode", "pretty")])
 
 ```moonbit
 let config = parse_logger_config_text(
-  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
 )
 
 let logger = build_logger(config)
@@ -179,6 +183,7 @@ if native_files_supported() {
 
 - 当前提供 JSON 配置层：`parse_logger_config_text(...)`、`stringify_logger_config(...)`、`build_logger(...)`
 - 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.text_formatter`、`queue`
+- `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime
 

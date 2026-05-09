@@ -41,7 +41,7 @@ test "logger config parser reads core options" {
 
 test "logger config parser reads formatter and queue options" {
   let config = parse_logger_config_text(
-    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false}},\"queue\":{\"max_pending\":32,\"overflow\":\"DropOldest\"}}",
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false,\"template\":\"[{level}] {message}\"}},\"queue\":{\"max_pending\":32,\"overflow\":\"DropOldest\"}}",
   )
   inspect(match config.sink.kind {
     SinkKind::TextConsole => "TextConsole"
@@ -49,6 +49,7 @@ test "logger config parser reads formatter and queue options" {
   }, content="TextConsole")
   inspect(config.sink.text_formatter.separator, content=" | ")
   inspect(config.sink.text_formatter.show_timestamp, content="false")
+  inspect(config.sink.text_formatter.template, content="[{level}] {message}")
   match config.queue {
     Some(queue) => {
       inspect(queue.max_pending, content="32")
@@ -76,6 +77,7 @@ test "logger config stringify roundtrips stable fields" {
           show_fields=true,
           separator=" | ",
           field_separator=",",
+          template="[{level}] {target} {message}",
         ),
       ),
       queue=Some(QueueConfig::new(8, overflow=QueueOverflowPolicy::DropNewest)),
@@ -86,6 +88,7 @@ test "logger config stringify roundtrips stable fields" {
   inspect(config.target, content="api")
   inspect(config.timestamp, content="true")
   inspect(config.sink.text_formatter.separator, content=" | ")
+  inspect(config.sink.text_formatter.template, content="[{level}] {target} {message}")
 }
 
 test "build logger from config supports queued text console" {
