@@ -17,6 +17,20 @@ fn main {
   )
   fanout_logger.info("dual output", fields=[@lib.field("kind", "fanout")])
 
+  let split_logger = @lib.Logger::new(
+    @lib.split_by_level(
+      @lib.callback_sink(fn(rec) {
+        println("high priority: \{rec.level.label()} \{rec.message}")
+      }),
+      @lib.console_sink(),
+      min_level=@lib.Level::Warn,
+    ),
+    min_level=@lib.Level::Trace,
+    target="split",
+  )
+  split_logger.info("normal output")
+  split_logger.warn("warning output")
+
   let timed_logger = @lib.Logger::new(@lib.console_sink(), min_level=@lib.Level::Info, target="timed")
     .with_timestamp()
   timed_logger.info("timestamp enabled", fields=[@lib.field("kind", "time")])

@@ -14,6 +14,7 @@ BitLogger currently provides:
 - context fields via `with_context_fields(...)`
 - optional timestamps via `with_timestamp()`
 - sink fanout via `fanout_sink(...)`
+- sink routing via `split_sink(...)` and `split_by_level(...)`
 - custom integration via `callback_sink(...)`
 - in-memory buffering via `buffered_sink(...)`
 - record filtering via `filter_sink(...)`
@@ -119,6 +120,25 @@ logger.info("one")
 logger.info("two")
 logger.info("three")
 ignore(logger.sink.flush())
+```
+
+Level-based split sink:
+
+```moonbit
+let logger = Logger::new(
+  split_by_level(
+    callback_sink(fn(rec) {
+      println("high priority: \{rec.level.label()} \{rec.message}")
+    }),
+    console_sink(),
+    min_level=Level::Warn,
+  ),
+  min_level=Level::Trace,
+  target="split",
+)
+
+logger.info("normal output")
+logger.warn("warning output")
 ```
 
 Custom text formatter:

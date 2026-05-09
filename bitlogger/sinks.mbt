@@ -247,6 +247,34 @@ pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B] with write(self, rec) {
   self.right.write({ ..rec })
 }
 
+pub struct SplitSink[A, B] {
+  left : A
+  right : B
+  predicate : (Record) -> Bool
+}
+
+pub fn[A, B] split_sink(left : A, right : B, predicate : (Record) -> Bool) -> SplitSink[A, B] {
+  { left, right, predicate }
+}
+
+pub fn[A, B] split_by_level(
+  left : A,
+  right : B,
+  min_level~ : Level = Level::Warn,
+) -> SplitSink[A, B] {
+  split_sink(left, right, fn(rec) {
+    rec.level.enabled(min_level)
+  })
+}
+
+pub impl[A : Sink, B : Sink] Sink for SplitSink[A, B] with write(self, rec) {
+  if (self.predicate)(rec) {
+    self.left.write(rec)
+  } else {
+    self.right.write(rec)
+  }
+}
+
 pub struct CallbackSink {
   callback : (Record) -> Unit
 }

@@ -19,6 +19,7 @@ BitLogger 是一个基于 MoonBit 编写的结构化日志库。
 - 🧩 核心能力清晰：先把 logging core 做稳，再继续扩展 rotation/async 等能力。
 - 🏗️ 结构明确：按 `level / record / formatter / sinks / logger / global` 拆文件，便于继续维护。
 - 🔌 可扩展：支持 `fanout_sink(...)` 和 `callback_sink(...)`，方便后续桥接文件、指标或外部系统。
+- 🔀 可分流：支持 `split_sink(...)` / `split_by_level(...)`，可按谓词或 level 将日志路由到不同 sink。
 - 🧱 可组合：支持 `buffered_sink(...)` 和 `filter_sink(...)`，可以在不引入复杂 runtime 的前提下组合输出策略。
 - 🔎 可复用过滤：提供 `target_has_prefix(...)`、`message_contains(...)`、`level_at_least(...)`、`field_equals(...)` 等过滤辅助函数。
 - 🩹 可变换 Record：支持 `with_patch(...)`、`patch_sink(...)` 与脱敏/补字段/message 变换 helper。
@@ -125,6 +126,27 @@ logger.info("two")
 logger.info("three")
 ignore(logger.sink.flush())
 ```
+</details>
+
+<details><summary>按 level 分流 sink 示例</summary>
+
+```moonbit
+let logger = Logger::new(
+  split_by_level(
+    callback_sink(fn(rec) {
+      println("high priority: \{rec.level.label()} \{rec.message}")
+    }),
+    console_sink(),
+    min_level=Level::Warn,
+  ),
+  min_level=Level::Trace,
+  target="split",
+)
+
+logger.info("normal output")
+logger.warn("warning output")
+```
+
 </details>
 
 <details><summary>自定义文本 formatter 示例</summary>

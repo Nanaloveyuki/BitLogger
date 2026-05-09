@@ -24,6 +24,8 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - `json_console_sink()` 提供 JSON 控制台输出
 - sink composition via `fanout_sink(...)`
 - `fanout_sink(...)` 支持多 sink 组合
+- sink routing via `split_sink(...)` and `split_by_level(...)`
+- `split_sink(...)`、`split_by_level(...)` 支持按谓词或 level 将日志路由到不同 sink
 - custom callback sink via `callback_sink(...)`
 - `callback_sink(...)` 支持自定义外部集成
 - buffered sink via `buffered_sink(...)`
@@ -139,6 +141,24 @@ test {
   logger.info("two")
   logger.info("three")
   ignore(logger.sink.flush())
+}
+```
+
+```mbt check
+test {
+  let logger = Logger::new(
+    split_by_level(
+      callback_sink(fn(rec) {
+        println("high priority: \{rec.level.label()} \{rec.message}")
+      }),
+      console_sink(),
+      min_level=Level::Warn,
+    ),
+    min_level=Level::Trace,
+    target="split",
+  )
+  logger.info("normal output")
+  logger.warn("warning output")
 }
 ```
 

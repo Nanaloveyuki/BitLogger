@@ -182,6 +182,58 @@ test "callback sink receives record" {
   inspect(captured_message.val, content="hello")
 }
 
+test "split sink routes records by predicate" {
+  let left_messages : Ref[Array[String]] = Ref::new([])
+  let right_messages : Ref[Array[String]] = Ref::new([])
+  let logger = Logger::new(
+    split_sink(
+      callback_sink(fn(rec) {
+        left_messages.val.push(rec.message)
+      }),
+      callback_sink(fn(rec) {
+        right_messages.val.push(rec.message)
+      }),
+      fn(rec) {
+        rec.target == "audit"
+      },
+    ),
+    min_level=Level::Info,
+    target="main",
+  )
+  logger.info("drop to right")
+  logger.log(Level::Info, "keep on left", target="audit")
+  inspect(left_messages.val.length(), content="1")
+  inspect(left_messages.val[0], content="keep on left")
+  inspect(right_messages.val.length(), content="1")
+  inspect(right_messages.val[0], content="drop to right")
+}
+
+test "split_by_level routes warn and error separately" {
+  let high_messages : Ref[Array[String]] = Ref::new([])
+  let low_messages : Ref[Array[String]] = Ref::new([])
+  let logger = Logger::new(
+    split_by_level(
+      callback_sink(fn(rec) {
+        high_messages.val.push(rec.level.label() + ":" + rec.message)
+      }),
+      callback_sink(fn(rec) {
+        low_messages.val.push(rec.level.label() + ":" + rec.message)
+      }),
+      min_level=Level::Warn,
+    ),
+    min_level=Level::Trace,
+    target="split",
+  )
+  logger.info("info")
+  logger.warn("warn")
+  logger.error("error")
+  inspect(high_messages.val.length(), content="2")
+  inspect(high_messages.val[0], content="WARN:warn")
+  inspect(high_messages.val[1], content="ERROR:error")
+  inspect(low_messages.val.length(), content="1")
+  inspect(low_messages.val[0], content="INFO:info")
+}
+
 test "callback sink sees child target and context logger shape" {
   let captured_target : Ref[String] = Ref::new("")
   let captured_message : Ref[String] = Ref::new("")
