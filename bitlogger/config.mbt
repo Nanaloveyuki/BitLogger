@@ -223,6 +223,46 @@ pub fn RuntimeSink::file_available(self : RuntimeSink) -> Bool {
   }
 }
 
+pub fn RuntimeSink::file_reopen(self : RuntimeSink, append~ : Bool? = None) -> Bool {
+  match self {
+    File(sink) => sink.reopen(append=append)
+    QueuedFile(sink) => sink.sink.reopen(append=append)
+    _ => false
+  }
+}
+
+pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int {
+  match self {
+    File(sink) => sink.open_failures()
+    QueuedFile(sink) => sink.sink.open_failures()
+    _ => 0
+  }
+}
+
+pub fn RuntimeSink::file_write_failures(self : RuntimeSink) -> Int {
+  match self {
+    File(sink) => sink.write_failures()
+    QueuedFile(sink) => sink.sink.write_failures()
+    _ => 0
+  }
+}
+
+pub fn RuntimeSink::file_flush_failures(self : RuntimeSink) -> Int {
+  match self {
+    File(sink) => sink.flush_failures()
+    QueuedFile(sink) => sink.sink.flush_failures()
+    _ => 0
+  }
+}
+
+pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int {
+  match self {
+    File(sink) => sink.rotation_failures()
+    QueuedFile(sink) => sink.sink.rotation_failures()
+    _ => 0
+  }
+}
+
 pub type ConfiguredLogger = Logger[RuntimeSink]
 
 pub fn ConfiguredLogger::flush(self : ConfiguredLogger) -> Int {
@@ -247,6 +287,26 @@ pub fn ConfiguredLogger::dropped_count(self : ConfiguredLogger) -> Int {
 
 pub fn ConfiguredLogger::file_available(self : ConfiguredLogger) -> Bool {
   self.sink.file_available()
+}
+
+pub fn ConfiguredLogger::file_reopen(self : ConfiguredLogger, append~ : Bool? = None) -> Bool {
+  self.sink.file_reopen(append=append)
+}
+
+pub fn ConfiguredLogger::file_open_failures(self : ConfiguredLogger) -> Int {
+  self.sink.file_open_failures()
+}
+
+pub fn ConfiguredLogger::file_write_failures(self : ConfiguredLogger) -> Int {
+  self.sink.file_write_failures()
+}
+
+pub fn ConfiguredLogger::file_flush_failures(self : ConfiguredLogger) -> Int {
+  self.sink.file_flush_failures()
+}
+
+pub fn ConfiguredLogger::file_rotation_failures(self : ConfiguredLogger) -> Int {
+  self.sink.file_rotation_failures()
 }
 
 fn expect_object(

@@ -194,3 +194,40 @@ test "configured logger reports dropped_count for bounded queue" {
   inspect(logger.dropped_count(), content="2")
   inspect(logger.flush(), content="2")
 }
+
+test "configured logger exposes file sink observability helpers" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-file.log"),
+    ),
+  )
+  inspect(logger.file_available() == native_files_supported(), content="true")
+  inspect(logger.file_open_failures(), content=if logger.file_available() { "0" } else { "1" })
+  inspect(logger.file_write_failures(), content="0")
+  inspect(logger.file_flush_failures(), content="0")
+  inspect(logger.file_rotation_failures(), content="0")
+  ignore(logger.close())
+}
+
+test "configured logger can reopen built file sink" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-reopen.log"),
+    ),
+  )
+  if logger.file_available() {
+    inspect(logger.close(), content="true")
+    inspect(logger.file_reopen(), content="true")
+    inspect(logger.file_available(), content="true")
+    inspect(logger.file_open_failures(), content="0")
+    logger.info("reopened from config")
+    inspect(logger.file_write_failures(), content="0")
+    inspect(logger.close(), content="true")
+  } else {
+    inspect(logger.file_open_failures(), content="1")
+    logger.info("dropped")
+    inspect(logger.file_write_failures(), content="1")
+    inspect(logger.file_reopen(), content="false")
+    inspect(logger.file_open_failures(), content="2")
+  }
+}

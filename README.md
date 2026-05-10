@@ -222,6 +222,7 @@ if native_files_supported() {
 - 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.rotation`、`sink.text_formatter`、`queue`
 - `sink.rotation` 当前支持 `max_bytes` 与 `max_backups`，提供基础 size-based rotation 和 backup retention
 - `file_sink(...)` 还提供 `reopen()`、`open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()`，用于基础可观测性
+- `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime

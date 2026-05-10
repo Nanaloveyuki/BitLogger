@@ -207,6 +207,7 @@ if native_files_supported() {
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `file_sink(...)` also exposes `reopen()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
+- `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()` and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
