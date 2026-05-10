@@ -155,6 +155,32 @@ test "file sink setters update auto flush and rotation state" {
   inspect(state.append, content="false")
   inspect(state.auto_flush, content="false")
   inspect(state.rotation is None, content="true")
+  sink.reset_policy()
+  inspect(sink.append_mode(), content="true")
+  inspect(sink.auto_flush_enabled(), content="true")
+  inspect(sink.rotation_config() is None, content="true")
+}
+
+test "file sink reset policy restores configured defaults" {
+  let sink = file_sink(
+    "bitlogger-reset-policy.log",
+    append=false,
+    auto_flush=false,
+    rotation=Some(file_rotation(24, max_backups=3)),
+  )
+  sink.set_append_mode(true)
+  sink.set_auto_flush(true)
+  sink.clear_rotation()
+  sink.reset_policy()
+  inspect(sink.append_mode(), content="false")
+  inspect(sink.auto_flush_enabled(), content="false")
+  match sink.rotation_config() {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="24")
+      inspect(rotation.max_backups, content="3")
+    }
+    None => inspect(false, content="true")
+  }
 }
 
 test "file sink tracks rotation failures on unavailable backend" {

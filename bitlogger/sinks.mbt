@@ -47,10 +47,13 @@ pub impl Sink for JsonConsoleSink with write(self, rec) {
 pub struct FileSink {
   path : String
   append : Ref[Bool]
+  default_append : Bool
   handle : Ref[FileHandle?]
   formatter : RecordFormatter
   auto_flush : Ref[Bool]
+  default_auto_flush : Bool
   rotation : Ref[FileRotation?]
+  default_rotation : FileRotation?
   open_failures : Ref[Int]
   write_failures : Ref[Int]
   flush_failures : Ref[Int]
@@ -122,10 +125,13 @@ pub fn file_sink(
   {
     path,
     append: Ref::new(append),
+    default_append: append,
     handle: Ref::new(handle),
     formatter,
     auto_flush: Ref::new(auto_flush),
+    default_auto_flush: auto_flush,
     rotation: Ref::new(rotation),
+    default_rotation: rotation,
     open_failures: Ref::new(if handle is Some(_) { 0 } else { 1 }),
     write_failures: Ref::new(0),
     flush_failures: Ref::new(0),
@@ -218,6 +224,12 @@ pub fn FileSink::reset_failure_counters(self : FileSink) -> Unit {
   self.write_failures.val = 0
   self.flush_failures.val = 0
   self.rotation_failures.val = 0
+}
+
+pub fn FileSink::reset_policy(self : FileSink) -> Unit {
+  self.append.val = self.default_append
+  self.auto_flush.val = self.default_auto_flush
+  self.rotation.val = self.default_rotation
 }
 
 pub fn FileSink::state(self : FileSink) -> FileSinkState {
