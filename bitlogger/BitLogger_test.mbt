@@ -207,6 +207,7 @@ test "configured logger exposes file sink observability helpers" {
     ),
   )
   let state = logger.file_state()
+  let runtime_state = logger.file_runtime_state()
   inspect(logger.file_available() == native_files_supported(), content="true")
   inspect(logger.file_path(), content="config-file.log")
   inspect(state.path, content="config-file.log")
@@ -215,6 +216,15 @@ test "configured logger exposes file sink observability helpers" {
   inspect(state.auto_flush == logger.file_auto_flush(), content="true")
   inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="false")
+  match runtime_state {
+    Some(snapshot) => {
+      inspect(snapshot.queued, content="false")
+      inspect(snapshot.pending_count, content="0")
+      inspect(snapshot.dropped_count, content="0")
+      inspect(snapshot.file.path, content="config-file.log")
+    }
+    None => inspect(false, content="true")
+  }
   inspect(logger.file_rotation_enabled(), content="true")
   match logger.file_rotation_config() {
     Some(rotation) => {
@@ -238,7 +248,18 @@ test "configured logger reports disabled rotation when file sink has none" {
   )
   inspect(logger.file_rotation_enabled(), content="false")
   inspect(logger.file_rotation_config() is None, content="true")
+  match logger.file_runtime_state() {
+    Some(snapshot) => inspect(snapshot.queued, content="false")
+    None => inspect(false, content="true")
+  }
   ignore(logger.close())
+}
+
+test "configured non-file logger has no file runtime state" {
+  let logger = build_logger(
+    LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)),
+  )
+  inspect(logger.file_runtime_state() is None, content="true")
 }
 
 test "configured logger file setters update file sink policy state" {
@@ -343,15 +364,31 @@ test "configured queued file logger flushes queue through file helper" {
   )
   logger.info("one")
   logger.info("two")
+  match logger.file_runtime_state() {
+    Some(snapshot) => {
+      inspect(snapshot.queued, content="true")
+      inspect(snapshot.pending_count, content="2")
+      inspect(snapshot.dropped_count, content="0")
+    }
+    None => inspect(false, content="true")
+  }
   if logger.file_available() {
     inspect(logger.pending_count(), content="2")
     inspect(logger.file_flush(), content="true")
     inspect(logger.pending_count(), content="0")
+    match logger.file_runtime_state() {
+      Some(snapshot) => inspect(snapshot.pending_count, content="0")
+      None => inspect(false, content="true")
+    }
     inspect(logger.file_close(), content="true")
   } else {
     inspect(logger.pending_count(), content="2")
     inspect(logger.file_flush(), content="false")
     inspect(logger.pending_count(), content="0")
+    match logger.file_runtime_state() {
+      Some(snapshot) => inspect(snapshot.pending_count, content="0")
+      None => inspect(false, content="true")
+    }
     inspect(logger.file_close(), content="false")
   }
 }

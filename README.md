@@ -229,6 +229,7 @@ if native_files_supported() {
 - `file_sink(...)` 还提供 `state()`，可一次性读取 path、available、append、auto_flush、rotation 与各类 failure counter 快照
 - `file_sink(...)` 也支持 `set_auto_flush(...)`、`set_rotation(...)`、`clear_rotation()`，可在运行期调整基础写出策略
 - `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_reopen_append()`、`file_reopen_truncate()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`、`file_state()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
+- `ConfiguredLogger` 还提供 `file_runtime_state()`，可在 file sink 外层包了 queue 时同时读取底层 file 快照、是否 queue 包装、当前 pending 与 dropped 计数
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime

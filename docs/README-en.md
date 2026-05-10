@@ -214,6 +214,7 @@ if native_files_supported() {
 - `file_sink(...)` also exposes `state()` for reading a single snapshot that includes path, availability, append policy, auto-flush flag, rotation config, and all current failure counters.
 - `file_sink(...)` also supports `set_auto_flush(...)`, `set_rotation(...)`, and `clear_rotation()` for runtime policy updates.
 - `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()`, `file_reopen_with_current_policy()`, `file_reopen_append()`, `file_reopen_truncate()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, `file_state()`, plus `file_set_append_mode(...)`, `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()`, and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
+- `ConfiguredLogger` also exposes `file_runtime_state()` so queued file loggers can report both the underlying file snapshot and the outer queue backlog/drop state in one read.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.

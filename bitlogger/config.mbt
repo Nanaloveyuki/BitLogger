@@ -137,6 +137,13 @@ pub(all) enum RuntimeSink {
   QueuedFile(QueuedSink[FileSink])
 }
 
+pub struct RuntimeFileState {
+  file : FileSinkState
+  queued : Bool
+  pending_count : Int
+  dropped_count : Int
+}
+
 pub impl Sink for RuntimeSink with write(self, rec) {
   match self {
     Console(sink) => sink.write(rec)
@@ -423,6 +430,24 @@ pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
   }
 }
 
+pub fn RuntimeSink::file_runtime_state(self : RuntimeSink) -> RuntimeFileState? {
+  match self {
+    File(sink) => Some({
+      file: sink.state(),
+      queued: false,
+      pending_count: 0,
+      dropped_count: 0,
+    })
+    QueuedFile(sink) => Some({
+      file: sink.sink.state(),
+      queued: true,
+      pending_count: sink.pending_count(),
+      dropped_count: sink.dropped_count(),
+    })
+    _ => None
+  }
+}
+
 pub type ConfiguredLogger = Logger[RuntimeSink]
 
 pub fn ConfiguredLogger::flush(self : ConfiguredLogger) -> Int {
@@ -530,6 +555,10 @@ pub fn ConfiguredLogger::file_rotation_failures(self : ConfiguredLogger) -> Int 
 
 pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {
   self.sink.file_state()
+}
+
+pub fn ConfiguredLogger::file_runtime_state(self : ConfiguredLogger) -> RuntimeFileState? {
+  self.sink.file_runtime_state()
 }
 
 fn expect_object(
