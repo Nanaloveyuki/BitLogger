@@ -49,8 +49,8 @@ pub struct FileSink {
   append : Ref[Bool]
   handle : Ref[FileHandle?]
   formatter : RecordFormatter
-  auto_flush : Bool
-  rotation : FileRotation?
+  auto_flush : Ref[Bool]
+  rotation : Ref[FileRotation?]
   open_failures : Ref[Int]
   write_failures : Ref[Int]
   flush_failures : Ref[Int]
@@ -88,8 +88,8 @@ pub fn file_sink(
     append: Ref::new(append),
     handle: Ref::new(handle),
     formatter,
-    auto_flush,
-    rotation,
+    auto_flush: Ref::new(auto_flush),
+    rotation: Ref::new(rotation),
     open_failures: Ref::new(if handle is Some(_) { 0 } else { 1 }),
     write_failures: Ref::new(0),
     flush_failures: Ref::new(0),
@@ -123,15 +123,27 @@ pub fn FileSink::path(self : FileSink) -> String {
 }
 
 pub fn FileSink::auto_flush_enabled(self : FileSink) -> Bool {
-  self.auto_flush
+  self.auto_flush.val
 }
 
 pub fn FileSink::rotation_enabled(self : FileSink) -> Bool {
-  self.rotation is Some(_)
+  self.rotation.val is Some(_)
 }
 
 pub fn FileSink::rotation_config(self : FileSink) -> FileRotation? {
-  self.rotation
+  self.rotation.val
+}
+
+pub fn FileSink::set_auto_flush(self : FileSink, enabled : Bool) -> Unit {
+  self.auto_flush.val = enabled
+}
+
+pub fn FileSink::set_rotation(self : FileSink, rotation : FileRotation?) -> Unit {
+  self.rotation.val = rotation
+}
+
+pub fn FileSink::clear_rotation(self : FileSink) -> Unit {
+  self.rotation.val = None
 }
 
 pub fn FileSink::close(self : FileSink) -> Bool {
@@ -214,7 +226,7 @@ fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
 }
 
 fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
-  match sink.rotation {
+  match sink.rotation.val {
     None => true
     Some(rotation) => match sink.handle.val {
       None => false
@@ -250,7 +262,7 @@ pub impl Sink for FileSink with write(self, rec) {
           Some(active) => {
             let wrote = write_file_handle_internal(active, line)
             if wrote {
-              if self.auto_flush {
+              if self.auto_flush.val {
                 let flushed = flush_file_handle_internal(active)
                 if !flushed {
                   self.flush_failures.val += 1

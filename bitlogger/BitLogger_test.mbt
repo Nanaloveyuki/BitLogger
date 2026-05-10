@@ -236,6 +236,32 @@ test "configured logger reports disabled rotation when file sink has none" {
   ignore(logger.close())
 }
 
+test "configured logger file setters update file sink policy state" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-setters.log"),
+      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  )
+  inspect(logger.file_auto_flush(), content="true")
+  inspect(logger.file_rotation_enabled(), content="false")
+  inspect(logger.file_set_auto_flush(false), content="true")
+  inspect(logger.file_auto_flush(), content="false")
+  inspect(logger.file_set_rotation(Some(file_rotation(48, max_backups=4))), content="true")
+  inspect(logger.file_rotation_enabled(), content="true")
+  match logger.file_rotation_config() {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="48")
+      inspect(rotation.max_backups, content="4")
+    }
+    None => inspect(false, content="true")
+  }
+  inspect(logger.file_clear_rotation(), content="true")
+  inspect(logger.file_rotation_enabled(), content="false")
+  inspect(logger.file_rotation_config() is None, content="true")
+  ignore(logger.close())
+}
+
 test "configured logger can reopen built file sink" {
   let logger = build_logger(
     LoggerConfig::new(
