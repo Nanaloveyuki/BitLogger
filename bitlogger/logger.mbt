@@ -36,6 +36,10 @@ pub fn[S] Logger::with_context_fields(self : Logger[S], fields : Array[Field]) -
   }
 }
 
+pub fn[S] Logger::bind(self : Logger[S], fields : Array[Field]) -> Logger[ContextSink[S]] {
+  self.with_context_fields(fields)
+}
+
 pub fn[S] Logger::with_filter(self : Logger[S], predicate : (Record) -> Bool) -> Logger[FilterSink[S]] {
   {
     min_level: self.min_level,

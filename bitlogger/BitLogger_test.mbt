@@ -14,6 +14,15 @@ test "context sink merges fields" {
   logger.info("hello", fields=[field("mode", "test")])
 }
 
+test "fields helper builds field arrays ergonomically" {
+  let items = fields([("service", "bitlogger"), ("mode", "test")])
+  inspect(items.length(), content="2")
+  inspect(items[0].key, content="service")
+  inspect(items[0].value, content="bitlogger")
+  inspect(items[1].key, content="mode")
+  inspect(items[1].value, content="test")
+}
+
 test "fanout sink can write to plain and json outputs" {
   let logger = Logger::new(
     fanout_sink(console_sink(), json_console_sink()),

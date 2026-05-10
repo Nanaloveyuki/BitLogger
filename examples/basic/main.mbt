@@ -7,6 +7,13 @@ fn main {
     .with_context_fields([@lib.field("service", "bitlogger")])
   logger.debug("custom logger ready", fields=[@lib.field("sink", "console")])
 
+  let bound_logger = @lib.Logger::new(
+    @lib.console_sink(),
+    min_level=@lib.Level::Info,
+    target="bound",
+  ).bind(@lib.fields([("service", "bitlogger"), ("scope", "audit")]))
+  bound_logger.info("bound logger ready", fields=[@lib.field("mode", "demo")])
+
   let json_logger = @lib.Logger::new(@lib.json_console_sink(), min_level=@lib.Level::Info, target="json")
   json_logger.info("json output", fields=[@lib.field("kind", "example")])
 

@@ -23,6 +23,7 @@ BitLogger 是一个基于 MoonBit 编写的结构化日志库。
 - 🧱 可组合：支持 `buffered_sink(...)` 和 `filter_sink(...)`，可以在不引入复杂 runtime 的前提下组合输出策略。
 - 🔎 可复用过滤：提供 `target_has_prefix(...)`、`message_contains(...)`、`level_at_least(...)`、`field_equals(...)` 等过滤辅助函数。
 - 🩹 可变换 Record：支持 `with_patch(...)`、`patch_sink(...)` 与脱敏/补字段/message 变换 helper。
+- 🧷 可绑定上下文：支持 `bind(...)` 与 `fields(...)`，更方便地封装复用字段上下文。
 - 📮 显式队列：支持 `queued_sink(...)` / `with_queue(...)`、有界积压与溢出策略，作为后续 async sink 的 runtime-safe 基础。
 - 🧾 可配置文本格式：支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)`、`formatted_callback_sink(...)` 与模板化 `template` 输出。
 - 💾 Native 文件输出：支持 `file_sink(...)`，并已提供基础 size rotation / backup retention；当前仅保证 `native/llvm` backend 可用。
@@ -113,6 +114,17 @@ let logger = Logger::new(console_sink(), target="auth")
 
 logger.info("login", fields=[field("user", "alice"), field("token", "secret")])
 ```
+</details>
+
+<details><summary>bind 上下文示例</summary>
+
+```moonbit
+let logger = Logger::new(console_sink(), target="audit")
+  .bind(fields([("service", "bitlogger"), ("scope", "login")]))
+
+logger.info("accepted", fields=[field("user", "alice")])
+```
+
 </details>
 
 <details><summary>显式 queue sink 示例</summary>

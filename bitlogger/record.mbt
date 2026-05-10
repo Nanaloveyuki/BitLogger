@@ -7,6 +7,12 @@ pub fn field(key : String, value : String) -> Field {
   { key, value }
 }
 
+pub fn fields(entries : Array[(String, String)]) -> Array[Field] {
+  entries.map(fn(entry) {
+    field(entry.0, entry.1)
+  })
+}
+
 pub struct Record {
   level : Level
   timestamp_ms : UInt64

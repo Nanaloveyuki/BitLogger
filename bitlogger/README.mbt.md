@@ -36,6 +36,8 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - 提供 `target_has_prefix(...)`、`message_contains(...)`、`field_equals(...)` 等可复用过滤辅助函数
 - record patching via `with_patch(...)` and `patch_sink(...)`
 - 支持 `with_patch(...)`、`patch_sink(...)` 以及常见 record patch helper
+- context binding via `bind(...)` and `fields(...)`
+- 支持 `bind(...)`、`fields(...)`，更顺手地封装上下文字段
 - explicit queued delivery via `queued_sink(...)` and `with_queue(...)`
 - 支持 `queued_sink(...)`、`with_queue(...)`、有界积压与溢出策略
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
@@ -130,6 +132,14 @@ test {
       append_fields([field("service", "bitlogger")]),
     ]))
   logger.info("login", fields=[field("user", "alice"), field("token", "secret")])
+}
+```
+
+```mbt check
+test {
+  let logger = Logger::new(console_sink(), target="audit")
+    .bind(fields([("service", "bitlogger"), ("scope", "login")]))
+  logger.info("accepted", fields=[field("user", "alice")])
 }
 ```
 

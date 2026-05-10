@@ -259,6 +259,31 @@ test "callback sink sees child target and context logger shape" {
   inspect(captured_timestamp.val > 0UL, content="true")
 }
 
+test "bind aliases context fields ergonomically" {
+  let captured_target : Ref[String] = Ref::new("")
+  let captured_message : Ref[String] = Ref::new("")
+  let captured_fields : Ref[Array[Field]] = Ref::new([])
+  let logger = Logger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+    }),
+    min_level=Level::Info,
+    target="bind",
+  ).bind(fields([("service", "bitlogger"), ("scope", "audit")]))
+  logger.info("ready", fields=[field("mode", "test")])
+  inspect(captured_target.val, content="bind")
+  inspect(captured_message.val, content="ready")
+  inspect(captured_fields.val.length(), content="3")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="scope")
+  inspect(captured_fields.val[1].value, content="audit")
+  inspect(captured_fields.val[2].key, content="mode")
+  inspect(captured_fields.val[2].value, content="test")
+}
+
 test "buffered sink flushes manually" {
   let flushed_messages : Ref[Array[String]] = Ref::new([])
   let sink = buffered_sink(

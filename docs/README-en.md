@@ -21,6 +21,7 @@ BitLogger currently provides:
 - reusable filter helpers such as `target_has_prefix(...)`, `message_contains(...)`, `level_at_least(...)`, and `field_equals(...)`
 - record patching via `with_patch(...)` and `patch_sink(...)`
 - patch helpers such as `prefix_message(...)`, `append_fields(...)`, and `redact_fields(...)`
+- context binding via `bind(...)` and `fields(...)`
 - explicit queued delivery via `queued_sink(...)` and `with_queue(...)`
 - bounded backlog with `QueueOverflowPolicy::DropNewest` and `QueueOverflowPolicy::DropOldest`
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
@@ -108,6 +109,15 @@ let logger = Logger::new(console_sink(), target="auth")
   ]))
 
 logger.info("login", fields=[field("user", "alice"), field("token", "secret")])
+```
+
+Context binding:
+
+```moonbit
+let logger = Logger::new(console_sink(), target="audit")
+  .bind(fields([("service", "bitlogger"), ("scope", "login")]))
+
+logger.info("accepted", fields=[field("user", "alice")])
 ```
 
 Explicit queued sink:
