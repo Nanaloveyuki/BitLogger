@@ -201,6 +201,14 @@ pub fn FileSink::reopen_with_current_policy(self : FileSink) -> Bool {
   self.reopen()
 }
 
+pub fn FileSink::reopen_append(self : FileSink) -> Bool {
+  self.reopen(append=Some(true))
+}
+
+pub fn FileSink::reopen_truncate(self : FileSink) -> Bool {
+  self.reopen(append=Some(false))
+}
+
 fn rotated_file_path(path : String, index : Int) -> String {
   "\{path}.\{index}"
 }

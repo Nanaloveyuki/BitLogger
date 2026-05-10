@@ -26,7 +26,7 @@ BitLogger 是一个基于 MoonBit 编写的结构化日志库。
 - 🧷 可绑定上下文：支持 `bind(...)` 与 `fields(...)`，更方便地封装复用字段上下文。
 - 📮 显式队列：支持 `queued_sink(...)` / `with_queue(...)`、有界积压与溢出策略，作为后续 async sink 的 runtime-safe 基础。
 - 🧾 可配置文本格式：支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)`、`formatted_callback_sink(...)` 与模板化 `template` 输出。
-- 💾 Native 文件输出：支持 `file_sink(...)`、基础 size rotation / backup retention、显式 `reopen()` / `reopen_with_current_policy()` 与失败计数；当前仅保证 `native/llvm` backend 可用。
+- 💾 Native 文件输出：支持 `file_sink(...)`、基础 size rotation / backup retention、显式 `reopen()` / `reopen_with_current_policy()` / `reopen_append()` / `reopen_truncate()` 与失败计数；当前仅保证 `native/llvm` backend 可用。
 - 📦 面向 MoonBit：API 和工程结构围绕 MoonBit 的 package / visibility / toolchain 现实约束设计。
 
 ## 🚀 快速开始
@@ -221,13 +221,13 @@ if native_files_supported() {
 - 当前提供 JSON 配置层：`parse_logger_config_text(...)`、`stringify_logger_config(...)`、`build_logger(...)`
 - 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.rotation`、`sink.text_formatter`、`queue`
 - `sink.rotation` 当前支持 `max_bytes` 与 `max_backups`，提供基础 size-based rotation 和 backup retention
-- `file_sink(...)` 还提供 `reopen()`、`reopen_with_current_policy()`、`open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()`，用于基础可观测性
-- `file_sink(...)` 当前还提供 `append_mode()`；`reopen(append=...)` 在显式传值时会更新后续 reopen 使用的 append 策略，`reopen_with_current_policy()` 则把“按当前保存策略重开”变成显式动作
+- `file_sink(...)` 还提供 `reopen()`、`reopen_with_current_policy()`、`reopen_append()`、`reopen_truncate()`、`open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()`，用于基础可观测性
+- `file_sink(...)` 当前还提供 `append_mode()`；`reopen(append=...)` 在显式传值时会更新后续 reopen 使用的 append 策略，`reopen_with_current_policy()` 把“按当前保存策略重开”变成显式动作，而 `reopen_append()` / `reopen_truncate()` 则为常见 append 与 truncate 语义提供更直观入口
 - `file_sink(...)` 也支持 `set_append_mode(...)`，用于显式修改后续 reopen 将使用的 append 策略
 - `file_sink(...)` 也可直接读取 `path()` 与 `auto_flush_enabled()` 等基础 file 策略状态
 - `file_sink(...)` 还提供 `rotation_enabled()` 与 `rotation_config()`，可直接查询当前 rotation 策略是否启用及其参数
 - `file_sink(...)` 也支持 `set_auto_flush(...)`、`set_rotation(...)`、`clear_rotation()`，可在运行期调整基础写出策略
-- `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
+- `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_reopen_append()`、`file_reopen_truncate()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime

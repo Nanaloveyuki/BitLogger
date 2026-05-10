@@ -26,7 +26,7 @@ BitLogger currently provides:
 - bounded backlog with `QueueOverflowPolicy::DropNewest` and `QueueOverflowPolicy::DropOldest`
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
 - formatter-based callback integration via `formatted_callback_sink(...)`
-- native-only file output via `file_sink(...)`, with basic size rotation, backup retention, explicit `reopen()` / `reopen_with_current_policy()`, and failure counters
+- native-only file output via `file_sink(...)`, with basic size rotation, backup retention, explicit `reopen()` / `reopen_with_current_policy()` / `reopen_append()` / `reopen_truncate()`, and failure counters
 - `native_files_supported()` for backend capability detection
 - default global logger helpers
 
@@ -206,13 +206,13 @@ if native_files_supported() {
 - BitLogger now includes a JSON config layer via `parse_logger_config_text(...)`, `stringify_logger_config(...)`, and `build_logger(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
-- `file_sink(...)` also exposes `reopen()`, `reopen_with_current_policy()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
-- `file_sink(...)` also exposes `append_mode()`. Passing `append=...` to `reopen(...)` updates the current append policy used by later reopen calls, while `reopen_with_current_policy()` makes that stored-policy reopen path explicit.
+- `file_sink(...)` also exposes `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
+- `file_sink(...)` also exposes `append_mode()`. Passing `append=...` to `reopen(...)` updates the current append policy used by later reopen calls, `reopen_with_current_policy()` makes that stored-policy reopen path explicit, and `reopen_append()` / `reopen_truncate()` cover the two common policy switches directly.
 - `file_sink(...)` also supports `set_append_mode(...)` for explicitly changing the append policy that later reopen calls will use.
 - `file_sink(...)` also exposes `path()` and `auto_flush_enabled()` for reading basic file-sink policy state.
 - `file_sink(...)` also exposes `rotation_enabled()` and `rotation_config()` for reading whether rotation is active and which parameters are currently in effect.
 - `file_sink(...)` also supports `set_auto_flush(...)`, `set_rotation(...)`, and `clear_rotation()` for runtime policy updates.
-- `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()`, `file_reopen_with_current_policy()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, plus `file_set_append_mode(...)`, `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()`, and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
+- `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()`, `file_reopen_with_current_policy()`, `file_reopen_append()`, `file_reopen_truncate()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, plus `file_set_append_mode(...)`, `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()`, and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
