@@ -83,6 +83,46 @@ test "text formatter auto color respects NO_COLOR" {
   }
 }
 
+test "text formatter renders named inline color tags in ansi mode" {
+  let rec = record(Level::Info, "<red>boom</>", target="svc")
+  inspect(
+    format_text(rec, formatter=text_formatter(color_mode=ColorMode::Always)),
+    content="[\u{001b}[32mINFO\u{001b}[0m] [\u{001b}[34msvc\u{001b}[0m] \u{001b}[31mboom\u{001b}[0m",
+  )
+}
+
+test "text formatter strips inline tags in plain mode" {
+  let rec = record(Level::Info, "<red>boom</> <b>bold</>", target="svc")
+  inspect(
+    format_text(rec, formatter=text_formatter(color_mode=ColorMode::Never)),
+    content="[INFO] [svc] boom bold",
+  )
+}
+
+test "text formatter supports nested inline tags" {
+  let rec = record(Level::Info, "<red><b>fatal</></>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false, color_mode=ColorMode::Always)),
+    content="\u{001b}[31;1mfatal\u{001b}[0m",
+  )
+}
+
+test "text formatter supports hex inline colors" {
+  let rec = record(Level::Info, "<#ff0000>hot</> <bg:#010203>bg</>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false, color_mode=ColorMode::Always)),
+    content="\u{001b}[38;2;255;0;0mhot\u{001b}[0m \u{001b}[48;2;1;2;3mbg\u{001b}[0m",
+  )
+}
+
+test "text formatter keeps unknown inline tags as plain text" {
+  let rec = record(Level::Info, "<unknown>boom</>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false)),
+    content="<unknown>boom</>",
+  )
+}
+
 test "text formatter template respects disabled fields" {
   let rec = record(Level::Warn, "just message", target="svc")
   let formatter = text_formatter(
