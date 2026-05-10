@@ -18,6 +18,7 @@ pub struct TextFormatterConfig {
   field_separator : String
   template : String
   color_mode : ColorMode
+  style_markup : StyleMarkupMode
   style_tags : Map[String, TextStyle]
 }
 
@@ -30,6 +31,7 @@ pub fn TextFormatterConfig::new(
   field_separator~ : String = " ",
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
+  style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
   style_tags~ : Map[String, TextStyle] = {},
 ) -> TextFormatterConfig {
   {
@@ -41,6 +43,7 @@ pub fn TextFormatterConfig::new(
     field_separator,
     template,
     color_mode,
+    style_markup,
     style_tags,
   }
 }
@@ -63,6 +66,7 @@ pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextForm
     field_separator=self.field_separator,
     template=self.template,
     color_mode=self.color_mode,
+    style_markup=self.style_markup,
     style_tags=if self.style_tags.length() == 0 {
       None
     } else {
@@ -857,6 +861,15 @@ fn parse_color_mode(name : String) -> ColorMode raise ConfigError {
   }
 }
 
+fn parse_style_markup_mode(name : String) -> StyleMarkupMode raise ConfigError {
+  match name.to_upper() {
+    "DISABLED" => StyleMarkupMode::Disabled
+    "BUILTIN" => StyleMarkupMode::Builtin
+    "FULL" => StyleMarkupMode::Full
+    _ => raise ConfigError::InvalidConfig("Unsupported style markup mode: " + name)
+  }
+}
+
 fn sink_kind_label(kind : SinkKind) -> String {
   match kind {
     SinkKind::Console => "console"
@@ -877,6 +890,7 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
     field_separator=get_string(obj, "field_separator", default=" "),
     template=get_string(obj, "template", default=""),
     color_mode=parse_color_mode(get_string(obj, "color_mode", default="never")),
+    style_markup=parse_style_markup_mode(get_string(obj, "style_markup", default="full")),
     style_tags=match obj.get("style_tags") {
       None => {}
       Some(inner) => parse_style_tags_config(inner)
@@ -1000,6 +1014,7 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
     "field_separator": @json_parser.JsonValue::String(config.field_separator),
     "template": @json_parser.JsonValue::String(config.template),
     "color_mode": @json_parser.JsonValue::String(color_mode_label(config.color_mode)),
+    "style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.style_markup)),
   }
   if config.style_tags.length() != 0 {
     obj["style_tags"] = style_tags_config_to_json(config.style_tags)

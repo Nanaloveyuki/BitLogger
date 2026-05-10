@@ -183,6 +183,18 @@ let logger = Logger::new(text_console_sink(formatter), target="styled")
 logger.info("<accent>styled</> output and <danger>alert</>")
 ```
 
+Disable style markup parsing:
+
+```moonbit
+let formatter = text_formatter(
+  color_mode=ColorMode::Always,
+).without_style_markup()
+
+let logger = Logger::new(text_console_sink(formatter), target="raw")
+
+logger.info("<red>kept as raw text</>")
+```
+
 JSON config loading:
 
 ```moonbit
@@ -206,6 +218,18 @@ let config = parse_logger_config_text(
 let logger = build_logger(config)
 
 logger.info("<accent>styled from json</>")
+```
+
+JSON `style_markup` mode:
+
+```moonbit
+let config = parse_logger_config_text(
+  "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_markup\":\"disabled\"}}}",
+)
+
+let logger = build_logger(config)
+
+logger.info("<red>still raw</>")
 ```
 
 Native file sink:
@@ -257,6 +281,7 @@ match logger.file_runtime_state() {
 - `QueueConfig`, `TextFormatterConfig`, and `SinkConfig` can also be exported independently through `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, and `sink_config_to_json(...)` / `stringify_sink_config(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `TextFormatter` and `TextFormatterConfig` now include `color_mode = Never | Auto | Always` for ANSI text coloring control.
+- `TextFormatter` and `TextFormatterConfig` also include `style_markup = disabled | builtin | full` so callers can choose whether style markup is parsed and whether custom tags are active.
 - `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
 - Runtime style-tag APIs now include `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, and `define_alias(...)`.
 - Style-tag lookup priority is formatter-local `style_tags` > global style tag registry > builtin tags.
@@ -286,6 +311,7 @@ match logger.file_runtime_state() {
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, and `stringify_runtime_file_state(...)` can export file and queued-file snapshots directly as JSON for diagnostics or reporting.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - `sink.text_formatter.color_mode` currently supports `never`, `auto`, and `always`.
+- `sink.text_formatter.style_markup` currently supports `disabled`, `builtin`, and `full`.
 - `sink.text_formatter.style_tags.<name>` currently supports `fg`, `bg`, `bold`, `dim`, `italic`, and `underline`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.

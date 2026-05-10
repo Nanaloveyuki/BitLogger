@@ -123,6 +123,39 @@ test "text formatter keeps unknown inline tags as plain text" {
   )
 }
 
+test "text formatter can disable style markup parsing" {
+  let rec = record(Level::Info, "<red>boom</> <b>bold</>", target="svc")
+  inspect(
+    format_text(
+      rec,
+      formatter=text_formatter(color_mode=ColorMode::Always).without_style_markup(),
+    ),
+    content="[\u{001b}[32mINFO\u{001b}[0m] [\u{001b}[34msvc\u{001b}[0m] <red>boom</> <b>bold</>",
+  )
+}
+
+test "text formatter builtin style markup mode ignores custom tags" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    style_markup=StyleMarkupMode::Builtin,
+  ).with_style_tags(
+    style_tag_registry().set_tag("accent", fg=Some("#4cc9f0"), bold=true),
+  )
+  let rec = record(Level::Info, "<accent>custom</> <red>builtin</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="<accent>custom</> \u{001b}[31mbuiltin\u{001b}[0m",
+  )
+}
+
+test "style markup mode label is stable" {
+  inspect(style_markup_mode_label(StyleMarkupMode::Disabled), content="disabled")
+  inspect(style_markup_mode_label(StyleMarkupMode::Builtin), content="builtin")
+  inspect(style_markup_mode_label(StyleMarkupMode::Full), content="full")
+}
+
 test "text formatter supports custom style tags" {
   let formatter = text_formatter(
     show_level=false,

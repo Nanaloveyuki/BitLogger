@@ -74,8 +74,9 @@ test "logger config parser reads formatter and queue options" {
 
 test "logger config parser reads formatter style tags" {
   let config = parse_logger_config_text(
-    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true},\"panel\":{\"bg\":\"#202020\",\"underline\":true}}}}}",
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_markup\":\"builtin\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true},\"panel\":{\"bg\":\"#202020\",\"underline\":true}}}}}",
   )
+  inspect(style_markup_mode_label(config.sink.text_formatter.style_markup), content="builtin")
   inspect(config.sink.text_formatter.style_tags.length(), content="2")
   match config.sink.text_formatter.style_tags.get("accent") {
     Some(style) => {
@@ -148,6 +149,7 @@ test "logger config stringify roundtrips formatter style tags" {
         kind=SinkKind::TextConsole,
         text_formatter=TextFormatterConfig::new(
           color_mode=ColorMode::Always,
+          style_markup=StyleMarkupMode::Builtin,
           style_tags={
             "accent": text_style(fg=Some("#4cc9f0"), bold=true),
             "panel": text_style(bg=Some("#202020"), dim=true),
@@ -158,6 +160,7 @@ test "logger config stringify roundtrips formatter style tags" {
   )
   let config = parse_logger_config_text(text)
   inspect(color_mode_label(config.sink.text_formatter.color_mode), content="always")
+  inspect(style_markup_mode_label(config.sink.text_formatter.style_markup), content="builtin")
   inspect(config.sink.text_formatter.style_tags.length(), content="2")
   inspect(config.sink.text_formatter.style_tags.get("accent").unwrap().fg.unwrap(), content="#4cc9f0")
   inspect(config.sink.text_formatter.style_tags.get("accent").unwrap().bold, content="true")
@@ -204,12 +207,13 @@ test "config subtype json helpers stringify stable shapes" {
         field_separator=",",
         template="[{level}] {message} :: {fields}",
         color_mode=ColorMode::Always,
+        style_markup=StyleMarkupMode::Builtin,
         style_tags={
           "accent": text_style(fg=Some("#4cc9f0"), bold=true),
         },
       ),
     ),
-    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\",\"color_mode\":\"always\",\"style_tags\":{\"accent\":{\"bold\":true,\"dim\":false,\"italic\":false,\"underline\":false,\"fg\":\"#4cc9f0\"}}}",
+    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\",\"color_mode\":\"always\",\"style_markup\":\"builtin\",\"style_tags\":{\"accent\":{\"bold\":true,\"dim\":false,\"italic\":false,\"underline\":false,\"fg\":\"#4cc9f0\"}}}",
   )
   inspect(
     stringify_sink_config(
@@ -222,7 +226,7 @@ test "config subtype json helpers stringify stable shapes" {
         text_formatter=TextFormatterConfig::new(show_timestamp=false, color_mode=ColorMode::Auto),
       ),
     ),
-    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
+    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\",\"style_markup\":\"full\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
   )
 }
 
@@ -240,6 +244,40 @@ test "config formatter style tags render in built logger" {
     formatter=formatter.to_formatter(),
   )
   inspect(rendered, content="[\u{001b}[32mINFO\u{001b}[0m] \u{001b}[38;2;76;201;240;1mtag\u{001b}[0m")
+}
+
+test "config builtin style markup ignores custom tags" {
+  let formatter = TextFormatterConfig::new(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    style_markup=StyleMarkupMode::Builtin,
+    style_tags={
+      "accent": text_style(fg=Some("#4cc9f0"), bold=true),
+    },
+  )
+  let rendered = format_text(
+    Record::new(Level::Info, "<accent>custom</> <red>builtin</>"),
+    formatter=formatter.to_formatter(),
+  )
+  inspect(rendered, content="<accent>custom</> \u{001b}[31mbuiltin\u{001b}[0m")
+}
+
+test "config disabled style markup keeps raw tags" {
+  let formatter = TextFormatterConfig::new(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    style_markup=StyleMarkupMode::Disabled,
+    style_tags={
+      "accent": text_style(fg=Some("#4cc9f0"), bold=true),
+    },
+  )
+  let rendered = format_text(
+    Record::new(Level::Info, "<accent>raw</> <red>tag</>"),
+    formatter=formatter.to_formatter(),
+  )
+  inspect(rendered, content="<accent>raw</> <red>tag</>")
 }
 
 test "build logger from config supports queued text console" {

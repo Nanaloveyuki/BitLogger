@@ -6,6 +6,12 @@ pub(all) enum ColorMode {
   Always
 }
 
+pub(all) enum StyleMarkupMode {
+  Disabled
+  Builtin
+  Full
+}
+
 pub struct TextStyle {
   fg : String?
   bg : String?
@@ -165,6 +171,7 @@ pub struct TextFormatter {
   field_separator : String
   template : String
   color_mode : ColorMode
+  style_markup : StyleMarkupMode
   style_tags : StyleTagRegistry?
 }
 
@@ -177,6 +184,7 @@ pub fn text_formatter(
   field_separator~ : String = " ",
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
+  style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
   style_tags~ : StyleTagRegistry? = None,
 ) -> TextFormatter {
   {
@@ -188,8 +196,25 @@ pub fn text_formatter(
     field_separator,
     template,
     color_mode,
+    style_markup,
     style_tags,
   }
+}
+
+pub fn style_markup_mode_label(mode : StyleMarkupMode) -> String {
+  match mode {
+    StyleMarkupMode::Disabled => "disabled"
+    StyleMarkupMode::Builtin => "builtin"
+    StyleMarkupMode::Full => "full"
+  }
+}
+
+pub fn TextFormatter::with_style_markup(self : TextFormatter, style_markup : StyleMarkupMode) -> TextFormatter {
+  { ..self, style_markup }
+}
+
+pub fn TextFormatter::without_style_markup(self : TextFormatter) -> TextFormatter {
+  { ..self, style_markup: StyleMarkupMode::Disabled }
 }
 
 pub fn TextFormatter::with_style_tags(self : TextFormatter, style_tags : StyleTagRegistry) -> TextFormatter {
@@ -427,6 +452,10 @@ fn builtin_text_style_for_tag(tag : String) -> TextStyle? {
 
 fn resolve_registered_text_style(tag : String, formatter : TextFormatter) -> TextStyle? {
   let normalized = normalize_style_tag_name(tag)
+  match formatter.style_markup {
+    StyleMarkupMode::Builtin => return builtin_text_style_for_tag(normalized)
+    _ => ()
+  }
   match formatter.style_tags {
     Some(registry) => match registry.get(normalized) {
       Some(style) => Some(style)
@@ -522,6 +551,10 @@ fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[Style
 }
 
 fn render_inline_markup(message : String, formatter : TextFormatter) -> String {
+  match formatter.style_markup {
+    StyleMarkupMode::Disabled => return message
+    _ => ()
+  }
   let enabled = use_ansi_color(formatter.color_mode)
   let segments = parse_inline_markup(message, formatter)
   let out = StringBuilder::new()

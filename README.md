@@ -197,6 +197,20 @@ logger.info("<accent>styled</> output and <danger>alert</>")
 
 </details>
 
+<details><summary>关闭 style markup 解析示例</summary>
+
+```moonbit
+let formatter = text_formatter(
+  color_mode=ColorMode::Always,
+).without_style_markup()
+
+let logger = Logger::new(text_console_sink(formatter), target="raw")
+
+logger.info("<red>kept as raw text</>")
+```
+
+</details>
+
 <details><summary>JSON 配置加载示例</summary>
 
 ```moonbit
@@ -222,6 +236,20 @@ let config = parse_logger_config_text(
 let logger = build_logger(config)
 
 logger.info("<accent>styled from json</>")
+```
+
+</details>
+
+<details><summary>JSON style_markup 模式示例</summary>
+
+```moonbit
+let config = parse_logger_config_text(
+  "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_markup\":\"disabled\"}}}",
+)
+
+let logger = build_logger(config)
+
+logger.info("<red>still raw</>")
 ```
 
 </details>
@@ -277,6 +305,7 @@ match logger.file_runtime_state() {
 - `QueueConfig`, `TextFormatterConfig`, `SinkConfig` 可分别通过 `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, `sink_config_to_json(...)` / `stringify_sink_config(...)` 单独导出 JSON
 - 支持字段: `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, `queue`
 - `TextFormatter` / `TextFormatterConfig` 提供 `color_mode = Never | Auto | Always`, 可控制 ANSI 文本着色
+- `TextFormatter` / `TextFormatterConfig` 提供 `style_markup = disabled | builtin | full`, 可决定是否解析 style markup 以及是否启用 custom style tag
 - `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
 - 运行期样式标签 API: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - 样式标签优先级: formatter 局部 `style_tags` > 全局 style tag registry > 内置标签
@@ -306,6 +335,7 @@ match logger.file_runtime_state() {
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, `stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON, 便于排障或上报
 - `sink.text_formatter.template` 支持固定 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `sink.text_formatter.color_mode` 支持 `never`, `auto`, `always`
+- `sink.text_formatter.style_markup` 支持 `disabled`, `builtin`, `full`
 - `sink.text_formatter.style_tags.<name>` 支持 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
 - 可由配置直接组装的 sink 类型: `console`, `json_console`, `text_console`, `file`
 - `queue` 作为显式包装层附着在最终 sink 外侧. 这仍然是同步 drain 模型, 不是 async runtime

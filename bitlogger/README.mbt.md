@@ -208,6 +208,16 @@ test {
 
 ```mbt check
 test {
+  let formatter = text_formatter(
+    color_mode=ColorMode::Always,
+  ).without_style_markup()
+  let logger = Logger::new(text_console_sink(formatter), target="raw")
+  logger.info("<red>kept as raw text</>")
+}
+```
+
+```mbt check
+test {
   let config = parse_logger_config_text(
     "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
   )
@@ -227,10 +237,21 @@ test {
 }
 ```
 
+```mbt check
+test {
+  let config = parse_logger_config_text(
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_markup\":\"disabled\"}}}",
+  )
+  let logger = build_logger(config)
+  logger.info("<red>still raw</>")
+}
+```
+
 ## Formatter Template / 模板格式
 
 - supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `color_mode` / `color_mode`: `never`, `auto`, `always`
+- `style_markup` / `style_markup`: `disabled`, `builtin`, `full`
 - inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
 - runtime style tags / 运行期样式标签: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - style tag priority / 标签优先级: formatter local `style_tags` > global style tag registry > builtin tags
