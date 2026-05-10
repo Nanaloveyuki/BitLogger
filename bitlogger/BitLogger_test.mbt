@@ -337,6 +337,7 @@ test "configured logger file setters update file sink policy state" {
   inspect(default_policy.append, content="true")
   inspect(default_policy.auto_flush, content="true")
   inspect(default_policy.rotation is None, content="true")
+  inspect(logger.file_policy_matches_default(), content="true")
   inspect(logger.file_set_append_mode(false), content="true")
   inspect(logger.file_append_mode(), content="false")
   inspect(logger.file_set_auto_flush(false), content="true")
@@ -363,10 +364,12 @@ test "configured logger file setters update file sink policy state" {
   inspect(policy.append, content="false")
   inspect(policy.auto_flush, content="false")
   inspect(policy.rotation is None, content="true")
+  inspect(logger.file_policy_matches_default(), content="false")
   inspect(logger.file_reset_policy(), content="true")
   inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="true")
   inspect(logger.file_rotation_config() is None, content="true")
+  inspect(logger.file_policy_matches_default(), content="true")
   ignore(logger.close())
 }
 
@@ -385,12 +388,14 @@ test "configured logger reset policy restores configured file defaults" {
   let default_policy = logger.file_default_policy()
   inspect(default_policy.append, content="false")
   inspect(default_policy.auto_flush, content="false")
+  inspect(logger.file_policy_matches_default(), content="true")
   inspect(logger.file_set_append_mode(true), content="true")
   inspect(logger.file_set_auto_flush(true), content="true")
   inspect(logger.file_clear_rotation(), content="true")
   inspect(logger.file_reset_policy(), content="true")
   inspect(logger.file_append_mode(), content="false")
   inspect(logger.file_auto_flush(), content="false")
+  inspect(logger.file_policy_matches_default(), content="true")
   match logger.file_rotation_config() {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="36")
@@ -431,6 +436,7 @@ test "configured logger set policy applies bundled runtime file policy" {
   inspect(default_policy.append, content="true")
   inspect(default_policy.auto_flush, content="true")
   inspect(default_policy.rotation is None, content="true")
+  inspect(logger.file_policy_matches_default(), content="false")
   ignore(logger.close())
 }
 
@@ -440,6 +446,7 @@ test "configured non-file logger cannot reset file policy" {
   inspect(logger.file_policy().append, content="false")
   inspect(logger.file_default_policy().append, content="false")
   inspect(logger.file_set_policy(FileSinkPolicy::new()), content="false")
+  inspect(logger.file_policy_matches_default(), content="false")
 }
 
 test "configured logger can reopen built file sink" {

@@ -528,6 +528,14 @@ pub fn RuntimeSink::file_default_policy(self : RuntimeSink) -> FileSinkPolicy {
   }
 }
 
+pub fn RuntimeSink::file_policy_matches_default(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => sink.policy_matches_default()
+    QueuedFile(sink) => sink.sink.policy_matches_default()
+    _ => false
+  }
+}
+
 pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
   match self {
     File(sink) => sink.state()
@@ -684,6 +692,10 @@ pub fn ConfiguredLogger::file_policy(self : ConfiguredLogger) -> FileSinkPolicy 
 
 pub fn ConfiguredLogger::file_default_policy(self : ConfiguredLogger) -> FileSinkPolicy {
   self.sink.file_default_policy()
+}
+
+pub fn ConfiguredLogger::file_policy_matches_default(self : ConfiguredLogger) -> Bool {
+  self.sink.file_policy_matches_default()
 }
 
 pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {

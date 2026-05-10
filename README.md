@@ -247,6 +247,7 @@ match logger.file_runtime_state() {
 - `file_sink(...)` 还提供 `rotation_enabled()` 与 `rotation_config()`，可直接查询当前 rotation 策略是否启用及其参数
 - `file_sink(...)` 还提供 `state()`，可一次性读取 path、available、append、auto_flush、rotation 与各类 failure counter 快照
 - `file_sink(...)` 还提供 `policy()` 与 `default_policy()`，可分别读取当前策略与创建时默认策略
+- `file_sink(...)` 还提供 `policy_matches_default()`，可显式判断当前运行期策略是否已偏离默认策略
 - `file_sink(...)` 也支持 `set_policy(...)`，可一次性写回 append/auto_flush/rotation 这组三元策略
 - `file_sink(...)` 还提供 `reset_failure_counters()`，可在完成排障后清空 open/write/flush/rotation 失败计数
 - `file_sink(...)` 还提供 `reset_policy()`，可将 append/auto_flush/rotation 恢复到创建 sink 时的默认策略
@@ -254,6 +255,7 @@ match logger.file_runtime_state() {
 - `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_reopen_append()`、`file_reopen_truncate()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`、`file_state()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
 - `ConfiguredLogger` 还提供 `file_runtime_state()`，可在 file sink 外层包了 queue 时同时读取底层 file 快照、是否 queue 包装、当前 pending 与 dropped 计数
 - `ConfiguredLogger` 还提供 `file_policy()` 与 `file_default_policy()`，可分别读取当前 file 策略与初始配置策略
+- `ConfiguredLogger` 还提供 `file_policy_matches_default()`，可显式判断当前配置式 file 策略是否偏离默认值
 - `ConfiguredLogger` 也支持 `file_set_policy(...)`，可一次性改写配置式 file sink 的当前运行期策略
 - `ConfiguredLogger` 也支持 `file_reset_failure_counters()`，可在配置式 file sink 上统一清空失败计数
 - `ConfiguredLogger` 也支持 `file_reset_policy()`，可将配置式 file sink 的运行期策略恢复到初始配置

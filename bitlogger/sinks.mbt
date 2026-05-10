@@ -268,6 +268,22 @@ pub fn FileSink::default_policy(self : FileSink) -> FileSinkPolicy {
   )
 }
 
+pub fn FileSink::policy_matches_default(self : FileSink) -> Bool {
+  let current = self.policy()
+  let default = self.default_policy()
+  current.append == default.append &&
+  current.auto_flush == default.auto_flush &&
+  policy_rotation_equals_internal(current.rotation, default.rotation)
+}
+
+fn policy_rotation_equals_internal(left : FileRotation?, right : FileRotation?) -> Bool {
+  match (left, right) {
+    (None, None) => true
+    (Some(a), Some(b)) => a.max_bytes == b.max_bytes && a.max_backups == b.max_backups
+    _ => false
+  }
+}
+
 pub fn FileSink::state(self : FileSink) -> FileSinkState {
   {
     path: self.path,
