@@ -281,6 +281,7 @@ match logger.file_runtime_state() {
 - `QueueConfig`, `TextFormatterConfig`, and `SinkConfig` can also be exported independently through `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, and `sink_config_to_json(...)` / `stringify_sink_config(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `TextFormatter` and `TextFormatterConfig` now include `color_mode = Never | Auto | Always` for ANSI text coloring control.
+- `TextFormatter` and `TextFormatterConfig` also include `color_support = basic | truecolor` so hex / RGB styling can be forced to downgrade to basic ANSI colors.
 - `TextFormatter` and `TextFormatterConfig` also include `style_markup = disabled | builtin | full` so callers can choose whether style markup is parsed and whether custom tags are active.
 - `target_style_markup` and `fields_style_markup` independently control whether `target` and `fields` are parsed for style markup.
 - `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
@@ -314,6 +315,7 @@ match logger.file_runtime_state() {
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, and `stringify_runtime_file_state(...)` can export file and queued-file snapshots directly as JSON for diagnostics or reporting.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - `sink.text_formatter.color_mode` currently supports `never`, `auto`, and `always`.
+- `sink.text_formatter.color_support` currently supports `basic` and `truecolor`.
 - `sink.text_formatter.style_markup` currently supports `disabled`, `builtin`, and `full`.
 - `sink.text_formatter.target_style_markup` and `sink.text_formatter.fields_style_markup` currently support `disabled`, `builtin`, and `full`.
 - `sink.text_formatter.style_tags.<name>` currently supports `fg`, `bg`, `bold`, `dim`, `italic`, and `underline`.

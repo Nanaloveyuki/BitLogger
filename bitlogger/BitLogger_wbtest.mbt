@@ -139,6 +139,22 @@ test "text formatter supports hex inline colors" {
   )
 }
 
+test "text formatter can downgrade hex colors to basic ansi" {
+  let rec = record(Level::Info, "<#ff0000>hot</> <bg:#010203>bg</>")
+  inspect(
+    format_text(
+      rec,
+      formatter=text_formatter(
+        show_level=false,
+        show_target=false,
+        color_mode=ColorMode::Always,
+        color_support=ColorSupport::Basic,
+      ),
+    ),
+    content="\u{001b}[31mhot\u{001b}[0m \u{001b}[100mbg\u{001b}[0m",
+  )
+}
+
 test "text formatter keeps unknown inline tags as plain text" {
   let rec = record(Level::Info, "<unknown>boom</>")
   inspect(

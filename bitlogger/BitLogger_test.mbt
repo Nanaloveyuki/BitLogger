@@ -74,9 +74,10 @@ test "logger config parser reads formatter and queue options" {
 
 test "logger config parser reads formatter style tags" {
   let config = parse_logger_config_text(
-    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_markup\":\"builtin\",\"target_style_markup\":\"builtin\",\"fields_style_markup\":\"disabled\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true},\"panel\":{\"bg\":\"#202020\",\"underline\":true}}}}}",
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"color_support\":\"basic\",\"style_markup\":\"builtin\",\"target_style_markup\":\"builtin\",\"fields_style_markup\":\"disabled\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true},\"panel\":{\"bg\":\"#202020\",\"underline\":true}}}}}",
   )
   inspect(style_markup_mode_label(config.sink.text_formatter.style_markup), content="builtin")
+  inspect(color_support_label(config.sink.text_formatter.color_support), content="basic")
   inspect(style_markup_mode_label(config.sink.text_formatter.target_style_markup), content="builtin")
   inspect(style_markup_mode_label(config.sink.text_formatter.fields_style_markup), content="disabled")
   inspect(config.sink.text_formatter.style_tags.length(), content="2")
@@ -151,6 +152,7 @@ test "logger config stringify roundtrips formatter style tags" {
         kind=SinkKind::TextConsole,
         text_formatter=TextFormatterConfig::new(
           color_mode=ColorMode::Always,
+          color_support=ColorSupport::Basic,
           style_markup=StyleMarkupMode::Builtin,
           target_style_markup=StyleMarkupMode::Builtin,
           fields_style_markup=StyleMarkupMode::Disabled,
@@ -164,6 +166,7 @@ test "logger config stringify roundtrips formatter style tags" {
   )
   let config = parse_logger_config_text(text)
   inspect(color_mode_label(config.sink.text_formatter.color_mode), content="always")
+  inspect(color_support_label(config.sink.text_formatter.color_support), content="basic")
   inspect(style_markup_mode_label(config.sink.text_formatter.style_markup), content="builtin")
   inspect(style_markup_mode_label(config.sink.text_formatter.target_style_markup), content="builtin")
   inspect(style_markup_mode_label(config.sink.text_formatter.fields_style_markup), content="disabled")
@@ -213,6 +216,7 @@ test "config subtype json helpers stringify stable shapes" {
         field_separator=",",
         template="[{level}] {message} :: {fields}",
         color_mode=ColorMode::Always,
+        color_support=ColorSupport::Basic,
         style_markup=StyleMarkupMode::Builtin,
         target_style_markup=StyleMarkupMode::Builtin,
         fields_style_markup=StyleMarkupMode::Disabled,
@@ -221,7 +225,7 @@ test "config subtype json helpers stringify stable shapes" {
         },
       ),
     ),
-    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\",\"color_mode\":\"always\",\"style_markup\":\"builtin\",\"target_style_markup\":\"builtin\",\"fields_style_markup\":\"disabled\",\"style_tags\":{\"accent\":{\"bold\":true,\"dim\":false,\"italic\":false,\"underline\":false,\"fg\":\"#4cc9f0\"}}}",
+    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\",\"color_mode\":\"always\",\"color_support\":\"basic\",\"style_markup\":\"builtin\",\"target_style_markup\":\"builtin\",\"fields_style_markup\":\"disabled\",\"style_tags\":{\"accent\":{\"bold\":true,\"dim\":false,\"italic\":false,\"underline\":false,\"fg\":\"#4cc9f0\"}}}",
   )
   inspect(
     stringify_sink_config(
@@ -234,8 +238,22 @@ test "config subtype json helpers stringify stable shapes" {
         text_formatter=TextFormatterConfig::new(show_timestamp=false, color_mode=ColorMode::Auto),
       ),
     ),
-    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
+    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\",\"color_support\":\"truecolor\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
   )
+}
+
+test "config basic color support downgrades hex colors" {
+  let formatter = TextFormatterConfig::new(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    color_support=ColorSupport::Basic,
+  )
+  let rendered = format_text(
+    Record::new(Level::Info, "<#ff0000>hot</> <bg:#010203>bg</>"),
+    formatter=formatter.to_formatter(),
+  )
+  inspect(rendered, content="\u{001b}[31mhot\u{001b}[0m \u{001b}[100mbg\u{001b}[0m")
 }
 
 test "config formatter style tags render in built logger" {

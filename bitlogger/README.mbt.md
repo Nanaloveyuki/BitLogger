@@ -251,6 +251,7 @@ test {
 
 - supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `color_mode` / `color_mode`: `never`, `auto`, `always`
+- `color_support` / `color_support`: `basic`, `truecolor`
 - `style_markup` / `style_markup`: `disabled`, `builtin`, `full`
 - `target_style_markup` / `target_style_markup`, `fields_style_markup` / `fields_style_markup`: `disabled`, `builtin`, `full`
 - inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`

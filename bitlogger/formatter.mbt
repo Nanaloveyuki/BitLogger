@@ -6,6 +6,11 @@ pub(all) enum ColorMode {
   Always
 }
 
+pub(all) enum ColorSupport {
+  Basic
+  TrueColor
+}
+
 pub(all) enum StyleMarkupMode {
   Disabled
   Builtin
@@ -149,6 +154,8 @@ pub fn reset_global_style_tag_registry() -> Unit {
 priv struct InlineStyle {
   fg_code : String?
   bg_code : String?
+  fg_basic_name : String?
+  bg_basic_name : String?
   bold : Bool
   dim : Bool
   italic : Bool
@@ -182,6 +189,7 @@ pub struct TextFormatter {
   field_separator : String
   template : String
   color_mode : ColorMode
+  color_support : ColorSupport
   style_markup : StyleMarkupMode
   target_style_markup : StyleMarkupMode
   fields_style_markup : StyleMarkupMode
@@ -197,6 +205,7 @@ pub fn text_formatter(
   field_separator~ : String = " ",
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
+  color_support~ : ColorSupport = ColorSupport::TrueColor,
   style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
   target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
   fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
@@ -211,11 +220,23 @@ pub fn text_formatter(
     field_separator,
     template,
     color_mode,
+    color_support,
     style_markup,
     target_style_markup,
     fields_style_markup,
     style_tags,
   }
+}
+
+pub fn color_support_label(support : ColorSupport) -> String {
+  match support {
+    ColorSupport::Basic => "basic"
+    ColorSupport::TrueColor => "truecolor"
+  }
+}
+
+pub fn TextFormatter::with_color_support(self : TextFormatter, color_support : ColorSupport) -> TextFormatter {
+  { ..self, color_support }
 }
 
 pub fn style_markup_mode_label(mode : StyleMarkupMode) -> String {
@@ -314,7 +335,16 @@ fn ansi_wrap_with_style(text : String, style : InlineStyle, enabled : Bool) -> S
 }
 
 fn default_inline_style() -> InlineStyle {
-  { fg_code: None, bg_code: None, bold: false, dim: false, italic: false, underline: false }
+  {
+    fg_code: None,
+    bg_code: None,
+    fg_basic_name: None,
+    bg_basic_name: None,
+    bold: false,
+    dim: false,
+    italic: false,
+    underline: false,
+  }
 }
 
 fn named_color_code(tag : String) -> String? {
@@ -358,6 +388,88 @@ fn named_bg_color_code(tag : String) -> String? {
     "bright_cyan" => Some("106")
     "bright_white" => Some("107")
     _ => None
+  }
+}
+
+fn basic_name_from_hex(value : String) -> String {
+  let r = hex_pair_to_int(value.unsafe_get(1), value.unsafe_get(2))
+  let g = hex_pair_to_int(value.unsafe_get(3), value.unsafe_get(4))
+  let b = hex_pair_to_int(value.unsafe_get(5), value.unsafe_get(6))
+  let max_value = if r >= g && r >= b { r } else if g >= b { g } else { b }
+  if max_value < 48 {
+    "bright_black"
+  } else {
+    let min_value = if r <= g && r <= b { r } else if g <= b { g } else { b }
+    let spread = max_value - min_value
+    if spread < 24 {
+      if max_value > 170 {
+        "white"
+      } else if max_value > 96 {
+        "bright_black"
+      } else {
+        "black"
+      }
+    } else if r >= g && r >= b {
+      if g > 96 && b < 96 {
+        "yellow"
+      } else if b > 96 && g < 96 {
+        "magenta"
+      } else {
+        "red"
+      }
+    } else if g >= r && g >= b {
+      if r > 96 && b < 96 {
+        "yellow"
+      } else if b > 96 && r < 96 {
+        "cyan"
+      } else {
+        "green"
+      }
+    } else {
+      if r > 96 && g < 96 {
+        "magenta"
+      } else if g > 96 && r < 96 {
+        "cyan"
+      } else {
+        "blue"
+      }
+    }
+  }
+}
+
+fn resolve_inline_color_code(
+  formatter : TextFormatter,
+  basic_name : String?,
+  truecolor_code : String,
+) -> String {
+  match formatter.color_support {
+    ColorSupport::TrueColor => truecolor_code
+    ColorSupport::Basic => match basic_name {
+      Some(name) => named_code_from_basic_name(name).unwrap_or(truecolor_code)
+      None => truecolor_code
+    }
+  }
+}
+
+fn named_code_from_basic_name(name : String) -> String? {
+  named_color_code(name)
+}
+
+fn named_bg_code_from_basic_name(name : String) -> String? {
+  named_bg_color_code(name)
+}
+
+fn resolve_inline_bg_code(
+  formatter : TextFormatter,
+  basic_name : String?,
+  truecolor_code : String,
+) -> String {
+  match formatter.color_support {
+    ColorSupport::TrueColor => truecolor_code
+    ColorSupport::Basic => match basic_name {
+      Some(name) => named_bg_code_from_basic_name(name).unwrap_or(truecolor_code)
+      None => truecolor_code
+    }
   }
 }
 
@@ -416,34 +528,61 @@ fn rgb_bg_code_from_hex(value : String) -> String {
   "48;2;\{r};\{g};\{b}"
 }
 
-fn inline_style_from_text_style(base : InlineStyle, style : TextStyle) -> InlineStyle? {
-  let fg_code = match style.fg {
-    None => Some(base.fg_code)
-    Some(value) => match named_color_code(normalize_style_tag_name(value)) {
-      Some(code) => Some(Some(code))
-      None => if is_hex_color(value) {
-        Some(Some(rgb_fg_code(value)))
-      } else {
-        None
+fn inline_style_from_text_style(
+  base : InlineStyle,
+  style : TextStyle,
+  formatter : TextFormatter,
+) -> InlineStyle? {
+  let fg = match style.fg {
+    None => Some((base.fg_code, base.fg_basic_name))
+    Some(value) => {
+      let normalized = normalize_style_tag_name(value)
+      match named_color_code(normalized) {
+        Some(code) => Some((Some(code), Some(normalized)))
+        None => if is_hex_color(value) {
+          let basic_name = basic_name_from_hex(value)
+          Some((
+            Some(resolve_inline_color_code(formatter, Some(basic_name), rgb_fg_code(value))),
+            Some(basic_name),
+          ))
+        } else {
+          None
+        }
       }
     }
   }
-  let bg_code = match style.bg {
-    None => Some(base.bg_code)
-    Some(value) => match named_bg_color_code(normalize_style_tag_name(value)) {
-      Some(code) => Some(Some(code))
-      None => if is_hex_color(value) {
-        Some(Some(rgb_bg_code_from_hex(value)))
-      } else {
-        None
+  let bg = match style.bg {
+    None => Some((base.bg_code, base.bg_basic_name))
+    Some(value) => {
+      let normalized = normalize_style_tag_name(value)
+      match named_bg_color_code(normalized) {
+        Some(code) => {
+          let bg_name = if normalized.has_prefix("bright_") {
+            normalized
+          } else {
+            normalized
+          }
+          Some((Some(code), Some(bg_name)))
+        }
+        None => if is_hex_color(value) {
+          let basic_name = basic_name_from_hex(value)
+          Some((
+    Some(resolve_inline_bg_code(formatter, Some(basic_name), rgb_bg_code_from_hex(value))),
+            Some(basic_name),
+          ))
+        } else {
+          None
+        }
       }
     }
   }
-  match fg_code {
-    Some(next_fg) => match bg_code {
-      Some(next_bg) => Some({
-        fg_code: next_fg,
-        bg_code: next_bg,
+  match fg {
+    Some((next_fg_code, next_fg_name)) => match bg {
+      Some((next_bg_code, next_bg_name)) => Some({
+        fg_code: next_fg_code,
+        bg_code: next_bg_code,
+        fg_basic_name: next_fg_name,
+        bg_basic_name: next_bg_name,
         bold: base.bold || style.bold,
         dim: base.dim || style.dim,
         italic: base.italic || style.italic,
@@ -511,12 +650,22 @@ fn resolve_registered_text_style(tag : String, formatter : TextFormatter) -> Tex
 fn apply_inline_tag(style : InlineStyle, tag : String, formatter : TextFormatter) -> InlineStyle? {
   let normalized = normalize_style_tag_name(tag)
   if is_hex_color(tag) {
-    Some({ ..style, fg_code: Some(rgb_fg_code(tag)) })
+    let basic_name = basic_name_from_hex(tag)
+    Some({
+      ..style,
+      fg_code: Some(resolve_inline_color_code(formatter, Some(basic_name), rgb_fg_code(tag))),
+      fg_basic_name: Some(basic_name),
+    })
   } else if normalized.length() == 10 && normalized.has_prefix("bg:") && is_hex_color(normalized[3:].to_owned()) {
-    Some({ ..style, bg_code: Some(rgb_bg_code(normalized)) })
+    let basic_name = basic_name_from_hex(normalized[3:].to_owned())
+    Some({
+      ..style,
+      bg_code: Some(resolve_inline_bg_code(formatter, Some(basic_name), rgb_bg_code(normalized))),
+      bg_basic_name: Some(basic_name),
+    })
   } else {
     match resolve_registered_text_style(normalized, formatter) {
-      Some(spec) => inline_style_from_text_style(style, spec)
+      Some(spec) => inline_style_from_text_style(style, spec, formatter)
       None => None
     }
   }

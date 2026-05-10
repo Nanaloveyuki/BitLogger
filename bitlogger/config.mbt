@@ -18,6 +18,7 @@ pub struct TextFormatterConfig {
   field_separator : String
   template : String
   color_mode : ColorMode
+  color_support : ColorSupport
   style_markup : StyleMarkupMode
   target_style_markup : StyleMarkupMode
   fields_style_markup : StyleMarkupMode
@@ -33,6 +34,7 @@ pub fn TextFormatterConfig::new(
   field_separator~ : String = " ",
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
+  color_support~ : ColorSupport = ColorSupport::TrueColor,
   style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
   target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
   fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
@@ -47,6 +49,7 @@ pub fn TextFormatterConfig::new(
     field_separator,
     template,
     color_mode,
+    color_support,
     style_markup,
     target_style_markup,
     fields_style_markup,
@@ -72,6 +75,7 @@ pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextForm
     field_separator=self.field_separator,
     template=self.template,
     color_mode=self.color_mode,
+    color_support=self.color_support,
     style_markup=self.style_markup,
     target_style_markup=self.target_style_markup,
     fields_style_markup=self.fields_style_markup,
@@ -869,6 +873,14 @@ fn parse_color_mode(name : String) -> ColorMode raise ConfigError {
   }
 }
 
+fn parse_color_support(name : String) -> ColorSupport raise ConfigError {
+  match name.to_upper() {
+    "BASIC" => ColorSupport::Basic
+    "TRUECOLOR" => ColorSupport::TrueColor
+    _ => raise ConfigError::InvalidConfig("Unsupported color support: " + name)
+  }
+}
+
 fn parse_style_markup_mode(name : String) -> StyleMarkupMode raise ConfigError {
   match name.to_upper() {
     "DISABLED" => StyleMarkupMode::Disabled
@@ -898,6 +910,7 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
     field_separator=get_string(obj, "field_separator", default=" "),
     template=get_string(obj, "template", default=""),
     color_mode=parse_color_mode(get_string(obj, "color_mode", default="never")),
+    color_support=parse_color_support(get_string(obj, "color_support", default="truecolor")),
     style_markup=parse_style_markup_mode(get_string(obj, "style_markup", default="full")),
     target_style_markup=parse_style_markup_mode(get_string(obj, "target_style_markup", default="disabled")),
     fields_style_markup=parse_style_markup_mode(get_string(obj, "fields_style_markup", default="disabled")),
@@ -1024,6 +1037,7 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
     "field_separator": @json_parser.JsonValue::String(config.field_separator),
     "template": @json_parser.JsonValue::String(config.template),
     "color_mode": @json_parser.JsonValue::String(color_mode_label(config.color_mode)),
+    "color_support": @json_parser.JsonValue::String(color_support_label(config.color_support)),
     "style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.style_markup)),
     "target_style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.target_style_markup)),
     "fields_style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.fields_style_markup)),

@@ -305,6 +305,7 @@ match logger.file_runtime_state() {
 - `QueueConfig`, `TextFormatterConfig`, `SinkConfig` 可分别通过 `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, `sink_config_to_json(...)` / `stringify_sink_config(...)` 单独导出 JSON
 - 支持字段: `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, `queue`
 - `TextFormatter` / `TextFormatterConfig` 提供 `color_mode = Never | Auto | Always`, 可控制 ANSI 文本着色
+- `TextFormatter` / `TextFormatterConfig` 提供 `color_support = basic | truecolor`, 可控制 hex / RGB 样式是否降级到基础 ANSI 色
 - `TextFormatter` / `TextFormatterConfig` 提供 `style_markup = disabled | builtin | full`, 可决定是否解析 style markup 以及是否启用 custom style tag
 - `target_style_markup` 与 `fields_style_markup` 可独立控制 `target` 和 `fields` 是否解析 style markup
 - `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
@@ -338,6 +339,7 @@ match logger.file_runtime_state() {
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, `stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON, 便于排障或上报
 - `sink.text_formatter.template` 支持固定 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `sink.text_formatter.color_mode` 支持 `never`, `auto`, `always`
+- `sink.text_formatter.color_support` 支持 `basic`, `truecolor`
 - `sink.text_formatter.style_markup` 支持 `disabled`, `builtin`, `full`
 - `sink.text_formatter.target_style_markup` 与 `sink.text_formatter.fields_style_markup` 支持 `disabled`, `builtin`, `full`
 - `sink.text_formatter.style_tags.<name>` 支持 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
