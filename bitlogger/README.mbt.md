@@ -222,6 +222,7 @@ test {
 - JSON config uses `sink.rotation.max_bytes` and `sink.rotation.max_backups` / JSON 配置使用 `sink.rotation.max_bytes` 与 `sink.rotation.max_backups`
 - `FileSink::reopen()` can explicitly reopen the current file handle / `FileSink::reopen()` 可显式重开当前文件句柄
 - `append_mode()` exposes the current append policy, and `reopen(append=...)` updates that policy for later reopen calls / `append_mode()` 可读取当前 append 策略，`reopen(append=...)` 会更新后续 reopen 复用的 append 策略
+- `path()` and `auto_flush_enabled()` expose core file sink policy state / `path()` 与 `auto_flush_enabled()` 可读取 file sink 的基础策略状态
 - `open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()` expose basic sink health counters / `open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()` 可用于观察基础 sink 健康状态
-- `ConfiguredLogger` also forwards file reopen, flush, close, append-mode, and failure-counter helpers for config-built file sinks / `ConfiguredLogger` 也会为配置生成的 file sink 转发 reopen、flush、close、append-mode 与失败计数访问器
+- `ConfiguredLogger` also forwards file reopen, flush, close, append-mode, path, auto-flush, and failure-counter helpers for config-built file sinks / `ConfiguredLogger` 也会为配置生成的 file sink 转发 reopen、flush、close、append-mode、path、auto-flush 与失败计数访问器
 - current scope is observability-first, not a full self-healing sink runtime / 当前定位仍以可观测性优先，不是完整自愈型 sink runtime

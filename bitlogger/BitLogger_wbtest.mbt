@@ -89,8 +89,10 @@ test "native file support flag is queryable" {
 
 test "file sink availability reflects backend support" {
   let sink = file_sink("bitlogger-test.log")
+  inspect(sink.path(), content="bitlogger-test.log")
   inspect(sink.is_available() == native_files_supported(), content="true")
   inspect(sink.append_mode(), content="true")
+  inspect(sink.auto_flush_enabled(), content="true")
   inspect(sink.open_failures(), content=if sink.is_available() { "0" } else { "1" })
   inspect(sink.write_failures(), content="0")
   inspect(sink.flush_failures(), content="0")

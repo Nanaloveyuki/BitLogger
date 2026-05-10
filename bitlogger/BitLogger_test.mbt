@@ -198,11 +198,17 @@ test "configured logger reports dropped_count for bounded queue" {
 test "configured logger exposes file sink observability helpers" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-file.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="config-file.log",
+        auto_flush=false,
+      ),
     ),
   )
   inspect(logger.file_available() == native_files_supported(), content="true")
+  inspect(logger.file_path(), content="config-file.log")
   inspect(logger.file_append_mode(), content="true")
+  inspect(logger.file_auto_flush(), content="false")
   inspect(logger.file_open_failures(), content=if logger.file_available() { "0" } else { "1" })
   inspect(logger.file_write_failures(), content="0")
   inspect(logger.file_flush_failures(), content="0")

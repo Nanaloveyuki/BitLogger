@@ -118,6 +118,14 @@ pub fn FileSink::append_mode(self : FileSink) -> Bool {
   self.append.val
 }
 
+pub fn FileSink::path(self : FileSink) -> String {
+  self.path
+}
+
+pub fn FileSink::auto_flush_enabled(self : FileSink) -> Bool {
+  self.auto_flush
+}
+
 pub fn FileSink::close(self : FileSink) -> Bool {
   match self.handle.val {
     None => false

@@ -239,6 +239,22 @@ pub fn RuntimeSink::file_append_mode(self : RuntimeSink) -> Bool {
   }
 }
 
+pub fn RuntimeSink::file_path(self : RuntimeSink) -> String {
+  match self {
+    File(sink) => sink.path()
+    QueuedFile(sink) => sink.sink.path()
+    _ => ""
+  }
+}
+
+pub fn RuntimeSink::file_auto_flush(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => sink.auto_flush_enabled()
+    QueuedFile(sink) => sink.sink.auto_flush_enabled()
+    _ => false
+  }
+}
+
 pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.flush()
@@ -325,6 +341,14 @@ pub fn ConfiguredLogger::file_reopen(self : ConfiguredLogger, append~ : Bool? = 
 
 pub fn ConfiguredLogger::file_append_mode(self : ConfiguredLogger) -> Bool {
   self.sink.file_append_mode()
+}
+
+pub fn ConfiguredLogger::file_path(self : ConfiguredLogger) -> String {
+  self.sink.file_path()
+}
+
+pub fn ConfiguredLogger::file_auto_flush(self : ConfiguredLogger) -> Bool {
+  self.sink.file_auto_flush()
 }
 
 pub fn ConfiguredLogger::file_flush(self : ConfiguredLogger) -> Bool {
