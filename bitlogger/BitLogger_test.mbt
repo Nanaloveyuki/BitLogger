@@ -206,8 +206,13 @@ test "configured logger exposes file sink observability helpers" {
       ),
     ),
   )
+  let state = logger.file_state()
   inspect(logger.file_available() == native_files_supported(), content="true")
   inspect(logger.file_path(), content="config-file.log")
+  inspect(state.path, content="config-file.log")
+  inspect(state.available == logger.file_available(), content="true")
+  inspect(state.append == logger.file_append_mode(), content="true")
+  inspect(state.auto_flush == logger.file_auto_flush(), content="true")
   inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="false")
   inspect(logger.file_rotation_enabled(), content="true")
@@ -264,6 +269,10 @@ test "configured logger file setters update file sink policy state" {
   inspect(logger.file_rotation_config() is None, content="true")
   inspect(logger.file_reopen(), content=if logger.file_available() { "true" } else { "false" })
   inspect(logger.file_append_mode(), content="false")
+  let state = logger.file_state()
+  inspect(state.append, content="false")
+  inspect(state.auto_flush, content="false")
+  inspect(state.rotation is None, content="true")
   ignore(logger.close())
 }
 

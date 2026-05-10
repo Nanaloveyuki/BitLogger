@@ -226,8 +226,9 @@ if native_files_supported() {
 - `file_sink(...)` 也支持 `set_append_mode(...)`，用于显式修改后续 reopen 将使用的 append 策略
 - `file_sink(...)` 也可直接读取 `path()` 与 `auto_flush_enabled()` 等基础 file 策略状态
 - `file_sink(...)` 还提供 `rotation_enabled()` 与 `rotation_config()`，可直接查询当前 rotation 策略是否启用及其参数
+- `file_sink(...)` 还提供 `state()`，可一次性读取 path、available、append、auto_flush、rotation 与各类 failure counter 快照
 - `file_sink(...)` 也支持 `set_auto_flush(...)`、`set_rotation(...)`、`clear_rotation()`，可在运行期调整基础写出策略
-- `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_reopen_append()`、`file_reopen_truncate()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
+- `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_reopen_append()`、`file_reopen_truncate()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`、`file_state()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime

@@ -405,6 +405,24 @@ pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int {
   }
 }
 
+pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
+  match self {
+    File(sink) => sink.state()
+    QueuedFile(sink) => sink.sink.state()
+    _ => {
+      path: "",
+      available: false,
+      append: false,
+      auto_flush: false,
+      rotation: None,
+      open_failures: 0,
+      write_failures: 0,
+      flush_failures: 0,
+      rotation_failures: 0,
+    }
+  }
+}
+
 pub type ConfiguredLogger = Logger[RuntimeSink]
 
 pub fn ConfiguredLogger::flush(self : ConfiguredLogger) -> Int {
@@ -508,6 +526,10 @@ pub fn ConfiguredLogger::file_flush_failures(self : ConfiguredLogger) -> Int {
 
 pub fn ConfiguredLogger::file_rotation_failures(self : ConfiguredLogger) -> Int {
   self.sink.file_rotation_failures()
+}
+
+pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {
+  self.sink.file_state()
 }
 
 fn expect_object(

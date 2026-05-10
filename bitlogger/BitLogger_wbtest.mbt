@@ -89,8 +89,14 @@ test "native file support flag is queryable" {
 
 test "file sink availability reflects backend support" {
   let sink = file_sink("bitlogger-test.log")
+  let state = sink.state()
   inspect(sink.path(), content="bitlogger-test.log")
   inspect(sink.is_available() == native_files_supported(), content="true")
+  inspect(state.path, content="bitlogger-test.log")
+  inspect(state.available == sink.is_available(), content="true")
+  inspect(state.append == sink.append_mode(), content="true")
+  inspect(state.auto_flush == sink.auto_flush_enabled(), content="true")
+  inspect((state.rotation is None) == (sink.rotation_config() is None), content="true")
   inspect(sink.append_mode(), content="true")
   inspect(sink.auto_flush_enabled(), content="true")
   inspect(sink.rotation_enabled(), content="false")
@@ -145,6 +151,10 @@ test "file sink setters update auto flush and rotation state" {
   inspect(sink.rotation_config() is None, content="true")
   inspect(sink.reopen(), content=if sink.is_available() { "true" } else { "false" })
   inspect(sink.append_mode(), content="false")
+  let state = sink.state()
+  inspect(state.append, content="false")
+  inspect(state.auto_flush, content="false")
+  inspect(state.rotation is None, content="true")
 }
 
 test "file sink tracks rotation failures on unavailable backend" {

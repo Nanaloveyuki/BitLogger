@@ -62,6 +62,18 @@ pub struct FileRotation {
   max_backups : Int
 }
 
+pub struct FileSinkState {
+  path : String
+  available : Bool
+  append : Bool
+  auto_flush : Bool
+  rotation : FileRotation?
+  open_failures : Int
+  write_failures : Int
+  flush_failures : Int
+  rotation_failures : Int
+}
+
 pub fn file_rotation(max_bytes : Int, max_backups~ : Int = 1) -> FileRotation {
   {
     max_bytes: if max_bytes <= 0 { 1 } else { max_bytes },
@@ -175,6 +187,20 @@ pub fn FileSink::write_failures(self : FileSink) -> Int {
 
 pub fn FileSink::flush_failures(self : FileSink) -> Int {
   self.flush_failures.val
+}
+
+pub fn FileSink::state(self : FileSink) -> FileSinkState {
+  {
+    path: self.path,
+    available: self.is_available(),
+    append: self.append.val,
+    auto_flush: self.auto_flush.val,
+    rotation: self.rotation.val,
+    open_failures: self.open_failures.val,
+    write_failures: self.write_failures.val,
+    flush_failures: self.flush_failures.val,
+    rotation_failures: self.rotation_failures.val,
+  }
 }
 
 pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
