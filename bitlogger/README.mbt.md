@@ -254,6 +254,7 @@ test {
 - `style_markup` / `style_markup`: `disabled`, `builtin`, `full`
 - `target_style_markup` / `target_style_markup`, `fields_style_markup` / `fields_style_markup`: `disabled`, `builtin`, `full`
 - inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
+- closing tags / 闭合标签: `</>` 以及具名闭合 `</red>`, `</danger>`, `</b>`
 - builtin semantic tags / 内置语义标签: `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, `<muted>`
 - runtime style tags / 运行期样式标签: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - style tag priority / 标签优先级: formatter local `style_tags` > global style tag registry > builtin tags

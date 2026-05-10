@@ -284,6 +284,7 @@ match logger.file_runtime_state() {
 - `TextFormatter` and `TextFormatterConfig` also include `style_markup = disabled | builtin | full` so callers can choose whether style markup is parsed and whether custom tags are active.
 - `target_style_markup` and `fields_style_markup` independently control whether `target` and `fields` are parsed for style markup.
 - `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
+- Closing tags now support both the short form `</>` and named closing tags such as `</red>`, `</danger>`, and `</b>`.
 - Builtin semantic tags now include `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, and `<muted>`.
 - Runtime style-tag APIs now include `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, and `define_alias(...)`.
 - Style-tag lookup priority is formatter-local `style_tags` > global style tag registry > builtin tags.

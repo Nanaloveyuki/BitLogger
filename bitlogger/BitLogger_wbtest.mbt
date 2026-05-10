@@ -107,6 +107,30 @@ test "text formatter supports nested inline tags" {
   )
 }
 
+test "text formatter supports named closing tags" {
+  let rec = record(Level::Info, "<red>boom</red>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false, color_mode=ColorMode::Always)),
+    content="\u{001b}[31mboom\u{001b}[0m",
+  )
+}
+
+test "text formatter supports mixed short and named closing tags" {
+  let rec = record(Level::Info, "<red><b>fatal</b></red>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false, color_mode=ColorMode::Always)),
+    content="\u{001b}[31;1mfatal\u{001b}[0m",
+  )
+}
+
+test "text formatter keeps unmatched named closing tags as plain text" {
+  let rec = record(Level::Info, "boom</red>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false)),
+    content="boom</red>",
+  )
+}
+
 test "text formatter supports hex inline colors" {
   let rec = record(Level::Info, "<#ff0000>hot</> <bg:#010203>bg</>")
   inspect(

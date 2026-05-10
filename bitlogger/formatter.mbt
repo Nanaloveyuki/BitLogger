@@ -160,6 +160,11 @@ priv struct StyledSegment {
   style : InlineStyle
 }
 
+priv struct StyleFrame {
+  tag : String
+  style : InlineStyle
+}
+
 fn code_unit(ch : Char) -> Int {
   ch.to_int()
 }
@@ -529,12 +534,41 @@ fn push_plain_segment(
   }
 }
 
+fn pop_named_style_frame(stack : Array[StyleFrame], tag : String) -> Bool {
+  let normalized = normalize_style_tag_name(tag)
+  if stack.length() <= 1 {
+    return false
+  }
+  for i = stack.length() - 1; i > 0; i = i - 1 {
+    if stack[i].tag == normalized {
+      while stack.length() - 1 >= i {
+        ignore(stack.pop())
+      }
+      return true
+    }
+  }
+  false
+}
+
+fn has_named_style_frame(stack : Array[StyleFrame], tag : String) -> Bool {
+  let normalized = normalize_style_tag_name(tag)
+  if stack.length() <= 1 {
+    return false
+  }
+  for i = stack.length() - 1; i > 0; i = i - 1 {
+    if stack[i].tag == normalized {
+      return true
+    }
+  }
+  false
+}
+
 fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[StyledSegment] {
   let segments : Array[StyledSegment] = []
   let buffer = StringBuilder::new()
-  let stack : Array[InlineStyle] = [default_inline_style()]
+  let stack : Array[StyleFrame] = [{ tag: "", style: default_inline_style() }]
   let chars = input.to_array()
-  let current_style = fn() { stack[stack.length() - 1] }
+  let current_style = fn() { stack[stack.length() - 1].style }
   let flush = fn() { push_plain_segment(segments, buffer, current_style()) }
   let append_raw = fn(start : Int, finish : Int) {
     for i = start; i < finish; i = i + 1 {
@@ -569,10 +603,20 @@ fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[Style
       }
       continue end + 1
     }
+    if tag.has_prefix("/") {
+      let close_tag = tag[1:].to_owned()
+      if close_tag != "" && has_named_style_frame(stack, close_tag) {
+        flush()
+        ignore(pop_named_style_frame(stack, close_tag))
+      } else {
+        append_raw(i, end + 1)
+      }
+      continue end + 1
+    }
     match apply_inline_tag(current_style(), tag, formatter) {
       Some(next_style) => {
         flush()
-        stack.push(next_style)
+        stack.push({ tag: normalize_style_tag_name(tag), style: next_style })
       }
       None => append_raw(i, end + 1)
     }

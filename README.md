@@ -308,6 +308,7 @@ match logger.file_runtime_state() {
 - `TextFormatter` / `TextFormatterConfig` 提供 `style_markup = disabled | builtin | full`, 可决定是否解析 style markup 以及是否启用 custom style tag
 - `target_style_markup` 与 `fields_style_markup` 可独立控制 `target` 和 `fields` 是否解析 style markup
 - `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
+- 闭合同时支持简写 `</>` 与具名闭合 `</red>`, `</danger>`, `</b>`
 - 内置语义标签包括: `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, `<muted>`
 - 运行期样式标签 API: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - 样式标签优先级: formatter 局部 `style_tags` > 全局 style tag registry > 内置标签
