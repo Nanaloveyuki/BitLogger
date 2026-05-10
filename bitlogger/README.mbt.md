@@ -252,11 +252,13 @@ test {
 - supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `color_mode` / `color_mode`: `never`, `auto`, `always`
 - `style_markup` / `style_markup`: `disabled`, `builtin`, `full`
+- `target_style_markup` / `target_style_markup`, `fields_style_markup` / `fields_style_markup`: `disabled`, `builtin`, `full`
 - inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
 - builtin semantic tags / 内置语义标签: `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, `<muted>`
 - runtime style tags / 运行期样式标签: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - style tag priority / 标签优先级: formatter local `style_tags` > global style tag registry > builtin tags
 - `sink.text_formatter.style_tags` / `sink.text_formatter.style_tags` 现支持最小对象映射: `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
+- `fields_style_markup` currently affects values only / `fields_style_markup` 当前仅影响 field value, 不影响 field key
 - `define_alias(...)` is still runtime-only / `define_alias(...)` 目前仍为运行期 API
 - disabled or missing parts render as empty text / 被关闭或缺失的部分会渲染为空字符串
 - `template` is intentionally a simple token replacement layer, not a full DSL / `template` 使用轻量 token 替换方式, 不是完整 DSL

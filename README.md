@@ -306,6 +306,7 @@ match logger.file_runtime_state() {
 - 支持字段: `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, `queue`
 - `TextFormatter` / `TextFormatterConfig` 提供 `color_mode = Never | Auto | Always`, 可控制 ANSI 文本着色
 - `TextFormatter` / `TextFormatterConfig` 提供 `style_markup = disabled | builtin | full`, 可决定是否解析 style markup 以及是否启用 custom style tag
+- `target_style_markup` 与 `fields_style_markup` 可独立控制 `target` 和 `fields` 是否解析 style markup
 - `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
 - 内置语义标签包括: `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, `<muted>`
 - 运行期样式标签 API: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
@@ -337,7 +338,9 @@ match logger.file_runtime_state() {
 - `sink.text_formatter.template` 支持固定 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `sink.text_formatter.color_mode` 支持 `never`, `auto`, `always`
 - `sink.text_formatter.style_markup` 支持 `disabled`, `builtin`, `full`
+- `sink.text_formatter.target_style_markup` 与 `sink.text_formatter.fields_style_markup` 支持 `disabled`, `builtin`, `full`
 - `sink.text_formatter.style_tags.<name>` 支持 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
+- `fields_style_markup` 当前只解析 field value, 不解析 field key
 - 可由配置直接组装的 sink 类型: `console`, `json_console`, `text_console`, `file`
 - `queue` 作为显式包装层附着在最终 sink 外侧. 这仍然是同步 drain 模型, 不是 async runtime
 

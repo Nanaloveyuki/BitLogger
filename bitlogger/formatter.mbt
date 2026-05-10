@@ -178,6 +178,8 @@ pub struct TextFormatter {
   template : String
   color_mode : ColorMode
   style_markup : StyleMarkupMode
+  target_style_markup : StyleMarkupMode
+  fields_style_markup : StyleMarkupMode
   style_tags : StyleTagRegistry?
 }
 
@@ -191,6 +193,8 @@ pub fn text_formatter(
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
   style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
+  target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
+  fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
   style_tags~ : StyleTagRegistry? = None,
 ) -> TextFormatter {
   {
@@ -203,6 +207,8 @@ pub fn text_formatter(
     template,
     color_mode,
     style_markup,
+    target_style_markup,
+    fields_style_markup,
     style_tags,
   }
 }
@@ -221,6 +227,20 @@ pub fn TextFormatter::with_style_markup(self : TextFormatter, style_markup : Sty
 
 pub fn TextFormatter::without_style_markup(self : TextFormatter) -> TextFormatter {
   { ..self, style_markup: StyleMarkupMode::Disabled }
+}
+
+pub fn TextFormatter::with_target_style_markup(
+  self : TextFormatter,
+  style_markup : StyleMarkupMode,
+) -> TextFormatter {
+  { ..self, target_style_markup: style_markup }
+}
+
+pub fn TextFormatter::with_fields_style_markup(
+  self : TextFormatter,
+  style_markup : StyleMarkupMode,
+) -> TextFormatter {
+  { ..self, fields_style_markup: style_markup }
 }
 
 pub fn TextFormatter::with_style_tags(self : TextFormatter, style_tags : StyleTagRegistry) -> TextFormatter {
@@ -562,18 +582,23 @@ fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[Style
   segments
 }
 
-fn render_inline_markup(message : String, formatter : TextFormatter) -> String {
-  match formatter.style_markup {
-    StyleMarkupMode::Disabled => return message
+fn render_styled_text(text : String, formatter : TextFormatter, mode : StyleMarkupMode) -> String {
+  match mode {
+    StyleMarkupMode::Disabled => return text
     _ => ()
   }
   let enabled = use_ansi_color(formatter.color_mode)
-  let segments = parse_inline_markup(message, formatter)
+  let scoped = { ..formatter, style_markup: mode }
+  let segments = parse_inline_markup(text, scoped)
   let out = StringBuilder::new()
   for segment in segments {
     out.write_string(ansi_wrap_with_style(segment.text, segment.style, enabled))
   }
   out.to_string()
+}
+
+fn render_inline_markup(message : String, formatter : TextFormatter) -> String {
+  render_styled_text(message, formatter, formatter.style_markup)
 }
 
 fn level_ansi_code(level : Level) -> String {
@@ -594,10 +619,6 @@ fn fields_to_json(fields : Array[Field]) -> Json {
   Json::object(obj)
 }
 
-fn format_fields(fields : Array[Field], separator : String) -> String {
-  fields.map(fn(f) { "\{f.key}=\{f.value}" }).join(separator)
-}
-
 fn timestamp_text(rec : Record, formatter : TextFormatter) -> String {
   if formatter.show_timestamp && rec.timestamp_ms != 0UL {
     ansi_wrap(rec.timestamp_ms.to_string(), "90", use_ansi_color(formatter.color_mode))
@@ -616,15 +637,22 @@ fn level_text(rec : Record, formatter : TextFormatter) -> String {
 
 fn target_text(rec : Record, formatter : TextFormatter) -> String {
   if formatter.show_target && rec.target != "" {
-    ansi_wrap(rec.target, "34", use_ansi_color(formatter.color_mode))
+    let rendered = render_styled_text(rec.target, formatter, formatter.target_style_markup)
+    ansi_wrap(rendered, "34", use_ansi_color(formatter.color_mode))
   } else {
     ""
   }
 }
 
+fn format_field_text(field : Field, formatter : TextFormatter) -> String {
+  let value = render_styled_text(field.value, formatter, formatter.fields_style_markup)
+  "\{field.key}=\{value}"
+}
+
 fn fields_text(rec : Record, formatter : TextFormatter) -> String {
   if formatter.show_fields && rec.fields.length() != 0 {
-    ansi_wrap(format_fields(rec.fields, formatter.field_separator), "35", use_ansi_color(formatter.color_mode))
+    let content = rec.fields.map(fn(field) { format_field_text(field, formatter) }).join(formatter.field_separator)
+    ansi_wrap(content, "35", use_ansi_color(formatter.color_mode))
   } else {
     ""
   }

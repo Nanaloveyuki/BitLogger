@@ -19,6 +19,8 @@ pub struct TextFormatterConfig {
   template : String
   color_mode : ColorMode
   style_markup : StyleMarkupMode
+  target_style_markup : StyleMarkupMode
+  fields_style_markup : StyleMarkupMode
   style_tags : Map[String, TextStyle]
 }
 
@@ -32,6 +34,8 @@ pub fn TextFormatterConfig::new(
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
   style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
+  target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
+  fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
   style_tags~ : Map[String, TextStyle] = {},
 ) -> TextFormatterConfig {
   {
@@ -44,6 +48,8 @@ pub fn TextFormatterConfig::new(
     template,
     color_mode,
     style_markup,
+    target_style_markup,
+    fields_style_markup,
     style_tags,
   }
 }
@@ -67,6 +73,8 @@ pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextForm
     template=self.template,
     color_mode=self.color_mode,
     style_markup=self.style_markup,
+    target_style_markup=self.target_style_markup,
+    fields_style_markup=self.fields_style_markup,
     style_tags=if self.style_tags.length() == 0 {
       None
     } else {
@@ -891,6 +899,8 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
     template=get_string(obj, "template", default=""),
     color_mode=parse_color_mode(get_string(obj, "color_mode", default="never")),
     style_markup=parse_style_markup_mode(get_string(obj, "style_markup", default="full")),
+    target_style_markup=parse_style_markup_mode(get_string(obj, "target_style_markup", default="disabled")),
+    fields_style_markup=parse_style_markup_mode(get_string(obj, "fields_style_markup", default="disabled")),
     style_tags=match obj.get("style_tags") {
       None => {}
       Some(inner) => parse_style_tags_config(inner)
@@ -1015,6 +1025,8 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
     "template": @json_parser.JsonValue::String(config.template),
     "color_mode": @json_parser.JsonValue::String(color_mode_label(config.color_mode)),
     "style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.style_markup)),
+    "target_style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.target_style_markup)),
+    "fields_style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.fields_style_markup)),
   }
   if config.style_tags.length() != 0 {
     obj["style_tags"] = style_tags_config_to_json(config.style_tags)

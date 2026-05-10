@@ -259,6 +259,47 @@ test "builtin semantic style tags can still be overridden" {
   )
 }
 
+test "text formatter can enable markup for target separately" {
+  let formatter = text_formatter(
+    show_level=false,
+    color_mode=ColorMode::Always,
+    target_style_markup=StyleMarkupMode::Builtin,
+  )
+  let rec = record(Level::Info, "hello", target="<danger>svc</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="[\u{001b}[34m\u{001b}[31;1msvc\u{001b}[0m\u{001b}[0m] hello",
+  )
+}
+
+test "text formatter can enable markup for field values separately" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    fields_style_markup=StyleMarkupMode::Builtin,
+  )
+  let rec = record(Level::Info, "hello", fields=[field("status", "<success>ok</>")])
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="hello \u{001b}[35mstatus=\u{001b}[32;1mok\u{001b}[0m\u{001b}[0m",
+  )
+}
+
+test "text formatter leaves field keys raw when field markup is enabled" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    fields_style_markup=StyleMarkupMode::Builtin,
+  )
+  let rec = record(Level::Info, "hello", fields=[field("<danger>status</>", "ok")])
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="hello \u{001b}[35m<danger>status</>=ok\u{001b}[0m",
+  )
+}
+
 test "text formatter template respects disabled fields" {
   let rec = record(Level::Warn, "just message", target="svc")
   let formatter = text_formatter(

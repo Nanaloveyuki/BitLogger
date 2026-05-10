@@ -282,6 +282,7 @@ match logger.file_runtime_state() {
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `TextFormatter` and `TextFormatterConfig` now include `color_mode = Never | Auto | Always` for ANSI text coloring control.
 - `TextFormatter` and `TextFormatterConfig` also include `style_markup = disabled | builtin | full` so callers can choose whether style markup is parsed and whether custom tags are active.
+- `target_style_markup` and `fields_style_markup` independently control whether `target` and `fields` are parsed for style markup.
 - `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
 - Builtin semantic tags now include `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, and `<muted>`.
 - Runtime style-tag APIs now include `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, and `define_alias(...)`.
@@ -313,7 +314,9 @@ match logger.file_runtime_state() {
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - `sink.text_formatter.color_mode` currently supports `never`, `auto`, and `always`.
 - `sink.text_formatter.style_markup` currently supports `disabled`, `builtin`, and `full`.
+- `sink.text_formatter.target_style_markup` and `sink.text_formatter.fields_style_markup` currently support `disabled`, `builtin`, and `full`.
 - `sink.text_formatter.style_tags.<name>` currently supports `fg`, `bg`, `bold`, `dim`, `italic`, and `underline`.
+- `fields_style_markup` currently applies to field values only, not field keys.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
 
