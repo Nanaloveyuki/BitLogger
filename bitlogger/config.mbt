@@ -255,6 +255,22 @@ pub fn RuntimeSink::file_auto_flush(self : RuntimeSink) -> Bool {
   }
 }
 
+pub fn RuntimeSink::file_rotation_enabled(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => sink.rotation_enabled()
+    QueuedFile(sink) => sink.sink.rotation_enabled()
+    _ => false
+  }
+}
+
+pub fn RuntimeSink::file_rotation_config(self : RuntimeSink) -> FileRotation? {
+  match self {
+    File(sink) => sink.rotation_config()
+    QueuedFile(sink) => sink.sink.rotation_config()
+    _ => None
+  }
+}
+
 pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.flush()
@@ -349,6 +365,14 @@ pub fn ConfiguredLogger::file_path(self : ConfiguredLogger) -> String {
 
 pub fn ConfiguredLogger::file_auto_flush(self : ConfiguredLogger) -> Bool {
   self.sink.file_auto_flush()
+}
+
+pub fn ConfiguredLogger::file_rotation_enabled(self : ConfiguredLogger) -> Bool {
+  self.sink.file_rotation_enabled()
+}
+
+pub fn ConfiguredLogger::file_rotation_config(self : ConfiguredLogger) -> FileRotation? {
+  self.sink.file_rotation_config()
 }
 
 pub fn ConfiguredLogger::file_flush(self : ConfiguredLogger) -> Bool {

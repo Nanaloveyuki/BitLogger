@@ -93,6 +93,8 @@ test "file sink availability reflects backend support" {
   inspect(sink.is_available() == native_files_supported(), content="true")
   inspect(sink.append_mode(), content="true")
   inspect(sink.auto_flush_enabled(), content="true")
+  inspect(sink.rotation_enabled(), content="false")
+  inspect(sink.rotation_config() is None, content="true")
   inspect(sink.open_failures(), content=if sink.is_available() { "0" } else { "1" })
   inspect(sink.write_failures(), content="0")
   inspect(sink.flush_failures(), content="0")
@@ -109,6 +111,15 @@ test "file sink rotation config normalizes invalid inputs" {
   let rotation = file_rotation(0, max_backups=0)
   inspect(rotation.max_bytes, content="1")
   inspect(rotation.max_backups, content="1")
+  let sink = file_sink("bitlogger-rotation-config.log", rotation=Some(rotation))
+  inspect(sink.rotation_enabled(), content="true")
+  match sink.rotation_config() {
+    Some(config) => {
+      inspect(config.max_bytes, content="1")
+      inspect(config.max_backups, content="1")
+    }
+    None => inspect(false, content="true")
+  }
 }
 
 test "file sink tracks rotation failures on unavailable backend" {

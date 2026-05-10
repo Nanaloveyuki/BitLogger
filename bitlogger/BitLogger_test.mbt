@@ -202,6 +202,7 @@ test "configured logger exposes file sink observability helpers" {
         kind=SinkKind::File,
         path="config-file.log",
         auto_flush=false,
+        rotation=Some(file_rotation(64, max_backups=3)),
       ),
     ),
   )
@@ -209,10 +210,29 @@ test "configured logger exposes file sink observability helpers" {
   inspect(logger.file_path(), content="config-file.log")
   inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="false")
+  inspect(logger.file_rotation_enabled(), content="true")
+  match logger.file_rotation_config() {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="64")
+      inspect(rotation.max_backups, content="3")
+    }
+    None => inspect(false, content="true")
+  }
   inspect(logger.file_open_failures(), content=if logger.file_available() { "0" } else { "1" })
   inspect(logger.file_write_failures(), content="0")
   inspect(logger.file_flush_failures(), content="0")
   inspect(logger.file_rotation_failures(), content="0")
+  ignore(logger.close())
+}
+
+test "configured logger reports disabled rotation when file sink has none" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-no-rotation.log"),
+    ),
+  )
+  inspect(logger.file_rotation_enabled(), content="false")
+  inspect(logger.file_rotation_config() is None, content="true")
   ignore(logger.close())
 }
 

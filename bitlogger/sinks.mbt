@@ -126,6 +126,14 @@ pub fn FileSink::auto_flush_enabled(self : FileSink) -> Bool {
   self.auto_flush
 }
 
+pub fn FileSink::rotation_enabled(self : FileSink) -> Bool {
+  self.rotation is Some(_)
+}
+
+pub fn FileSink::rotation_config(self : FileSink) -> FileRotation? {
+  self.rotation
+}
+
 pub fn FileSink::close(self : FileSink) -> Bool {
   match self.handle.val {
     None => false
