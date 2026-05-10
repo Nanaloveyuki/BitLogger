@@ -142,4 +142,45 @@ fn main {
   }
   config_logger.info("configured from json")
   ignore(config_logger.flush())
+
+  let queue_config = @lib.QueueConfig::new(4, overflow=@lib.QueueOverflowPolicy::DropOldest)
+  println(@lib.stringify_queue_config(queue_config))
+
+  let formatter_config = @lib.TextFormatterConfig::new(
+    show_timestamp=false,
+    separator=" | ",
+    field_separator=",",
+    template="[{level}] {target} {message} :: {fields}",
+  )
+  println(@lib.stringify_text_formatter_config(formatter_config))
+
+  let sink_config = @lib.SinkConfig::new(
+    kind=@lib.SinkKind::File,
+    path="bitlogger-config-demo.log",
+    append=false,
+    auto_flush=false,
+    rotation=Some(@lib.file_rotation(128, max_backups=2)),
+    text_formatter=formatter_config,
+  )
+  println(@lib.stringify_sink_config(sink_config))
+
+  let file_policy = @lib.FileSinkPolicy::new(
+    append=false,
+    auto_flush=false,
+    rotation=Some(@lib.file_rotation(64, max_backups=2)),
+  )
+  println(@lib.stringify_file_sink_policy(file_policy))
+
+  let file_runtime_logger = @lib.build_logger(
+    @lib.LoggerConfig::new(
+      sink=@lib.SinkConfig::new(kind=@lib.SinkKind::File, path="bitlogger-runtime-demo.log"),
+      queue=Some(@lib.QueueConfig::new(8)),
+    ),
+  )
+  file_runtime_logger.info("runtime file logger ready")
+  match file_runtime_logger.file_runtime_state() {
+    Some(snapshot) => println(@lib.stringify_runtime_file_state(snapshot, pretty=true))
+    None => ()
+  }
+  ignore(file_runtime_logger.file_close())
 }

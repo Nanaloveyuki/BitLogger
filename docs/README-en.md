@@ -213,6 +213,7 @@ match logger.file_runtime_state() {
 
 - `bitlogger/`: MoonBit library package, tests, and Mooncake package README
 - `examples/basic/`: runnable example package
+- `examples/async_basic/`: runnable async logger example built on `moonbitlang/async`
 
 ## Links
 

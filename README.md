@@ -229,6 +229,7 @@ match logger.file_runtime_state() {
 
 - `bitlogger/`：MoonBit 库 package，本体实现、测试与 Mooncake README
 - `examples/basic/`：最小可运行示例
+- `examples/async_basic/`：基于 `moonbitlang/async` 的异步 logger 示例
 
 ## 🔗 相关文档
 
