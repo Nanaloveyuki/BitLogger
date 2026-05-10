@@ -231,3 +231,43 @@ test "configured logger can reopen built file sink" {
     inspect(logger.file_open_failures(), content="2")
   }
 }
+
+test "configured logger exposes file flush and close helpers" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-control.log"),
+    ),
+  )
+  if logger.file_available() {
+    logger.info("before flush")
+    inspect(logger.file_flush(), content="true")
+    inspect(logger.file_close(), content="true")
+    inspect(logger.file_available(), content="false")
+    inspect(logger.file_flush(), content="false")
+  } else {
+    inspect(logger.file_flush(), content="false")
+    inspect(logger.file_close(), content="false")
+  }
+}
+
+test "configured queued file logger flushes queue through file helper" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-queued-file.log"),
+      queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  )
+  logger.info("one")
+  logger.info("two")
+  if logger.file_available() {
+    inspect(logger.pending_count(), content="2")
+    inspect(logger.file_flush(), content="true")
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.file_close(), content="true")
+  } else {
+    inspect(logger.pending_count(), content="2")
+    inspect(logger.file_flush(), content="false")
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.file_close(), content="false")
+  }
+}

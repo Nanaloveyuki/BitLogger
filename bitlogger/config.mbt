@@ -231,6 +231,28 @@ pub fn RuntimeSink::file_reopen(self : RuntimeSink, append~ : Bool? = None) -> B
   }
 }
 
+pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => sink.flush()
+    QueuedFile(sink) => {
+      ignore(sink.flush())
+      sink.sink.flush()
+    }
+    _ => false
+  }
+}
+
+pub fn RuntimeSink::file_close(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => sink.close()
+    QueuedFile(sink) => {
+      ignore(sink.flush())
+      sink.sink.close()
+    }
+    _ => false
+  }
+}
+
 pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int {
   match self {
     File(sink) => sink.open_failures()
@@ -291,6 +313,14 @@ pub fn ConfiguredLogger::file_available(self : ConfiguredLogger) -> Bool {
 
 pub fn ConfiguredLogger::file_reopen(self : ConfiguredLogger, append~ : Bool? = None) -> Bool {
   self.sink.file_reopen(append=append)
+}
+
+pub fn ConfiguredLogger::file_flush(self : ConfiguredLogger) -> Bool {
+  self.sink.file_flush()
+}
+
+pub fn ConfiguredLogger::file_close(self : ConfiguredLogger) -> Bool {
+  self.sink.file_close()
 }
 
 pub fn ConfiguredLogger::file_open_failures(self : ConfiguredLogger) -> Int {
