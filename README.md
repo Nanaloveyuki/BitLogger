@@ -168,6 +168,7 @@ let formatter = text_formatter(
   show_timestamp=false,
   field_separator=",",
   template="[{level}] {target} {message} :: {fields}",
+  color_mode=ColorMode::Always,
 )
 let logger = Logger::new(text_console_sink(formatter), target="pretty")
 
@@ -180,7 +181,7 @@ logger.info("hello", fields=[field("mode", "pretty")])
 
 ```moonbit
 let config = parse_logger_config_text(
-  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
 )
 
 let logger = build_logger(config)
@@ -241,6 +242,7 @@ match logger.file_runtime_state() {
 - 提供 JSON 配置层: `parse_logger_config_text(...)`, `stringify_logger_config(...)`, `build_logger(...)`
 - `QueueConfig`, `TextFormatterConfig`, `SinkConfig` 可分别通过 `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, `sink_config_to_json(...)` / `stringify_sink_config(...)` 单独导出 JSON
 - 支持字段: `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, `queue`
+- `TextFormatter` / `TextFormatterConfig` 提供 `color_mode = Never | Auto | Always`, 可控制 ANSI 文本着色
 - `sink.rotation` 支持 `max_bytes` 与 `max_backups`, 用于基础 size-based rotation 和 backup retention
 - `file_sink(...)` 提供 `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, `rotation_failures()`, 用于基础可观测性
 - `file_sink(...)` 提供 `append_mode()`. 显式传入 `reopen(append=...)` 时, 会更新后续 reopen 使用的 append 策略. `reopen_with_current_policy()` 使用当前保存的策略重开文件, `reopen_append()` / `reopen_truncate()` 提供常见的 append 和 truncate 模式
@@ -264,6 +266,7 @@ match logger.file_runtime_state() {
 - `file_sink_policy_to_json(...)`, `stringify_file_sink_policy(...)` 可将独立 file policy 直接导出为 JSON, 便于策略快照, 配置对比或诊断上报
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, `stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON, 便于排障或上报
 - `sink.text_formatter.template` 支持固定 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
+- `sink.text_formatter.color_mode` 支持 `never`, `auto`, `always`
 - 可由配置直接组装的 sink 类型: `console`, `json_console`, `text_console`, `file`
 - `queue` 作为显式包装层附着在最终 sink 外侧. 这仍然是同步 drain 模型, 不是 async runtime
 

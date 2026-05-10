@@ -158,6 +158,7 @@ let formatter = text_formatter(
   show_timestamp=false,
   field_separator=",",
   template="[{level}] {target} {message} :: {fields}",
+  color_mode=ColorMode::Always,
 )
 let logger = Logger::new(text_console_sink(formatter), target="pretty")
 
@@ -168,7 +169,7 @@ JSON config loading:
 
 ```moonbit
 let config = parse_logger_config_text(
-  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
 )
 
 let logger = build_logger(config)
@@ -225,6 +226,7 @@ match logger.file_runtime_state() {
 - BitLogger now includes a JSON config layer via `parse_logger_config_text(...)`, `stringify_logger_config(...)`, and `build_logger(...)`.
 - `QueueConfig`, `TextFormatterConfig`, and `SinkConfig` can also be exported independently through `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, and `sink_config_to_json(...)` / `stringify_sink_config(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
+- `TextFormatter` and `TextFormatterConfig` now include `color_mode = Never | Auto | Always` for ANSI text coloring control.
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `file_sink(...)` also exposes `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
 - `file_sink(...)` also exposes `append_mode()`. Passing `append=...` to `reopen(...)` updates the current append policy used by later reopen calls, `reopen_with_current_policy()` makes that stored-policy reopen path explicit, and `reopen_append()` / `reopen_truncate()` cover the two common policy switches directly.
@@ -248,6 +250,7 @@ match logger.file_runtime_state() {
 - `file_sink_policy_to_json(...)` and `stringify_file_sink_policy(...)` can export standalone file-policy snapshots directly as JSON for policy diffing, diagnostics, or reporting.
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, and `stringify_runtime_file_state(...)` can export file and queued-file snapshots directly as JSON for diagnostics or reporting.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
+- `sink.text_formatter.color_mode` currently supports `never`, `auto`, and `always`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
 

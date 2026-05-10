@@ -17,6 +17,7 @@ pub struct TextFormatterConfig {
   separator : String
   field_separator : String
   template : String
+  color_mode : ColorMode
 }
 
 pub fn TextFormatterConfig::new(
@@ -27,6 +28,7 @@ pub fn TextFormatterConfig::new(
   separator~ : String = " ",
   field_separator~ : String = " ",
   template~ : String = "",
+  color_mode~ : ColorMode = ColorMode::Never,
 ) -> TextFormatterConfig {
   {
     show_timestamp,
@@ -36,6 +38,7 @@ pub fn TextFormatterConfig::new(
     separator,
     field_separator,
     template,
+    color_mode,
   }
 }
 
@@ -48,6 +51,7 @@ pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextForm
     separator=self.separator,
     field_separator=self.field_separator,
     template=self.template,
+    color_mode=self.color_mode,
   )
 }
 
@@ -815,6 +819,15 @@ fn parse_sink_kind(name : String) -> SinkKind raise ConfigError {
   }
 }
 
+fn parse_color_mode(name : String) -> ColorMode raise ConfigError {
+  match name.to_upper() {
+    "NEVER" => ColorMode::Never
+    "AUTO" => ColorMode::Auto
+    "ALWAYS" => ColorMode::Always
+    _ => raise ConfigError::InvalidConfig("Unsupported color mode: " + name)
+  }
+}
+
 fn sink_kind_label(kind : SinkKind) -> String {
   match kind {
     SinkKind::Console => "console"
@@ -834,6 +847,7 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
     separator=get_string(obj, "separator", default=" "),
     field_separator=get_string(obj, "field_separator", default=" "),
     template=get_string(obj, "template", default=""),
+    color_mode=parse_color_mode(get_string(obj, "color_mode", default="never")),
   )
 }
 
@@ -928,6 +942,7 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
     "separator": @json_parser.JsonValue::String(config.separator),
     "field_separator": @json_parser.JsonValue::String(config.field_separator),
     "template": @json_parser.JsonValue::String(config.template),
+    "color_mode": @json_parser.JsonValue::String(color_mode_label(config.color_mode)),
   })
 }
 

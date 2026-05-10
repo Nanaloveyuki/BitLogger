@@ -60,6 +60,29 @@ test "text formatter supports template rendering" {
   )
 }
 
+test "text formatter can render ansi level colors" {
+  let rec = record(Level::Error, "boom", target="svc")
+  let formatter = text_formatter(color_mode=ColorMode::Always)
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="[\u{001b}[31;1mERROR\u{001b}[0m] [\u{001b}[34msvc\u{001b}[0m] boom",
+  )
+}
+
+test "text formatter auto color respects NO_COLOR" {
+  let rec = record(Level::Warn, "boom", target="svc")
+  let previous = @env.get_env_var("NO_COLOR")
+  @env.set_env_var("NO_COLOR", "1")
+  inspect(
+    format_text(rec, formatter=text_formatter(color_mode=ColorMode::Auto)),
+    content="[WARN] [svc] boom",
+  )
+  match previous {
+    Some(value) => @env.set_env_var("NO_COLOR", value)
+    None => @env.unset_env_var("NO_COLOR")
+  }
+}
+
 test "text formatter template respects disabled fields" {
   let rec = record(Level::Warn, "just message", target="svc")
   let formatter = text_formatter(

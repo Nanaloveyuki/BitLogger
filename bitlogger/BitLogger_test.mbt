@@ -50,7 +50,7 @@ test "logger config parser reads core options" {
 
 test "logger config parser reads formatter and queue options" {
   let config = parse_logger_config_text(
-    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false,\"template\":\"[{level}] {message}\"}},\"queue\":{\"max_pending\":32,\"overflow\":\"DropOldest\"}}",
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \",\"show_timestamp\":false,\"template\":\"[{level}] {message}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":32,\"overflow\":\"DropOldest\"}}",
   )
   inspect(match config.sink.kind {
     SinkKind::TextConsole => "TextConsole"
@@ -59,6 +59,7 @@ test "logger config parser reads formatter and queue options" {
   inspect(config.sink.text_formatter.separator, content=" | ")
   inspect(config.sink.text_formatter.show_timestamp, content="false")
   inspect(config.sink.text_formatter.template, content="[{level}] {message}")
+  inspect(color_mode_label(config.sink.text_formatter.color_mode), content="always")
   match config.queue {
     Some(queue) => {
       inspect(queue.max_pending, content="32")
@@ -156,9 +157,10 @@ test "config subtype json helpers stringify stable shapes" {
         separator=" | ",
         field_separator=",",
         template="[{level}] {message} :: {fields}",
+        color_mode=ColorMode::Always,
       ),
     ),
-    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\"}",
+    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\",\"color_mode\":\"always\"}",
   )
   inspect(
     stringify_sink_config(
@@ -168,10 +170,10 @@ test "config subtype json helpers stringify stable shapes" {
         append=false,
         auto_flush=false,
         rotation=Some(file_rotation(128, max_backups=2)),
-        text_formatter=TextFormatterConfig::new(show_timestamp=false),
+        text_formatter=TextFormatterConfig::new(show_timestamp=false, color_mode=ColorMode::Auto),
       ),
     ),
-    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
+    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
   )
 }
 

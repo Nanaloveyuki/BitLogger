@@ -44,6 +44,8 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 - 支持 `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)` 以及模板化 `template` 文本输出
 - JSON config parsing via `parse_logger_config_text(...)` and `stringify_logger_config(...)`
 - 支持 `parse_logger_config_text(...)`, `stringify_logger_config(...)` 进行最小 JSON 配置读写
+- `TextFormatter` / `TextFormatterConfig` now support `color_mode = Never | Auto | Always`
+- `TextFormatter` / `TextFormatterConfig` 现支持 `color_mode = Never | Auto | Always`
 - `QueueConfig` / `TextFormatterConfig` / `SinkConfig` can also be exported independently through dedicated JSON helpers
 - `QueueConfig` / `TextFormatterConfig` / `SinkConfig` 也可分别通过专用 JSON helper 单独导出
 - config-driven logger assembly via `build_logger(...)`
@@ -180,6 +182,7 @@ test {
     show_timestamp=false,
     field_separator=",",
     template="[{level}] {target} {message} :: {fields}",
+    color_mode=ColorMode::Always,
   )
   let logger = Logger::new(text_console_sink(formatter), target="pretty")
   logger.info("hello", fields=[field("mode", "pretty")])
@@ -189,7 +192,7 @@ test {
 ```mbt check
 test {
   let config = parse_logger_config_text(
-    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
+    "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
   )
   let logger = build_logger(config)
   logger.info("configured from json")
@@ -200,6 +203,7 @@ test {
 ## Formatter Template / 模板格式
 
 - supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
+- `color_mode` / `color_mode`: `never`, `auto`, `always`
 - disabled or missing parts render as empty text / 被关闭或缺失的部分会渲染为空字符串
 - `template` is intentionally a simple token replacement layer, not a full DSL / `template` 使用轻量 token 替换方式, 不是完整 DSL
 
