@@ -243,6 +243,7 @@ test {
 - `rotation_enabled()` and `rotation_config()` expose whether rotation is active and which settings are currently applied / `rotation_enabled()` 与 `rotation_config()` 可读取 rotation 是否启用及当前配置参数
 - `state()` exposes a single file-sink snapshot including path, availability, append policy, auto-flush, rotation config, and failure counters / `state()` 可一次性读取包含 path、availability、append、auto-flush、rotation 配置与失败计数的 file sink 快照
 - `policy()` and `default_policy()` expose the current runtime policy and the sink's original defaults separately / `policy()` 与 `default_policy()` 可分别读取当前运行期策略与 sink 初始默认策略
+- `set_policy(...)` applies append, auto-flush, and rotation as a bundled runtime update / `set_policy(...)` 可将 append、auto-flush、rotation 作为一组运行期策略一次性写回
 - `reset_failure_counters()` clears the open/write/flush/rotation counters after diagnostics or recovery / `reset_failure_counters()` 可在排障或恢复后清空 open/write/flush/rotation 失败计数
 - `reset_policy()` restores append, auto-flush, and rotation back to the sink's original defaults / `reset_policy()` 可将 append、auto-flush、rotation 恢复到 sink 初始默认策略
 - `file_sink_state_to_json(...)` / `stringify_file_sink_state(...)` and `runtime_file_state_to_json(...)` / `stringify_runtime_file_state(...)` export snapshots as JSON / `file_sink_state_to_json(...)` / `stringify_file_sink_state(...)` 与 `runtime_file_state_to_json(...)` / `stringify_runtime_file_state(...)` 可将快照直接导出为 JSON
@@ -251,6 +252,7 @@ test {
 - `ConfiguredLogger` also forwards file reopen, flush, close, append-mode, path, auto-flush, rotation-config, state snapshot, append setter, policy setter, and failure-counter helpers for config-built file sinks / `ConfiguredLogger` 也会为配置生成的 file sink 转发 reopen、flush、close、append-mode、path、auto-flush、rotation 配置、state 快照、append setter、策略 setter 与失败计数访问器
 - `ConfiguredLogger::file_runtime_state()` also reports whether a file sink is queue-wrapped and exposes the outer queue pending/drop counters together with the inner file snapshot / `ConfiguredLogger::file_runtime_state()` 还可报告 file sink 是否被 queue 包装，并将外层 queue 的 pending/drop 计数与内层 file 快照一起返回
 - `ConfiguredLogger::file_policy()` and `ConfiguredLogger::file_default_policy()` also expose current runtime policy and initial config policy separately / `ConfiguredLogger::file_policy()` 与 `ConfiguredLogger::file_default_policy()` 也可分别读取当前运行期策略与初始配置策略
+- `ConfiguredLogger::file_set_policy()` also applies a bundled runtime file policy through the config-built control surface / `ConfiguredLogger::file_set_policy()` 也可通过配置式控制面一次性写回 bundled file 策略
 - `ConfiguredLogger::file_reset_failure_counters()` also clears file failure counters through the config-built control surface / `ConfiguredLogger::file_reset_failure_counters()` 也可通过配置式控制面清空 file 失败计数
 - `ConfiguredLogger::file_reset_policy()` also restores runtime file policy back to the initial config values / `ConfiguredLogger::file_reset_policy()` 也可将运行期 file 策略恢复到初始配置值
 - current scope is observability-first, not a full self-healing sink runtime / 当前定位仍以可观测性优先，不是完整自愈型 sink runtime

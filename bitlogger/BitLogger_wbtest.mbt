@@ -194,6 +194,31 @@ test "file sink reset policy restores configured defaults" {
   }
 }
 
+test "file sink set policy applies bundled runtime policy" {
+  let sink = file_sink("bitlogger-set-policy.log")
+  let default_policy = sink.default_policy()
+  sink.set_policy(
+    FileSinkPolicy::new(
+      append=false,
+      auto_flush=false,
+      rotation=Some(file_rotation(18, max_backups=2)),
+    ),
+  )
+  let policy = sink.policy()
+  inspect(policy.append, content="false")
+  inspect(policy.auto_flush, content="false")
+  match policy.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="18")
+      inspect(rotation.max_backups, content="2")
+    }
+    None => inspect(false, content="true")
+  }
+  inspect(default_policy.append, content="true")
+  inspect(default_policy.auto_flush, content="true")
+  inspect(default_policy.rotation is None, content="true")
+}
+
 test "file sink tracks rotation failures on unavailable backend" {
   let sink = file_sink("bitlogger-rotate.log", rotation=Some(file_rotation(1, max_backups=1)))
   sink.write(record(Level::Info, "a"))

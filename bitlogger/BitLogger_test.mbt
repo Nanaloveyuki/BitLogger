@@ -401,11 +401,45 @@ test "configured logger reset policy restores configured file defaults" {
   ignore(logger.close())
 }
 
+test "configured logger set policy applies bundled runtime file policy" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-set-policy.log"),
+    ),
+  )
+  let default_policy = logger.file_default_policy()
+  inspect(
+    logger.file_set_policy(
+      FileSinkPolicy::new(
+        append=false,
+        auto_flush=false,
+        rotation=Some(file_rotation(22, max_backups=3)),
+      ),
+    ),
+    content="true",
+  )
+  let policy = logger.file_policy()
+  inspect(policy.append, content="false")
+  inspect(policy.auto_flush, content="false")
+  match policy.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="22")
+      inspect(rotation.max_backups, content="3")
+    }
+    None => inspect(false, content="true")
+  }
+  inspect(default_policy.append, content="true")
+  inspect(default_policy.auto_flush, content="true")
+  inspect(default_policy.rotation is None, content="true")
+  ignore(logger.close())
+}
+
 test "configured non-file logger cannot reset file policy" {
   let logger = build_logger(LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)))
   inspect(logger.file_reset_policy(), content="false")
   inspect(logger.file_policy().append, content="false")
   inspect(logger.file_default_policy().append, content="false")
+  inspect(logger.file_set_policy(FileSinkPolicy::new()), content="false")
 }
 
 test "configured logger can reopen built file sink" {

@@ -198,6 +198,12 @@ pub fn FileSink::set_auto_flush(self : FileSink, enabled : Bool) -> Unit {
   self.auto_flush.val = enabled
 }
 
+pub fn FileSink::set_policy(self : FileSink, policy : FileSinkPolicy) -> Unit {
+  self.append.val = policy.append
+  self.auto_flush.val = policy.auto_flush
+  self.rotation.val = policy.rotation
+}
+
 pub fn FileSink::set_rotation(self : FileSink, rotation : FileRotation?) -> Unit {
   self.rotation.val = rotation
 }
