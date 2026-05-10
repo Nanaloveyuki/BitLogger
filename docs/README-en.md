@@ -283,6 +283,7 @@ match logger.file_runtime_state() {
 - `TextFormatter` and `TextFormatterConfig` now include `color_mode = Never | Auto | Always` for ANSI text coloring control.
 - `TextFormatter` and `TextFormatterConfig` also include `style_markup = disabled | builtin | full` so callers can choose whether style markup is parsed and whether custom tags are active.
 - `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
+- Builtin semantic tags now include `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, and `<muted>`.
 - Runtime style-tag APIs now include `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, and `define_alias(...)`.
 - Style-tag lookup priority is formatter-local `style_tags` > global style tag registry > builtin tags.
 - `sink.text_formatter.style_tags` now supports a minimal object mapping with `fg`, `bg`, `bold`, `dim`, `italic`, and `underline`.

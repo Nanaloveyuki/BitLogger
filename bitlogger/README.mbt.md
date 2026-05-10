@@ -253,6 +253,7 @@ test {
 - `color_mode` / `color_mode`: `never`, `auto`, `always`
 - `style_markup` / `style_markup`: `disabled`, `builtin`, `full`
 - inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
+- builtin semantic tags / 内置语义标签: `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, `<muted>`
 - runtime style tags / 运行期样式标签: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - style tag priority / 标签优先级: formatter local `style_tags` > global style tag registry > builtin tags
 - `sink.text_formatter.style_tags` / `sink.text_formatter.style_tags` 现支持最小对象映射: `fg`, `bg`, `bold`, `dim`, `italic`, `underline`

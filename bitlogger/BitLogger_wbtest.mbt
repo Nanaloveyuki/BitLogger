@@ -141,12 +141,12 @@ test "text formatter builtin style markup mode ignores custom tags" {
     color_mode=ColorMode::Always,
     style_markup=StyleMarkupMode::Builtin,
   ).with_style_tags(
-    style_tag_registry().set_tag("accent", fg=Some("#4cc9f0"), bold=true),
+    style_tag_registry().set_tag("brand", fg=Some("#4cc9f0"), bold=true),
   )
-  let rec = record(Level::Info, "<accent>custom</> <red>builtin</>")
+  let rec = record(Level::Info, "<brand>custom</> <red>builtin</>")
   inspect(
     format_text(rec, formatter=formatter),
-    content="<accent>custom</> \u{001b}[31mbuiltin\u{001b}[0m",
+    content="<brand>custom</> \u{001b}[31mbuiltin\u{001b}[0m",
   )
 }
 
@@ -227,6 +227,35 @@ test "style tag alias can reuse builtin tags" {
   inspect(
     format_text(rec, formatter=formatter),
     content="\u{001b}[31mboom\u{001b}[0m",
+  )
+}
+
+test "builtin semantic style tags are available" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+    style_markup=StyleMarkupMode::Builtin,
+  )
+  let rec = record(Level::Info, "<success>ok</> <warning>careful</> <danger>boom</> <muted>quiet</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="\u{001b}[32;1mok\u{001b}[0m \u{001b}[33;1mcareful\u{001b}[0m \u{001b}[31;1mboom\u{001b}[0m \u{001b}[90;2mquiet\u{001b}[0m",
+  )
+}
+
+test "builtin semantic style tags can still be overridden" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+  ).with_style_tags(
+    default_style_tag_registry().set_tag("success", fg=Some("#00ffaa"), underline=true),
+  )
+  let rec = record(Level::Info, "<success>ok</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="\u{001b}[38;2;0;255;170;4mok\u{001b}[0m",
   )
 }
 

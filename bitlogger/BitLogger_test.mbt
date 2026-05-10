@@ -253,14 +253,14 @@ test "config builtin style markup ignores custom tags" {
     color_mode=ColorMode::Always,
     style_markup=StyleMarkupMode::Builtin,
     style_tags={
-      "accent": text_style(fg=Some("#4cc9f0"), bold=true),
+      "brand": text_style(fg=Some("#4cc9f0"), bold=true),
     },
   )
   let rendered = format_text(
-    Record::new(Level::Info, "<accent>custom</> <red>builtin</>"),
+    Record::new(Level::Info, "<brand>custom</> <red>builtin</>"),
     formatter=formatter.to_formatter(),
   )
-  inspect(rendered, content="<accent>custom</> \u{001b}[31mbuiltin\u{001b}[0m")
+  inspect(rendered, content="<brand>custom</> \u{001b}[31mbuiltin\u{001b}[0m")
 }
 
 test "config disabled style markup keeps raw tags" {
