@@ -259,6 +259,7 @@ match logger.file_runtime_state() {
 - `ConfiguredLogger` 也支持 `file_set_policy(...)`，可一次性改写配置式 file sink 的当前运行期策略
 - `ConfiguredLogger` 也支持 `file_reset_failure_counters()`，可在配置式 file sink 上统一清空失败计数
 - `ConfiguredLogger` 也支持 `file_reset_policy()`，可将配置式 file sink 的运行期策略恢复到初始配置
+- `file_sink_policy_to_json(...)`、`stringify_file_sink_policy(...)` 也可将独立 file policy 直接导出为 JSON，便于策略快照、配置对比或诊断上报
 - `file_sink_state_to_json(...)`、`stringify_file_sink_state(...)`、`runtime_file_state_to_json(...)`、`stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON，便于排障或上报
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`

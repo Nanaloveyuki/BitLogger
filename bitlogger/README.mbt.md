@@ -247,6 +247,7 @@ test {
 - `set_policy(...)` applies append, auto-flush, and rotation as a bundled runtime update / `set_policy(...)` 可将 append、auto-flush、rotation 作为一组运行期策略一次性写回
 - `reset_failure_counters()` clears the open/write/flush/rotation counters after diagnostics or recovery / `reset_failure_counters()` 可在排障或恢复后清空 open/write/flush/rotation 失败计数
 - `reset_policy()` restores append, auto-flush, and rotation back to the sink's original defaults / `reset_policy()` 可将 append、auto-flush、rotation 恢复到 sink 初始默认策略
+- `file_sink_policy_to_json(...)` / `stringify_file_sink_policy(...)` also export standalone file policy snapshots as JSON / `file_sink_policy_to_json(...)` / `stringify_file_sink_policy(...)` 也可将独立 file policy 快照直接导出为 JSON
 - `file_sink_state_to_json(...)` / `stringify_file_sink_state(...)` and `runtime_file_state_to_json(...)` / `stringify_runtime_file_state(...)` export snapshots as JSON / `file_sink_state_to_json(...)` / `stringify_file_sink_state(...)` 与 `runtime_file_state_to_json(...)` / `stringify_runtime_file_state(...)` 可将快照直接导出为 JSON
 - `set_auto_flush(...)`, `set_rotation(...)`, and `clear_rotation()` allow runtime tuning of core file sink policies / `set_auto_flush(...)`、`set_rotation(...)`、`clear_rotation()` 可在运行期调整 file sink 的基础策略
 - `open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()` expose basic sink health counters / `open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()` 可用于观察基础 sink 健康状态

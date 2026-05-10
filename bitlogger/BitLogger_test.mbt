@@ -301,6 +301,27 @@ test "runtime file state json helpers stringify queue snapshots" {
   )
 }
 
+test "file sink policy json helpers stringify stable policies" {
+  inspect(
+    @json_parser.stringify(
+      file_sink_policy_to_json(
+        FileSinkPolicy::new(
+          append=false,
+          auto_flush=true,
+          rotation=Some(file_rotation(96, max_backups=3)),
+        ),
+      ),
+    ),
+    content="{\"append\":false,\"auto_flush\":true,\"rotation\":{\"max_backups\":3,\"max_bytes\":96}}",
+  )
+  inspect(
+    stringify_file_sink_policy(
+      FileSinkPolicy::new(append=true, auto_flush=false, rotation=None),
+    ),
+    content="{\"append\":true,\"auto_flush\":false,\"rotation\":null}",
+  )
+}
+
 test "configured logger reports disabled rotation when file sink has none" {
   let logger = build_logger(
     LoggerConfig::new(

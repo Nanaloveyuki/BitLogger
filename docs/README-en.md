@@ -243,6 +243,7 @@ match logger.file_runtime_state() {
 - `ConfiguredLogger` also exposes `file_set_policy(...)` for applying a bundled runtime file policy through the config-built control surface.
 - `ConfiguredLogger` also exposes `file_reset_failure_counters()` for clearing file failure counters through the config-built control surface.
 - `ConfiguredLogger` also exposes `file_reset_policy()` for restoring runtime file policy back to the initial config values.
+- `file_sink_policy_to_json(...)` and `stringify_file_sink_policy(...)` can export standalone file-policy snapshots directly as JSON for policy diffing, diagnostics, or reporting.
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, and `stringify_runtime_file_state(...)` can export file and queued-file snapshots directly as JSON for diagnostics or reporting.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.

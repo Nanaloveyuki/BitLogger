@@ -153,6 +153,31 @@ pub fn RuntimeFileState::new(
   { file, queued, pending_count, dropped_count }
 }
 
+fn file_sink_policy_to_json_value(policy : FileSinkPolicy) -> @json_parser.JsonValue {
+  let obj : Map[String, @json_parser.JsonValue] = {
+    "append": @json_parser.JsonValue::Bool(policy.append),
+    "auto_flush": @json_parser.JsonValue::Bool(policy.auto_flush),
+  }
+  match policy.rotation {
+    None => obj["rotation"] = @json_parser.JsonValue::Null
+    Some(rotation) => obj["rotation"] = file_rotation_config_to_json(rotation)
+  }
+  @json_parser.JsonValue::Object(obj)
+}
+
+pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> @json_parser.JsonValue {
+  file_sink_policy_to_json_value(policy)
+}
+
+pub fn stringify_file_sink_policy(policy : FileSinkPolicy, pretty~ : Bool = false) -> String {
+  let value = file_sink_policy_to_json_value(policy)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
+}
+
 fn file_sink_state_to_json_value(state : FileSinkState) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "path": @json_parser.JsonValue::String(state.path),
