@@ -231,6 +231,14 @@ pub fn RuntimeSink::file_reopen(self : RuntimeSink, append~ : Bool? = None) -> B
   }
 }
 
+pub fn RuntimeSink::file_reopen_with_current_policy(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => sink.reopen_with_current_policy()
+    QueuedFile(sink) => sink.sink.reopen_with_current_policy()
+    _ => false
+  }
+}
+
 pub fn RuntimeSink::file_append_mode(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.append_mode()
@@ -409,6 +417,10 @@ pub fn ConfiguredLogger::file_available(self : ConfiguredLogger) -> Bool {
 
 pub fn ConfiguredLogger::file_reopen(self : ConfiguredLogger, append~ : Bool? = None) -> Bool {
   self.sink.file_reopen(append=append)
+}
+
+pub fn ConfiguredLogger::file_reopen_with_current_policy(self : ConfiguredLogger) -> Bool {
+  self.sink.file_reopen_with_current_policy()
 }
 
 pub fn ConfiguredLogger::file_append_mode(self : ConfiguredLogger) -> Bool {

@@ -285,6 +285,8 @@ test "configured logger can reopen built file sink" {
     inspect(logger.file_append_mode(), content="false")
     inspect(logger.file_reopen(), content="true")
     inspect(logger.file_append_mode(), content="false")
+    inspect(logger.file_reopen_with_current_policy(), content="true")
+    inspect(logger.file_append_mode(), content="false")
     inspect(logger.close(), content="true")
   } else {
     inspect(logger.file_append_mode(), content="true")
@@ -295,6 +297,8 @@ test "configured logger can reopen built file sink" {
     inspect(logger.file_open_failures(), content="2")
     inspect(logger.file_reopen(append=Some(false)), content="false")
     inspect(logger.file_append_mode(), content="false")
+    inspect(logger.file_reopen_with_current_policy(), content="false")
+    inspect(logger.file_open_failures(), content="3")
   }
 }
 

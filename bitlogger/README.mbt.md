@@ -46,8 +46,8 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - 支持 `parse_logger_config_text(...)`、`stringify_logger_config(...)` 进行最小 JSON 配置读写
 - config-driven logger assembly via `build_logger(...)`
 - 支持 `build_logger(...)` 将配置组装为可直接使用的 logger
-- native-only file output via `file_sink(...)`, with basic size rotation, backup retention, explicit `reopen()`, and failure counters
-- 支持 `file_sink(...)`、基础 size rotation / backup retention、显式 `reopen()` 与失败计数，但当前仅保证 `native/llvm` backend 可用
+- native-only file output via `file_sink(...)`, with basic size rotation, backup retention, explicit `reopen()` / `reopen_with_current_policy()`, and failure counters
+- 支持 `file_sink(...)`、基础 size rotation / backup retention、显式 `reopen()` / `reopen_with_current_policy()` 与失败计数，但当前仅保证 `native/llvm` backend 可用
 
 ## Example / 示例
 
@@ -220,7 +220,7 @@ test {
 - basic rotation is size-based / 当前基础轮转为按文件大小触发
 - `file_rotation(max_bytes, max_backups=...)` controls threshold and retained backups / `file_rotation(max_bytes, max_backups=...)` 控制触发阈值和保留备份数
 - JSON config uses `sink.rotation.max_bytes` and `sink.rotation.max_backups` / JSON 配置使用 `sink.rotation.max_bytes` 与 `sink.rotation.max_backups`
-- `FileSink::reopen()` can explicitly reopen the current file handle / `FileSink::reopen()` 可显式重开当前文件句柄
+- `FileSink::reopen()` can explicitly reopen the current file handle, and `FileSink::reopen_with_current_policy()` makes the stored-policy reopen path explicit / `FileSink::reopen()` 可显式重开当前文件句柄，`FileSink::reopen_with_current_policy()` 则把“按当前保存策略重开”变成显式动作
 - `append_mode()` exposes the current append policy, and `reopen(append=...)` updates that policy for later reopen calls / `append_mode()` 可读取当前 append 策略，`reopen(append=...)` 会更新后续 reopen 复用的 append 策略
 - `set_append_mode(...)` updates the stored append policy without forcing an immediate reopen / `set_append_mode(...)` 可直接更新保存的 append 策略，但不会强制立即 reopen
 - `path()` and `auto_flush_enabled()` expose core file sink policy state / `path()` 与 `auto_flush_enabled()` 可读取 file sink 的基础策略状态
