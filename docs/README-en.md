@@ -230,11 +230,13 @@ match logger.file_runtime_state() {
 - `file_sink(...)` also exposes `path()` and `auto_flush_enabled()` for reading basic file-sink policy state.
 - `file_sink(...)` also exposes `rotation_enabled()` and `rotation_config()` for reading whether rotation is active and which parameters are currently in effect.
 - `file_sink(...)` also exposes `state()` for reading a single snapshot that includes path, availability, append policy, auto-flush flag, rotation config, and all current failure counters.
+- `file_sink(...)` also exposes `policy()` and `default_policy()` for reading the current runtime policy and the sink's original default policy separately.
 - `file_sink(...)` also exposes `reset_failure_counters()` so open/write/flush/rotation failure counters can be cleared after diagnostics or recovery handling.
 - `file_sink(...)` also exposes `reset_policy()` so append, auto-flush, and rotation settings can be restored to the sink's original defaults.
 - `file_sink(...)` also supports `set_auto_flush(...)`, `set_rotation(...)`, and `clear_rotation()` for runtime policy updates.
 - `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()`, `file_reopen_with_current_policy()`, `file_reopen_append()`, `file_reopen_truncate()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, `file_state()`, plus `file_set_append_mode(...)`, `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()`, and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
 - `ConfiguredLogger` also exposes `file_runtime_state()` so queued file loggers can report both the underlying file snapshot and the outer queue backlog/drop state in one read.
+- `ConfiguredLogger` also exposes `file_policy()` and `file_default_policy()` for reading current runtime file policy and initial config policy separately.
 - `ConfiguredLogger` also exposes `file_reset_failure_counters()` for clearing file failure counters through the config-built control surface.
 - `ConfiguredLogger` also exposes `file_reset_policy()` for restoring runtime file policy back to the initial config values.
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, and `stringify_runtime_file_state(...)` can export file and queued-file snapshots directly as JSON for diagnostics or reporting.

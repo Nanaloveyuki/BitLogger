@@ -498,6 +498,22 @@ pub fn RuntimeSink::file_reset_policy(self : RuntimeSink) -> Bool {
   }
 }
 
+pub fn RuntimeSink::file_policy(self : RuntimeSink) -> FileSinkPolicy {
+  match self {
+    File(sink) => sink.policy()
+    QueuedFile(sink) => sink.sink.policy()
+    _ => FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)
+  }
+}
+
+pub fn RuntimeSink::file_default_policy(self : RuntimeSink) -> FileSinkPolicy {
+  match self {
+    File(sink) => sink.default_policy()
+    QueuedFile(sink) => sink.sink.default_policy()
+    _ => FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)
+  }
+}
+
 pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
   match self {
     File(sink) => sink.state()
@@ -642,6 +658,14 @@ pub fn ConfiguredLogger::file_reset_failure_counters(self : ConfiguredLogger) ->
 
 pub fn ConfiguredLogger::file_reset_policy(self : ConfiguredLogger) -> Bool {
   self.sink.file_reset_policy()
+}
+
+pub fn ConfiguredLogger::file_policy(self : ConfiguredLogger) -> FileSinkPolicy {
+  self.sink.file_policy()
+}
+
+pub fn ConfiguredLogger::file_default_policy(self : ConfiguredLogger) -> FileSinkPolicy {
+  self.sink.file_default_policy()
 }
 
 pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {

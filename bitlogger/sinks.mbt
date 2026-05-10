@@ -77,6 +77,20 @@ pub struct FileSinkState {
   rotation_failures : Int
 }
 
+pub struct FileSinkPolicy {
+  append : Bool
+  auto_flush : Bool
+  rotation : FileRotation?
+}
+
+pub fn FileSinkPolicy::new(
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+) -> FileSinkPolicy {
+  { append, auto_flush, rotation }
+}
+
 pub fn FileSinkState::new(
   path : String,
   available~ : Bool = false,
@@ -230,6 +244,22 @@ pub fn FileSink::reset_policy(self : FileSink) -> Unit {
   self.append.val = self.default_append
   self.auto_flush.val = self.default_auto_flush
   self.rotation.val = self.default_rotation
+}
+
+pub fn FileSink::policy(self : FileSink) -> FileSinkPolicy {
+  FileSinkPolicy::new(
+    append=self.append.val,
+    auto_flush=self.auto_flush.val,
+    rotation=self.rotation.val,
+  )
+}
+
+pub fn FileSink::default_policy(self : FileSink) -> FileSinkPolicy {
+  FileSinkPolicy::new(
+    append=self.default_append,
+    auto_flush=self.default_auto_flush,
+    rotation=self.default_rotation,
+  )
 }
 
 pub fn FileSink::state(self : FileSink) -> FileSinkState {

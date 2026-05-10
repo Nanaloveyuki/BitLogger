@@ -330,9 +330,13 @@ test "configured logger file setters update file sink policy state" {
       queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
     ),
   )
+  let default_policy = logger.file_default_policy()
   inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="true")
   inspect(logger.file_rotation_enabled(), content="false")
+  inspect(default_policy.append, content="true")
+  inspect(default_policy.auto_flush, content="true")
+  inspect(default_policy.rotation is None, content="true")
   inspect(logger.file_set_append_mode(false), content="true")
   inspect(logger.file_append_mode(), content="false")
   inspect(logger.file_set_auto_flush(false), content="true")
@@ -352,9 +356,13 @@ test "configured logger file setters update file sink policy state" {
   inspect(logger.file_reopen(), content=if logger.file_available() { "true" } else { "false" })
   inspect(logger.file_append_mode(), content="false")
   let state = logger.file_state()
+  let policy = logger.file_policy()
   inspect(state.append, content="false")
   inspect(state.auto_flush, content="false")
   inspect(state.rotation is None, content="true")
+  inspect(policy.append, content="false")
+  inspect(policy.auto_flush, content="false")
+  inspect(policy.rotation is None, content="true")
   inspect(logger.file_reset_policy(), content="true")
   inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="true")
@@ -374,6 +382,9 @@ test "configured logger reset policy restores configured file defaults" {
       ),
     ),
   )
+  let default_policy = logger.file_default_policy()
+  inspect(default_policy.append, content="false")
+  inspect(default_policy.auto_flush, content="false")
   inspect(logger.file_set_append_mode(true), content="true")
   inspect(logger.file_set_auto_flush(true), content="true")
   inspect(logger.file_clear_rotation(), content="true")
@@ -393,6 +404,8 @@ test "configured logger reset policy restores configured file defaults" {
 test "configured non-file logger cannot reset file policy" {
   let logger = build_logger(LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)))
   inspect(logger.file_reset_policy(), content="false")
+  inspect(logger.file_policy().append, content="false")
+  inspect(logger.file_default_policy().append, content="false")
 }
 
 test "configured logger can reopen built file sink" {
