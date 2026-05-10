@@ -35,6 +35,18 @@ jobs:
         run: |
           moon test bitlogger
 
-      - name: Run example
+      - name: Check bitlogger native
+        run: |
+          moon check bitlogger --target native
+
+      - name: Check bitlogger_async native
+        run: |
+          moon check bitlogger_async --target native
+
+      - name: Run basic example
         run: |
           moon run examples/basic
+
+      - name: Check async example native
+        run: |
+          moon check examples/async_basic --target native

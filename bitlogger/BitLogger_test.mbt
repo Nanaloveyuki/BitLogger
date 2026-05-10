@@ -158,7 +158,7 @@ test "config subtype json helpers stringify stable shapes" {
         template="[{level}] {message} :: {fields}",
       ),
     ),
-    content="{\"field_separator\":\",\",\"separator\":\" | \",\"show_fields\":true,\"show_level\":true,\"show_target\":false,\"show_timestamp\":false,\"template\":\"[{level}] {message} :: {fields}\"}",
+    content="{\"show_timestamp\":false,\"show_level\":true,\"show_target\":false,\"show_fields\":true,\"separator\":\" | \",\"field_separator\":\",\",\"template\":\"[{level}] {message} :: {fields}\"}",
   )
   inspect(
     stringify_sink_config(
@@ -171,7 +171,7 @@ test "config subtype json helpers stringify stable shapes" {
         text_formatter=TextFormatterConfig::new(show_timestamp=false),
       ),
     ),
-    content="{\"append\":false,\"auto_flush\":false,\"kind\":\"file\",\"path\":\"demo.log\",\"rotation\":{\"max_backups\":2,\"max_bytes\":128},\"text_formatter\":{\"field_separator\":\" \",\"separator\":\" \",\"show_fields\":true,\"show_level\":true,\"show_target\":true,\"show_timestamp\":false,\"template\":\"\"}}",
+    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
   )
 }
 
@@ -292,7 +292,7 @@ test "file state json helpers stringify stable snapshots" {
   )
   inspect(
     @json_parser.stringify(plain),
-    content="{\"append\":false,\"auto_flush\":true,\"available\":true,\"flush_failures\":3,\"open_failures\":1,\"path\":\"demo.log\",\"rotation\":{\"max_backups\":2,\"max_bytes\":64},\"rotation_failures\":4,\"write_failures\":2}",
+    content="{\"path\":\"demo.log\",\"available\":true,\"append\":false,\"auto_flush\":true,\"open_failures\":1,\"write_failures\":2,\"flush_failures\":3,\"rotation_failures\":4,\"rotation\":{\"max_bytes\":64,\"max_backups\":2}}",
   )
   inspect(
     stringify_file_sink_state(
@@ -308,7 +308,7 @@ test "file state json helpers stringify stable snapshots" {
         rotation_failures=0,
       ),
     ),
-    content="{\"append\":true,\"auto_flush\":false,\"available\":false,\"flush_failures\":0,\"open_failures\":0,\"path\":\"plain.log\",\"rotation\":null,\"rotation_failures\":0,\"write_failures\":0}",
+    content="{\"path\":\"plain.log\",\"available\":false,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":0,\"flush_failures\":0,\"rotation_failures\":0,\"rotation\":null}",
   )
 }
 
@@ -333,7 +333,7 @@ test "runtime file state json helpers stringify queue snapshots" {
   )
   inspect(
     json,
-    content="{\"dropped_count\":5,\"file\":{\"append\":true,\"auto_flush\":false,\"available\":true,\"flush_failures\":2,\"open_failures\":0,\"path\":\"queue.log\",\"rotation\":null,\"rotation_failures\":3,\"write_failures\":1},\"pending_count\":7,\"queued\":true}",
+    content="{\"file\":{\"path\":\"queue.log\",\"available\":true,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":1,\"flush_failures\":2,\"rotation_failures\":3,\"rotation\":null},\"queued\":true,\"pending_count\":7,\"dropped_count\":5}",
   )
 }
 
@@ -348,7 +348,7 @@ test "file sink policy json helpers stringify stable policies" {
         ),
       ),
     ),
-    content="{\"append\":false,\"auto_flush\":true,\"rotation\":{\"max_backups\":3,\"max_bytes\":96}}",
+    content="{\"append\":false,\"auto_flush\":true,\"rotation\":{\"max_bytes\":96,\"max_backups\":3}}",
   )
   inspect(
     stringify_file_sink_policy(
@@ -544,10 +544,10 @@ test "configured logger can reopen built file sink" {
     inspect(logger.file_reopen_truncate(), content="false")
     inspect(logger.file_append_mode(), content="false")
     inspect(logger.file_reopen_with_current_policy(), content="false")
-    inspect(logger.file_open_failures(), content="3")
+    inspect(logger.file_open_failures(), content="4")
     inspect(logger.file_reopen_append(), content="false")
     inspect(logger.file_append_mode(), content="true")
-    inspect(logger.file_open_failures(), content="4")
+    inspect(logger.file_open_failures(), content="5")
     inspect(logger.file_reset_failure_counters(), content="true")
     inspect(logger.file_open_failures(), content="0")
     inspect(logger.file_write_failures(), content="0")
