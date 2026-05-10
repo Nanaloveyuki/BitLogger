@@ -202,6 +202,7 @@ test "configured logger exposes file sink observability helpers" {
     ),
   )
   inspect(logger.file_available() == native_files_supported(), content="true")
+  inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_open_failures(), content=if logger.file_available() { "0" } else { "1" })
   inspect(logger.file_write_failures(), content="0")
   inspect(logger.file_flush_failures(), content="0")
@@ -219,16 +220,24 @@ test "configured logger can reopen built file sink" {
     inspect(logger.close(), content="true")
     inspect(logger.file_reopen(), content="true")
     inspect(logger.file_available(), content="true")
+    inspect(logger.file_append_mode(), content="true")
     inspect(logger.file_open_failures(), content="0")
     logger.info("reopened from config")
     inspect(logger.file_write_failures(), content="0")
+    inspect(logger.file_reopen(append=Some(false)), content="true")
+    inspect(logger.file_append_mode(), content="false")
+    inspect(logger.file_reopen(), content="true")
+    inspect(logger.file_append_mode(), content="false")
     inspect(logger.close(), content="true")
   } else {
+    inspect(logger.file_append_mode(), content="true")
     inspect(logger.file_open_failures(), content="1")
     logger.info("dropped")
     inspect(logger.file_write_failures(), content="1")
     inspect(logger.file_reopen(), content="false")
     inspect(logger.file_open_failures(), content="2")
+    inspect(logger.file_reopen(append=Some(false)), content="false")
+    inspect(logger.file_append_mode(), content="false")
   }
 }
 

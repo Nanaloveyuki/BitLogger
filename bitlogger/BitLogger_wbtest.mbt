@@ -90,6 +90,7 @@ test "native file support flag is queryable" {
 test "file sink availability reflects backend support" {
   let sink = file_sink("bitlogger-test.log")
   inspect(sink.is_available() == native_files_supported(), content="true")
+  inspect(sink.append_mode(), content="true")
   inspect(sink.open_failures(), content=if sink.is_available() { "0" } else { "1" })
   inspect(sink.write_failures(), content="0")
   inspect(sink.flush_failures(), content="0")
@@ -124,23 +125,32 @@ test "file sink tracks rotation failures on unavailable backend" {
 test "file sink reopen and failure counters reflect backend state" {
   let sink = file_sink("bitlogger-reopen.log")
   if sink.is_available() {
+    inspect(sink.append_mode(), content="true")
     inspect(sink.open_failures(), content="0")
     inspect(sink.close(), content="true")
     inspect(sink.reopen(), content="true")
     inspect(sink.is_available(), content="true")
+    inspect(sink.append_mode(), content="true")
     inspect(sink.open_failures(), content="0")
     sink.write(record(Level::Info, "reopened"))
     inspect(sink.write_failures(), content="0")
     inspect(sink.flush_failures(), content="0")
+    inspect(sink.reopen(append=Some(false)), content="true")
+    inspect(sink.append_mode(), content="false")
+    inspect(sink.reopen(), content="true")
+    inspect(sink.append_mode(), content="false")
     inspect(sink.close(), content="true")
     ignore(remove_file_internal("bitlogger-reopen.log"))
   } else {
+    inspect(sink.append_mode(), content="true")
     inspect(sink.open_failures(), content="1")
     sink.write(record(Level::Info, "dropped"))
     inspect(sink.write_failures(), content="1")
     inspect(sink.reopen(), content="false")
     inspect(sink.open_failures(), content="2")
     inspect(sink.flush_failures(), content="0")
+    inspect(sink.reopen(append=Some(false)), content="false")
+    inspect(sink.append_mode(), content="false")
   }
 }
 

@@ -46,7 +46,7 @@ pub impl Sink for JsonConsoleSink with write(self, rec) {
 
 pub struct FileSink {
   path : String
-  append : Bool
+  append : Ref[Bool]
   handle : Ref[FileHandle?]
   formatter : RecordFormatter
   auto_flush : Bool
@@ -85,7 +85,7 @@ pub fn file_sink(
   let handle = open_file_handle_internal(path, append)
   {
     path,
-    append,
+    append: Ref::new(append),
     handle: Ref::new(handle),
     formatter,
     auto_flush,
@@ -112,6 +112,10 @@ pub fn FileSink::flush(self : FileSink) -> Bool {
       ok
     }
   }
+}
+
+pub fn FileSink::append_mode(self : FileSink) -> Bool {
+  self.append.val
 }
 
 pub fn FileSink::close(self : FileSink) -> Bool {
@@ -142,7 +146,8 @@ pub fn FileSink::flush_failures(self : FileSink) -> Int {
 }
 
 pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
-  let append_mode = append.unwrap_or(self.append)
+  let append_mode = append.unwrap_or(self.append.val)
+  self.append.val = append_mode
   match self.handle.val {
     None => ()
     Some(handle) => {
