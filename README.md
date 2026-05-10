@@ -26,6 +26,7 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库
 - 🧷 可绑定上下文: 支持 `bind(...)` 与 `fields(...)`, 便于复用上下文字段.
 - 📮 显式队列: 支持 `queued_sink(...)` / `with_queue(...)`, 支持有界积压和溢出策略.
 - 🧾 可配置文本格式: 支持 `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, `formatted_callback_sink(...)` 和模板化 `template` 输出.
+- 🎨 轻量样式标签: 支持 `color_mode`, inline markup, `TextStyle`, `StyleTagRegistry`, 自定义标签与内置标签覆盖.
 - 💾 Native 文件输出: 支持 `file_sink(...)`, 基础 size rotation / backup retention, 显式 `reopen()` / `reopen_with_current_policy()` / `reopen_append()` / `reopen_truncate()` 与失败计数, 仅在 `native/llvm` backend 可用.
 - 📦 MoonBit 适配: API 和工程结构与 MoonBit 的 package / visibility / toolchain 模型保持一致.
 
@@ -177,6 +178,25 @@ logger.info("hello", fields=[field("mode", "pretty")])
 
 </details>
 
+<details><summary>inline style tag 示例</summary>
+
+```moonbit
+let formatter = text_formatter(
+  show_timestamp=false,
+  color_mode=ColorMode::Always,
+).with_style_tags(
+  default_style_tag_registry()
+    .set_tag("accent", fg=Some("#4cc9f0"), bold=true)
+    .define_alias("danger", "red"),
+)
+
+let logger = Logger::new(text_console_sink(formatter), target="styled")
+
+logger.info("<accent>styled</> output and <danger>alert</>")
+```
+
+</details>
+
 <details><summary>JSON 配置加载示例</summary>
 
 ```moonbit
@@ -243,6 +263,10 @@ match logger.file_runtime_state() {
 - `QueueConfig`, `TextFormatterConfig`, `SinkConfig` 可分别通过 `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, `sink_config_to_json(...)` / `stringify_sink_config(...)` 单独导出 JSON
 - 支持字段: `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, `queue`
 - `TextFormatter` / `TextFormatterConfig` 提供 `color_mode = Never | Auto | Always`, 可控制 ANSI 文本着色
+- `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
+- 运行期样式标签 API: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
+- 样式标签优先级: formatter 局部 `style_tags` > 全局 style tag registry > 内置标签
+- 自定义 style tag 当前仅支持运行期 API, 还不支持通过 JSON config 声明
 - `sink.rotation` 支持 `max_bytes` 与 `max_backups`, 用于基础 size-based rotation 和 backup retention
 - `file_sink(...)` 提供 `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, `rotation_failures()`, 用于基础可观测性
 - `file_sink(...)` 提供 `append_mode()`. 显式传入 `reopen(append=...)` 时, 会更新后续 reopen 使用的 append 策略. `reopen_with_current_policy()` 使用当前保存的策略重开文件, `reopen_append()` / `reopen_truncate()` 提供常见的 append 和 truncate 模式

@@ -68,6 +68,21 @@ fn main {
   )
   pretty_logger.info("custom text format", fields=[@lib.field("mode", "pretty")])
 
+  let styled_formatter = @lib.text_formatter(
+    show_timestamp=false,
+    color_mode=@lib.ColorMode::Always,
+  ).with_style_tags(
+    @lib.default_style_tag_registry()
+      .set_tag("accent", fg=Some("#4cc9f0"), bold=true)
+      .define_alias("danger", "red"),
+  )
+  let styled_logger = @lib.Logger::new(
+    @lib.text_console_sink(styled_formatter),
+    min_level=@lib.Level::Info,
+    target="styled",
+  )
+  styled_logger.info("<accent>styled</> output and <danger>alert</>")
+
   if @lib.native_files_supported() {
     let file_logger = @lib.Logger::new(
       @lib.file_sink(

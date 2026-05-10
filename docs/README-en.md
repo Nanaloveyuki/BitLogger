@@ -25,6 +25,7 @@ BitLogger currently provides:
 - explicit queued delivery via `queued_sink(...)` and `with_queue(...)`
 - bounded backlog with `QueueOverflowPolicy::DropNewest` and `QueueOverflowPolicy::DropOldest`
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
+- lightweight style tags via `color_mode`, inline markup, `TextStyle`, `StyleTagRegistry`, custom tags, and builtin-tag overrides
 - formatter-based callback integration via `formatted_callback_sink(...)`
 - native-only file output via `file_sink(...)`, with basic size rotation, backup retention, explicit `reopen()` / `reopen_with_current_policy()` / `reopen_append()` / `reopen_truncate()`, and failure counters
 - `native_files_supported()` for backend capability detection
@@ -165,6 +166,23 @@ let logger = Logger::new(text_console_sink(formatter), target="pretty")
 logger.info("hello", fields=[field("mode", "pretty")])
 ```
 
+Inline style tags:
+
+```moonbit
+let formatter = text_formatter(
+  show_timestamp=false,
+  color_mode=ColorMode::Always,
+).with_style_tags(
+  default_style_tag_registry()
+    .set_tag("accent", fg=Some("#4cc9f0"), bold=true)
+    .define_alias("danger", "red"),
+)
+
+let logger = Logger::new(text_console_sink(formatter), target="styled")
+
+logger.info("<accent>styled</> output and <danger>alert</>")
+```
+
 JSON config loading:
 
 ```moonbit
@@ -227,6 +245,10 @@ match logger.file_runtime_state() {
 - `QueueConfig`, `TextFormatterConfig`, and `SinkConfig` can also be exported independently through `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, and `sink_config_to_json(...)` / `stringify_sink_config(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `TextFormatter` and `TextFormatterConfig` now include `color_mode = Never | Auto | Always` for ANSI text coloring control.
+- `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
+- Runtime style-tag APIs now include `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, and `define_alias(...)`.
+- Style-tag lookup priority is formatter-local `style_tags` > global style tag registry > builtin tags.
+- Custom style tags are runtime-only for now and are not yet part of the JSON config schema.
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `file_sink(...)` also exposes `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
 - `file_sink(...)` also exposes `append_mode()`. Passing `append=...` to `reopen(...)` updates the current append policy used by later reopen calls, `reopen_with_current_policy()` makes that stored-policy reopen path explicit, and `reopen_append()` / `reopen_truncate()` cover the two common policy switches directly.

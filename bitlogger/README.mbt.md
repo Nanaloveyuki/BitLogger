@@ -42,6 +42,8 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 - 支持 `queued_sink(...)`, `with_queue(...)`, 有界积压与溢出策略
 - configurable text formatting via `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, and template-driven `template` output
 - 支持 `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)` 以及模板化 `template` 文本输出
+- lightweight style tags via `color_mode`, inline markup, `TextStyle`, `StyleTagRegistry`, custom tags, and builtin-tag overrides
+- 支持 `color_mode`, inline markup, `TextStyle`, `StyleTagRegistry`, 自定义标签与内置标签覆盖
 - JSON config parsing via `parse_logger_config_text(...)` and `stringify_logger_config(...)`
 - 支持 `parse_logger_config_text(...)`, `stringify_logger_config(...)` 进行最小 JSON 配置读写
 - `TextFormatter` / `TextFormatterConfig` now support `color_mode = Never | Auto | Always`
@@ -191,6 +193,21 @@ test {
 
 ```mbt check
 test {
+  let formatter = text_formatter(
+    show_timestamp=false,
+    color_mode=ColorMode::Always,
+  ).with_style_tags(
+    default_style_tag_registry()
+      .set_tag("accent", fg=Some("#4cc9f0"), bold=true)
+      .define_alias("danger", "red"),
+  )
+  let logger = Logger::new(text_console_sink(formatter), target="styled")
+  logger.info("<accent>styled</> output and <danger>alert</>")
+}
+```
+
+```mbt check
+test {
   let config = parse_logger_config_text(
     "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
   )
@@ -204,6 +221,10 @@ test {
 
 - supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `color_mode` / `color_mode`: `never`, `auto`, `always`
+- inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
+- runtime style tags / 运行期样式标签: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
+- style tag priority / 标签优先级: formatter local `style_tags` > global style tag registry > builtin tags
+- custom style tags are runtime-only for now / 自定义样式标签当前仅支持运行期 API
 - disabled or missing parts render as empty text / 被关闭或缺失的部分会渲染为空字符串
 - `template` is intentionally a simple token replacement layer, not a full DSL / `template` 使用轻量 token 替换方式, 不是完整 DSL
 
