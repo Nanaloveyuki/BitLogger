@@ -380,6 +380,11 @@ test "configured logger can reopen built file sink" {
     inspect(logger.file_append_mode(), content="false")
     inspect(logger.file_reopen_append(), content="true")
     inspect(logger.file_append_mode(), content="true")
+    inspect(logger.file_reset_failure_counters(), content="true")
+    inspect(logger.file_open_failures(), content="0")
+    inspect(logger.file_write_failures(), content="0")
+    inspect(logger.file_flush_failures(), content="0")
+    inspect(logger.file_rotation_failures(), content="0")
     inspect(logger.close(), content="true")
   } else {
     inspect(logger.file_append_mode(), content="true")
@@ -395,7 +400,17 @@ test "configured logger can reopen built file sink" {
     inspect(logger.file_reopen_append(), content="false")
     inspect(logger.file_append_mode(), content="true")
     inspect(logger.file_open_failures(), content="4")
+    inspect(logger.file_reset_failure_counters(), content="true")
+    inspect(logger.file_open_failures(), content="0")
+    inspect(logger.file_write_failures(), content="0")
+    inspect(logger.file_flush_failures(), content="0")
+    inspect(logger.file_rotation_failures(), content="0")
   }
+}
+
+test "configured non-file logger cannot reset file failure counters" {
+  let logger = build_logger(LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)))
+  inspect(logger.file_reset_failure_counters(), content="false")
 }
 
 test "configured logger exposes file flush and close helpers" {

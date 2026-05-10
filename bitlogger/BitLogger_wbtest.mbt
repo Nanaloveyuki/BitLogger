@@ -191,6 +191,11 @@ test "file sink reopen and failure counters reflect backend state" {
     inspect(sink.append_mode(), content="false")
     inspect(sink.reopen_append(), content="true")
     inspect(sink.append_mode(), content="true")
+    sink.reset_failure_counters()
+    inspect(sink.open_failures(), content="0")
+    inspect(sink.write_failures(), content="0")
+    inspect(sink.flush_failures(), content="0")
+    inspect(sink.rotation_failures(), content="0")
     inspect(sink.close(), content="true")
     ignore(remove_file_internal("bitlogger-reopen.log"))
   } else {
@@ -208,6 +213,11 @@ test "file sink reopen and failure counters reflect backend state" {
     inspect(sink.reopen_append(), content="false")
     inspect(sink.append_mode(), content="true")
     inspect(sink.open_failures(), content="4")
+    sink.reset_failure_counters()
+    inspect(sink.open_failures(), content="0")
+    inspect(sink.write_failures(), content="0")
+    inspect(sink.flush_failures(), content="0")
+    inspect(sink.rotation_failures(), content="0")
   }
 }
 

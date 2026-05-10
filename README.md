@@ -246,9 +246,11 @@ match logger.file_runtime_state() {
 - `file_sink(...)` 也可直接读取 `path()` 与 `auto_flush_enabled()` 等基础 file 策略状态
 - `file_sink(...)` 还提供 `rotation_enabled()` 与 `rotation_config()`，可直接查询当前 rotation 策略是否启用及其参数
 - `file_sink(...)` 还提供 `state()`，可一次性读取 path、available、append、auto_flush、rotation 与各类 failure counter 快照
+- `file_sink(...)` 还提供 `reset_failure_counters()`，可在完成排障后清空 open/write/flush/rotation 失败计数
 - `file_sink(...)` 也支持 `set_auto_flush(...)`、`set_rotation(...)`、`clear_rotation()`，可在运行期调整基础写出策略
 - `build_logger(...)` 产出的 `ConfiguredLogger` 同样提供 `file_reopen()`、`file_reopen_with_current_policy()`、`file_reopen_append()`、`file_reopen_truncate()`、`file_flush()`、`file_close()`、`file_append_mode()`、`file_path()`、`file_auto_flush()`、`file_rotation_enabled()`、`file_rotation_config()`、`file_state()`，以及 `file_set_append_mode(...)`、`file_set_auto_flush(...)`、`file_set_rotation(...)`、`file_clear_rotation()` 与对应 file failure 计数访问器，便于配置式接入后继续运维控制
 - `ConfiguredLogger` 还提供 `file_runtime_state()`，可在 file sink 外层包了 queue 时同时读取底层 file 快照、是否 queue 包装、当前 pending 与 dropped 计数
+- `ConfiguredLogger` 也支持 `file_reset_failure_counters()`，可在配置式 file sink 上统一清空失败计数
 - `file_sink_state_to_json(...)`、`stringify_file_sink_state(...)`、`runtime_file_state_to_json(...)`、`stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON，便于排障或上报
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`

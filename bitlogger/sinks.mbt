@@ -213,6 +213,13 @@ pub fn FileSink::flush_failures(self : FileSink) -> Int {
   self.flush_failures.val
 }
 
+pub fn FileSink::reset_failure_counters(self : FileSink) -> Unit {
+  self.open_failures.val = 0
+  self.write_failures.val = 0
+  self.flush_failures.val = 0
+  self.rotation_failures.val = 0
+}
+
 pub fn FileSink::state(self : FileSink) -> FileSinkState {
   {
     path: self.path,

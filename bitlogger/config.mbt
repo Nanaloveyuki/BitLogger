@@ -470,6 +470,20 @@ pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int {
   }
 }
 
+pub fn RuntimeSink::file_reset_failure_counters(self : RuntimeSink) -> Bool {
+  match self {
+    File(sink) => {
+      sink.reset_failure_counters()
+      true
+    }
+    QueuedFile(sink) => {
+      sink.sink.reset_failure_counters()
+      true
+    }
+    _ => false
+  }
+}
+
 pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
   match self {
     File(sink) => sink.state()
@@ -606,6 +620,10 @@ pub fn ConfiguredLogger::file_flush_failures(self : ConfiguredLogger) -> Int {
 
 pub fn ConfiguredLogger::file_rotation_failures(self : ConfiguredLogger) -> Int {
   self.sink.file_rotation_failures()
+}
+
+pub fn ConfiguredLogger::file_reset_failure_counters(self : ConfiguredLogger) -> Bool {
+  self.sink.file_reset_failure_counters()
 }
 
 pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {
