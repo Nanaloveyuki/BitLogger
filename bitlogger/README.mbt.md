@@ -44,6 +44,8 @@ BitLogger 是一个基于 MoonBit 的结构化日志库。
 - 支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)` 以及模板化 `template` 文本输出
 - JSON config parsing via `parse_logger_config_text(...)` and `stringify_logger_config(...)`
 - 支持 `parse_logger_config_text(...)`、`stringify_logger_config(...)` 进行最小 JSON 配置读写
+- `QueueConfig` / `TextFormatterConfig` / `SinkConfig` can also be exported independently through dedicated JSON helpers
+- `QueueConfig` / `TextFormatterConfig` / `SinkConfig` 也可分别通过专用 JSON helper 单独导出
 - config-driven logger assembly via `build_logger(...)`
 - 支持 `build_logger(...)` 将配置组装为可直接使用的 logger
 - native-only file output via `file_sink(...)`, with basic size rotation, backup retention, explicit `reopen()` / `reopen_with_current_policy()` / `reopen_append()` / `reopen_truncate()`, and failure counters

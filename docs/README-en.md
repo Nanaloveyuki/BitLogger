@@ -222,6 +222,7 @@ match logger.file_runtime_state() {
 ## Config Notes
 
 - BitLogger now includes a JSON config layer via `parse_logger_config_text(...)`, `stringify_logger_config(...)`, and `build_logger(...)`.
+- `QueueConfig`, `TextFormatterConfig`, and `SinkConfig` can also be exported independently through `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, and `sink_config_to_json(...)` / `stringify_sink_config(...)`.
 - Supported keys include `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, and `queue`.
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `file_sink(...)` also exposes `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.

@@ -238,6 +238,7 @@ match logger.file_runtime_state() {
 ## 📝 配置说明
 
 - 当前提供 JSON 配置层：`parse_logger_config_text(...)`、`stringify_logger_config(...)`、`build_logger(...)`
+- `QueueConfig`、`TextFormatterConfig`、`SinkConfig` 也可分别通过 `queue_config_to_json(...)` / `stringify_queue_config(...)`、`text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`、`sink_config_to_json(...)` / `stringify_sink_config(...)` 单独导出 JSON
 - 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.rotation`、`sink.text_formatter`、`queue`
 - `sink.rotation` 当前支持 `max_bytes` 与 `max_backups`，提供基础 size-based rotation 和 backup retention
 - `file_sink(...)` 还提供 `reopen()`、`reopen_with_current_policy()`、`reopen_append()`、`reopen_truncate()`、`open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()`，用于基础可观测性

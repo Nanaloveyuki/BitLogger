@@ -900,7 +900,7 @@ pub fn parse_logger_config_text(input : String) -> LoggerConfig raise ConfigErro
   )
 }
 
-fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
+pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "max_pending": @json_parser.JsonValue::Number(queue.max_pending.to_double()),
     "overflow": @json_parser.JsonValue::String(match queue.overflow {
@@ -910,7 +910,16 @@ fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
   })
 }
 
-fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.JsonValue {
+pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> String {
+  let value = queue_config_to_json(queue)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
+}
+
+pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "show_timestamp": @json_parser.JsonValue::Bool(config.show_timestamp),
     "show_level": @json_parser.JsonValue::Bool(config.show_level),
@@ -922,6 +931,18 @@ fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.J
   })
 }
 
+pub fn stringify_text_formatter_config(
+  config : TextFormatterConfig,
+  pretty~ : Bool = false,
+) -> String {
+  let value = text_formatter_config_to_json(config)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
+}
+
 fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "max_bytes": @json_parser.JsonValue::Number(config.max_bytes.to_double()),
@@ -929,7 +950,7 @@ fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonValue
   })
 }
 
-fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
+pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "kind": @json_parser.JsonValue::String(sink_kind_label(config.kind)),
     "path": @json_parser.JsonValue::String(config.path),
@@ -942,6 +963,15 @@ fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
     Some(rotation) => obj["rotation"] = file_rotation_config_to_json(rotation)
   }
   @json_parser.JsonValue::Object(obj)
+}
+
+pub fn stringify_sink_config(config : SinkConfig, pretty~ : Bool = false) -> String {
+  let value = sink_config_to_json(config)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
 }
 
 pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {

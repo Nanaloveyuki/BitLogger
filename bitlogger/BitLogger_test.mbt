@@ -139,6 +139,42 @@ test "logger config stringify roundtrips file rotation fields" {
   }
 }
 
+test "config subtype json helpers stringify stable shapes" {
+  inspect(
+    stringify_queue_config(
+      QueueConfig::new(8, overflow=QueueOverflowPolicy::DropOldest),
+    ),
+    content="{\"max_pending\":8,\"overflow\":\"DropOldest\"}",
+  )
+  inspect(
+    stringify_text_formatter_config(
+      TextFormatterConfig::new(
+        show_timestamp=false,
+        show_level=true,
+        show_target=false,
+        show_fields=true,
+        separator=" | ",
+        field_separator=",",
+        template="[{level}] {message} :: {fields}",
+      ),
+    ),
+    content="{\"field_separator\":\",\",\"separator\":\" | \",\"show_fields\":true,\"show_level\":true,\"show_target\":false,\"show_timestamp\":false,\"template\":\"[{level}] {message} :: {fields}\"}",
+  )
+  inspect(
+    stringify_sink_config(
+      SinkConfig::new(
+        kind=SinkKind::File,
+        path="demo.log",
+        append=false,
+        auto_flush=false,
+        rotation=Some(file_rotation(128, max_backups=2)),
+        text_formatter=TextFormatterConfig::new(show_timestamp=false),
+      ),
+    ),
+    content="{\"append\":false,\"auto_flush\":false,\"kind\":\"file\",\"path\":\"demo.log\",\"rotation\":{\"max_backups\":2,\"max_bytes\":128},\"text_formatter\":{\"field_separator\":\" \",\"separator\":\" \",\"show_fields\":true,\"show_level\":true,\"show_target\":true,\"show_timestamp\":false,\"template\":\"\"}}",
+  )
+}
+
 test "build logger from config supports queued text console" {
   let logger = build_logger(
     LoggerConfig::new(
