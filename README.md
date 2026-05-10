@@ -212,6 +212,20 @@ ignore(logger.flush())
 
 </details>
 
+<details><summary>JSON style_tags 示例</summary>
+
+```moonbit
+let config = parse_logger_config_text(
+  "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"color_mode\":\"always\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true}}}}}",
+)
+
+let logger = build_logger(config)
+
+logger.info("<accent>styled from json</>")
+```
+
+</details>
+
 <details><summary>native 文件 sink 示例</summary>
 
 ```moonbit
@@ -266,7 +280,8 @@ match logger.file_runtime_state() {
 - `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
 - 运行期样式标签 API: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - 样式标签优先级: formatter 局部 `style_tags` > 全局 style tag registry > 内置标签
-- 自定义 style tag 当前仅支持运行期 API, 还不支持通过 JSON config 声明
+- `sink.text_formatter.style_tags` 现支持最小对象映射配置, 可声明 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
+- `define_alias(...)` 仍为运行期 API, 当前不在 JSON schema 中
 - `sink.rotation` 支持 `max_bytes` 与 `max_backups`, 用于基础 size-based rotation 和 backup retention
 - `file_sink(...)` 提供 `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, `rotation_failures()`, 用于基础可观测性
 - `file_sink(...)` 提供 `append_mode()`. 显式传入 `reopen(append=...)` 时, 会更新后续 reopen 使用的 append 策略. `reopen_with_current_policy()` 使用当前保存的策略重开文件, `reopen_append()` / `reopen_truncate()` 提供常见的 append 和 truncate 模式
@@ -291,6 +306,7 @@ match logger.file_runtime_state() {
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, `stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON, 便于排障或上报
 - `sink.text_formatter.template` 支持固定 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
 - `sink.text_formatter.color_mode` 支持 `never`, `auto`, `always`
+- `sink.text_formatter.style_tags.<name>` 支持 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
 - 可由配置直接组装的 sink 类型: `console`, `json_console`, `text_console`, `file`
 - `queue` 作为显式包装层附着在最终 sink 外侧. 这仍然是同步 drain 模型, 不是 async runtime
 

@@ -217,6 +217,16 @@ test {
 }
 ```
 
+```mbt check
+test {
+  let config = parse_logger_config_text(
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"color_mode\":\"always\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true}}}}}",
+  )
+  let logger = build_logger(config)
+  logger.info("<accent>styled from json</>")
+}
+```
+
 ## Formatter Template / 模板格式
 
 - supported tokens / 支持的 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
@@ -224,7 +234,8 @@ test {
 - inline style tags / inline 样式标签: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
 - runtime style tags / 运行期样式标签: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
 - style tag priority / 标签优先级: formatter local `style_tags` > global style tag registry > builtin tags
-- custom style tags are runtime-only for now / 自定义样式标签当前仅支持运行期 API
+- `sink.text_formatter.style_tags` / `sink.text_formatter.style_tags` 现支持最小对象映射: `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
+- `define_alias(...)` is still runtime-only / `define_alias(...)` 目前仍为运行期 API
 - disabled or missing parts render as empty text / 被关闭或缺失的部分会渲染为空字符串
 - `template` is intentionally a simple token replacement layer, not a full DSL / `template` 使用轻量 token 替换方式, 不是完整 DSL
 

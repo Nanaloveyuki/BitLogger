@@ -196,6 +196,18 @@ logger.info("configured from json")
 ignore(logger.flush())
 ```
 
+JSON `style_tags`:
+
+```moonbit
+let config = parse_logger_config_text(
+  "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"color_mode\":\"always\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true}}}}}",
+)
+
+let logger = build_logger(config)
+
+logger.info("<accent>styled from json</>")
+```
+
 Native file sink:
 
 ```moonbit
@@ -248,7 +260,8 @@ match logger.file_runtime_state() {
 - `message` also supports lightweight inline style tags such as `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, and `<bg:#202020>...</>`.
 - Runtime style-tag APIs now include `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, and `define_alias(...)`.
 - Style-tag lookup priority is formatter-local `style_tags` > global style tag registry > builtin tags.
-- Custom style tags are runtime-only for now and are not yet part of the JSON config schema.
+- `sink.text_formatter.style_tags` now supports a minimal object mapping with `fg`, `bg`, `bold`, `dim`, `italic`, and `underline`.
+- `define_alias(...)` remains a runtime-only API and is not yet part of the JSON config schema.
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `file_sink(...)` also exposes `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
 - `file_sink(...)` also exposes `append_mode()`. Passing `append=...` to `reopen(...)` updates the current append policy used by later reopen calls, `reopen_with_current_policy()` makes that stored-policy reopen path explicit, and `reopen_append()` / `reopen_truncate()` cover the two common policy switches directly.
@@ -273,6 +286,7 @@ match logger.file_runtime_state() {
 - `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, and `stringify_runtime_file_state(...)` can export file and queued-file snapshots directly as JSON for diagnostics or reporting.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - `sink.text_formatter.color_mode` currently supports `never`, `auto`, and `always`.
+- `sink.text_formatter.style_tags.<name>` currently supports `fg`, `bg`, `bold`, `dim`, `italic`, and `underline`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
 
