@@ -26,7 +26,7 @@ BitLogger 是一个基于 MoonBit 编写的结构化日志库。
 - 🧷 可绑定上下文：支持 `bind(...)` 与 `fields(...)`，更方便地封装复用字段上下文。
 - 📮 显式队列：支持 `queued_sink(...)` / `with_queue(...)`、有界积压与溢出策略，作为后续 async sink 的 runtime-safe 基础。
 - 🧾 可配置文本格式：支持 `text_formatter(...)`、`format_text(...)`、`text_console_sink(...)`、`formatted_callback_sink(...)` 与模板化 `template` 输出。
-- 💾 Native 文件输出：支持 `file_sink(...)`，并已提供基础 size rotation / backup retention；当前仅保证 `native/llvm` backend 可用。
+- 💾 Native 文件输出：支持 `file_sink(...)`、基础 size rotation / backup retention、显式 `reopen()` 与失败计数；当前仅保证 `native/llvm` backend 可用。
 - 📦 面向 MoonBit：API 和工程结构围绕 MoonBit 的 package / visibility / toolchain 现实约束设计。
 
 ## 🚀 快速开始
@@ -221,6 +221,7 @@ if native_files_supported() {
 - 当前提供 JSON 配置层：`parse_logger_config_text(...)`、`stringify_logger_config(...)`、`build_logger(...)`
 - 已支持字段：`min_level`、`target`、`timestamp`、`sink.kind`、`sink.path`、`sink.append`、`sink.auto_flush`、`sink.rotation`、`sink.text_formatter`、`queue`
 - `sink.rotation` 当前支持 `max_bytes` 与 `max_backups`，提供基础 size-based rotation 和 backup retention
+- `file_sink(...)` 还提供 `reopen()`、`open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()`，用于基础可观测性
 - `sink.text_formatter.template` 当前支持固定 token：`{timestamp}`、`{timestamp_ms}`、`{level}`、`{target}`、`{message}`、`{fields}`
 - 当前可由配置直接组装的 sink 类型：`console`、`json_console`、`text_console`、`file`
 - `queue` 会作为显式包装层附着在最终 sink 外侧；这仍然是同步 drain 模型，不是 async runtime

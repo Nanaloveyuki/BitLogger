@@ -51,6 +51,9 @@ pub struct FileSink {
   formatter : RecordFormatter
   auto_flush : Bool
   rotation : FileRotation?
+  open_failures : Ref[Int]
+  write_failures : Ref[Int]
+  flush_failures : Ref[Int]
   rotation_failures : Ref[Int]
 }
 
@@ -79,13 +82,17 @@ pub fn file_sink(
     format_text(rec)
   },
 ) -> FileSink {
+  let handle = open_file_handle_internal(path, append)
   {
     path,
     append,
-    handle: Ref::new(open_file_handle_internal(path, append)),
+    handle: Ref::new(handle),
     formatter,
     auto_flush,
     rotation,
+    open_failures: Ref::new(if handle is Some(_) { 0 } else { 1 }),
+    write_failures: Ref::new(0),
+    flush_failures: Ref::new(0),
     rotation_failures: Ref::new(0),
   }
 }
@@ -97,7 +104,13 @@ pub fn FileSink::is_available(self : FileSink) -> Bool {
 pub fn FileSink::flush(self : FileSink) -> Bool {
   match self.handle.val {
     None => false
-    Some(handle) => flush_file_handle_internal(handle)
+    Some(handle) => {
+      let ok = flush_file_handle_internal(handle)
+      if !ok {
+        self.flush_failures.val += 1
+      }
+      ok
+    }
   }
 }
 
@@ -114,6 +127,37 @@ pub fn FileSink::close(self : FileSink) -> Bool {
 
 pub fn FileSink::rotation_failures(self : FileSink) -> Int {
   self.rotation_failures.val
+}
+
+pub fn FileSink::open_failures(self : FileSink) -> Int {
+  self.open_failures.val
+}
+
+pub fn FileSink::write_failures(self : FileSink) -> Int {
+  self.write_failures.val
+}
+
+pub fn FileSink::flush_failures(self : FileSink) -> Int {
+  self.flush_failures.val
+}
+
+pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
+  let append_mode = append.unwrap_or(self.append)
+  match self.handle.val {
+    None => ()
+    Some(handle) => {
+      ignore(close_file_handle_internal(handle))
+      self.handle.val = None
+    }
+  }
+  let reopened = open_file_handle_internal(self.path, append_mode)
+  self.handle.val = reopened
+  if reopened is Some(_) {
+    true
+  } else {
+    self.open_failures.val += 1
+    false
+  }
 }
 
 fn rotated_file_path(path : String, index : Int) -> String {
@@ -171,20 +215,33 @@ fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
 
 pub impl Sink for FileSink with write(self, rec) {
   match self.handle.val {
-    None => ()
+    None => {
+      self.write_failures.val += 1
+    }
     Some(_) => {
       let line = "\{(self.formatter)(rec)}\n"
       let can_write = rotate_if_needed_internal(self, string_byte_length_internal(line))
       if can_write {
         match self.handle.val {
-          None => ()
+          None => {
+            self.write_failures.val += 1
+          }
           Some(active) => {
-            ignore(write_file_handle_internal(active, line))
-            if self.auto_flush {
-              ignore(flush_file_handle_internal(active))
+            let wrote = write_file_handle_internal(active, line)
+            if wrote {
+              if self.auto_flush {
+                let flushed = flush_file_handle_internal(active)
+                if !flushed {
+                  self.flush_failures.val += 1
+                }
+              }
+            } else {
+              self.write_failures.val += 1
             }
           }
         }
+      } else {
+        self.write_failures.val += 1
       }
     }
   }
