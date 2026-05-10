@@ -240,6 +240,67 @@ test "configured logger exposes file sink observability helpers" {
   ignore(logger.close())
 }
 
+test "file state json helpers stringify stable snapshots" {
+  let plain = file_sink_state_to_json(
+    FileSinkState::new(
+      "demo.log",
+      available=true,
+      append=false,
+      auto_flush=true,
+      rotation=Some(file_rotation(64, max_backups=2)),
+      open_failures=1,
+      write_failures=2,
+      flush_failures=3,
+      rotation_failures=4,
+    ),
+  )
+  inspect(
+    @json_parser.stringify(plain),
+    content="{\"append\":false,\"auto_flush\":true,\"available\":true,\"flush_failures\":3,\"open_failures\":1,\"path\":\"demo.log\",\"rotation\":{\"max_backups\":2,\"max_bytes\":64},\"rotation_failures\":4,\"write_failures\":2}",
+  )
+  inspect(
+    stringify_file_sink_state(
+      FileSinkState::new(
+        "plain.log",
+        available=false,
+        append=true,
+        auto_flush=false,
+        rotation=None,
+        open_failures=0,
+        write_failures=0,
+        flush_failures=0,
+        rotation_failures=0,
+      ),
+    ),
+    content="{\"append\":true,\"auto_flush\":false,\"available\":false,\"flush_failures\":0,\"open_failures\":0,\"path\":\"plain.log\",\"rotation\":null,\"rotation_failures\":0,\"write_failures\":0}",
+  )
+}
+
+test "runtime file state json helpers stringify queue snapshots" {
+  let json = stringify_runtime_file_state(
+    RuntimeFileState::new(
+      FileSinkState::new(
+        "queue.log",
+        available=true,
+        append=true,
+        auto_flush=false,
+        rotation=None,
+        open_failures=0,
+        write_failures=1,
+        flush_failures=2,
+        rotation_failures=3,
+      ),
+      queued=true,
+      pending_count=7,
+      dropped_count=5,
+    ),
+  )
+  inspect(
+    json,
+    content="{\"dropped_count\":5,\"file\":{\"append\":true,\"auto_flush\":false,\"available\":true,\"flush_failures\":2,\"open_failures\":0,\"path\":\"queue.log\",\"rotation\":null,\"rotation_failures\":3,\"write_failures\":1},\"pending_count\":7,\"queued\":true}",
+  )
+}
+
 test "configured logger reports disabled rotation when file sink has none" {
   let logger = build_logger(
     LoggerConfig::new(

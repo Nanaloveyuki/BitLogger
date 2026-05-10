@@ -215,6 +215,22 @@ test {
 }
 ```
 
+```mbt check
+test {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="bitlogger-runtime.log"),
+      queue=Some(QueueConfig::new(16)),
+    ),
+  )
+  logger.info("queued hello")
+  match logger.file_runtime_state() {
+    Some(snapshot) => println(stringify_runtime_file_state(snapshot, pretty=true))
+    None => ()
+  }
+}
+```
+
 ## File Rotation / 文件轮转
 
 - basic rotation is size-based / 当前基础轮转为按文件大小触发
@@ -226,6 +242,7 @@ test {
 - `path()` and `auto_flush_enabled()` expose core file sink policy state / `path()` 与 `auto_flush_enabled()` 可读取 file sink 的基础策略状态
 - `rotation_enabled()` and `rotation_config()` expose whether rotation is active and which settings are currently applied / `rotation_enabled()` 与 `rotation_config()` 可读取 rotation 是否启用及当前配置参数
 - `state()` exposes a single file-sink snapshot including path, availability, append policy, auto-flush, rotation config, and failure counters / `state()` 可一次性读取包含 path、availability、append、auto-flush、rotation 配置与失败计数的 file sink 快照
+- `file_sink_state_to_json(...)` / `stringify_file_sink_state(...)` and `runtime_file_state_to_json(...)` / `stringify_runtime_file_state(...)` export snapshots as JSON / `file_sink_state_to_json(...)` / `stringify_file_sink_state(...)` 与 `runtime_file_state_to_json(...)` / `stringify_runtime_file_state(...)` 可将快照直接导出为 JSON
 - `set_auto_flush(...)`, `set_rotation(...)`, and `clear_rotation()` allow runtime tuning of core file sink policies / `set_auto_flush(...)`、`set_rotation(...)`、`clear_rotation()` 可在运行期调整 file sink 的基础策略
 - `open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()` expose basic sink health counters / `open_failures()`、`write_failures()`、`flush_failures()`、`rotation_failures()` 可用于观察基础 sink 健康状态
 - `ConfiguredLogger` also forwards file reopen, flush, close, append-mode, path, auto-flush, rotation-config, state snapshot, append setter, policy setter, and failure-counter helpers for config-built file sinks / `ConfiguredLogger` 也会为配置生成的 file sink 转发 reopen、flush、close、append-mode、path、auto-flush、rotation 配置、state 快照、append setter、策略 setter 与失败计数访问器

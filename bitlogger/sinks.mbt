@@ -74,6 +74,30 @@ pub struct FileSinkState {
   rotation_failures : Int
 }
 
+pub fn FileSinkState::new(
+  path : String,
+  available~ : Bool = false,
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  open_failures~ : Int = 0,
+  write_failures~ : Int = 0,
+  flush_failures~ : Int = 0,
+  rotation_failures~ : Int = 0,
+) -> FileSinkState {
+  {
+    path,
+    available,
+    append,
+    auto_flush,
+    rotation,
+    open_failures,
+    write_failures,
+    flush_failures,
+    rotation_failures,
+  }
+}
+
 pub fn file_rotation(max_bytes : Int, max_backups~ : Int = 1) -> FileRotation {
   {
     max_bytes: if max_bytes <= 0 { 1 } else { max_bytes },
