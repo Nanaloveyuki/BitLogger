@@ -124,8 +124,11 @@ test "file sink rotation config normalizes invalid inputs" {
 
 test "file sink setters update auto flush and rotation state" {
   let sink = file_sink("bitlogger-setters.log")
+  inspect(sink.append_mode(), content="true")
   inspect(sink.auto_flush_enabled(), content="true")
   inspect(sink.rotation_enabled(), content="false")
+  sink.set_append_mode(false)
+  inspect(sink.append_mode(), content="false")
   sink.set_auto_flush(false)
   inspect(sink.auto_flush_enabled(), content="false")
   sink.set_rotation(Some(file_rotation(32, max_backups=2)))
@@ -140,6 +143,8 @@ test "file sink setters update auto flush and rotation state" {
   sink.clear_rotation()
   inspect(sink.rotation_enabled(), content="false")
   inspect(sink.rotation_config() is None, content="true")
+  inspect(sink.reopen(), content=if sink.is_available() { "true" } else { "false" })
+  inspect(sink.append_mode(), content="false")
 }
 
 test "file sink tracks rotation failures on unavailable backend" {

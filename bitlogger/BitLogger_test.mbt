@@ -243,8 +243,11 @@ test "configured logger file setters update file sink policy state" {
       queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
     ),
   )
+  inspect(logger.file_append_mode(), content="true")
   inspect(logger.file_auto_flush(), content="true")
   inspect(logger.file_rotation_enabled(), content="false")
+  inspect(logger.file_set_append_mode(false), content="true")
+  inspect(logger.file_append_mode(), content="false")
   inspect(logger.file_set_auto_flush(false), content="true")
   inspect(logger.file_auto_flush(), content="false")
   inspect(logger.file_set_rotation(Some(file_rotation(48, max_backups=4))), content="true")
@@ -259,6 +262,8 @@ test "configured logger file setters update file sink policy state" {
   inspect(logger.file_clear_rotation(), content="true")
   inspect(logger.file_rotation_enabled(), content="false")
   inspect(logger.file_rotation_config() is None, content="true")
+  inspect(logger.file_reopen(), content=if logger.file_available() { "true" } else { "false" })
+  inspect(logger.file_append_mode(), content="false")
   ignore(logger.close())
 }
 

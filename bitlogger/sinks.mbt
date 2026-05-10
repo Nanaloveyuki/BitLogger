@@ -118,6 +118,10 @@ pub fn FileSink::append_mode(self : FileSink) -> Bool {
   self.append.val
 }
 
+pub fn FileSink::set_append_mode(self : FileSink, append : Bool) -> Unit {
+  self.append.val = append
+}
+
 pub fn FileSink::path(self : FileSink) -> String {
   self.path
 }

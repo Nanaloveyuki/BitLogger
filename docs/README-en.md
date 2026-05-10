@@ -208,10 +208,11 @@ if native_files_supported() {
 - `sink.rotation` currently supports `max_bytes` and `max_backups` for basic size-based rotation and backup retention.
 - `file_sink(...)` also exposes `reopen()`, `open_failures()`, `write_failures()`, `flush_failures()`, and `rotation_failures()` for basic observability.
 - `file_sink(...)` also exposes `append_mode()`. Passing `append=...` to `reopen(...)` updates the current append policy used by later reopen calls.
+- `file_sink(...)` also supports `set_append_mode(...)` for explicitly changing the append policy that later reopen calls will use.
 - `file_sink(...)` also exposes `path()` and `auto_flush_enabled()` for reading basic file-sink policy state.
 - `file_sink(...)` also exposes `rotation_enabled()` and `rotation_config()` for reading whether rotation is active and which parameters are currently in effect.
 - `file_sink(...)` also supports `set_auto_flush(...)`, `set_rotation(...)`, and `clear_rotation()` for runtime policy updates.
-- `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, plus `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()`, and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
+- `ConfiguredLogger` built through `build_logger(...)` also exposes `file_reopen()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, plus `file_set_append_mode(...)`, `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()`, and the corresponding file failure counters, so config-driven file logging keeps a usable control surface.
 - `sink.text_formatter.template` currently supports fixed tokens: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, and `{fields}`.
 - Config-driven sink assembly currently supports `console`, `json_console`, `text_console`, and `file`.
 - `queue` remains a synchronous bounded wrapper around the final sink, not an async runtime.
