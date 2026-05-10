@@ -123,6 +123,80 @@ test "text formatter keeps unknown inline tags as plain text" {
   )
 }
 
+test "text formatter supports custom style tags" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+  ).with_style_tags(
+    style_tag_registry().set_tag("accent", fg=Some("#4cc9f0"), bold=true),
+  )
+  let rec = record(Level::Info, "<accent>api</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="\u{001b}[38;2;76;201;240;1mapi\u{001b}[0m",
+  )
+}
+
+test "text formatter can override builtin style tags" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+  ).with_style_tags(
+    default_style_tag_registry().set_tag("red", fg=Some("#ff5a5f"), underline=true),
+  )
+  let rec = record(Level::Info, "<red>alert</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="\u{001b}[38;2;255;90;95;4malert\u{001b}[0m",
+  )
+}
+
+test "formatter style tags take priority over global style tags" {
+  let previous = global_style_tag_registry()
+  set_global_style_tag_registry(style_tag_registry().set_tag("accent", fg=Some("#123456")))
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+  ).with_style_tags(
+    style_tag_registry().set_tag("accent", fg=Some("#abcdef")),
+  )
+  let rec = record(Level::Info, "<accent>tag</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="\u{001b}[38;2;171;205;239mtag\u{001b}[0m",
+  )
+  set_global_style_tag_registry(previous)
+}
+
+test "global style tags apply when formatter has no local registry" {
+  let previous = global_style_tag_registry()
+  set_global_style_tag_registry(style_tag_registry().set_tag("accent", fg=Some("#102030"), dim=true))
+  let rec = record(Level::Info, "<accent>tag</>")
+  inspect(
+    format_text(rec, formatter=text_formatter(show_level=false, show_target=false, color_mode=ColorMode::Always)),
+    content="\u{001b}[38;2;16;32;48;2mtag\u{001b}[0m",
+  )
+  set_global_style_tag_registry(previous)
+}
+
+test "style tag alias can reuse builtin tags" {
+  let formatter = text_formatter(
+    show_level=false,
+    show_target=false,
+    color_mode=ColorMode::Always,
+  ).with_style_tags(
+    style_tag_registry().define_alias("danger", "red"),
+  )
+  let rec = record(Level::Info, "<danger>boom</>")
+  inspect(
+    format_text(rec, formatter=formatter),
+    content="\u{001b}[31mboom\u{001b}[0m",
+  )
+}
+
 test "text formatter template respects disabled fields" {
   let rec = record(Level::Warn, "just message", target="svc")
   let formatter = text_formatter(

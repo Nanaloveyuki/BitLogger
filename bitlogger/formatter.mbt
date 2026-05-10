@@ -6,8 +6,137 @@ pub(all) enum ColorMode {
   Always
 }
 
+pub struct TextStyle {
+  fg : String?
+  bg : String?
+  bold : Bool
+  dim : Bool
+  italic : Bool
+  underline : Bool
+}
+
+pub fn text_style(
+  fg~ : String? = None,
+  bg~ : String? = None,
+  bold~ : Bool = false,
+  dim~ : Bool = false,
+  italic~ : Bool = false,
+  underline~ : Bool = false,
+) -> TextStyle {
+  { fg, bg, bold, dim, italic, underline }
+}
+
+pub struct StyleTagRegistry {
+  entries : Map[String, TextStyle]
+}
+
+fn normalize_style_tag_name(name : String) -> String {
+  name.trim().to_lower().to_owned()
+}
+
+pub fn style_tag_registry() -> StyleTagRegistry {
+  { entries: {} }
+}
+
+fn merge_text_style(base : TextStyle, overlay : TextStyle) -> TextStyle {
+  {
+    fg: match overlay.fg {
+      Some(_) => overlay.fg
+      None => base.fg
+    },
+    bg: match overlay.bg {
+      Some(_) => overlay.bg
+      None => base.bg
+    },
+    bold: base.bold || overlay.bold,
+    dim: base.dim || overlay.dim,
+    italic: base.italic || overlay.italic,
+    underline: base.underline || overlay.underline,
+  }
+}
+
+pub fn StyleTagRegistry::set_tag(
+  self : StyleTagRegistry,
+  name : String,
+  style~ : TextStyle = text_style(),
+  fg~ : String? = None,
+  bg~ : String? = None,
+  bold~ : Bool = false,
+  dim~ : Bool = false,
+  italic~ : Bool = false,
+  underline~ : Bool = false,
+) -> StyleTagRegistry {
+  let overlay = text_style(fg=fg, bg=bg, bold=bold, dim=dim, italic=italic, underline=underline)
+  self.entries[normalize_style_tag_name(name)] = merge_text_style(style, overlay)
+  self
+}
+
+pub fn StyleTagRegistry::get(self : StyleTagRegistry, name : String) -> TextStyle? {
+  self.entries.get(normalize_style_tag_name(name))
+}
+
+pub fn StyleTagRegistry::contains(self : StyleTagRegistry, name : String) -> Bool {
+  self.entries.contains(normalize_style_tag_name(name))
+}
+
+pub fn StyleTagRegistry::define_alias(
+  self : StyleTagRegistry,
+  name : String,
+  target : String,
+) -> StyleTagRegistry {
+  match self.get(target) {
+    Some(style) => self.set_tag(name, style=style)
+    None => match global_style_tag_registry().get(target) {
+      Some(style) => self.set_tag(name, style=style)
+      None => match builtin_text_style_for_tag(normalize_style_tag_name(target)) {
+        Some(style) => self.set_tag(name, style=style)
+        None => self
+      }
+    }
+  }
+}
+
+pub fn default_style_tag_registry() -> StyleTagRegistry {
+  style_tag_registry()
+    .set_tag("black", fg=Some("black"))
+    .set_tag("red", fg=Some("red"))
+    .set_tag("green", fg=Some("green"))
+    .set_tag("yellow", fg=Some("yellow"))
+    .set_tag("blue", fg=Some("blue"))
+    .set_tag("magenta", fg=Some("magenta"))
+    .set_tag("cyan", fg=Some("cyan"))
+    .set_tag("white", fg=Some("white"))
+    .set_tag("bright_black", fg=Some("bright_black"))
+    .set_tag("bright_red", fg=Some("bright_red"))
+    .set_tag("bright_green", fg=Some("bright_green"))
+    .set_tag("bright_yellow", fg=Some("bright_yellow"))
+    .set_tag("bright_blue", fg=Some("bright_blue"))
+    .set_tag("bright_magenta", fg=Some("bright_magenta"))
+    .set_tag("bright_cyan", fg=Some("bright_cyan"))
+    .set_tag("bright_white", fg=Some("bright_white"))
+    .set_tag("b", bold=true)
+    .set_tag("dim", dim=true)
+    .set_tag("i", italic=true)
+    .set_tag("u", underline=true)
+}
+
+let global_style_tag_registry_ref : Ref[StyleTagRegistry] = Ref::new(style_tag_registry())
+
+pub fn global_style_tag_registry() -> StyleTagRegistry {
+  global_style_tag_registry_ref.val
+}
+
+pub fn set_global_style_tag_registry(registry : StyleTagRegistry) -> Unit {
+  global_style_tag_registry_ref.val = registry
+}
+
+pub fn reset_global_style_tag_registry() -> Unit {
+  global_style_tag_registry_ref.val = style_tag_registry()
+}
+
 priv struct InlineStyle {
   fg_code : String?
+  bg_code : String?
   bold : Bool
   dim : Bool
   italic : Bool
@@ -36,6 +165,7 @@ pub struct TextFormatter {
   field_separator : String
   template : String
   color_mode : ColorMode
+  style_tags : StyleTagRegistry?
 }
 
 pub fn text_formatter(
@@ -47,6 +177,7 @@ pub fn text_formatter(
   field_separator~ : String = " ",
   template~ : String = "",
   color_mode~ : ColorMode = ColorMode::Never,
+  style_tags~ : StyleTagRegistry? = None,
 ) -> TextFormatter {
   {
     show_timestamp,
@@ -57,7 +188,12 @@ pub fn text_formatter(
     field_separator,
     template,
     color_mode,
+    style_tags,
   }
+}
+
+pub fn TextFormatter::with_style_tags(self : TextFormatter, style_tags : StyleTagRegistry) -> TextFormatter {
+  { ..self, style_tags: Some(style_tags) }
 }
 
 pub fn color_mode_label(mode : ColorMode) -> String {
@@ -96,6 +232,10 @@ fn ansi_wrap_with_style(text : String, style : InlineStyle, enabled : Bool) -> S
       Some(code) => codes.push(code)
       None => ()
     }
+    match style.bg_code {
+      Some(code) => codes.push(code)
+      None => ()
+    }
     if style.bold {
       codes.push("1")
     }
@@ -118,7 +258,7 @@ fn ansi_wrap_with_style(text : String, style : InlineStyle, enabled : Bool) -> S
 }
 
 fn default_inline_style() -> InlineStyle {
-  { fg_code: None, bold: false, dim: false, italic: false, underline: false }
+  { fg_code: None, bg_code: None, bold: false, dim: false, italic: false, underline: false }
 }
 
 fn named_color_code(tag : String) -> String? {
@@ -139,6 +279,28 @@ fn named_color_code(tag : String) -> String? {
     "bright_magenta" => Some("95")
     "bright_cyan" => Some("96")
     "bright_white" => Some("97")
+    _ => None
+  }
+}
+
+fn named_bg_color_code(tag : String) -> String? {
+  match tag {
+    "black" => Some("40")
+    "red" => Some("41")
+    "green" => Some("42")
+    "yellow" => Some("43")
+    "blue" => Some("44")
+    "magenta" => Some("45")
+    "cyan" => Some("46")
+    "white" => Some("47")
+    "bright_black" => Some("100")
+    "bright_red" => Some("101")
+    "bright_green" => Some("102")
+    "bright_yellow" => Some("103")
+    "bright_blue" => Some("104")
+    "bright_magenta" => Some("105")
+    "bright_cyan" => Some("106")
+    "bright_white" => Some("107")
     _ => None
   }
 }
@@ -191,23 +353,105 @@ fn rgb_bg_code(value : String) -> String {
   "48;2;\{r};\{g};\{b}"
 }
 
-fn apply_inline_tag(style : InlineStyle, tag : String) -> InlineStyle? {
-  match tag {
-    "b" => Some({ ..style, bold: true })
-    "dim" => Some({ ..style, dim: true })
-    "i" => Some({ ..style, italic: true })
-    "u" => Some({ ..style, underline: true })
-    _ => match named_color_code(tag) {
-      Some(code) => Some({ ..style, fg_code: Some(code) })
-      None => {
-        if is_hex_color(tag) {
-          Some({ ..style, fg_code: Some(rgb_fg_code(tag)) })
-        } else if tag.length() == 10 && tag.has_prefix("bg:") && is_hex_color(tag[3:].to_owned()) {
-          Some({ ..style, fg_code: Some(rgb_bg_code(tag)) })
-        } else {
-          None
-        }
+fn rgb_bg_code_from_hex(value : String) -> String {
+  let r = hex_pair_to_int(value.unsafe_get(1), value.unsafe_get(2))
+  let g = hex_pair_to_int(value.unsafe_get(3), value.unsafe_get(4))
+  let b = hex_pair_to_int(value.unsafe_get(5), value.unsafe_get(6))
+  "48;2;\{r};\{g};\{b}"
+}
+
+fn inline_style_from_text_style(base : InlineStyle, style : TextStyle) -> InlineStyle? {
+  let fg_code = match style.fg {
+    None => Some(base.fg_code)
+    Some(value) => match named_color_code(normalize_style_tag_name(value)) {
+      Some(code) => Some(Some(code))
+      None => if is_hex_color(value) {
+        Some(Some(rgb_fg_code(value)))
+      } else {
+        None
       }
+    }
+  }
+  let bg_code = match style.bg {
+    None => Some(base.bg_code)
+    Some(value) => match named_bg_color_code(normalize_style_tag_name(value)) {
+      Some(code) => Some(Some(code))
+      None => if is_hex_color(value) {
+        Some(Some(rgb_bg_code_from_hex(value)))
+      } else {
+        None
+      }
+    }
+  }
+  match fg_code {
+    Some(next_fg) => match bg_code {
+      Some(next_bg) => Some({
+        fg_code: next_fg,
+        bg_code: next_bg,
+        bold: base.bold || style.bold,
+        dim: base.dim || style.dim,
+        italic: base.italic || style.italic,
+        underline: base.underline || style.underline,
+      })
+      None => None
+    }
+    None => None
+  }
+}
+
+fn builtin_text_style_for_tag(tag : String) -> TextStyle? {
+  match normalize_style_tag_name(tag) {
+    "black" => Some(text_style(fg=Some("black")))
+    "red" => Some(text_style(fg=Some("red")))
+    "green" => Some(text_style(fg=Some("green")))
+    "yellow" => Some(text_style(fg=Some("yellow")))
+    "blue" => Some(text_style(fg=Some("blue")))
+    "magenta" => Some(text_style(fg=Some("magenta")))
+    "cyan" => Some(text_style(fg=Some("cyan")))
+    "white" => Some(text_style(fg=Some("white")))
+    "bright_black" => Some(text_style(fg=Some("bright_black")))
+    "bright_red" => Some(text_style(fg=Some("bright_red")))
+    "bright_green" => Some(text_style(fg=Some("bright_green")))
+    "bright_yellow" => Some(text_style(fg=Some("bright_yellow")))
+    "bright_blue" => Some(text_style(fg=Some("bright_blue")))
+    "bright_magenta" => Some(text_style(fg=Some("bright_magenta")))
+    "bright_cyan" => Some(text_style(fg=Some("bright_cyan")))
+    "bright_white" => Some(text_style(fg=Some("bright_white")))
+    "b" => Some(text_style(bold=true))
+    "dim" => Some(text_style(dim=true))
+    "i" => Some(text_style(italic=true))
+    "u" => Some(text_style(underline=true))
+    _ => None
+  }
+}
+
+fn resolve_registered_text_style(tag : String, formatter : TextFormatter) -> TextStyle? {
+  let normalized = normalize_style_tag_name(tag)
+  match formatter.style_tags {
+    Some(registry) => match registry.get(normalized) {
+      Some(style) => Some(style)
+      None => match global_style_tag_registry().get(normalized) {
+        Some(style) => Some(style)
+        None => builtin_text_style_for_tag(normalized)
+      }
+    }
+    None => match global_style_tag_registry().get(normalized) {
+      Some(style) => Some(style)
+      None => builtin_text_style_for_tag(normalized)
+    }
+  }
+}
+
+fn apply_inline_tag(style : InlineStyle, tag : String, formatter : TextFormatter) -> InlineStyle? {
+  let normalized = normalize_style_tag_name(tag)
+  if is_hex_color(tag) {
+    Some({ ..style, fg_code: Some(rgb_fg_code(tag)) })
+  } else if normalized.length() == 10 && normalized.has_prefix("bg:") && is_hex_color(normalized[3:].to_owned()) {
+    Some({ ..style, bg_code: Some(rgb_bg_code(normalized)) })
+  } else {
+    match resolve_registered_text_style(normalized, formatter) {
+      Some(spec) => inline_style_from_text_style(style, spec)
+      None => None
     }
   }
 }
@@ -224,7 +468,7 @@ fn push_plain_segment(
   }
 }
 
-fn parse_inline_markup(input : String) -> Array[StyledSegment] {
+fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[StyledSegment] {
   let segments : Array[StyledSegment] = []
   let buffer = StringBuilder::new()
   let stack : Array[InlineStyle] = [default_inline_style()]
@@ -264,7 +508,7 @@ fn parse_inline_markup(input : String) -> Array[StyledSegment] {
       }
       continue end + 1
     }
-    match apply_inline_tag(current_style(), tag) {
+    match apply_inline_tag(current_style(), tag, formatter) {
       Some(next_style) => {
         flush()
         stack.push(next_style)
@@ -279,7 +523,7 @@ fn parse_inline_markup(input : String) -> Array[StyledSegment] {
 
 fn render_inline_markup(message : String, formatter : TextFormatter) -> String {
   let enabled = use_ansi_color(formatter.color_mode)
-  let segments = parse_inline_markup(message)
+  let segments = parse_inline_markup(message, formatter)
   let out = StringBuilder::new()
   for segment in segments {
     out.write_string(ansi_wrap_with_style(segment.text, segment.style, enabled))
