@@ -68,8 +68,3 @@ let logger = async_logger(console_sink(), target="async.demo")
 - [bitlogger package README](./bitlogger/README.mbt.md)
 - [API 索引](./docs/api/index.md)
 
-## 🧵 异步层概览
-
-- `bitlogger_async` 提供 `AsyncLogger`、后台 `run()` worker、有界 async queue 与生命周期诊断接口。
-- 多端编译已支持：`native/llvm` 保留原生 worker 语义，`js` / `wasm` / `wasm-gc` 提供兼容实现。
-- 当前 `examples/async_basic` 仍保留 `native` target，因为 `moonbitlang/async` 的 `async fn main` 入口限制尚未完全解除。

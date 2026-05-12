@@ -72,8 +72,3 @@ let logger = async_logger(console_sink(), target="async.demo")
 - Detailed API references, config fields, runtime control helpers, and lifecycle surfaces now live under `docs/api/`.
 - For concrete runnable flows, prefer `examples/`.
 
-## Async Layer Summary
-
-- `bitlogger_async` provides `AsyncLogger`, a background `run()` worker, bounded queueing, lifecycle helpers, and runtime diagnostics.
-- Multi-target compilation is supported: `native/llvm` keeps native worker semantics, while `js` / `wasm` / `wasm-gc` use a compatibility implementation.
-- `examples/async_basic` remains `native`-only for now because `moonbitlang/async` still has `async fn main` entry limitations.
