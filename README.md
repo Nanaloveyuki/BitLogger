@@ -14,6 +14,15 @@
 
 BitLogger 是一个使用 MoonBit 编写的结构化日志库
 
+## 🧭 后端兼容
+
+| 模块 / 能力 | native / llvm | js / wasm / wasm-gc |
+| --- | --- | --- |
+| `bitlogger` 主包 | 支持 | 支持 |
+| `file_sink(...)` | 支持 | 不支持, `native_files_supported()` 返回 `false` |
+| `bitlogger_async` | 支持原生 worker 语义 | 支持兼容实现 |
+| `examples/async_basic` | 支持 | 受 `async fn main` 入口限制, 当前不提供 |
+
 ## ❇️ 特点
 
 - 🧩 基础能力: 支持 level, formatter, sink, context field 和全局 logger.
@@ -355,8 +364,17 @@ match logger.file_runtime_state() {
 - 建议使用 `shutdown()` 停止 worker. 默认模式下, 它会先等待队列清空, 再关闭 queue, 最后等待 worker 退出
 - 提供基础生命周期观测: `is_closed()`, `is_running()`, `has_failed()`, `last_error()`
 - async worker 支持 `max_batch` 批量消费, 以及 `flush=Never|Batch|Shutdown` 的基础 flush 策略
+- 提供 `async_runtime_mode()` / `async_runtime_mode_label(...)` / `async_runtime_supports_background_worker()` 用于探测当前后端是原生 worker 还是兼容实现
+- 提供 `async_runtime_state_to_json(...)` / `stringify_async_runtime_state(...)`, 便于在启动日志或诊断输出里直接暴露当前 async runtime 模式
 - 示例见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
-- 仅支持 `native/llvm` backend, 与同步 core 分开维护
+- `bitlogger_async` 现在支持多端编译: `native/llvm` 保留后台 worker 语义, `js` / `wasm` / `wasm-gc` 提供兼容实现
+- 由于 `moonbitlang/async` 的 `async fn main` 入口当前仍有限制, `examples/async_basic` 示例仍保持 `native` target
+
+启动时诊断示例:
+
+```moonbit
+println(stringify_async_runtime_state(async_runtime_state(), pretty=true))
+```
 
 ### Async Config
 

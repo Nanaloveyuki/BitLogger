@@ -6,6 +6,15 @@ BitLogger is a structured logging library written in MoonBit.
 
 BitLogger currently provides:
 
+## Backend Compatibility
+
+| Module / capability | native / llvm | js / wasm / wasm-gc |
+| --- | --- | --- |
+| `bitlogger` core package | Supported | Supported |
+| `file_sink(...)` | Supported | Not available, `native_files_supported()` returns `false` |
+| `bitlogger_async` | Native worker semantics | Compatibility implementation |
+| `examples/async_basic` | Supported | Not shipped currently because `async fn main` entry support is still limited |
+
 - log levels: `Trace`, `Debug`, `Info`, `Warn`, `Error`
 - structured key-value fields
 - plain console output
@@ -331,8 +340,17 @@ match logger.file_runtime_state() {
 - `shutdown()` is now the recommended way to stop the async worker. By default it waits for the queue to drain, closes the queue, and then waits for the worker to exit.
 - Basic lifecycle observability is also available through `is_closed()`, `is_running()`, `has_failed()`, and `last_error()`.
 - The async worker now supports batched queue draining via `max_batch` and basic flush policies through `flush=Never|Batch|Shutdown`.
+- `async_runtime_mode()`, `async_runtime_mode_label(...)`, and `async_runtime_supports_background_worker()` expose whether the current backend is using the native worker path or the compatibility implementation.
+- `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` make it easy to include the current async runtime mode in startup diagnostics or health output.
 - The recommended startup pattern is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
-- This layer currently targets `native/llvm` only and remains isolated from the synchronous logger core.
+- `bitlogger_async` now compiles across multiple targets: `native/llvm` keeps the background worker semantics, while `js` / `wasm` / `wasm-gc` use a compatibility implementation.
+- Because `moonbitlang/async` still limits `async fn main` entry support, the `examples/async_basic` executable remains `native`-only for now.
+
+Startup diagnostic example:
+
+```moonbit
+println(stringify_async_runtime_state(async_runtime_state(), pretty=true))
+```
 
 ### Async Config
 
