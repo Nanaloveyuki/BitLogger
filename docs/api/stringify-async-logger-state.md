@@ -73,12 +73,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is the most convenient direct output path for async logger snapshots.
 
 2. Use `pretty=true` for humans and the default compact mode for machine-oriented logs.
 
-3. Pair with `AsyncLogger::state()` to capture a consistent point-in-time snapshot.
-
-4. This helper is ideal for startup, shutdown, and failure reporting.

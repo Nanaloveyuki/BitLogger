@@ -72,12 +72,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API for environment-level diagnostics.
 
 2. Use `AsyncLogger::state()` for logger-instance diagnostics.
 
-3. Serialization helpers make this API suitable for health output and startup logs.
-
-4. This API is especially valuable in cross-target deployments.

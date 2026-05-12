@@ -69,12 +69,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper exports runtime capability state, not logger workload state.
 
 2. Use it with `async_runtime_state()` for a fresh snapshot.
 
-3. Prefer `stringify_async_runtime_state(...)` when immediate text output is enough.
-
-4. The output is useful for environment diagnostics across targets.

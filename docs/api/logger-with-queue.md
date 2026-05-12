@@ -83,12 +83,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API when you want explicit bounded buffering without `bitlogger_async`.
 
 2. `with_queue(...)` preserves the normal synchronous logger call style.
 
-3. Always define when and where the queue will be drained.
-
-4. For background queue draining, prefer `bitlogger_async` instead.

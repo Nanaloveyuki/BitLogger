@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API when async build config is stored as JSON.
 
 2. Use `AsyncLoggerBuildConfig::new(...)` when assembling config directly in code.
 
-3. Pair this API with `build_async_logger(...)` after validation.
-
-4. The split `logger` plus `async_config` shape keeps sync and async concerns explicit.

@@ -87,12 +87,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Always pair this API with `native_files_supported()` in cross-target code.
 
 2. Prefer `state()`, `policy()`, and failure counters when integrating diagnostics.
 
-3. Use `reopen_append()` and `reopen_truncate()` for common recovery flows instead of raw `reopen(...)` where possible.
-
-4. For config-driven file logging, the mirrored control surface is exposed through `ConfiguredLogger` and `RuntimeSink`.

@@ -69,12 +69,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API when you need a JSON value instead of text output.
 
 2. Use `stringify_logger_config(...)` for immediate string output.
 
-3. This helper complements `parse_logger_config_text(...)` for roundtrip workflows.
-
-4. The output is configuration-oriented, not runtime-state-oriented.

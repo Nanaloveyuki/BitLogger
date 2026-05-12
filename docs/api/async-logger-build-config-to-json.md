@@ -76,12 +76,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper exports complete build settings, not runtime state.
 
 2. It is useful for generated configs, test fixtures, and setup introspection.
 
-3. The output combines `LoggerConfig` and `AsyncLoggerConfig` without flattening them.
-
-4. This API complements `parse_async_logger_build_config_text(...)` in roundtrip workflows.

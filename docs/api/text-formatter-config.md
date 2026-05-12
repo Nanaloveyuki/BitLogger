@@ -90,12 +90,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Prefer this API when formatter behavior must be stored, parsed, or serialized.
 
 2. Prefer `text_formatter(...)` when writing direct runtime code without config.
 
-3. `to_formatter()` is the key bridge from config to runtime behavior.
-
-4. This type is central to config-driven text sink assembly.

@@ -74,12 +74,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is for config-driven queue wrapping, not `bitlogger_async`.
 
 2. Use `Logger::with_queue(...)` when you want code-side queue composition instead of config.
 
-3. Pair with `stringify_queue_config(...)` when inspecting generated config output.
-
-4. Queue capacity policy should be chosen based on expected burst size and acceptable loss behavior.

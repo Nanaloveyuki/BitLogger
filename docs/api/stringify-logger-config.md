@@ -70,12 +70,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is ideal for generated examples and stored config payloads.
 
 2. Use `pretty=true` when readability matters.
 
-3. Pair with `parse_logger_config_text(...)` for roundtrip validation workflows.
-
-4. The output describes config, not runtime sink state.

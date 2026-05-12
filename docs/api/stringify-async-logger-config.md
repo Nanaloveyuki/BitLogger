@@ -72,12 +72,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is convenient for config snapshots, examples, and tests.
 
 2. Use `pretty=true` when readability matters.
 
-3. Compact mode is a better default for machine-oriented output.
-
-4. This helper exports async config data, not runtime logger state.

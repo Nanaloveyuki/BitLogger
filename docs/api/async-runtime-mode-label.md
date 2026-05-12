@@ -69,12 +69,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Prefer this helper over repeated manual `match` blocks when only a label is needed.
 
 2. The label format is especially useful for JSON and telemetry.
 
-3. This API complements `async_runtime_mode()` and `async_runtime_state()`.
-
-4. Keep downstream consumers aligned with these stable labels rather than inventing local variants.

@@ -102,12 +102,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Prefer `text_formatter(...)` when you want explicit control over readable text output.
 
 2. `TextFormatter` is reusable and should usually be constructed once, then shared.
 
-3. `fields_style_markup` currently affects field values only, not field keys.
-
-4. Use `TextFormatterConfig` when the formatter must be driven by JSON config rather than code.

@@ -72,12 +72,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API controls record creation, not formatter display policy.
 
 2. It works well together with text formatters that optionally show timestamps.
 
-3. The helper is useful for tests, deterministic snapshots, and production timing.
-
-4. The returned logger preserves the same sink, target, and min level settings.

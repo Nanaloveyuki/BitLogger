@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Prefer this API over manually combining `pending_count()`, `dropped_count()`, and runtime-mode helpers.
 
 2. Use `pretty=true` when emitting logs for humans and the compact form for machine-oriented payloads.
 
-3. This snapshot is especially useful in cross-target deployments where async behavior differs by backend.
-
-4. `AsyncLoggerState` is diagnostics-oriented and does not control the logger.

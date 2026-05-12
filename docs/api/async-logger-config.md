@@ -85,12 +85,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This type controls async runtime behavior, not synchronous queue wrapping.
 
 2. Prefer explicit values for production services so overflow and flush semantics are visible.
 
-3. Use `stringify_async_logger_config(...)` when exporting diagnostics or generated config.
-
-4. This API is reused by `AsyncLoggerBuildConfig` rather than duplicated.

@@ -72,12 +72,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API for minimal mode branching.
 
 2. Use `async_runtime_state()` when you also want worker support packaged into one object.
 
-3. Use `AsyncLogger::state()` when you need logger instance counters and lifecycle flags too.
-
-4. The enum is intentionally small to keep capability branching simple.

@@ -76,12 +76,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is synchronous and does not create buffering or background execution by itself.
 
 2. The returned sink type stays visible in `Logger[S]`, which is useful for typed composition.
 
-3. Prefer `Logger::new(...)` over global helpers when you want explicit control over sink, target, and level.
-
-4. `Logger::new(...)` is the correct starting point for both public app logging and internal composed sink pipelines.

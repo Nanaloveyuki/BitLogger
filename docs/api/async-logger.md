@@ -94,12 +94,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. `async_logger(...)` is the async counterpart to `Logger::new(...)`.
 
 2. Use `state()`, `pending_count()`, and `dropped_count()` for runtime diagnostics.
 
-3. Prefer `shutdown()` over raw `close()` in normal graceful shutdown paths.
-
-4. On cross-target code paths, pair this API with `async_runtime_mode()` or `async_runtime_state()` when behavior differences matter.

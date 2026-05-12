@@ -77,12 +77,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use patches for transformation, not filtering decisions.
 
 2. Prefer helper patches such as `prefix_message(...)`, `append_fields(...)`, and `redact_fields(...)` for common cases.
 
-3. Patch composition order matters.
-
-4. Combine with `with_filter(...)` when both selection and rewriting are required.

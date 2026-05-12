@@ -71,12 +71,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper exports formatter configuration, not rendered log output.
 
 2. Use it when downstream code expects `JsonValue`.
 
-3. Pair it with `TextFormatterConfig::new(...)` for code-generated formatter policies.
-
-4. The output is compatible with config roundtrip workflows.

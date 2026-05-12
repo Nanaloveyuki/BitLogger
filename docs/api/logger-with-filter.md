@@ -77,12 +77,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API for selection logic, not record mutation.
 
 2. Prefer helper predicates for readability and reuse.
 
-3. Filtering occurs before sink write, so it is cheaper than post-processing output.
-
-4. If you need record modification too, combine this API with `with_patch(...)`.

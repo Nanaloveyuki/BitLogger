@@ -71,12 +71,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper exports config data, not queue runtime metrics.
 
 2. Use this API when downstream code expects `JsonValue`.
 
-3. Pair it with `QueueConfig::new(...)` for code-generated config.
-
-4. The output is suitable for persistence, testing, and generated configuration flows.

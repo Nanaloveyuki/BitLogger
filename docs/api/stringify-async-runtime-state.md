@@ -73,12 +73,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API reports runtime capability state only.
 
 2. `pretty=true` is more suitable for humans and support output.
 
-3. The compact default is better for transport and structured logging.
-
-4. This helper is useful when comparing target-specific async runtime behavior.

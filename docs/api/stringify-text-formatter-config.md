@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper is useful for config snapshots, examples, and tests.
 
 2. Use `pretty=true` when readability matters.
 
-3. Compact mode is a better default for machine-oriented output.
-
-4. This API exports config data, not formatted records.

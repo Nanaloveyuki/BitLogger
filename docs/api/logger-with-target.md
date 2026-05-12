@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API for replacement, not hierarchical composition.
 
 2. It is useful when one sink serves several target namespaces.
 
-3. Per-call `target?` still has higher priority for that one log record.
-
-4. Pair it with `child(...)` when both replacement and composition are needed in different stages.

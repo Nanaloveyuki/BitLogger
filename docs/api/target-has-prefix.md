@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper is most useful when targets are structured hierarchically.
 
 2. Prefer this helper over ad hoc inline prefix logic for readability.
 
-3. Use `target_is(...)` instead when exact equality is required.
-
-4. Combine with `message_contains(...)` or field predicates for narrower routing rules.

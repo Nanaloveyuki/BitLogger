@@ -79,12 +79,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API when config is already typed as `LoggerConfig`.
 
 2. Use `parse_and_build_logger(...)` when the starting point is raw JSON text.
 
-3. `ConfiguredLogger` is still a logger, not a separate opaque runtime object.
-
-4. This API is the sync runtime builder paired with `build_async_logger(...)` for async use cases.

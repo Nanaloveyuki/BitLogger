@@ -77,12 +77,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this for stable metadata, not highly dynamic event-specific values.
 
 2. Prefer `fields([("k", "v")])` when you want a more ergonomic call site.
 
-3. This API composes naturally with `with_filter(...)`, `with_patch(...)`, and `with_queue(...)`.
-
-4. If you want an alias with the same semantics, use `bind(...)`.

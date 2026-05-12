@@ -70,12 +70,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this API when downstream code wants a JSON value rather than a ready-made string.
 
 2. Pair it with `AsyncLogger::state()` to capture the snapshot first.
 
-3. Prefer `stringify_async_logger_state(...)` when direct string output is enough.
-
-4. This helper is transport-oriented, not control-oriented.

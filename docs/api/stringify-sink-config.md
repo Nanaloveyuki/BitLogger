@@ -70,12 +70,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper is convenient for documentation, examples, and generated config output.
 
 2. Use `pretty=true` when humans are the primary audience.
 
-3. The output describes the config schema, not live runtime sink state.
-
-4. This API pairs naturally with `SinkConfig::new(...)` and `sink_config_to_json(...)`.

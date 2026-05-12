@@ -71,12 +71,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use this helper for minimal capability checks.
 
 2. Prefer `async_runtime_state()` when you want the same information in a richer object.
 
-3. Prefer `AsyncLogger::state()` when logger-instance counters matter too.
-
-4. This helper is intentionally small and should stay cheap to call.

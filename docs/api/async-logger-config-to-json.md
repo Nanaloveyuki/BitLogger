@@ -71,12 +71,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This helper exports config data, not runtime counters or failure state.
 
 2. Use it when downstream code expects `JsonValue`.
 
-3. Pair it with `AsyncLoggerConfig::new(...)` for code-generated config.
-
-4. The output is suitable for persistence, tests, and generated async setup flows.

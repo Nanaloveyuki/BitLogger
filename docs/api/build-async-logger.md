@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Prefer this API when applications externalize both sync sink choice and async queue behavior.
 
 2. Use `async_logger(...)` directly when you want explicit code-defined sink wiring.
 
-3. This API is the async counterpart to `build_logger(...)`.
-
-4. The runtime diagnostics surface remains useful after config-built construction.

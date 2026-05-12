@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API defines policy only; it does not open files by itself.
 
 2. Rotation currently focuses on size thresholds rather than time schedules or compression.
 
-3. Use with `file_sink(...)` on native-capable backends only.
-
-4. Policy values can later be inspected through file sink state helpers.

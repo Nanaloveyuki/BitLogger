@@ -82,12 +82,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use `parse_logger_config_text(...)` first if you want to validate and inspect config separately.
 
 2. Prefer this API for app bootstrapping paths that read config once and then construct the runtime logger.
 
-3. `ConfiguredLogger` keeps queue and file helper methods, so config-driven logging does not lose control surface.
-
-4. Keep the JSON schema limited to supported built-in sink shapes when designing external config files.

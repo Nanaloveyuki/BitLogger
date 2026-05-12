@@ -72,12 +72,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is convenient for generated config text and tests.
 
 2. Use `pretty=true` when the output is intended for humans.
 
-3. The compact default is better for snapshots and transport.
-
-4. This helper belongs to synchronous configured queue wrapping, not `bitlogger_async`.

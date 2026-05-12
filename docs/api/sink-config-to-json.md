@@ -69,12 +69,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is sink-config export only, not runtime sink inspection.
 
 2. Use `stringify_sink_config(...)` for direct string output.
 
-3. This helper is reused by `logger_config_to_json(...)`.
-
-4. It is useful for tooling that needs nested config JSON values.

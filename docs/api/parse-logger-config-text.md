@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Prefer this API when you need typed config inspection before building.
 
 2. Prefer `parse_and_build_logger(...)` when one-step bootstrapping is enough.
 
-3. Keep external config files aligned with the supported stable schema.
-
-4. Parsed config remains reusable across multiple runtime builders if needed.

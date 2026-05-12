@@ -85,12 +85,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This is the core typed config object for sync logger assembly.
 
 2. Prefer this API when config is generated in code rather than parsed from text.
 
-3. Use `logger_config_to_json(...)` and `stringify_logger_config(...)` for export.
-
-4. `AsyncLoggerBuildConfig` reuses this type rather than inventing a second sync logger schema.

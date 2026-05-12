@@ -72,12 +72,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API is the cheapest built-in severity gate.
 
 2. Use it before adding more complex filtering rules.
 
-3. It composes cleanly with target, patch, and context-field helpers.
-
-4. The original logger is unchanged because a new value is returned.

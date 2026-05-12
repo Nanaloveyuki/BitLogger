@@ -75,12 +75,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This API exports build config data, not runtime logger diagnostics.
 
 2. Use `pretty=true` for docs, debugging, and support output.
 
-3. Compact mode is better for machine-oriented storage.
-
-4. This helper is useful when generated async setup should be inspected as one payload.

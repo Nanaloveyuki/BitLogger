@@ -70,12 +70,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. Use `field(...)` when only one field is needed.
 
 2. Use `fields(...)` when tuple syntax improves readability.
 
-3. This helper preserves order.
-
-4. No special deduplication or normalization is performed.

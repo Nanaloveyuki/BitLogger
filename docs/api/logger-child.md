@@ -73,12 +73,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This is the preferred API for hierarchical logger naming.
 
 2. Composition uses `.` as the separator between parent and child segments.
 
-3. The original logger is not mutated.
-
-4. This API works well with `with_context_fields(...)` to align target and metadata scopes.

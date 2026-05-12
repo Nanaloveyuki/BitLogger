@@ -88,12 +88,7 @@ e.g.:
 
 ### Notes
 
-Notes are here.
-
 1. This type is sink-shape configuration, not the runtime sink itself.
 
 2. Use `sink_config_to_json(...)` and `stringify_sink_config(...)` for export.
 
-3. Prefer `SinkConfig::new(...)` over raw JSON when config is assembled programmatically.
-
-4. `LoggerConfig` embeds exactly one `SinkConfig` plus an optional outer queue config.
