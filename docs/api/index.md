@@ -51,7 +51,15 @@ BitLogger API navigation.
 
 ## Predicates and helpers
 
+- [level-at-least.md](./level-at-least.md)
+- [target-is.md](./target-is.md)
 - [target-has-prefix.md](./target-has-prefix.md)
+- [message-contains.md](./message-contains.md)
+- [has-field.md](./has-field.md)
+- [field-equals.md](./field-equals.md)
+- [not.md](./not.md)
+- [all-of.md](./all-of.md)
+- [any-of.md](./any-of.md)
 
 ## Config build flow
 
