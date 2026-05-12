@@ -23,9 +23,20 @@ BitLogger API navigation.
 - [logger-with-min-level.md](./logger-with-min-level.md)
 - [logger-with-timestamp.md](./logger-with-timestamp.md)
 - [logger-with-context-fields.md](./logger-with-context-fields.md)
+- [logger-bind.md](./logger-bind.md)
 - [logger-with-filter.md](./logger-with-filter.md)
 - [logger-with-patch.md](./logger-with-patch.md)
 - [logger-with-queue.md](./logger-with-queue.md)
+
+## Logger write APIs
+
+- [logger-is-enabled.md](./logger-is-enabled.md)
+- [logger-log.md](./logger-log.md)
+- [logger-trace.md](./logger-trace.md)
+- [logger-debug.md](./logger-debug.md)
+- [logger-info.md](./logger-info.md)
+- [logger-warn.md](./logger-warn.md)
+- [logger-error.md](./logger-error.md)
 
 ## Formatter and fields
 
