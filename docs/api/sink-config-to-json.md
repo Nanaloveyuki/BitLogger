@@ -29,23 +29,6 @@ pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {}
 
 - `JsonValue` - JSON representation of the sink configuration.
 
----
-
-e.g.:
-```moonbit
-pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `config : SinkConfig` - Sink definition.
-
-#### output
-
-- `JsonValue` - Structured JSON sink value.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

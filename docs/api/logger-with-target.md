@@ -30,24 +30,6 @@ pub fn[S] Logger::with_target(self : Logger[S], target : String) -> Logger[S] {}
 
 - `Logger[S]` - A new logger value carrying the updated target.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::with_target(self : Logger[S], target : String) -> Logger[S] {}
-```
-
-#### input
-
-- `self : Logger[S]` - Current logger.
-- `target : String` - Replacement target.
-
-#### output
-
-- `Logger[S]` - Retargeted logger.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

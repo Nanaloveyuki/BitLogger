@@ -29,23 +29,6 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 
 - `JsonValue` - Structured JSON representation of the async logger snapshot.
 
----
-
-e.g.:
-```moonbit
-pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `state : AsyncLoggerState` - Async logger runtime snapshot.
-
-#### output
-
-- `JsonValue` - JSON-exportable state value.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

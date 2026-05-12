@@ -29,23 +29,6 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
 
 - `JsonValue` - Structured JSON representation of the formatter config.
 
----
-
-e.g.:
-```moonbit
-pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `config : TextFormatterConfig` - Typed formatter config.
-
-#### output
-
-- `JsonValue` - JSON-exportable formatter object.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

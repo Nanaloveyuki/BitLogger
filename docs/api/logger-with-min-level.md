@@ -30,24 +30,6 @@ pub fn[S] Logger::with_min_level(self : Logger[S], min_level : Level) -> Logger[
 
 - `Logger[S]` - A new logger value carrying the updated threshold.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::with_min_level(self : Logger[S], min_level : Level) -> Logger[S] {}
-```
-
-#### input
-
-- `self : Logger[S]` - Current logger.
-- `min_level : Level` - New threshold.
-
-#### output
-
-- `Logger[S]` - Level-updated logger.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

@@ -35,24 +35,6 @@ pub fn[S] Logger::with_queue(
 
 - `Logger[QueuedSink[S]]` - A logger using an explicit synchronous queue wrapper.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::with_queue(self : Logger[S], max_pending~ : Int = 0, overflow~ : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest) -> Logger[QueuedSink[S]] {}
-```
-
-#### input
-
-- `max_pending : Int` - Queue bound.
-- `overflow : QueueOverflowPolicy` - Backlog overflow behavior.
-
-#### output
-
-- `Logger[QueuedSink[S]]` - Queue-wrapped logger.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

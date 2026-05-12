@@ -33,24 +33,6 @@ pub fn stringify_async_logger_build_config(
 
 - `String` - Serialized JSON text for the full build config.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_async_logger_build_config(config : AsyncLoggerBuildConfig, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `config : AsyncLoggerBuildConfig` - Build config to stringify.
-- `pretty : Bool` - Pretty-print flag.
-
-#### output
-
-- `String` - JSON text.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

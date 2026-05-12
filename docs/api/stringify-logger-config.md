@@ -30,24 +30,6 @@ pub fn stringify_logger_config(config : LoggerConfig, pretty~ : Bool = false) ->
 
 - `String` - Serialized logger config JSON.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_logger_config(config : LoggerConfig, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `config : LoggerConfig` - Logger config value.
-- `pretty : Bool` - Pretty-print flag.
-
-#### output
-
-- `String` - JSON string.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

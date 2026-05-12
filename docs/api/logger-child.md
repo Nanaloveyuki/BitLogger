@@ -30,24 +30,6 @@ pub fn[S] Logger::child(self : Logger[S], target : String) -> Logger[S] {}
 
 - `Logger[S]` - A new logger whose default target is the composed child path.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::child(self : Logger[S], target : String) -> Logger[S] {}
-```
-
-#### input
-
-- `self : Logger[S]` - Parent logger.
-- `target : String` - Child suffix.
-
-#### output
-
-- `Logger[S]` - Logger with combined target.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

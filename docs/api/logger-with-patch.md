@@ -30,24 +30,6 @@ pub fn[S] Logger::with_patch(self : Logger[S], patch : RecordPatch) -> Logger[Pa
 
 - `Logger[PatchSink[S]]` - A new logger that rewrites emitted records.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::with_patch(self : Logger[S], patch : RecordPatch) -> Logger[PatchSink[S]] {}
-```
-
-#### input
-
-- `self : Logger[S]` - Logger to transform.
-- `patch : RecordPatch` - Rewrite logic.
-
-#### output
-
-- `Logger[PatchSink[S]]` - Logger with transformation behavior.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

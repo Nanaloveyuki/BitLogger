@@ -30,24 +30,6 @@ pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> St
 
 - `String` - Serialized JSON text for the queue config.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `queue : QueueConfig` - Config to stringify.
-- `pretty : Bool` - Pretty-print flag.
-
-#### output
-
-- `String` - JSON text.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

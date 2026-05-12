@@ -33,24 +33,6 @@ pub fn stringify_text_formatter_config(
 
 - `String` - Serialized JSON text for the formatter config.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_text_formatter_config(config : TextFormatterConfig, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `config : TextFormatterConfig` - Config to stringify.
-- `pretty : Bool` - Pretty-print flag.
-
-#### output
-
-- `String` - JSON text.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

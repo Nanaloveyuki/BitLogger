@@ -30,24 +30,6 @@ pub fn[S] Logger::with_filter(self : Logger[S], predicate : (Record) -> Bool) ->
 
 - `Logger[FilterSink[S]]` - A new logger that only forwards matching records.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::with_filter(self : Logger[S], predicate : (Record) -> Bool) -> Logger[FilterSink[S]] {}
-```
-
-#### input
-
-- `self : Logger[S]` - Logger to filter.
-- `predicate : (Record) -> Bool` - Acceptance rule.
-
-#### output
-
-- `Logger[FilterSink[S]]` - Logger with predicate filtering.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

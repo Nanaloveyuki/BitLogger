@@ -29,23 +29,6 @@ pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {}
 
 - `JsonValue` - JSON representation of the logger config.
 
----
-
-e.g.:
-```moonbit
-pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `config : LoggerConfig` - Config to export.
-
-#### output
-
-- `JsonValue` - Structured JSON value.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

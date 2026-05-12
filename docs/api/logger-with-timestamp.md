@@ -30,24 +30,6 @@ pub fn[S] Logger::with_timestamp(self : Logger[S], enabled~ : Bool = true) -> Lo
 
 - `Logger[S]` - A new logger value with updated timestamp behavior.
 
----
-
-e.g.:
-```moonbit
-pub fn[S] Logger::with_timestamp(self : Logger[S], enabled~ : Bool = true) -> Logger[S] {}
-```
-
-#### input
-
-- `self : Logger[S]` - Current logger.
-- `enabled : Bool` - Timestamp toggle.
-
-#### output
-
-- `Logger[S]` - Logger with updated timestamp behavior.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

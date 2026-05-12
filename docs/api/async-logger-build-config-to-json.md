@@ -31,23 +31,6 @@ pub fn async_logger_build_config_to_json(
 
 - `JsonValue` - Structured JSON representation of the full async build config.
 
----
-
-e.g.:
-```moonbit
-pub fn async_logger_build_config_to_json(config : AsyncLoggerBuildConfig) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `config : AsyncLoggerBuildConfig` - Combined logger and async config.
-
-#### output
-
-- `JsonValue` - JSON-exportable build payload.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

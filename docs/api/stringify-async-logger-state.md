@@ -33,24 +33,6 @@ pub fn stringify_async_logger_state(
 
 - `String` - JSON text for the async logger snapshot.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_async_logger_state(state : AsyncLoggerState, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `state : AsyncLoggerState` - Snapshot to serialize.
-- `pretty : Bool` - Pretty-print flag.
-
-#### output
-
-- `String` - Serialized JSON text.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

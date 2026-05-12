@@ -30,24 +30,6 @@ pub fn stringify_sink_config(config : SinkConfig, pretty~ : Bool = false) -> Str
 
 - `String` - Serialized sink config JSON.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_sink_config(config : SinkConfig, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `config : SinkConfig` - Sink config value.
-- `pretty : Bool` - Pretty-print option.
-
-#### output
-
-- `String` - JSON string.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

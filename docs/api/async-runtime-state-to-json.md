@@ -29,23 +29,6 @@ pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> @json_parser.Js
 
 - `JsonValue` - Structured JSON representation of the runtime state.
 
----
-
-e.g.:
-```moonbit
-pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `state : AsyncRuntimeState` - Runtime snapshot to export.
-
-#### output
-
-- `JsonValue` - JSON-exportable state object.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

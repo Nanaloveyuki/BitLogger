@@ -33,24 +33,6 @@ pub fn stringify_async_runtime_state(
 
 - `String` - Serialized JSON text for the runtime state.
 
----
-
-e.g.:
-```moonbit
-pub fn stringify_async_runtime_state(state : AsyncRuntimeState, pretty~ : Bool = false) -> String {}
-```
-
-#### input
-
-- `state : AsyncRuntimeState` - State to stringify.
-- `pretty : Bool` - Pretty-print flag.
-
-#### output
-
-- `String` - JSON text.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors

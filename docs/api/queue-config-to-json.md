@@ -29,23 +29,6 @@ pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {}
 
 - `JsonValue` - Structured JSON representation of the queue config.
 
----
-
-e.g.:
-```moonbit
-pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {}
-```
-
-#### input
-
-- `queue : QueueConfig` - Queue settings to export.
-
-#### output
-
-- `JsonValue` - JSON-exportable queue object.
-
----
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
