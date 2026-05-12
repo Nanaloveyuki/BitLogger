@@ -44,6 +44,17 @@ pub struct AsyncRuntimeState {
   background_worker : Bool
 }
 
+pub struct AsyncLoggerState {
+  runtime : AsyncRuntimeState
+  pending_count : Int
+  dropped_count : Int
+  is_closed : Bool
+  is_running : Bool
+  has_failed : Bool
+  last_error : String
+  flush_policy : AsyncFlushPolicy
+}
+
 pub fn async_runtime_state() -> AsyncRuntimeState {
   {
     mode: async_runtime_mode(),
@@ -63,6 +74,43 @@ pub fn stringify_async_runtime_state(
   pretty~ : Bool = false,
 ) -> String {
   let value = async_runtime_state_to_json(state)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
+}
+
+fn async_flush_policy_label(policy : AsyncFlushPolicy) -> String {
+  match policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }
+}
+
+fn async_logger_state_to_json_value(state : AsyncLoggerState) -> @json_parser.JsonValue {
+  @json_parser.JsonValue::Object({
+    "runtime": async_runtime_state_to_json(state.runtime),
+    "pending_count": @json_parser.JsonValue::Number(state.pending_count.to_double()),
+    "dropped_count": @json_parser.JsonValue::Number(state.dropped_count.to_double()),
+    "is_closed": @json_parser.JsonValue::Bool(state.is_closed),
+    "is_running": @json_parser.JsonValue::Bool(state.is_running),
+    "has_failed": @json_parser.JsonValue::Bool(state.has_failed),
+    "last_error": @json_parser.JsonValue::String(state.last_error),
+    "flush_policy": @json_parser.JsonValue::String(async_flush_policy_label(state.flush_policy)),
+  })
+}
+
+pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.JsonValue {
+  async_logger_state_to_json_value(state)
+}
+
+pub fn stringify_async_logger_state(
+  state : AsyncLoggerState,
+  pretty~ : Bool = false,
+) -> String {
+  let value = async_logger_state_to_json_value(state)
   if pretty {
     @json_parser.stringify_pretty(value, 2)
   } else {
@@ -492,6 +540,19 @@ pub fn[S] AsyncLogger::last_error(self : AsyncLogger[S]) -> String {
 
 pub fn[S] AsyncLogger::flush_policy(self : AsyncLogger[S]) -> AsyncFlushPolicy {
   self.flush_policy
+}
+
+pub fn[S] AsyncLogger::state(self : AsyncLogger[S]) -> AsyncLoggerState {
+  {
+    runtime: async_runtime_state(),
+    pending_count: self.pending_count(),
+    dropped_count: self.dropped_count(),
+    is_closed: self.is_closed(),
+    is_running: self.is_running(),
+    has_failed: self.has_failed(),
+    last_error: self.last_error(),
+    flush_policy: self.flush_policy(),
+  }
 }
 
 pub fn[S] AsyncLogger::close(self : AsyncLogger[S], clear? : Bool = false) -> Unit {

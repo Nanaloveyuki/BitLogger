@@ -174,6 +174,43 @@ test "async runtime capability helpers stay consistent" {
   )
 }
 
+test "async logger state snapshot reflects current counters and runtime" {
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=3,
+      overflow=AsyncOverflowPolicy::DropNewest,
+      flush=AsyncFlushPolicy::Shutdown,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.state",
+  )
+  let state = logger.state()
+  inspect(async_runtime_mode_label(state.runtime.mode) == async_runtime_mode_label(async_runtime_mode()), content="true")
+  inspect(state.runtime.background_worker == async_runtime_supports_background_worker(), content="true")
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="0")
+  inspect(state.is_closed, content="false")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(state.last_error, content="")
+  inspect(match state.flush_policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
+  inspect(
+    stringify_async_logger_state(state),
+    content=if async_runtime_supports_background_worker() {
+      "{\"runtime\":{\"mode\":\"native_worker\",\"background_worker\":true},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+    } else {
+      "{\"runtime\":{\"mode\":\"compatibility\",\"background_worker\":false},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+    },
+  )
+}
+
 async test "run drains queued records in compatibility backends too" {
   let written : Ref[Array[String]] = Ref::new([])
   let logger = async_logger(
