@@ -1,0 +1,83 @@
+---
+name: async-logger-trace
+group: api
+category: async
+update-time: 20260512
+description: Enqueue a trace-level record through the async logger using the lowest built-in severity shortcut.
+key-word:
+    - async
+    - logger
+    - trace
+    - public
+---
+
+## Async-logger-trace
+
+Enqueue a trace-level record through the async logger. This is the convenience wrapper for `log(Level::Trace, ...)`.
+
+### Interface
+
+```moonbit
+pub async fn[S] AsyncLogger::trace(
+  self : AsyncLogger[S],
+  message : String,
+  fields~ : Array[@bitlogger.Field] = [],
+) -> Unit {}
+```
+
+#### input
+
+- `self : AsyncLogger[S]` - Async logger that should receive the trace record.
+- `message : String` - Trace message text.
+- `fields : Array[Field]` - Optional structured fields added to the record.
+
+#### output
+
+- `Unit` - No return value. The record is handled according to logger state and policy.
+
+### Explanation
+
+Detailed rules explaining key parameters and behaviors
+
+- This helper delegates to `log(Level::Trace, ...)`.
+- The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- Trace records are often skipped in production because they are the lowest built-in severity.
+- Use this helper when explicit trace intent is clearer than a raw `log(...)` call.
+
+### How to Use
+
+Here are some specific examples provided.
+
+#### When Need Fine-grained Async Diagnostics
+
+When low-level execution flow should be observable during debugging:
+```moonbit
+await logger.trace("entered reconciliation step")
+```
+
+In this example, the call site makes trace intent explicit.
+
+#### When Attach Structured Trace Data
+
+When a trace event should carry extra fields:
+```moonbit
+await logger.trace(
+  "cache probe",
+  fields=[@bitlogger.field("key", "user:42")],
+)
+```
+
+In this example, the record stays lightweight while still carrying structured detail.
+
+### Error Case
+
+e.g.:
+- If the logger minimum level is above `Trace`, the record is skipped before enqueue.
+
+- If the logger is closed or overflow policy prevents acceptance, the write may not become a normal queued record.
+
+### Notes
+
+1. Prefer this helper when trace intent is more readable than `log(Level::Trace, ...)`.
+
+2. Trace-level async logging can increase queue pressure quickly under verbose workloads.
