@@ -14,8 +14,6 @@
 
 BitLogger 是一个使用 MoonBit 编写的结构化日志库，目标是提供可组合、可配置、可跨端编译的日志基础设施。
 
-README 仅保留项目定位、关键特性和最小使用入口。详细 API 请查看 `docs/api/`。
-
 ## 🧭 后端兼容
 
 | 模块 / 能力 | native / llvm | js / wasm / wasm-gc |
@@ -68,17 +66,7 @@ let logger = async_logger(console_sink(), target="async.demo")
 - [Mooncake 文档页](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
 - [English README](./docs/README-en.md)
 - [bitlogger package README](./bitlogger/README.mbt.md)
-- `docs/api/` 中的单接口文档，例如:
-- [logger-new.md](./docs/api/logger-new.md)
-- [async-logger.md](./docs/api/async-logger.md)
-- [build-logger.md](./docs/api/build-logger.md)
-- [build-async-logger.md](./docs/api/build-async-logger.md)
-
-## 📝 说明
-
-- `README.md` 不再承担 API 手册职责，详细接口、配置字段和运行时控制面已回收到 `docs/api/`。
-- 如果你在找具体方法如 `with_filter(...)`、`file_reopen(...)`、`AsyncLogger::shutdown(...)`、`ConfiguredLogger::file_runtime_state()`，请直接查看 `docs/api/`。
-- 如果你在找完整可运行用法，优先看 `examples/`。
+- [API 索引](./docs/api/index.md)
 
 ## 🧵 异步层概览
 
