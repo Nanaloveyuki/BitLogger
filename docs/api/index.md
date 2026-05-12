@@ -52,11 +52,19 @@ BitLogger API navigation.
 
 ## Formatter and fields
 
+- [field.md](./field.md)
 - [text-formatter.md](./text-formatter.md)
 - [text-formatter-config.md](./text-formatter-config.md)
 - [text-formatter-config-to-json.md](./text-formatter-config-to-json.md)
 - [stringify-text-formatter-config.md](./stringify-text-formatter-config.md)
 - [fields.md](./fields.md)
+
+## Record and level
+
+- [record-new.md](./record-new.md)
+- [level-priority.md](./level-priority.md)
+- [level-label.md](./level-label.md)
+- [level-enabled.md](./level-enabled.md)
 
 ## Sink and file
 
