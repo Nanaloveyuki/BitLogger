@@ -1,0 +1,101 @@
+---
+name: stringify-queue-config
+group: api
+category: config
+update-time: 20260512
+description: Serialize QueueConfig into compact or pretty JSON text for config output and diagnostics.
+key-word:
+    - queue
+    - config
+    - stringify
+    - public
+---
+
+## Stringify-queue-config
+
+Serialize `QueueConfig` into JSON text. This helper is the most direct export path for synchronous queue wrapper configuration when callers want immediate string output.
+
+### Interface
+
+```moonbit
+pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> String {}
+```
+
+#### input
+
+- `queue : QueueConfig` - Queue wrapper configuration to serialize.
+- `pretty : Bool` - Whether JSON should be pretty-printed.
+
+#### output
+
+- `String` - Serialized JSON text for the queue config.
+
+---
+
+e.g.:
+```moonbit
+pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> String {}
+```
+
+#### input
+
+- `queue : QueueConfig` - Config to stringify.
+- `pretty : Bool` - Pretty-print flag.
+
+#### output
+
+- `String` - JSON text.
+
+---
+
+### Explanation
+
+Detailed rules explaining key parameters and behaviors
+
+- `pretty=false` returns compact JSON suitable for logs and snapshots.
+- `pretty=true` returns indented JSON for human inspection.
+- This helper is built on top of `queue_config_to_json(...)`.
+- The resulting text follows the same queue schema accepted by config parsing flows.
+
+### How to Use
+
+Here are some specific examples provided.
+
+#### When Need Config Text For Humans
+
+When queue settings should be printed or pasted into docs:
+```moonbit
+println(stringify_queue_config(QueueConfig::new(32), pretty=true))
+```
+
+In this example, the output is formatted for readability.
+
+#### When Need Compact Generated Output
+
+When queue config should stay small:
+```moonbit
+let text = stringify_queue_config(
+  QueueConfig::new(8, overflow=QueueOverflowPolicy::DropNewest),
+)
+```
+
+In this example, compact JSON is returned without extra formatting.
+
+### Error Case
+
+e.g.:
+- If callers need a `JsonValue` for further composition, this API is the wrong layer and `queue_config_to_json(...)` should be used instead.
+
+- If queue policy is too aggressive for workload burst size, serialization still succeeds because this helper only exports config.
+
+### Notes
+
+Notes are here.
+
+1. This API is convenient for generated config text and tests.
+
+2. Use `pretty=true` when the output is intended for humans.
+
+3. The compact default is better for snapshots and transport.
+
+4. This helper belongs to synchronous configured queue wrapping, not `bitlogger_async`.
