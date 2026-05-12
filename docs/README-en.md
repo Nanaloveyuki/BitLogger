@@ -342,6 +342,7 @@ match logger.file_runtime_state() {
 - The async worker now supports batched queue draining via `max_batch` and basic flush policies through `flush=Never|Batch|Shutdown`.
 - `async_runtime_mode()`, `async_runtime_mode_label(...)`, and `async_runtime_supports_background_worker()` expose whether the current backend is using the native worker path or the compatibility implementation.
 - `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` make it easy to include the current async runtime mode in startup diagnostics or health output.
+- `AsyncLogger::state()` together with `async_logger_state_to_json(...)` / `stringify_async_logger_state(...)` exposes a full async logger runtime snapshot for diagnostics.
 - The recommended startup pattern is shown in [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1).
 - `bitlogger_async` now compiles across multiple targets: `native/llvm` keeps the background worker semantics, while `js` / `wasm` / `wasm-gc` use a compatibility implementation.
 - Because `moonbitlang/async` still limits `async fn main` entry support, the `examples/async_basic` executable remains `native`-only for now.
@@ -350,6 +351,7 @@ Startup diagnostic example:
 
 ```moonbit
 println(stringify_async_runtime_state(async_runtime_state(), pretty=true))
+println(stringify_async_logger_state(logger.state(), pretty=true))
 ```
 
 ### Async Config

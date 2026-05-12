@@ -18,6 +18,8 @@ async fn main {
       @lib.redact_fields(["token"]),
     ]))
 
+  println(@lib_async.stringify_async_logger_state(logger.state(), pretty=true))
+
   @async.with_task_group(group => {
     group.spawn_bg(allow_failure=true, () => logger.run())
     logger.info("one", fields=[@lib.field("token", "secret")])
@@ -26,4 +28,6 @@ async fn main {
     logger.with_target("skip.demo").info("three")
     logger.shutdown()
   })
+
+  println(@lib_async.stringify_async_logger_state(logger.state(), pretty=true))
 }

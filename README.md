@@ -366,6 +366,7 @@ match logger.file_runtime_state() {
 - async worker 支持 `max_batch` 批量消费, 以及 `flush=Never|Batch|Shutdown` 的基础 flush 策略
 - 提供 `async_runtime_mode()` / `async_runtime_mode_label(...)` / `async_runtime_supports_background_worker()` 用于探测当前后端是原生 worker 还是兼容实现
 - 提供 `async_runtime_state_to_json(...)` / `stringify_async_runtime_state(...)`, 便于在启动日志或诊断输出里直接暴露当前 async runtime 模式
+- 提供 `AsyncLogger::state()` 与 `async_logger_state_to_json(...)` / `stringify_async_logger_state(...)`, 可输出完整的 async logger 运行时快照
 - 示例见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
 - `bitlogger_async` 现在支持多端编译: `native/llvm` 保留后台 worker 语义, `js` / `wasm` / `wasm-gc` 提供兼容实现
 - 由于 `moonbitlang/async` 的 `async fn main` 入口当前仍有限制, `examples/async_basic` 示例仍保持 `native` target
@@ -374,6 +375,7 @@ match logger.file_runtime_state() {
 
 ```moonbit
 println(stringify_async_runtime_state(async_runtime_state(), pretty=true))
+println(stringify_async_logger_state(logger.state(), pretty=true))
 ```
 
 ### Async Config
