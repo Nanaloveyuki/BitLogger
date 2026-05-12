@@ -3,7 +3,7 @@ name: text-formatter-config
 group: api
 category: config
 update-time: 20260512
-description: Build a serializable formatter config object that bridges JSON config and runtime text formatting.
+description: Create a serializable formatter config object that bridges JSON config and runtime text formatting.
 key-word:
     - formatter
     - config
@@ -93,4 +93,3 @@ e.g.:
 1. Prefer this API when formatter behavior must be stored, parsed, or serialized.
 
 2. Prefer `text_formatter(...)` when writing direct runtime code without config.
-

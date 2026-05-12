@@ -68,9 +68,3 @@ e.g.:
 
 - If config contains optional `queue=None`, the output omits that section rather than failing.
 
-### Notes
-
-1. This API is ideal for generated examples and stored config payloads.
-
-2. Use `pretty=true` when readability matters.
-

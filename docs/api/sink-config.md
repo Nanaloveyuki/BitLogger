@@ -3,7 +3,7 @@ name: sink-config
 group: api
 category: config
 update-time: 20260512
-description: Build a typed sink configuration for config-driven logger assembly.
+description: Create a typed sink configuration for config-driven logger assembly.
 key-word:
     - sink
     - config
@@ -91,4 +91,3 @@ e.g.:
 1. This type is sink-shape configuration, not the runtime sink itself.
 
 2. Use `sink_config_to_json(...)` and `stringify_sink_config(...)` for export.
-

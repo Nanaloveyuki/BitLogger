@@ -3,7 +3,7 @@ name: async-logger-state
 group: api
 category: async
 update-time: 20260512
-description: Read and serialize a full async logger runtime snapshot including queue counters, lifecycle flags, and runtime mode.
+description: Read a full async logger runtime snapshot including queue counters, lifecycle flags, and runtime mode.
 key-word:
     - async
     - state
@@ -13,7 +13,7 @@ key-word:
 
 ## Async-logger-state
 
-Read a complete async logger runtime snapshot and serialize it for diagnostics. This API is the preferred way to export queue backlog, dropped counts, lifecycle status, and runtime mode in startup logs, health endpoints, or failure reports.
+Read a complete async logger runtime snapshot for diagnostics. This API is the preferred way to inspect queue backlog, dropped counts, lifecycle status, and runtime mode before exporting them through JSON helpers when needed.
 
 ### Interface
 
@@ -78,4 +78,3 @@ e.g.:
 1. Prefer this API over manually combining `pending_count()`, `dropped_count()`, and runtime-mode helpers.
 
 2. Use `pretty=true` when emitting logs for humans and the compact form for machine-oriented payloads.
-

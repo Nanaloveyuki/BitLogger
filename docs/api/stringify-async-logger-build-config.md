@@ -73,9 +73,3 @@ e.g.:
 
 - If only one layer of config is required, this helper may be broader than necessary.
 
-### Notes
-
-1. This API exports build config data, not runtime logger diagnostics.
-
-2. Use `pretty=true` for docs, debugging, and support output.
-

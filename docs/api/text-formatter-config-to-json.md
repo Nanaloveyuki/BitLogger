@@ -69,9 +69,3 @@ e.g.:
 
 - If callers need immediate text output rather than a JSON value, they should use `stringify_text_formatter_config(...)` instead.
 
-### Notes
-
-1. This helper exports formatter configuration, not rendered log output.
-
-2. Use it when downstream code expects `JsonValue`.
-

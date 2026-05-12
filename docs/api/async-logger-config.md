@@ -3,7 +3,7 @@ name: async-logger-config
 group: api
 category: async
 update-time: 20260512
-description: Build the queue, batching, linger, and flush policy config used by async loggers.
+description: Create the queue, batching, linger, and flush policy config used by async loggers.
 key-word:
     - async
     - config
@@ -88,4 +88,3 @@ e.g.:
 1. This type controls async runtime behavior, not synchronous queue wrapping.
 
 2. Prefer explicit values for production services so overflow and flush semantics are visible.
-

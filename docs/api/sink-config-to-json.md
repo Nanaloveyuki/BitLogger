@@ -67,9 +67,3 @@ e.g.:
 
 - If file-related fields are unused by the sink kind, they are still exported according to the stable config shape.
 
-### Notes
-
-1. This API is sink-config export only, not runtime sink inspection.
-
-2. Use `stringify_sink_config(...)` for direct string output.
-

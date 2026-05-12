@@ -3,7 +3,7 @@ name: async-runtime-state
 group: api
 category: async
 update-time: 20260512
-description: Read and serialize the current backend-specific async runtime mode and worker capability.
+description: Read the current backend-specific async runtime mode and worker capability.
 key-word:
     - async
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Async-runtime-state
 
-Read the current backend-specific async runtime state and serialize it for diagnostics. This API focuses on the environment-level async mode rather than any one logger instance.
+Read the current backend-specific async runtime state for diagnostics. This API focuses on the environment-level async mode rather than any one logger instance.
 
 ### Interface
 
@@ -75,4 +75,3 @@ e.g.:
 1. Use this API for environment-level diagnostics.
 
 2. Use `AsyncLogger::state()` for logger-instance diagnostics.
-

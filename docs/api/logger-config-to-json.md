@@ -67,9 +67,3 @@ e.g.:
 
 - If some sink options are unused by the chosen sink kind, they still follow the supported config export shape rather than a runtime-only interpretation.
 
-### Notes
-
-1. Use this API when you need a JSON value instead of text output.
-
-2. Use `stringify_logger_config(...)` for immediate string output.
-

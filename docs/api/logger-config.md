@@ -3,7 +3,7 @@ name: logger-config
 group: api
 category: config
 update-time: 20260512
-description: Build the main logger configuration object used by config-driven runtime logger assembly.
+description: Create the main logger configuration object used by config-driven runtime logger assembly.
 key-word:
     - logger
     - config
@@ -88,4 +88,3 @@ e.g.:
 1. This is the core typed config object for sync logger assembly.
 
 2. Prefer this API when config is generated in code rather than parsed from text.
-

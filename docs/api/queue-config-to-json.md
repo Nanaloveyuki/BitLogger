@@ -69,9 +69,3 @@ e.g.:
 
 - If callers need direct text output instead of a JSON value, they should use `stringify_queue_config(...)` instead.
 
-### Notes
-
-1. This helper exports config data, not queue runtime metrics.
-
-2. Use this API when downstream code expects `JsonValue`.
-

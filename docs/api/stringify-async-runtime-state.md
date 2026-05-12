@@ -71,9 +71,3 @@ e.g.:
 
 - If more complete async logger diagnostics are required, this helper should be replaced with `stringify_async_logger_state(...)`.
 
-### Notes
-
-1. This API reports runtime capability state only.
-
-2. `pretty=true` is more suitable for humans and support output.
-

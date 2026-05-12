@@ -70,9 +70,3 @@ e.g.:
 
 - If queue policy is too aggressive for workload burst size, serialization still succeeds because this helper only exports config.
 
-### Notes
-
-1. This API is convenient for generated config text and tests.
-
-2. Use `pretty=true` when the output is intended for humans.
-

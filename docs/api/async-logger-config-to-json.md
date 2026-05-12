@@ -69,9 +69,3 @@ e.g.:
 
 - If callers want direct text output instead of a JSON value, they should use `stringify_async_logger_config(...)` instead.
 
-### Notes
-
-1. This helper exports config data, not runtime counters or failure state.
-
-2. Use it when downstream code expects `JsonValue`.
-

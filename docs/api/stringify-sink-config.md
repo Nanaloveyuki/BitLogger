@@ -68,9 +68,3 @@ e.g.:
 
 - If optional `rotation` is absent, the serialized sink config simply omits that field.
 
-### Notes
-
-1. This helper is convenient for documentation, examples, and generated config output.
-
-2. Use `pretty=true` when humans are the primary audience.
-

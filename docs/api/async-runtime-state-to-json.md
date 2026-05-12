@@ -67,9 +67,3 @@ e.g.:
 
 - If the runtime is in compatibility mode, the helper still serializes normally using the matching mode label.
 
-### Notes
-
-1. This helper exports runtime capability state, not logger workload state.
-
-2. Use it with `async_runtime_state()` for a fresh snapshot.
-

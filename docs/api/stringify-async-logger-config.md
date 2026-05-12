@@ -70,9 +70,3 @@ e.g.:
 
 - If invalid constructor inputs were normalized earlier, the resulting text contains the normalized config values.
 
-### Notes
-
-1. This API is convenient for config snapshots, examples, and tests.
-
-2. Use `pretty=true` when readability matters.
-

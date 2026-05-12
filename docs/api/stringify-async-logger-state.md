@@ -71,9 +71,3 @@ e.g.:
 
 - If callers need a JSON value instead of text, they should use `async_logger_state_to_json(...)` instead.
 
-### Notes
-
-1. This API is the most convenient direct output path for async logger snapshots.
-
-2. Use `pretty=true` for humans and the default compact mode for machine-oriented logs.
-

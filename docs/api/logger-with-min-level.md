@@ -70,9 +70,3 @@ e.g.:
 
 - If callers need richer predicate logic than a simple threshold, `with_filter(...)` should be used instead.
 
-### Notes
-
-1. This API is the cheapest built-in severity gate.
-
-2. Use it before adding more complex filtering rules.
-

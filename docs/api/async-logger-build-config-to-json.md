@@ -74,9 +74,3 @@ e.g.:
 
 - If callers want direct text output, they should use `stringify_async_logger_build_config(...)` instead.
 
-### Notes
-
-1. This helper exports complete build settings, not runtime state.
-
-2. It is useful for generated configs, test fixtures, and setup introspection.
-

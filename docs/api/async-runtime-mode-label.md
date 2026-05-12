@@ -67,9 +67,3 @@ e.g.:
 
 - If callers need the whole runtime object rather than a string label, use `async_runtime_state()`.
 
-### Notes
-
-1. Prefer this helper over repeated manual `match` blocks when only a label is needed.
-
-2. The label format is especially useful for JSON and telemetry.
-

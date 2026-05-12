@@ -3,7 +3,7 @@ name: queue-config
 group: api
 category: config
 update-time: 20260512
-description: Build a serializable queue wrapper config for configured synchronous loggers.
+description: Create a serializable queue wrapper config for configured synchronous loggers.
 key-word:
     - queue
     - config
@@ -77,4 +77,3 @@ e.g.:
 1. This API is for config-driven queue wrapping, not `bitlogger_async`.
 
 2. Use `Logger::with_queue(...)` when you want code-side queue composition instead of config.
-
