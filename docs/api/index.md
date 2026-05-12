@@ -60,6 +60,13 @@ BitLogger API navigation.
 - [not.md](./not.md)
 - [all-of.md](./all-of.md)
 - [any-of.md](./any-of.md)
+- [identity-patch.md](./identity-patch.md)
+- [set-target.md](./set-target.md)
+- [prefix-message.md](./prefix-message.md)
+- [append-fields.md](./append-fields.md)
+- [redact-field.md](./redact-field.md)
+- [redact-fields.md](./redact-fields.md)
+- [compose-patches.md](./compose-patches.md)
 
 ## Config build flow
 
