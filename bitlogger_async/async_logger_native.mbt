@@ -14,6 +14,62 @@ pub(all) enum AsyncFlushPolicy {
   Shutdown
 }
 
+pub enum AsyncRuntimeMode {
+  NativeWorker
+  Compatibility
+}
+
+pub fn async_runtime_mode() -> AsyncRuntimeMode {
+  AsyncRuntimeMode::NativeWorker
+}
+
+pub fn async_runtime_mode_label(mode : AsyncRuntimeMode) -> String {
+  match mode {
+    AsyncRuntimeMode::NativeWorker => "native_worker"
+    AsyncRuntimeMode::Compatibility => "compatibility"
+  }
+}
+
+fn all_async_runtime_modes() -> Array[AsyncRuntimeMode] {
+  [AsyncRuntimeMode::NativeWorker, AsyncRuntimeMode::Compatibility]
+}
+
+pub fn async_runtime_supports_background_worker() -> Bool {
+  ignore(all_async_runtime_modes())
+  true
+}
+
+pub struct AsyncRuntimeState {
+  mode : AsyncRuntimeMode
+  background_worker : Bool
+}
+
+pub fn async_runtime_state() -> AsyncRuntimeState {
+  {
+    mode: async_runtime_mode(),
+    background_worker: async_runtime_supports_background_worker(),
+  }
+}
+
+pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> @json_parser.JsonValue {
+  @json_parser.JsonValue::Object({
+    "mode": @json_parser.JsonValue::String(async_runtime_mode_label(state.mode)),
+    "background_worker": @json_parser.JsonValue::Bool(state.background_worker),
+  })
+}
+
+pub fn stringify_async_runtime_state(
+  state : AsyncRuntimeState,
+  pretty~ : Bool = false,
+) -> String {
+  let value = async_runtime_state_to_json(state)
+  if pretty {
+    @json_parser.stringify_pretty(value, 2)
+  } else {
+    @json_parser.stringify(value)
+  }
+}
+
 pub struct AsyncLoggerConfig {
   max_pending : Int
   overflow : AsyncOverflowPolicy

@@ -7,8 +7,6 @@ import {
   "moonbitlang/core/ref",
 }
 
-supported_targets = "+native"
-
 options(
   targets: {
     "async_logger_native.mbt": [ "native", "llvm" ],

@@ -43,6 +43,18 @@ jobs:
         run: |
           moon check bitlogger_async --target native
 
+      - name: Check bitlogger_async wasm-gc
+        run: |
+          moon check bitlogger_async --target wasm-gc
+
+      - name: Check bitlogger_async js
+        run: |
+          moon check bitlogger_async --target js
+
+      - name: Test bitlogger_async wasm-gc
+        run: |
+          moon test bitlogger_async --target wasm-gc
+
       - name: Run basic example
         run: |
           moon run examples/basic
