@@ -12,7 +12,9 @@
 
 ## 📖 介绍
 
-BitLogger 是一个使用 MoonBit 编写的结构化日志库
+BitLogger 是一个使用 MoonBit 编写的结构化日志库，目标是提供可组合、可配置、可跨端编译的日志基础设施。
+
+README 仅保留项目定位、关键特性和最小使用入口。详细 API 请查看 `docs/api/`。
 
 ## 🧭 后端兼容
 
@@ -23,21 +25,14 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库
 | `bitlogger_async` | 支持原生 worker 语义 | 支持兼容实现 |
 | `examples/async_basic` | 支持 | 受 `async fn main` 入口限制, 当前不提供 |
 
-## ❇️ 特点
+## ❇️ 关键特性
 
-- 🧩 基础能力: 支持 level, formatter, sink, context field 和全局 logger.
-- 🏗️ 结构清晰: 按 `level / record / formatter / sinks / logger / global` 拆分文件, 便于维护.
-- 🔌 可扩展: 支持 `fanout_sink(...)` 和 `callback_sink(...)`, 方便接入文件, 指标或外部系统.
-- 🔀 可分流: 支持 `split_sink(...)` / `split_by_level(...)`, 可按谓词或 level 将日志路由到不同 sink.
-- 🧱 可组合: 支持 `buffered_sink(...)` 和 `filter_sink(...)`, 可以组合不同输出策略.
-- 🔎 可复用过滤: 提供 `target_has_prefix(...)`, `message_contains(...)`, `level_at_least(...)`, `field_equals(...)` 等过滤辅助函数.
-- 🩹 可变换 Record: 支持 `with_patch(...)`, `patch_sink(...)` 以及脱敏, 补字段, message 变换 helper.
-- 🧷 可绑定上下文: 支持 `bind(...)` 与 `fields(...)`, 便于复用上下文字段.
-- 📮 显式队列: 支持 `queued_sink(...)` / `with_queue(...)`, 支持有界积压和溢出策略.
-- 🧾 可配置文本格式: 支持 `text_formatter(...)`, `format_text(...)`, `text_console_sink(...)`, `formatted_callback_sink(...)` 和模板化 `template` 输出.
-- 🎨 轻量样式标签: 支持 `color_mode`, inline markup, `TextStyle`, `StyleTagRegistry`, 自定义标签与内置标签覆盖.
-- 💾 Native 文件输出: 支持 `file_sink(...)`, 基础 size rotation / backup retention, 显式 `reopen()` / `reopen_with_current_policy()` / `reopen_append()` / `reopen_truncate()` 与失败计数, 仅在 `native/llvm` backend 可用.
-- 📦 MoonBit 适配: API 和工程结构与 MoonBit 的 package / visibility / toolchain 模型保持一致.
+- 结构化日志基础能力：level、record、formatter、sink、target、context field。
+- 组合式设计：支持 filter、patch、fanout、split、callback、queued sink 等组合能力。
+- 配置驱动：支持 JSON 配置解析、导出与 `build_logger(...)` / `build_async_logger(...)` 运行时组装。
+- 文本格式化：支持 `text_formatter(...)`、template、style tag、`color_mode` / `style_markup`。
+- Native 文件输出：支持 file sink、基础 size rotation、reopen、failure counter 与运行时状态读取。
+- 异步层：提供独立 `bitlogger_async` package，支持 queue、worker lifecycle、runtime state 和跨端兼容实现。
 
 ## 🚀 快速开始
 
@@ -49,338 +44,44 @@ let logger = Logger::new(console_sink(), min_level=Level::Info, target="demo")
 logger.info("starting", fields=[field("port", "8080")])
 ```
 
-<details><summary>层级 target 示例</summary>
+异步入口示例：
 
 ```moonbit
-let worker = Logger::new(console_sink(), target="app").child("worker")
-worker.info("job ready")
-```
-</details>
-
-<details><summary>自定义 callback sink 示例</summary>
-
-```moonbit
-let hook = Logger::new(
-  callback_sink(fn(rec) {
-    println("callback saw [\{rec.target}] \{rec.message}")
-  }),
-  target="hook",
-)
-
-hook.info("hello")
-```
-</details>
-
-<details><summary>基础 buffered sink 示例</summary>
-
-```moonbit
-let sink = buffered_sink(console_sink(), flush_limit=2)
-let logger = Logger::new(sink, target="buffered")
-
-logger.info("one")
-logger.info("two")
-sink.flush()
-```
-</details>
-
-<details><summary>基础 filter sink 示例</summary>
-
-```moonbit
-let sink = filter_sink(console_sink(), fn(rec) {
-  rec.target == "kept"
+let logger = async_logger(console_sink(), target="async.demo")
+@async.with_task_group(group => {
+  group.spawn_bg(() => logger.run())
+  logger.info("started")
+  logger.shutdown()
 })
-
-let kept = Logger::new(sink, target="kept")
-let dropped = Logger::new(sink, target="dropped")
-
-kept.info("visible")
-dropped.info("hidden")
 ```
-</details>
-
-<details><summary>Logger 链式 filter 示例</summary>
-
-```moonbit
-let logger = Logger::new(console_sink(), target="service")
-  .with_filter(all_of([
-    target_has_prefix("service"),
-    message_contains("visible"),
-  ]))
-
-logger.info("hidden")
-logger.child("api").info("visible")
-```
-</details>
-
-<details><summary>Record patch 示例</summary>
-
-```moonbit
-let logger = Logger::new(console_sink(), target="auth")
-  .with_patch(compose_patches([
-    prefix_message("[safe] "),
-    redact_fields(["token"]),
-    append_fields([field("service", "bitlogger")]),
-  ]))
-
-logger.info("login", fields=[field("user", "alice"), field("token", "secret")])
-```
-</details>
-
-<details><summary>bind 上下文示例</summary>
-
-```moonbit
-let logger = Logger::new(console_sink(), target="audit")
-  .bind(fields([("service", "bitlogger"), ("scope", "login")]))
-
-logger.info("accepted", fields=[field("user", "alice")])
-```
-
-</details>
-
-<details><summary>显式 queue sink 示例</summary>
-
-```moonbit
-let logger = Logger::new(console_sink(), target="queue")
-  .with_queue(max_pending=2, overflow=QueueOverflowPolicy::DropOldest)
-
-logger.info("one")
-logger.info("two")
-logger.info("three")
-ignore(logger.sink.flush())
-```
-</details>
-
-<details><summary>按 level 分流 sink 示例</summary>
-
-```moonbit
-let logger = Logger::new(
-  split_by_level(
-    callback_sink(fn(rec) {
-      println("high priority: \{rec.level.label()} \{rec.message}")
-    }),
-    console_sink(),
-    min_level=Level::Warn,
-  ),
-  min_level=Level::Trace,
-  target="split",
-)
-
-logger.info("normal output")
-logger.warn("warning output")
-```
-
-</details>
-
-<details><summary>自定义文本 formatter 示例</summary>
-
-```moonbit
-let formatter = text_formatter(
-  show_timestamp=false,
-  field_separator=",",
-  template="[{level}] {target} {message} :: {fields}",
-  color_mode=ColorMode::Always,
-)
-let logger = Logger::new(text_console_sink(formatter), target="pretty")
-
-logger.info("hello", fields=[field("mode", "pretty")])
-```
-
-</details>
-
-<details><summary>inline style tag 示例</summary>
-
-```moonbit
-let formatter = text_formatter(
-  show_timestamp=false,
-  color_mode=ColorMode::Always,
-).with_style_tags(
-  default_style_tag_registry()
-    .set_tag("accent", fg=Some("#4cc9f0"), bold=true)
-    .define_alias("danger", "red"),
-)
-
-let logger = Logger::new(text_console_sink(formatter), target="styled")
-
-logger.info("<accent>styled</> output and <danger>alert</>")
-```
-
-</details>
-
-<details><summary>关闭 style markup 解析示例</summary>
-
-```moonbit
-let formatter = text_formatter(
-  color_mode=ColorMode::Always,
-).without_style_markup()
-
-let logger = Logger::new(text_console_sink(formatter), target="raw")
-
-logger.info("<red>kept as raw text</>")
-```
-
-</details>
-
-<details><summary>JSON 配置加载示例</summary>
-
-```moonbit
-let config = parse_logger_config_text(
-  "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\",\"color_mode\":\"always\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
-)
-
-let logger = build_logger(config)
-
-logger.info("configured from json")
-ignore(logger.flush())
-```
-
-</details>
-
-<details><summary>JSON style_tags 示例</summary>
-
-```moonbit
-let config = parse_logger_config_text(
-  "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"color_mode\":\"always\",\"style_tags\":{\"accent\":{\"fg\":\"#4cc9f0\",\"bold\":true}}}}}",
-)
-
-let logger = build_logger(config)
-
-logger.info("<accent>styled from json</>")
-```
-
-</details>
-
-<details><summary>JSON style_markup 模式示例</summary>
-
-```moonbit
-let config = parse_logger_config_text(
-  "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"color_mode\":\"always\",\"style_markup\":\"disabled\"}}}",
-)
-
-let logger = build_logger(config)
-
-logger.info("<red>still raw</>")
-```
-
-</details>
-
-<details><summary>native 文件 sink 示例</summary>
-
-```moonbit
-if native_files_supported() {
-  let logger = Logger::new(
-    file_sink("bitlogger.log", rotation=Some(file_rotation(128, max_backups=2))),
-    target="file",
-  )
-  logger.info("hello", fields=[field("kind", "file")])
-  ignore(logger.sink.flush())
-  ignore(logger.sink.close())
-}
-```
-</details>
-
-<details><summary>file runtime state dump 示例</summary>
-
-```moonbit
-let logger = build_logger(
-  LoggerConfig::new(
-    sink=SinkConfig::new(kind=SinkKind::File, path="bitlogger-runtime.log"),
-    queue=Some(QueueConfig::new(16)),
-  ),
-)
-
-logger.info("queued hello")
-
-match logger.file_runtime_state() {
-  Some(snapshot) => println(stringify_runtime_file_state(snapshot, pretty=true))
-  None => ()
-}
-```
-</details>
 
 ## 📂 仓库结构
 
-- `bitlogger/`: MoonBit 库 package, 包含本体实现, 测试与 Mooncake README
-- `examples/basic/`: 最小可运行示例
-- `examples/async_basic/`: 基于 `moonbitlang/async` 的异步 logger 示例
+- `bitlogger/`: 主日志库 package。
+- `bitlogger_async/`: 基于 `moonbitlang/async` 的异步日志层。
+- `docs/api/`: 单接口粒度 API 文档。
+- `examples/basic/`: 最小同步示例。
+- `examples/async_basic/`: 异步 logger 示例。
 
-## 🔗 相关文档
+## 🔗 文档入口
 
 - [Mooncake 文档页](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
 - [English README](./docs/README-en.md)
+- [bitlogger package README](./bitlogger/README.mbt.md)
+- `docs/api/` 中的单接口文档，例如:
+- [logger-new.md](./docs/api/logger-new.md)
+- [async-logger.md](./docs/api/async-logger.md)
+- [build-logger.md](./docs/api/build-logger.md)
+- [build-async-logger.md](./docs/api/build-async-logger.md)
 
-## 📝 配置说明
+## 📝 说明
 
-- 提供 JSON 配置层: `parse_logger_config_text(...)`, `stringify_logger_config(...)`, `build_logger(...)`
-- `QueueConfig`, `TextFormatterConfig`, `SinkConfig` 可分别通过 `queue_config_to_json(...)` / `stringify_queue_config(...)`, `text_formatter_config_to_json(...)` / `stringify_text_formatter_config(...)`, `sink_config_to_json(...)` / `stringify_sink_config(...)` 单独导出 JSON
-- 支持字段: `min_level`, `target`, `timestamp`, `sink.kind`, `sink.path`, `sink.append`, `sink.auto_flush`, `sink.rotation`, `sink.text_formatter`, `queue`
-- `TextFormatter` / `TextFormatterConfig` 提供 `color_mode = Never | Auto | Always`, 可控制 ANSI 文本着色
-- `TextFormatter` / `TextFormatterConfig` 提供 `color_support = basic | truecolor`, 可控制 hex / RGB 样式是否降级到基础 ANSI 色
-- `TextFormatter` / `TextFormatterConfig` 提供 `style_markup = disabled | builtin | full`, 可决定是否解析 style markup 以及是否启用 custom style tag
-- `target_style_markup` 与 `fields_style_markup` 可独立控制 `target` 和 `fields` 是否解析 style markup
-- `message` 支持轻量 inline style tag: `<red>...</>`, `<b>...</>`, `<#ff0000>...</>`, `<bg:#202020>...</>`
-- 闭合同时支持简写 `</>` 与具名闭合 `</red>`, `</danger>`, `</b>`
-- 内置语义标签包括: `<accent>`, `<info>`, `<success>`, `<warning>`, `<danger>`, `<muted>`
-- 运行期样式标签 API: `TextStyle`, `StyleTagRegistry`, `style_tag_registry()`, `default_style_tag_registry()`, `set_tag(...)`, `define_alias(...)`
-- 样式标签优先级: formatter 局部 `style_tags` > 全局 style tag registry > 内置标签
-- `sink.text_formatter.style_tags` 现支持最小对象映射配置, 可声明 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
-- `define_alias(...)` 仍为运行期 API, 当前不在 JSON schema 中
-- `sink.rotation` 支持 `max_bytes` 与 `max_backups`, 用于基础 size-based rotation 和 backup retention
-- `file_sink(...)` 提供 `reopen()`, `reopen_with_current_policy()`, `reopen_append()`, `reopen_truncate()`, `open_failures()`, `write_failures()`, `flush_failures()`, `rotation_failures()`, 用于基础可观测性
-- `file_sink(...)` 提供 `append_mode()`. 显式传入 `reopen(append=...)` 时, 会更新后续 reopen 使用的 append 策略. `reopen_with_current_policy()` 使用当前保存的策略重开文件, `reopen_append()` / `reopen_truncate()` 提供常见的 append 和 truncate 模式
-- `file_sink(...)` 支持 `set_append_mode(...)`, 用于修改后续 reopen 使用的 append 策略
-- `file_sink(...)` 可读取 `path()` 与 `auto_flush_enabled()` 等基础 file 策略状态
-- `file_sink(...)` 提供 `rotation_enabled()` 与 `rotation_config()`, 可查询 rotation 是否启用及其参数
-- `file_sink(...)` 提供 `state()`, 可一次性读取 path, available, append, auto_flush, rotation 与各类 failure counter 快照
-- `file_sink(...)` 提供 `policy()` 与 `default_policy()`, 可分别读取当前策略与创建时默认策略
-- `file_sink(...)` 提供 `policy_matches_default()`, 可判断当前运行期策略是否偏离默认策略
-- `file_sink(...)` 支持 `set_policy(...)`, 可一次性写回 append / auto_flush / rotation 三项策略
-- `file_sink(...)` 提供 `reset_failure_counters()`, 可清空 open / write / flush / rotation 失败计数
-- `file_sink(...)` 提供 `reset_policy()`, 可将 append / auto_flush / rotation 恢复到创建 sink 时的默认策略
-- `file_sink(...)` 支持 `set_auto_flush(...)`, `set_rotation(...)`, `clear_rotation()`, 可在运行期调整写出策略
-- `build_logger(...)` 产出的 `ConfiguredLogger` 也提供 `file_reopen()`, `file_reopen_with_current_policy()`, `file_reopen_append()`, `file_reopen_truncate()`, `file_flush()`, `file_close()`, `file_append_mode()`, `file_path()`, `file_auto_flush()`, `file_rotation_enabled()`, `file_rotation_config()`, `file_state()`, 以及 `file_set_append_mode(...)`, `file_set_auto_flush(...)`, `file_set_rotation(...)`, `file_clear_rotation()` 和对应的 file failure 计数访问器
-- `ConfiguredLogger` 提供 `file_runtime_state()`, 可在 file sink 被 queue 包装时同时读取底层 file 快照, queue 状态, pending 计数与 dropped 计数
-- `ConfiguredLogger` 提供 `file_policy()` 与 `file_default_policy()`, 可分别读取当前 file 策略与初始配置策略
-- `ConfiguredLogger` 提供 `file_policy_matches_default()`, 可判断当前配置式 file 策略是否偏离默认值
-- `ConfiguredLogger` 支持 `file_set_policy(...)`, 可一次性改写配置式 file sink 的当前运行期策略
-- `ConfiguredLogger` 支持 `file_reset_failure_counters()`, 可在配置式 file sink 上统一清空失败计数
-- `ConfiguredLogger` 支持 `file_reset_policy()`, 可将配置式 file sink 的运行期策略恢复到初始配置
-- `file_sink_policy_to_json(...)`, `stringify_file_sink_policy(...)` 可将独立 file policy 直接导出为 JSON, 便于策略快照, 配置对比或诊断上报
-- `file_sink_state_to_json(...)`, `stringify_file_sink_state(...)`, `runtime_file_state_to_json(...)`, `stringify_runtime_file_state(...)` 可直接把 file / queued-file 快照导出为 JSON, 便于排障或上报
-- `sink.text_formatter.template` 支持固定 token: `{timestamp}`, `{timestamp_ms}`, `{level}`, `{target}`, `{message}`, `{fields}`
-- `sink.text_formatter.color_mode` 支持 `never`, `auto`, `always`
-- `sink.text_formatter.color_support` 支持 `basic`, `truecolor`
-- `sink.text_formatter.style_markup` 支持 `disabled`, `builtin`, `full`
-- `sink.text_formatter.target_style_markup` 与 `sink.text_formatter.fields_style_markup` 支持 `disabled`, `builtin`, `full`
-- `sink.text_formatter.style_tags.<name>` 支持 `fg`, `bg`, `bold`, `dim`, `italic`, `underline`
-- `fields_style_markup` 当前只解析 field value, 不解析 field key
-- 可由配置直接组装的 sink 类型: `console`, `json_console`, `text_console`, `file`
-- `queue` 作为显式包装层附着在最终 sink 外侧. 这仍然是同步 drain 模型, 不是 async runtime
+- `README.md` 不再承担 API 手册职责，详细接口、配置字段和运行时控制面已回收到 `docs/api/`。
+- 如果你在找具体方法如 `with_filter(...)`、`file_reopen(...)`、`AsyncLogger::shutdown(...)`、`ConfiguredLogger::file_runtime_state()`，请直接查看 `docs/api/`。
+- 如果你在找完整可运行用法，优先看 `examples/`。
 
-## 🧵 异步层
+## 🧵 异步层概览
 
-- 提供独立 package: `bitlogger_async/`
-- 异步层基于 `moonbitlang/async`, 提供 `AsyncLogger`, `async_logger(...)`, 后台 `run()` worker 与有界 async queue
-- async API 支持 `with_context_fields(...)`, `with_filter(...)`, `with_patch(...)`, `with_target(...)`, `child(...)`
-- 建议使用 `shutdown()` 停止 worker. 默认模式下, 它会先等待队列清空, 再关闭 queue, 最后等待 worker 退出
-- 提供基础生命周期观测: `is_closed()`, `is_running()`, `has_failed()`, `last_error()`
-- async worker 支持 `max_batch` 批量消费, 以及 `flush=Never|Batch|Shutdown` 的基础 flush 策略
-- 提供 `async_runtime_mode()` / `async_runtime_mode_label(...)` / `async_runtime_supports_background_worker()` 用于探测当前后端是原生 worker 还是兼容实现
-- 提供 `async_runtime_state_to_json(...)` / `stringify_async_runtime_state(...)`, 便于在启动日志或诊断输出里直接暴露当前 async runtime 模式
-- 提供 `AsyncLogger::state()` 与 `async_logger_state_to_json(...)` / `stringify_async_logger_state(...)`, 可输出完整的 async logger 运行时快照
-- 示例见 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
-- `bitlogger_async` 现在支持多端编译: `native/llvm` 保留后台 worker 语义, `js` / `wasm` / `wasm-gc` 提供兼容实现
-- 由于 `moonbitlang/async` 的 `async fn main` 入口当前仍有限制, `examples/async_basic` 示例仍保持 `native` target
-
-启动时诊断示例:
-
-```moonbit
-println(stringify_async_runtime_state(async_runtime_state(), pretty=true))
-println(stringify_async_logger_state(logger.state(), pretty=true))
-```
-
-### Async Config
-
-- 提供 `parse_async_logger_config_text(...)`, `stringify_async_logger_config(...)`, `parse_async_logger_build_config_text(...)`, `build_async_logger(...)`
-- JSON 顶层结构分为两个字段: `logger` 与 `async_config`
-- `logger` 复用同步 `LoggerConfig` 的 schema, `async_config` 支持 `max_pending`, `overflow`, `max_batch`, `flush`
-- 用法可参考 [examples/async_basic/main.mbt](/E:/repo/MooLiteyukiBot/examples/async_basic/main.mbt:1)
+- `bitlogger_async` 提供 `AsyncLogger`、后台 `run()` worker、有界 async queue 与生命周期诊断接口。
+- 多端编译已支持：`native/llvm` 保留原生 worker 语义，`js` / `wasm` / `wasm-gc` 提供兼容实现。
+- 当前 `examples/async_basic` 仍保留 `native` target，因为 `moonbitlang/async` 的 `async fn main` 入口限制尚未完全解除。
