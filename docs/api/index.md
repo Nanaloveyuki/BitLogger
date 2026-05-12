@@ -38,6 +38,18 @@ BitLogger API navigation.
 - [logger-warn.md](./logger-warn.md)
 - [logger-error.md](./logger-error.md)
 
+## Global logger helpers
+
+- [set-default-min-level.md](./set-default-min-level.md)
+- [set-default-target.md](./set-default-target.md)
+- [default-logger.md](./default-logger.md)
+- [global-log.md](./global-log.md)
+- [global-trace.md](./global-trace.md)
+- [global-debug.md](./global-debug.md)
+- [global-info.md](./global-info.md)
+- [global-warn.md](./global-warn.md)
+- [global-error.md](./global-error.md)
+
 ## Formatter and fields
 
 - [text-formatter.md](./text-formatter.md)
