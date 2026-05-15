@@ -770,3 +770,57 @@ test "configured queued file logger flushes queue through file helper" {
     inspect(logger.file_close(), content="false")
   }
 }
+
+test "library logger keeps a smaller stable facade" {
+  let captured_target : Ref[String] = Ref::new("")
+  let captured_message : Ref[String] = Ref::new("")
+  let captured_fields : Ref[Array[Field]] = Ref::new([])
+  let logger = LibraryLogger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+    }),
+    min_level=Level::Info,
+    target="svc",
+  ).with_context_fields([field("service", "bitlogger")]).child("worker")
+  logger.info("ready", fields=[field("mode", "test")])
+  inspect(captured_target.val, content="svc.worker")
+  inspect(captured_message.val, content="ready")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[1].key, content="mode")
+}
+
+test "library logger can unwrap to full logger when needed" {
+  let base = LibraryLogger::new(console_sink(), min_level=Level::Warn, target="lib")
+  let full = base.to_logger().with_timestamp()
+  inspect(base.is_enabled(Level::Error), content="true")
+  inspect(base.is_enabled(Level::Info), content="false")
+  inspect(full.timestamp, content="true")
+  inspect(full.target, content="lib")
+}
+
+test "library logger can be built from configured runtime path" {
+  let logger = build_library_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="lib.config",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+  let full = logger.to_logger()
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.config")
+}
+
+test "library logger can be parsed and built from config text" {
+  let logger = parse_and_build_library_logger(
+    "{\"min_level\":\"warn\",\"target\":\"lib.json\",\"sink\":{\"kind\":\"console\"}}",
+  )
+  let full = logger.to_logger()
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.json")
+}

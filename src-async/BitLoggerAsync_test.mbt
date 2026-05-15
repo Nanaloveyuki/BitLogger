@@ -242,3 +242,40 @@ async test "run drains queued records in compatibility backends too" {
   inspect(written.val[0], content="one")
   inspect(written.val[1], content="two")
 }
+
+async test "library async logger keeps a smaller async facade" {
+  let written_targets : Ref[Array[String]] = Ref::new([])
+  let written_messages : Ref[Array[String]] = Ref::new([])
+  let written_field_counts : Ref[Array[Int]] = Ref::new([])
+  let logger = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(rec) {
+      written_targets.val.push(rec.target)
+      written_messages.val.push(rec.message)
+      written_field_counts.val.push(rec.fields.length())
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="async.lib",
+  ).with_context_fields([@bitlogger.field("service", "bitlogger")]).child("worker")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("ready", fields=[@bitlogger.field("mode", "test")])
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="1")
+  inspect(written_targets.val[0], content="async.lib.worker")
+  inspect(written_messages.val[0], content="ready")
+  inspect(written_field_counts.val[0], content="2")
+}
+
+async test "library async logger can be built from config" {
+  let logger = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+  let full = logger.to_async_logger()
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.config")
+}
