@@ -19,7 +19,7 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 
 ## Example / 示例
 
-```mbt check
+```moonbit
 test {
   let logger = Logger::new(console_sink(), min_level=Level::Debug, target="demo")
     .with_timestamp()
@@ -27,6 +27,13 @@ test {
   logger.info("starting", fields=[field("port", "8080")])
 }
 ```
+
+Project command note / 项目命令说明:
+
+- use `moon check` / `moon test` for local project verification
+- 本地项目校验请使用 `moon check` / `moon test`
+- `.mbt.md` literate docs still use MoonBit's document-test conventions internally
+- `.mbt.md` 文档内部仍沿用 MoonBit 的文档测试约定
 
 ## Where To Go Next / 下一步
 

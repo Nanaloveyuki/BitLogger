@@ -331,7 +331,7 @@ pub fn[S] async_logger(
     context_fields: [],
     filter: fn(_) { true },
     patch: @bitlogger.identity_patch(),
-    queue: @async.Queue::new(kind=queue_kind_of(config)),
+    queue: @async.Queue(kind=queue_kind_of(config)),
     pending_count: Ref::new(0),
     dropped_count: Ref::new(0),
     is_closed: Ref::new(false),
