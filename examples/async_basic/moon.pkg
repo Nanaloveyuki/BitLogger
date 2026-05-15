@@ -1,6 +1,6 @@
 import {
-  "Nanaloveyuki/BitLogger/bitlogger" @lib,
-  "Nanaloveyuki/BitLogger/bitlogger_async" @lib_async,
+  "Nanaloveyuki/BitLogger/src" @lib,
+  "Nanaloveyuki/BitLogger/src-async" @lib_async,
   "moonbitlang/async" @async,
 }
 

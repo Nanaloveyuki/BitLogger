@@ -12,9 +12,9 @@ BitLogger is designed to provide composable, configurable, and cross-target logg
 
 | Module / capability | native / llvm | js / wasm / wasm-gc |
 | --- | --- | --- |
-| `bitlogger` core package | Supported | Supported |
+| `src` core package | Supported | Supported |
 | `file_sink(...)` | Supported | Not available, `native_files_supported()` returns `false` |
-| `bitlogger_async` | Native worker semantics | Compatibility implementation |
+| `src-async` | Native worker semantics | Compatibility implementation |
 | `examples/async_basic` | Supported | Not shipped currently because `async fn main` entry support is still limited |
 
 ## Key Features
@@ -49,8 +49,8 @@ let logger = async_logger(console_sink(), target="async.demo")
 
 ## Repository Layout
 
-- `bitlogger/`: core logging package.
-- `bitlogger_async/`: async logging layer built on `moonbitlang/async`.
+- `src/`: core logging package.
+- `src-async/`: async logging layer built on `moonbitlang/async`.
 - `docs/api/`: one-file-per-interface API documentation.
 - `examples/basic/`: minimal synchronous example.
 - `examples/async_basic/`: async logger example.
@@ -59,7 +59,7 @@ let logger = async_logger(console_sink(), target="async.demo")
 
 - [Mooncake package page](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
 - [Chinese README](../README.md)
-- [bitlogger package README](../bitlogger/README.mbt.md)
+- [src package README](../src/README.mbt.md)
 - Selected API docs in `docs/api/`:
 - [logger-new.md](./api/logger-new.md)
 - [async-logger.md](./api/async-logger.md)
@@ -71,4 +71,3 @@ let logger = async_logger(console_sink(), target="async.demo")
 - `docs/README-en.md` no longer acts as an API catalog.
 - Detailed API references, config fields, runtime control helpers, and lifecycle surfaces now live under `docs/api/`.
 - For concrete runnable flows, prefer `examples/`.
-
