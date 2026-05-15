@@ -2,8 +2,12 @@ pub struct LibraryAsyncLogger[S] {
   inner : AsyncLogger[S]
 }
 
-pub fn[S] library_async_logger(logger : AsyncLogger[S]) -> LibraryAsyncLogger[S] {
+fn[S] library_async_logger(logger : AsyncLogger[S]) -> LibraryAsyncLogger[S] {
   { inner: logger }
+}
+
+pub fn[S] AsyncLogger::to_library_async_logger(self : AsyncLogger[S]) -> LibraryAsyncLogger[S] {
+  library_async_logger(self)
 }
 
 pub fn[S] LibraryAsyncLogger::new(
@@ -28,7 +32,7 @@ pub fn[S] LibraryAsyncLogger::to_async_logger(self : LibraryAsyncLogger[S]) -> A
   self.inner
 }
 
-pub fn[S] configured_library_async_logger(
+fn[S] configured_library_async_logger(
   logger : AsyncLogger[S],
 ) -> LibraryAsyncLogger[S] {
   library_async_logger(logger)

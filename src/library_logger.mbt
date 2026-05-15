@@ -2,8 +2,12 @@ pub struct LibraryLogger[S] {
   inner : Logger[S]
 }
 
-pub fn[S] library_logger(logger : Logger[S]) -> LibraryLogger[S] {
+fn[S] library_logger(logger : Logger[S]) -> LibraryLogger[S] {
   { inner: logger }
+}
+
+pub fn[S] Logger::to_library_logger(self : Logger[S]) -> LibraryLogger[S] {
+  library_logger(self)
 }
 
 pub fn[S] LibraryLogger::new(
@@ -18,7 +22,7 @@ pub fn[S] LibraryLogger::to_logger(self : LibraryLogger[S]) -> Logger[S] {
   self.inner
 }
 
-pub fn configured_library_logger(logger : ConfiguredLogger) -> LibraryLogger[RuntimeSink] {
+fn configured_library_logger(logger : ConfiguredLogger) -> LibraryLogger[RuntimeSink] {
   library_logger(logger)
 }
 

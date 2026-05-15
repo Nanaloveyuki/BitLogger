@@ -824,3 +824,31 @@ test "library logger can be parsed and built from config text" {
   inspect(logger.is_enabled(Level::Info), content="false")
   inspect(full.target, content="lib.json")
 }
+
+test "configured logger can project to library logger" {
+  let configured = build_logger(
+    LoggerConfig::new(min_level=Level::Warn, target="lib.projected"),
+  )
+  let logger = configured.to_library_logger()
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(logger.to_logger().target, content="lib.projected")
+}
+
+test "application logger aliases configured runtime entry" {
+  let logger = build_application_logger(
+    LoggerConfig::new(min_level=Level::Warn, target="app.runtime"),
+  )
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(logger.target, content="app.runtime")
+}
+
+test "application logger can be built from config text" {
+  let logger = parse_and_build_application_logger(
+    "{\"min_level\":\"warn\",\"target\":\"app.json\",\"sink\":{\"kind\":\"console\"}}",
+  )
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(logger.target, content="app.json")
+}
