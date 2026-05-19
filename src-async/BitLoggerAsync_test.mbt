@@ -1,7 +1,7 @@
 async test "shutdown drains pending records" {
   inspect(async_runtime_mode_label(async_runtime_mode()) == "native_worker" || async_runtime_mode_label(async_runtime_mode()) == "compatibility", content="true")
-  let written : Ref[Array[String]] = Ref::new([])
-  let flushes : Ref[Int] = Ref::new(0)
+  let written : Ref[Array[String]] = Ref([])
+  let flushes : Ref[Int] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(rec) {
       written.val.push(rec.message)
@@ -212,7 +212,7 @@ test "async logger state snapshot reflects current counters and runtime" {
 }
 
 async test "run drains queued records in compatibility backends too" {
-  let written : Ref[Array[String]] = Ref::new([])
+  let written : Ref[Array[String]] = Ref([])
   let logger = async_logger(
     @bitlogger.callback_sink(fn(rec) {
       written.val.push(rec.message)
@@ -244,9 +244,9 @@ async test "run drains queued records in compatibility backends too" {
 }
 
 async test "library async logger keeps a smaller async facade" {
-  let written_targets : Ref[Array[String]] = Ref::new([])
-  let written_messages : Ref[Array[String]] = Ref::new([])
-  let written_field_counts : Ref[Array[Int]] = Ref::new([])
+  let written_targets : Ref[Array[String]] = Ref([])
+  let written_messages : Ref[Array[String]] = Ref([])
+  let written_field_counts : Ref[Array[Int]] = Ref([])
   let logger = LibraryAsyncLogger::new(
     @bitlogger.callback_sink(fn(rec) {
       written_targets.val.push(rec.target)

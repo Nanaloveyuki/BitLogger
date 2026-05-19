@@ -137,7 +137,7 @@ pub fn default_style_tag_registry() -> StyleTagRegistry {
     .set_tag("u", underline=true)
 }
 
-let global_style_tag_registry_ref : Ref[StyleTagRegistry] = Ref::new(style_tag_registry())
+let global_style_tag_registry_ref : Ref[StyleTagRegistry] = Ref(style_tag_registry())
 
 pub fn global_style_tag_registry() -> StyleTagRegistry {
   global_style_tag_registry_ref.val

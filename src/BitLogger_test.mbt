@@ -772,9 +772,9 @@ test "configured queued file logger flushes queue through file helper" {
 }
 
 test "library logger keeps a smaller stable facade" {
-  let captured_target : Ref[String] = Ref::new("")
-  let captured_message : Ref[String] = Ref::new("")
-  let captured_fields : Ref[Array[Field]] = Ref::new([])
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
   let logger = LibraryLogger::new(
     callback_sink(fn(rec) {
       captured_target.val = rec.target

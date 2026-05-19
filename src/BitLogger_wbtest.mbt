@@ -351,7 +351,7 @@ test "text formatter template respects disabled fields" {
 }
 
 test "formatted callback sink receives rendered text" {
-  let rendered : Ref[String] = Ref::new("")
+  let rendered : Ref[String] = Ref("")
   let sink = text_callback_sink(
     text_formatter(show_timestamp=false, separator=" | "),
     fn(text) {
@@ -620,8 +620,8 @@ test "json formatter keeps structured shape" {
 }
 
 test "callback sink receives record" {
-  let captured_target : Ref[String] = Ref::new("")
-  let captured_message : Ref[String] = Ref::new("")
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
   let logger = Logger::new(
     callback_sink(fn(rec) {
       captured_target.val = rec.target
@@ -636,8 +636,8 @@ test "callback sink receives record" {
 }
 
 test "split sink routes records by predicate" {
-  let left_messages : Ref[Array[String]] = Ref::new([])
-  let right_messages : Ref[Array[String]] = Ref::new([])
+  let left_messages : Ref[Array[String]] = Ref([])
+  let right_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     split_sink(
       callback_sink(fn(rec) {
@@ -662,8 +662,8 @@ test "split sink routes records by predicate" {
 }
 
 test "split_by_level routes warn and error separately" {
-  let high_messages : Ref[Array[String]] = Ref::new([])
-  let low_messages : Ref[Array[String]] = Ref::new([])
+  let high_messages : Ref[Array[String]] = Ref([])
+  let low_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     split_by_level(
       callback_sink(fn(rec) {
@@ -688,10 +688,10 @@ test "split_by_level routes warn and error separately" {
 }
 
 test "callback sink sees child target and context logger shape" {
-  let captured_target : Ref[String] = Ref::new("")
-  let captured_message : Ref[String] = Ref::new("")
-  let captured_field_count : Ref[Int] = Ref::new(0)
-  let captured_timestamp : Ref[UInt64] = Ref::new(0UL)
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_field_count : Ref[Int] = Ref(0)
+  let captured_timestamp : Ref[UInt64] = Ref(0UL)
   let logger = Logger::new(
     callback_sink(fn(rec) {
       captured_target.val = rec.target
@@ -713,9 +713,9 @@ test "callback sink sees child target and context logger shape" {
 }
 
 test "bind aliases context fields ergonomically" {
-  let captured_target : Ref[String] = Ref::new("")
-  let captured_message : Ref[String] = Ref::new("")
-  let captured_fields : Ref[Array[Field]] = Ref::new([])
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       captured_target.val = rec.target
@@ -738,7 +738,7 @@ test "bind aliases context fields ergonomically" {
 }
 
 test "buffered sink flushes manually" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = buffered_sink(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -758,7 +758,7 @@ test "buffered sink flushes manually" {
 }
 
 test "buffered sink flushes automatically at limit" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = buffered_sink(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -776,7 +776,7 @@ test "buffered sink flushes automatically at limit" {
 }
 
 test "filter sink only forwards matching records" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = filter_sink(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -796,7 +796,7 @@ test "filter sink only forwards matching records" {
 }
 
 test "logger with_filter composes naturally" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -814,7 +814,7 @@ test "logger with_filter composes naturally" {
 }
 
 test "filter helpers support target level and message composition" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -834,7 +834,7 @@ test "filter helpers support target level and message composition" {
 }
 
 test "field helpers can match and negate records" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -855,7 +855,7 @@ test "field helpers can match and negate records" {
 }
 
 test "any_of helper accepts multiple predicates" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -875,9 +875,9 @@ test "any_of helper accepts multiple predicates" {
 }
 
 test "patch sink can rewrite message target and fields" {
-  let captured_target : Ref[String] = Ref::new("")
-  let captured_message : Ref[String] = Ref::new("")
-  let captured_fields : Ref[Array[Field]] = Ref::new([])
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       captured_target.val = rec.target
@@ -905,7 +905,7 @@ test "patch sink can rewrite message target and fields" {
 }
 
 test "patch helpers can redact multiple fields" {
-  let captured_fields : Ref[Array[Field]] = Ref::new([])
+  let captured_fields : Ref[Array[Field]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       captured_fields.val = rec.fields
@@ -924,7 +924,7 @@ test "patch helpers can redact multiple fields" {
 }
 
 test "queued sink drains in order" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = queued_sink(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -947,7 +947,7 @@ test "queued sink drains in order" {
 }
 
 test "queued sink can drop newest when full" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = queued_sink(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -968,7 +968,7 @@ test "queued sink can drop newest when full" {
 }
 
 test "queued sink can drop oldest when full" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = queued_sink(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)
@@ -989,7 +989,7 @@ test "queued sink can drop oldest when full" {
 }
 
 test "logger with_queue preserves chaining ergonomics" {
-  let flushed_messages : Ref[Array[String]] = Ref::new([])
+  let flushed_messages : Ref[Array[String]] = Ref([])
   let logger = Logger::new(
     callback_sink(fn(rec) {
       flushed_messages.val.push(rec.message)

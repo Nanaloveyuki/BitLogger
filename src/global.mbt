@@ -1,6 +1,6 @@
 let default_console_sink : ConsoleSink = console_sink()
-let default_min_level_ref : Ref[Level] = Ref::new(Level::Info)
-let default_target_ref : Ref[String] = Ref::new("")
+let default_min_level_ref : Ref[Level] = Ref(Level::Info)
+let default_target_ref : Ref[String] = Ref("")
 
 pub fn set_default_min_level(level : Level) -> Unit {
   default_min_level_ref.val = level

@@ -323,12 +323,12 @@ pub fn[S] async_logger(
     filter: fn(_) { true },
     patch: @bitlogger.identity_patch(),
     queue: @async.Queue(kind=queue_kind_of(config)),
-    pending_count: Ref::new(0),
-    dropped_count: Ref::new(0),
-    is_closed: Ref::new(false),
-    is_running: Ref::new(false),
-    has_failed: Ref::new(false),
-    last_error: Ref::new(""),
+    pending_count: Ref(0),
+    dropped_count: Ref(0),
+    is_closed: Ref(false),
+    is_running: Ref(false),
+    has_failed: Ref(false),
+    last_error: Ref(""),
   }
 }
 

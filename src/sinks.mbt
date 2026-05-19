@@ -138,18 +138,18 @@ pub fn file_sink(
   let handle = open_file_handle_internal(path, append)
   {
     path,
-    append: Ref::new(append),
+    append: Ref(append),
     default_append: append,
-    handle: Ref::new(handle),
+    handle: Ref(handle),
     formatter,
-    auto_flush: Ref::new(auto_flush),
+    auto_flush: Ref(auto_flush),
     default_auto_flush: auto_flush,
-    rotation: Ref::new(rotation),
+    rotation: Ref(rotation),
     default_rotation: rotation,
-    open_failures: Ref::new(if handle is Some(_) { 0 } else { 1 }),
-    write_failures: Ref::new(0),
-    flush_failures: Ref::new(0),
-    rotation_failures: Ref::new(0),
+    open_failures: Ref(if handle is Some(_) { 0 } else { 1 }),
+    write_failures: Ref(0),
+    flush_failures: Ref(0),
+    rotation_failures: Ref(0),
   }
 }
 
@@ -522,7 +522,7 @@ pub struct BufferedSink[S] {
 
 pub fn[S] buffered_sink(sink : S, flush_limit~ : Int = 1) -> BufferedSink[S] {
   let actual_limit = if flush_limit <= 0 { 1 } else { flush_limit }
-  { sink, buffer: Ref::new([]), flush_limit: actual_limit }
+  { sink, buffer: Ref([]), flush_limit: actual_limit }
 }
 
 pub fn[S] BufferedSink::pending_count(self : BufferedSink[S]) -> Int {
@@ -568,10 +568,10 @@ pub fn[S] queued_sink(
 ) -> QueuedSink[S] {
   {
     sink,
-    queue: @queue.Queue::new(),
+    queue: @queue.Queue([]),
     max_pending,
     overflow,
-    dropped_count: Ref::new(0),
+    dropped_count: Ref(0),
   }
 }
 
