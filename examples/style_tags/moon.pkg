@@ -1,0 +1,7 @@
+import {
+  "Nanaloveyuki/BitLogger/src" @lib,
+}
+
+options(
+  "is-main": true,
+)

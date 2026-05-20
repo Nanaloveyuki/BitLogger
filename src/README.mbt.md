@@ -21,12 +21,30 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 
 ```moonbit
 test {
-  let logger = Logger::new(console_sink(), min_level=Level::Debug, target="demo")
-    .with_timestamp()
-    .with_context_fields([field("service", "bitlogger")])
+  let logger = build_logger(
+    text_console(
+      min_level=Level::Debug,
+      target="demo",
+      text_formatter=TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+    ),
+  )
   logger.info("starting", fields=[field("port", "8080")])
+  ignore(logger.flush())
 }
 ```
+
+Recommended sync path / 推荐同步起步路径:
+
+- start with `console(...)`, `json_console(...)`, `text_console(...)`, or `file(...)`
+- 先用这些 presets 组装 `LoggerConfig`
+- then apply small config helpers such as `with_queue(...)` or `with_file_rotation(...)`
+- 再按需叠加 `with_queue(...)` / `with_file_rotation(...)`
+- finally call `build_logger(...)` to get the runtime logger
+- 最后交给 `build_logger(...)` 构建运行时 logger
+
+Use `Logger::new(...)` instead when you need direct sink composition such as `fanout_sink(...)`, `split_by_level(...)`, `callback_sink(...)`, or custom patch/filter graphs.
+
+如果你需要 `fanout_sink(...)`、`split_by_level(...)`、`callback_sink(...)` 或更自由的 patch/filter 组合，再改用 `Logger::new(...)` 直接拼装运行时 sink 图。
 
 Project command note / 项目命令说明:
 
@@ -39,13 +57,23 @@ Project command note / 项目命令说明:
 
 - examples / 示例:
   - `../examples/basic/`
+  - `../examples/console_basic/`
+  - `../examples/text_formatter/`
+  - `../examples/style_tags/`
+  - `../examples/file_rotation/`
+  - `../examples/config_build/`
+  - `../examples/presets/`
   - `../examples/async_basic/`
 - package-level API docs / 单接口 API 文档:
   - `../docs/api/`
 - common entry points / 常用入口:
+  - `text_console(...)` + `build_logger(...)`
+  - `file(...)` + `with_file_rotation(...)` + `build_logger(...)`
   - `Logger::new(...)`
-  - `async_logger(...)`
   - `build_logger(...)`
+  - `build_application_logger(...)`
+  - `build_library_logger(...)`
+  - `async_logger(...)`
   - `build_async_logger(...)`
 
 ## Notes / 说明

@@ -35,12 +35,25 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库，目标是提供�
 ## 🚀 快速开始
 
 ```moonbit
-let logger = Logger::new(console_sink(), min_level=Level::Info, target="demo")
-  .with_timestamp()
-  .with_context_fields([field("service", "bitlogger")])
+let logger = build_logger(
+  with_queue(
+    text_console(
+      min_level=Level::Info,
+      target="demo",
+      text_formatter=TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+    ),
+    max_pending=32,
+    overflow=QueueOverflowPolicy::DropOldest,
+  ),
+)
 
 logger.info("starting", fields=[field("port", "8080")])
+ignore(logger.flush())
 ```
+
+推荐先从 `presets + build_logger(...)` 路径开始：`console(...)` / `json_console(...)` / `text_console(...)` / `file(...)` 负责拼装 `LoggerConfig`，`with_queue(...)` / `with_file_rotation(...)` 负责做小范围组合，然后再交给 `build_logger(...)` 构建运行时 logger。
+
+当你需要 `fanout`、`split`、`callback`、`patch` 这类自定义 sink 图组合时，再优先使用 `Logger::new(...)` 直接进行运行时拼装。
 
 异步入口示例：
 
@@ -58,7 +71,13 @@ let logger = async_logger(console_sink(), target="async.demo")
 - `src/`: 主日志库 package。
 - `src-async/`: 基于 `moonbitlang/async` 的异步日志层。
 - `docs/api/`: 单接口粒度 API 文档。
-- `examples/basic/`: 最小同步示例。
+- `examples/basic/`: breadth 示例；文件开头就是推荐的 presets + `build_logger(...)` 同步入口，后续继续覆盖更广能力面。
+- `examples/console_basic/`: console 与 json console 最小输出示例。
+- `examples/text_formatter/`: text formatter / template 示例。
+- `examples/style_tags/`: style tag / colored formatter 示例。
+- `examples/file_rotation/`: file sink / rotation 示例。
+- `examples/config_build/`: `build_logger(...)` 配置驱动示例。
+- `examples/presets/`: presets + `build_logger(...)` 示例。
 - `examples/async_basic/`: 异步 logger 示例。
 
 ## 🔗 文档入口
@@ -67,3 +86,5 @@ let logger = async_logger(console_sink(), target="async.demo")
 - [English README](./docs/README-en.md)
 - [src package README](./src/README.mbt.md)
 - [API 索引](./docs/api/index.md)
+- 推荐起步 API: `text_console(...)` / `file(...)` / `with_queue(...)` / `build_logger(...)`
+- facade API: `build_application_logger(...)` / `build_library_logger(...)` / `build_application_async_logger(...)`

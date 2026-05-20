@@ -1,8 +1,25 @@
 fn main {
+  let preset_logger = @lib.build_logger(
+    @lib.with_queue(
+      @lib.text_console(
+        min_level=@lib.Level::Info,
+        target="preset",
+        text_formatter=@lib.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      max_pending=2,
+      overflow=@lib.QueueOverflowPolicy::DropOldest,
+    ),
+  )
+  preset_logger.info("queued one")
+  preset_logger.info("queued two")
+  preset_logger.info("queued three")
+  ignore(preset_logger.flush())
+
   @lib.set_default_min_level(@lib.Level::Debug)
   @lib.set_default_target("bitlogger")
   @lib.info("hello from BitLogger", fields=[@lib.field("mode", "demo")])
 
+  // Direct Logger::new(...) composition stays useful for custom sink graphs.
   let logger = @lib.Logger::new(@lib.console_sink(), min_level=@lib.Level::Trace, target="custom")
     .with_context_fields([@lib.field("service", "bitlogger")])
   logger.debug("custom logger ready", fields=[@lib.field("sink", "console")])
@@ -135,16 +152,6 @@ fn main {
     @lib.append_fields([@lib.field("service", "bitlogger")]),
   ]))
   patched_logger.info("login", fields=[@lib.field("user", "alice"), @lib.field("token", "secret")])
-
-  let queued_logger = @lib.Logger::new(
-    @lib.console_sink(),
-    min_level=@lib.Level::Info,
-    target="queue",
-  ).with_queue(max_pending=2, overflow=@lib.QueueOverflowPolicy::DropOldest)
-  queued_logger.info("queued one")
-  queued_logger.info("queued two")
-  queued_logger.info("queued three")
-  ignore(queued_logger.sink.flush())
 
   let config_logger = @lib.parse_and_build_logger(
     "{\"min_level\":\"debug\",\"target\":\"config.demo\",\"timestamp\":true,\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"show_timestamp\":false,\"field_separator\":\",\",\"template\":\"[{level}] {target} {message} :: {fields}\"}},\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"}}",
