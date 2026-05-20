@@ -1,3 +1,6 @@
 import {
   "Nanaloveyuki/BitLogger/src/core" @core,
+  "moonbitlang/core/env" @env,
+  "moonbitlang/core/json",
+  "moonbitlang/core/ref",
 }
