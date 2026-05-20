@@ -43,6 +43,9 @@ BitLogger API navigation.
 - [set-default-min-level.md](./set-default-min-level.md)
 - [set-default-target.md](./set-default-target.md)
 - [default-logger.md](./default-logger.md)
+- [global-style-tag-registry.md](./global-style-tag-registry.md)
+- [set-global-style-tag-registry.md](./set-global-style-tag-registry.md)
+- [reset-global-style-tag-registry.md](./reset-global-style-tag-registry.md)
 - [global-log.md](./global-log.md)
 - [global-trace.md](./global-trace.md)
 - [global-debug.md](./global-debug.md)
@@ -53,10 +56,17 @@ BitLogger API navigation.
 ## Formatter and fields
 
 - [field.md](./field.md)
+- [text-style.md](./text-style.md)
+- [style-tag-registry.md](./style-tag-registry.md)
+- [default-style-tag-registry.md](./default-style-tag-registry.md)
 - [text-formatter.md](./text-formatter.md)
 - [text-formatter-config.md](./text-formatter-config.md)
+- [default-text-formatter-config.md](./default-text-formatter-config.md)
 - [text-formatter-config-to-json.md](./text-formatter-config-to-json.md)
 - [stringify-text-formatter-config.md](./stringify-text-formatter-config.md)
+- [color-support-label.md](./color-support-label.md)
+- [style-markup-mode-label.md](./style-markup-mode-label.md)
+- [color-mode-label.md](./color-mode-label.md)
 - [fields.md](./fields.md)
 
 ## Record and level
@@ -68,6 +78,18 @@ BitLogger API navigation.
 
 ## Sink and file
 
+- [console-sink.md](./console-sink.md)
+- [json-console-sink.md](./json-console-sink.md)
+- [text-console-sink.md](./text-console-sink.md)
+- [callback-sink.md](./callback-sink.md)
+- [text-callback-sink.md](./text-callback-sink.md)
+- [fanout-sink.md](./fanout-sink.md)
+- [split-sink.md](./split-sink.md)
+- [split-by-level.md](./split-by-level.md)
+- [buffered-sink.md](./buffered-sink.md)
+- [queued-sink.md](./queued-sink.md)
+- [filter-sink.md](./filter-sink.md)
+- [patch-sink.md](./patch-sink.md)
 - [file-sink.md](./file-sink.md)
 - [file-rotation.md](./file-rotation.md)
 - [file-sink-policy-to-json.md](./file-sink-policy-to-json.md)
@@ -104,7 +126,9 @@ BitLogger API navigation.
 - [queue-config.md](./queue-config.md)
 - [queue-config-to-json.md](./queue-config-to-json.md)
 - [stringify-queue-config.md](./stringify-queue-config.md)
+- [default-sink-config.md](./default-sink-config.md)
 - [logger-config.md](./logger-config.md)
+- [default-logger-config.md](./default-logger-config.md)
 - [logger-config-to-json.md](./logger-config-to-json.md)
 - [stringify-logger-config.md](./stringify-logger-config.md)
 - [parse-logger-config-text.md](./parse-logger-config-text.md)
@@ -166,12 +190,28 @@ BitLogger API navigation.
 - [async-runtime-state-to-json.md](./async-runtime-state-to-json.md)
 - [stringify-async-runtime-state.md](./stringify-async-runtime-state.md)
 - [async-logger-config.md](./async-logger-config.md)
+- [parse-async-logger-config-text.md](./parse-async-logger-config-text.md)
 - [async-logger-config-to-json.md](./async-logger-config-to-json.md)
 - [stringify-async-logger-config.md](./stringify-async-logger-config.md)
 - [parse-async-logger-build-config-text.md](./parse-async-logger-build-config-text.md)
 - [build-async-logger.md](./build-async-logger.md)
+- [build-async-text-logger.md](./build-async-text-logger.md)
 - [async-logger-build-config-to-json.md](./async-logger-build-config-to-json.md)
 - [stringify-async-logger-build-config.md](./stringify-async-logger-build-config.md)
+
+## Application and library facades
+
+- [build-application-logger.md](./build-application-logger.md)
+- [parse-and-build-application-logger.md](./parse-and-build-application-logger.md)
+- [build-library-logger.md](./build-library-logger.md)
+- [parse-and-build-library-logger.md](./parse-and-build-library-logger.md)
+- [default-library-logger.md](./default-library-logger.md)
+- [build-application-async-logger.md](./build-application-async-logger.md)
+- [build-application-text-async-logger.md](./build-application-text-async-logger.md)
+- [parse-and-build-application-async-logger.md](./parse-and-build-application-async-logger.md)
+- [build-library-async-logger.md](./build-library-async-logger.md)
+- [build-library-async-text-logger.md](./build-library-async-text-logger.md)
+- [parse-and-build-library-async-logger.md](./parse-and-build-library-async-logger.md)
 
 ## Configured logger runtime
 
