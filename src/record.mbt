@@ -1,35 +1,14 @@
-pub struct Field {
-  key : String
-  value : String
-}
+pub type Field = @core.Field
 
 pub fn field(key : String, value : String) -> Field {
-  { key, value }
+  @core.field(key, value)
 }
 
 pub fn fields(entries : Array[(String, String)]) -> Array[Field] {
-  entries.map(fn(entry) {
-    field(entry.0, entry.1)
-  })
+  @core.fields(entries)
 }
 
-pub struct Record {
-  level : Level
-  timestamp_ms : UInt64
-  target : String
-  message : String
-  fields : Array[Field]
-}
-
-pub fn Record::new(
-  level : Level,
-  message : String,
-  timestamp_ms~ : UInt64 = 0UL,
-  target~ : String = "",
-  fields~ : Array[Field] = [],
-) -> Record {
-  { level, timestamp_ms, target, message, fields }
-}
+pub type Record = @core.Record
 
 fn record(
   level : Level,
@@ -38,5 +17,5 @@ fn record(
   target~ : String = "",
   fields~ : Array[Field] = [],
 ) -> Record {
-  Record::new(level, message, timestamp_ms=timestamp_ms, target=target, fields=fields)
+  @core.Record::new(level, message, timestamp_ms=timestamp_ms, target=target, fields=fields)
 }

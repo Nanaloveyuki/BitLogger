@@ -1,75 +1,37 @@
-pub type RecordPredicate = (Record) -> Bool
+pub type RecordPredicate = @utils.RecordPredicate
 
 pub fn level_at_least(min_level : Level) -> RecordPredicate {
-  fn(rec) {
-    rec.level.priority() >= min_level.priority()
-  }
+  @utils.level_at_least(min_level)
 }
 
 pub fn target_is(target : String) -> RecordPredicate {
-  fn(rec) {
-    rec.target == target
-  }
+  @utils.target_is(target)
 }
 
 pub fn target_has_prefix(prefix : String) -> RecordPredicate {
-  fn(rec) {
-    rec.target.has_prefix(prefix)
-  }
+  @utils.target_has_prefix(prefix)
 }
 
 pub fn message_contains(fragment : String) -> RecordPredicate {
-  fn(rec) {
-    rec.message.contains(fragment)
-  }
+  @utils.message_contains(fragment)
 }
 
 pub fn has_field(key : String) -> RecordPredicate {
-  fn(rec) {
-    for field in rec.fields {
-      if field.key == key {
-        return true
-      }
-    }
-    false
-  }
+  @utils.has_field(key)
 }
 
 pub fn field_equals(key : String, value : String) -> RecordPredicate {
-  fn(rec) {
-    for field in rec.fields {
-      if field.key == key && field.value == value {
-        return true
-      }
-    }
-    false
-  }
+  @utils.field_equals(key, value)
 }
 
 pub fn not_(predicate : RecordPredicate) -> RecordPredicate {
-  fn(rec) {
-    !(predicate(rec))
-  }
+  @utils.not_(predicate)
 }
 
 pub fn all_of(predicates : Array[RecordPredicate]) -> RecordPredicate {
-  fn(rec) {
-    for predicate in predicates {
-      if !(predicate(rec)) {
-        return false
-      }
-    }
-    true
-  }
+  @utils.all_of(predicates)
 }
 
 pub fn any_of(predicates : Array[RecordPredicate]) -> RecordPredicate {
-  fn(rec) {
-    for predicate in predicates {
-      if predicate(rec) {
-        return true
-      }
-    }
-    false
-  }
+  @utils.any_of(predicates)
 }

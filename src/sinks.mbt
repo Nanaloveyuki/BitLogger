@@ -28,7 +28,7 @@ pub impl[S : Sink] Sink for ContextSink[S] with write(self, rec) {
   } else {
     self.context_fields + rec.fields
   }
-  self.sink.write({ ..rec, fields: merged })
+  self.sink.write(rec.with_fields(merged))
 }
 
 pub struct JsonConsoleSink {
@@ -471,7 +471,7 @@ pub fn[A, B] fanout_sink(left : A, right : B) -> FanoutSink[A, B] {
 
 pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B] with write(self, rec) {
   self.left.write(rec)
-  self.right.write({ ..rec })
+  self.right.write(rec.copy())
 }
 
 pub struct SplitSink[A, B] {

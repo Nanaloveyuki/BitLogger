@@ -1,0 +1,3 @@
+import {
+  "Nanaloveyuki/BitLogger/src/core" @core,
+}
