@@ -47,7 +47,10 @@ pub fn file(
   auto_flush~ : Bool = true,
   rotation~ : FileRotation? = None,
   text_formatter~ : TextFormatterConfig = default_text_formatter_config(),
-) -> LoggerConfig {
+) -> LoggerConfig raise ConfigError {
+  if path == "" {
+    raise ConfigError::InvalidConfig("File sink requires non-empty path")
+  }
   LoggerConfig::new(
     min_level=min_level,
     target=target,
