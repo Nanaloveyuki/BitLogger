@@ -4,3 +4,10 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/ref",
 }
+
+options(
+  targets: {
+    "file_backend_native.mbt": [ "native", "llvm" ],
+    "file_backend_stub.mbt": [ "js", "wasm", "wasm-gc" ],
+  },
+)
