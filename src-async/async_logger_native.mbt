@@ -1,5 +1,5 @@
 pub fn async_runtime_mode() -> AsyncRuntimeMode {
-  AsyncRuntimeMode::NativeWorker
+  @utils.native_worker_async_runtime_mode()
 }
 
 pub fn async_runtime_supports_background_worker() -> Bool {

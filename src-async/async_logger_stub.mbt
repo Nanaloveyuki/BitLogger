@@ -1,5 +1,5 @@
 pub fn async_runtime_mode() -> AsyncRuntimeMode {
-  AsyncRuntimeMode::Compatibility
+  @utils.compatibility_async_runtime_mode()
 }
 
 pub fn async_runtime_supports_background_worker() -> Bool {
