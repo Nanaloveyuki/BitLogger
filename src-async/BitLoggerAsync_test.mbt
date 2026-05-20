@@ -280,6 +280,23 @@ async test "library async logger can be built from config" {
   inspect(full.target, content="async.lib.config")
 }
 
+test "library async text logger can be built from typed config" {
+  let logger = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.text",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+  let full = logger.to_async_logger()
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.text")
+}
+
 async test "async logger can project to library async logger" {
   let logger = build_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -302,6 +319,48 @@ test "application async logger aliases runtime async entry" {
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.app")
+}
+
+test "application text async logger uses text facade build path" {
+  let logger = build_application_text_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Warn,
+        target="async.app.text",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.app.text")
+}
+
+test "build async text logger keeps text-console config fields" {
+  let logger = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.text.direct",
+        timestamp=true,
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=3, overflow=AsyncOverflowPolicy::DropOldest),
+    ),
+  )
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.text.direct")
+  inspect(logger.timestamp, content="true")
+  inspect(match logger.flush_policy() {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Never")
 }
 
 test "application async logger can be built from config text" {

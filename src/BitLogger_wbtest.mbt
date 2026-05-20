@@ -255,6 +255,19 @@ test "global style tags apply when formatter has no local registry" {
   set_global_style_tag_registry(previous)
 }
 
+test "reset global style tag registry restores builtin defaults" {
+  set_global_style_tag_registry(style_tag_registry().set_tag("accent", fg=Some("#123456"), bold=true))
+  reset_global_style_tag_registry()
+  let rec = record(Level::Info, "<success>ok</>")
+  inspect(
+    format_text(
+      rec,
+      formatter=text_formatter(show_level=false, show_target=false, color_mode=ColorMode::Always),
+    ),
+    content="\u{001b}[32;1mok\u{001b}[0m",
+  )
+}
+
 test "style tag alias can reuse builtin tags" {
   let formatter = text_formatter(
     show_level=false,

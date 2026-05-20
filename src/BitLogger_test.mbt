@@ -242,6 +242,32 @@ test "config subtype json helpers stringify stable shapes" {
   )
 }
 
+test "default config helpers expose baseline config shapes" {
+  let formatter = default_text_formatter_config()
+  inspect(formatter.show_timestamp, content="true")
+  inspect(color_mode_label(formatter.color_mode), content="never")
+  inspect(color_support_label(formatter.color_support), content="truecolor")
+  inspect(style_markup_mode_label(formatter.style_markup), content="full")
+
+  let sink = default_sink_config()
+  inspect(match sink.kind {
+    SinkKind::Console => "Console"
+    _ => "other"
+  }, content="Console")
+  inspect(sink.path, content="")
+  inspect(sink.rotation is None, content="true")
+
+  let logger = default_logger_config()
+  inspect(logger.min_level.label(), content="INFO")
+  inspect(logger.target, content="")
+  inspect(logger.timestamp, content="false")
+  inspect(logger.queue is None, content="true")
+  inspect(match logger.sink.kind {
+    SinkKind::Console => "Console"
+    _ => "other"
+  }, content="Console")
+}
+
 test "config basic color support downgrades hex colors" {
   let formatter = TextFormatterConfig::new(
     show_level=false,
@@ -833,6 +859,15 @@ test "configured logger can project to library logger" {
   inspect(logger.is_enabled(Level::Error), content="true")
   inspect(logger.is_enabled(Level::Info), content="false")
   inspect(logger.to_logger().target, content="lib.projected")
+}
+
+test "default library logger mirrors shared sync defaults" {
+  set_default_min_level(Level::Warn)
+  set_default_target("lib.default")
+  let logger = default_library_logger()
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(logger.to_logger().target, content="lib.default")
 }
 
 test "application logger aliases configured runtime entry" {
