@@ -111,6 +111,15 @@ BitLogger API navigation.
 - [build-logger.md](./build-logger.md)
 - [parse-and-build-logger.md](./parse-and-build-logger.md)
 
+## Presets
+
+- [console.md](./console.md)
+- [json-console.md](./json-console.md)
+- [text-console.md](./text-console.md)
+- [file.md](./file.md)
+- [with-queue.md](./with-queue.md)
+- [with-file-rotation.md](./with-file-rotation.md)
+
 ## Async logger
 
 - [async-logger.md](./async-logger.md)
