@@ -60,66 +60,14 @@ pub struct FileSink {
   rotation_failures : Ref[Int]
 }
 
-pub struct FileRotation {
-  max_bytes : Int
-  max_backups : Int
-}
+pub type FileRotation = @utils.FileRotation
 
-pub struct FileSinkState {
-  path : String
-  available : Bool
-  append : Bool
-  auto_flush : Bool
-  rotation : FileRotation?
-  open_failures : Int
-  write_failures : Int
-  flush_failures : Int
-  rotation_failures : Int
-}
+pub type FileSinkState = @utils.FileSinkState
 
-pub struct FileSinkPolicy {
-  append : Bool
-  auto_flush : Bool
-  rotation : FileRotation?
-}
-
-pub fn FileSinkPolicy::new(
-  append~ : Bool = true,
-  auto_flush~ : Bool = true,
-  rotation~ : FileRotation? = None,
-) -> FileSinkPolicy {
-  { append, auto_flush, rotation }
-}
-
-pub fn FileSinkState::new(
-  path : String,
-  available~ : Bool = false,
-  append~ : Bool = true,
-  auto_flush~ : Bool = true,
-  rotation~ : FileRotation? = None,
-  open_failures~ : Int = 0,
-  write_failures~ : Int = 0,
-  flush_failures~ : Int = 0,
-  rotation_failures~ : Int = 0,
-) -> FileSinkState {
-  {
-    path,
-    available,
-    append,
-    auto_flush,
-    rotation,
-    open_failures,
-    write_failures,
-    flush_failures,
-    rotation_failures,
-  }
-}
+pub type FileSinkPolicy = @utils.FileSinkPolicy
 
 pub fn file_rotation(max_bytes : Int, max_backups~ : Int = 1) -> FileRotation {
-  {
-    max_bytes: if max_bytes <= 0 { 1 } else { max_bytes },
-    max_backups: if max_backups <= 0 { 1 } else { max_backups },
-  }
+  @utils.file_rotation(max_bytes, max_backups=max_backups)
 }
 
 pub fn native_files_supported() -> Bool {
@@ -285,17 +233,17 @@ fn policy_rotation_equals_internal(left : FileRotation?, right : FileRotation?) 
 }
 
 pub fn FileSink::state(self : FileSink) -> FileSinkState {
-  {
-    path: self.path,
-    available: self.is_available(),
-    append: self.append.val,
-    auto_flush: self.auto_flush.val,
-    rotation: self.rotation.val,
-    open_failures: self.open_failures.val,
-    write_failures: self.write_failures.val,
-    flush_failures: self.flush_failures.val,
-    rotation_failures: self.rotation_failures.val,
-  }
+  FileSinkState::new(
+    self.path,
+    available=self.is_available(),
+    append=self.append.val,
+    auto_flush=self.auto_flush.val,
+    rotation=self.rotation.val,
+    open_failures=self.open_failures.val,
+    write_failures=self.write_failures.val,
+    flush_failures=self.flush_failures.val,
+    rotation_failures=self.rotation_failures.val,
+  )
 }
 
 pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
@@ -548,10 +496,7 @@ pub impl[S : Sink] Sink for BufferedSink[S] with write(self, rec) {
   }
 }
 
-pub(all) enum QueueOverflowPolicy {
-  DropNewest
-  DropOldest
-}
+pub type QueueOverflowPolicy = @utils.QueueOverflowPolicy
 
 pub struct QueuedSink[S] {
   sink : S
