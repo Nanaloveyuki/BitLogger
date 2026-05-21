@@ -34,9 +34,11 @@ pub fn async_runtime_mode() -> AsyncRuntimeMode {}
 Detailed rules explaining key parameters and behaviors
 
 - The return value is determined by the active backend implementation.
+- `NativeWorker` is the expected mode on native-style backends, while `Compatibility` is the expected mode on targets without native background-worker semantics.
 - `async_runtime_mode_label(...)` converts the enum into a stable string value.
 - `async_runtime_supports_background_worker()` is a narrower boolean probe built on the same idea.
 - This API is intentionally small and useful for lightweight branching.
+- The mode result describes runtime behavior only; it should not be read as proof that every backend has been equally re-verified in the current release cycle.
 
 ### How to Use
 
@@ -76,3 +78,6 @@ e.g.:
 
 2. Use `async_runtime_state()` when you also want worker support packaged into one object.
 
+3. This mode distinction is about runtime behavior, not whether `src-async` itself is expected to compile for the target.
+
+4. See [target-verification.md](./target-verification.md) for the current verification status of individual targets.

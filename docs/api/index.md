@@ -15,6 +15,10 @@ key-word:
 
 BitLogger API navigation.
 
+## Target and verification
+
+- [target-verification.md](./target-verification.md)
+
 ## Core logger
 
 - [logger-new.md](./logger-new.md)

@@ -45,6 +45,8 @@ Detailed rules explaining key parameters and behaviors
 
 - `async_logger(...)` only builds the logger. Actual background draining is started by `run()`.
 - In non-native targets, the implementation uses compatibility behavior while keeping the same public surface.
+- `src-async` is designed for `native / llvm / js / wasm / wasm-gc`, but current release-facing local verification is stronger for `native / js / wasm / wasm-gc` than for `llvm`.
+- `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
 - `flush` is used only when batch or shutdown policy wants explicit flushing.
 - Queue overflow behavior depends on `AsyncOverflowPolicy`.
 
@@ -98,3 +100,6 @@ e.g.:
 
 2. Use `state()`, `pending_count()`, and `dropped_count()` for runtime diagnostics.
 
+3. Example entrypoint limitations such as `async fn main` support are separate from the library-level portability of this API.
+
+4. See [target-verification.md](./target-verification.md) for the current local verification matrix.

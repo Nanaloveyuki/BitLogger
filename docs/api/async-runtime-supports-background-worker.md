@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `true` indicates native worker capability.
 - `false` indicates compatibility-mode behavior.
 - This helper is derived from backend-specific async runtime implementation choice.
+- The async library still targets multiple backends even when this helper returns `false`.
 - Use it when an enum branch is unnecessary and a boolean capability check is enough.
 
 ### How to Use
@@ -75,3 +76,6 @@ e.g.:
 
 2. Prefer `async_runtime_state()` when you want the same information in a richer object.
 
+3. A `false` result should be read as "compatibility-mode runtime behavior" rather than "async library unsupported on this target".
+
+4. This helper does not by itself imply that every non-worker backend has been equally re-verified for the current release; see [target-verification.md](./target-verification.md).

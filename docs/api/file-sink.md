@@ -43,7 +43,9 @@ pub fn file_sink(
 
 Detailed rules explaining key parameters and behaviors
 
-- This sink is only available on `native/llvm`; use `native_files_supported()` for capability detection.
+- This sink is designed for host-file capable backends, with current local verification centered on `native`.
+- `llvm` should be treated as experimental in the current release context and was not successfully re-verified in this environment.
+- The `src` library is still designed for multi-target compilation, but file sink availability remains backend-sensitive inside that broader portable surface.
 - `append` is persistent policy state and also affects later reopen behavior.
 - `auto_flush` trades durability for more flush work per record.
 - Rotation is currently size-based and rename-retention-oriented, not time-based.
@@ -91,3 +93,6 @@ e.g.:
 
 2. Prefer `state()`, `policy()`, and failure counters when integrating diagnostics.
 
+3. Non-native targets can still compile code referencing this API, but callers should treat actual file availability and successful writes as target-sensitive runtime behavior.
+
+4. See [target-verification.md](./target-verification.md) for the current verification boundary between design intent and locally re-checked targets.

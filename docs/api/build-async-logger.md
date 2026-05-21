@@ -37,6 +37,10 @@ Detailed rules explaining key parameters and behaviors
 - The resulting async logger inherits `min_level`, `target`, and timestamp behavior from the built synchronous logger.
 - File, queue, and formatter choices all come from config rather than direct code-side sink wiring.
 - The returned sink type is `RuntimeSink`, which keeps configured control helpers available where relevant.
+- The `src-async` library is designed to compile on `native / llvm / js / wasm / wasm-gc`, but runtime mode differs by backend.
+- Current local release-facing verification is explicit for `native / js / wasm / wasm-gc`.
+- `llvm` remains experimental and did not complete local verification in this environment.
+- On non-native targets, the async library still compiles and exposes the same public surface through compatibility-mode behavior rather than native background-worker semantics.
 
 ### How to Use
 
@@ -79,3 +83,6 @@ e.g.:
 
 2. Use `async_logger(...)` directly when you want explicit code-defined sink wiring.
 
+3. Library portability is broader than example portability: a runnable `async fn main` example may still be target-limited even when the async library itself compiles for that backend.
+
+4. See [target-verification.md](./target-verification.md) for the current verification boundary.

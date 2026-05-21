@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - This builder converts `config.logger.sink.text_formatter` into a runtime `TextFormatter` and wires it into `text_console_sink(...)`.
 - The returned logger inherits `min_level`, `target`, and timestamp behavior from `config.logger`.
 - This helper is best suited to text-console output paths where callers want the concrete formatted sink type instead of `RuntimeSink`.
+- This async text path follows the same target story as the broader async library: `native / js / wasm / wasm-gc` have stronger local verification, while `llvm` remains experimental and locally unverified in this environment.
 
 ### How to Use
 
@@ -67,3 +68,5 @@ e.g.:
 1. This API is narrower than `build_async_logger(...)` because it preserves a concrete text sink type.
 
 2. It is the base builder used by the application and library async text facades.
+
+3. See [target-verification.md](./target-verification.md) for the current local verification matrix.
