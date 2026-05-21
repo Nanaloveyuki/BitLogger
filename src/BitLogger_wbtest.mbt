@@ -406,6 +406,31 @@ test "file sink availability reflects backend support" {
   }
 }
 
+test "file sink unavailable backend keeps stable fallback state" {
+  let sink = file_sink("bitlogger-unavailable.log", rotation=Some(file_rotation(64, max_backups=2)))
+  if sink.is_available() {
+    inspect(sink.state().available, content="true")
+    ignore(sink.close())
+  } else {
+    let state = sink.state()
+    inspect(native_files_supported(), content="false")
+    inspect(state.available, content="false")
+    inspect(sink.flush(), content="false")
+    inspect(sink.close(), content="false")
+    inspect(sink.write_failures(), content="0")
+    sink.write(record(Level::Info, "dropped"))
+    inspect(sink.write_failures(), content="1")
+    inspect(sink.rotation_failures(), content="0")
+    match state.rotation {
+      Some(rotation) => {
+        inspect(rotation.max_bytes, content="64")
+        inspect(rotation.max_backups, content="2")
+      }
+      None => inspect(false, content="true")
+    }
+  }
+}
+
 test "file sink rotation config normalizes invalid inputs" {
   let rotation = file_rotation(0, max_backups=0)
   inspect(rotation.max_bytes, content="1")

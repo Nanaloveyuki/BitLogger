@@ -174,6 +174,14 @@ test "async runtime capability helpers stay consistent" {
   )
 }
 
+test "async runtime mode and worker flag encode target contract" {
+  let mode_label = async_runtime_mode_label(async_runtime_mode())
+  let worker = async_runtime_supports_background_worker()
+  inspect(mode_label == "native_worker" || mode_label == "compatibility", content="true")
+  inspect((mode_label == "native_worker") == worker, content="true")
+  inspect((mode_label == "compatibility") == !worker, content="true")
+}
+
 test "async logger state snapshot reflects current counters and runtime" {
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) {

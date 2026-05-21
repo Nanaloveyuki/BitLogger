@@ -560,6 +560,23 @@ test "configured non-file logger has no file runtime state" {
   inspect(logger.file_runtime_state() is None, content="true")
 }
 
+test "configured file logger mirrors backend file capability" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-capability.log"),
+    ),
+  )
+  inspect(logger.file_available() == native_files_supported(), content="true")
+  if logger.file_available() {
+    inspect(logger.file_state().available, content="true")
+    ignore(logger.close())
+  } else {
+    inspect(logger.file_state().available, content="false")
+    inspect(logger.file_flush(), content="false")
+    inspect(logger.file_close(), content="false")
+  }
+}
+
 test "configured logger file setters update file sink policy state" {
   let logger = build_logger(
     LoggerConfig::new(

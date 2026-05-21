@@ -12,6 +12,8 @@ import {
 
 options(
   targets: {
+    "sinks_file.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
+    "runtime_file_controls.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
     "file_backend_native.mbt": [ "native", "llvm" ],
     "file_backend_stub.mbt": [ "js", "wasm", "wasm-gc" ],
   },

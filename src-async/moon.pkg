@@ -10,6 +10,9 @@ import {
 
 options(
   targets: {
+    "async_logger_shared.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
+    "application_async_logger.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
+    "library_async_logger.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
     "async_logger_native.mbt": [ "native", "llvm" ],
     "async_logger_stub.mbt": [ "js", "wasm", "wasm-gc" ],
   },
