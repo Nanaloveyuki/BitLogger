@@ -46,6 +46,15 @@ Use `Logger::new(...)` instead when you need direct sink composition such as `fa
 
 如果你需要 `fanout_sink(...)`、`split_by_level(...)`、`callback_sink(...)` 或更自由的 patch/filter 组合，再改用 `Logger::new(...)` 直接拼装运行时 sink 图。
 
+Portable-first note / 跨端优先说明:
+
+- prefer `console(...)`, `json_console(...)`, `text_console(...)`, parsed config, and `build_logger(...)` for cross-target examples
+- 跨端示例优先使用这些 console / config 路径
+- file sink and `file(...)` remain native-sensitive; gate them with `native_files_supported()` when portability matters
+- `file(...)` / file sink 仍然是 native 敏感能力，跨端代码里应先做 `native_files_supported()` 判断
+- verified README targets currently center on `native`, `js`, `wasm`, and `wasm-gc`; treat `llvm` as experimental until it is locally re-verified with the required toolchain
+- 当前 README 的已验证目标以 `native`、`js`、`wasm`、`wasm-gc` 为准；`llvm` 在完成本地 toolchain 复核前应按实验性目标理解
+
 Project command note / 项目命令说明:
 
 - use `moon check` / `moon test` for local project verification
@@ -64,6 +73,10 @@ Project command note / 项目命令说明:
   - `../examples/config_build/`
   - `../examples/presets/`
   - `../examples/async_basic/`
+  - `console_basic` / `text_formatter` / `style_tags` / `config_build` / `presets` are the portable-first set
+  - `console_basic` / `text_formatter` / `style_tags` / `config_build` / `presets` 是 portable-first 示例集
+  - `file_rotation` is native-sensitive, and `async_basic` stays native-only because of the current `async fn main` entry limitation
+  - `file_rotation` 是 native-sensitive，`async_basic` 的 native-only 限制来自当前 `async fn main` 入口能力
 - package-level API docs / 单接口 API 文档:
   - `../docs/api/`
 - common entry points / 常用入口:

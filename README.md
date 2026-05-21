@@ -16,12 +16,18 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库，目标是提供�
 
 ## 🧭 后端兼容
 
-| 模块 / 能力 | native / llvm | js / wasm / wasm-gc |
+当前仓库已验证目标：`native`、`js`、`wasm`、`wasm-gc`。
+
+`llvm` 目前仍应视为实验性目标：当前环境未完成验证，本地复核依赖 nightly / llvm toolchain 条件，现阶段不作为与 `native` 同等级的稳定承诺。
+
+| 模块 / 能力 | 已验证目标 | `llvm` |
 | --- | --- | --- |
-| `src` 主包 | 支持 | 支持 |
-| `file_sink(...)` | 支持 | 不支持, `native_files_supported()` 返回 `false` |
-| `src-async` | 支持原生 worker 语义 | 支持兼容实现 |
-| `examples/async_basic` | 支持 | 受 `async fn main` 入口限制, 当前不提供 |
+| `src` 主包 | `native`、`js`、`wasm`、`wasm-gc` 已验证 | 实验性；当前环境未完成验证 |
+| `file(...)` / `file_sink(...)` | 仅 `native` 已验证；非 native 下不支持，`native_files_supported()` 返回 `false` | 不作为已验证能力声明 |
+| `src-async` | `native`、`wasm` 已本地复核通过；其余非 native 仍按兼容实现表述 | 实验性；当前环境未完成验证 |
+| portable examples (`console_basic` / `text_formatter` / `style_tags` / `config_build` / `presets`) | `native`、`wasm-gc` 已验证 | 当前未完成验证 |
+| `examples/file_rotation` | `native` 已验证；非 native 会清晰提示 file sink 不可用 | 当前未完成验证 |
+| `examples/async_basic` | `native` 已验证；非 native 受 `async fn main` 入口限制, 当前不提供 | 当前未完成验证 |
 
 ## ❇️ 关键特性
 
@@ -55,6 +61,8 @@ ignore(logger.flush())
 
 当你需要 `fanout`、`split`、`callback`、`patch` 这类自定义 sink 图组合时，再优先使用 `Logger::new(...)` 直接进行运行时拼装。
 
+跨端优先时，优先选择 console / json_console / text_console / config parser 这类 portable surface；file sink / file preset 仍然是 native 能力，建议先用 `native_files_supported()` 做能力判断。
+
 异步入口示例：
 
 ```moonbit
@@ -72,13 +80,13 @@ let logger = async_logger(console_sink(), target="async.demo")
 - `src-async/`: 基于 `moonbitlang/async` 的异步日志层。
 - `docs/api/`: 单接口粒度 API 文档。
 - `examples/basic/`: breadth 示例；文件开头就是推荐的 presets + `build_logger(...)` 同步入口，后续继续覆盖更广能力面。
-- `examples/console_basic/`: console 与 json console 最小输出示例。
-- `examples/text_formatter/`: text formatter / template 示例。
-- `examples/style_tags/`: style tag / colored formatter 示例。
-- `examples/file_rotation/`: file sink / rotation 示例。
-- `examples/config_build/`: `build_logger(...)` 配置驱动示例。
-- `examples/presets/`: presets + `build_logger(...)` 示例。
-- `examples/async_basic/`: 异步 logger 示例。
+- `examples/console_basic/`: portable 的 console 与 json console 最小输出示例。
+- `examples/text_formatter/`: portable 的 text formatter / template 示例。
+- `examples/style_tags/`: portable 的 style tag / colored formatter 示例。
+- `examples/file_rotation/`: target-sensitive 的 file sink / rotation 示例，非 native 会直接提示跳过原因。
+- `examples/config_build/`: portable 的 `build_logger(...)` 配置驱动示例。
+- `examples/presets/`: portable-first 的 presets + `build_logger(...)` 示例；native 下额外演示 file preset。
+- `examples/async_basic/`: native-only 异步 logger 示例，并说明限制来自 `async fn main` 入口而不是 `src-async` API 缺失。
 
 ## 🔗 文档入口
 
