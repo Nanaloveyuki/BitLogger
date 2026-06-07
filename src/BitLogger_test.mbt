@@ -116,6 +116,32 @@ test "logger config parser reads file rotation options" {
   }
 }
 
+test "logger config parser rejects malformed sync config input" {
+  let invalid_json_error = (fn() -> String raise ConfigError {
+    ignore(parse_logger_config_text("{"))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(invalid_json_error.contains("Invalid JSON:"), content="true")
+
+  let wrong_type_error = (fn() -> String raise ConfigError {
+    ignore(parse_logger_config_text("{\"timestamp\":\"true\"}"))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(wrong_type_error, content="Expected bool at key timestamp")
+
+  let invalid_enum_error = (fn() -> String raise ConfigError {
+    ignore(parse_logger_config_text("{\"sink\":{\"kind\":\"console\",\"text_formatter\":{\"color_mode\":\"loud\"}}}"))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(invalid_enum_error, content="Unsupported color mode: loud")
+}
+
 test "logger config stringify roundtrips stable fields" {
   let text = stringify_logger_config(
     LoggerConfig::new(

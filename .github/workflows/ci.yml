@@ -59,6 +59,10 @@ jobs:
         run: |
           moon check src-async --target js
 
+      - name: Test bitlogger_async native
+        run: |
+          moon test src-async --target native
+
       - name: Test bitlogger_async wasm-gc
         run: |
           moon test src-async --target wasm-gc

@@ -30,7 +30,9 @@ ignore(logger.flush())
 
 ## 支持情况
 
-- 当前已验证目标：`native`、`js`、`wasm`、`wasm-gc`
+- `BitLogger` 当前在 CI 中检查/验证的目标是 `native`、`js`、`wasm-gc`
+- `bitlogger_async` 当前在 CI 中检查 `native`、`js`、`wasm-gc`，测试覆盖 `native`、`js`、`wasm-gc`
+- `wasm` 目标在源码 `moon.pkg` 中保留声明，但当前未纳入 CI 验证口径
 - `llvm` 目前按实验性目标处理，当前环境未完成验证
 - 文件输出是 native 能力；跨端代码里建议先判断 `native_files_supported()`
 - `src-async` 可用，但示例 `examples/async_basic` 目前仍按 native 入口提供

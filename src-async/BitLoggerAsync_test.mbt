@@ -1,3 +1,7 @@
+suberror TestFlushError {
+  TestFlushError(String)
+}
+
 async test "shutdown drains pending records" {
   inspect(async_runtime_mode_label(async_runtime_mode()) == "native_worker" || async_runtime_mode_label(async_runtime_mode()) == "compatibility", content="true")
   let written : Ref[Array[String]] = Ref([])
@@ -150,6 +154,48 @@ test "async build config stringify roundtrips nested logger and async fields" {
   }, content="Shutdown")
 }
 
+test "async config parsers reject malformed input" {
+  let invalid_json_error = (fn() -> String raise {
+    ignore(parse_async_logger_config_text("{"))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(invalid_json_error.contains("UnexpectedToken"), content="true")
+
+  let wrong_type_error = (fn() -> String raise {
+    ignore(parse_async_logger_config_text("{\"max_pending\":\"many\"}"))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(wrong_type_error.contains("Expected number at async_config.max_pending"), content="true")
+
+  let invalid_enum_error = (fn() -> String raise {
+    ignore(parse_async_logger_config_text("{\"overflow\":\"Burst\"}"))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(invalid_enum_error.contains("Unsupported async overflow policy: Burst"), content="true")
+
+  let invalid_build_root_error = (fn() -> String raise {
+    ignore(parse_async_logger_build_config_text("[]"))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(invalid_build_root_error.contains("Expected object at async logger build config root"), content="true")
+
+  let nested_sync_error = (fn() -> String raise {
+    ignore(parse_async_logger_build_config_text("{\"logger\":{\"timestamp\":\"true\"}}"))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(nested_sync_error.contains("ConfigError.InvalidConfig"), content="true")
+}
+
 test "async runtime capability helpers stay consistent" {
   let mode = async_runtime_mode()
   let state = async_runtime_state()
@@ -249,6 +295,41 @@ async test "run drains queued records in compatibility backends too" {
   inspect(written.val.length(), content="2")
   inspect(written.val[0], content="one")
   inspect(written.val[1], content="two")
+}
+
+async test "async logger records worker failures and wait_idle stops early" {
+  let writes : Ref[Int] = Ref(0)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+      writes.val += 1
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.failure",
+    flush=fn(_) -> Int raise {
+      raise TestFlushError("flush exploded")
+    },
+  )
+
+  @async.with_task_group(group => {
+    group.spawn_bg(allow_failure=true, () => logger.run())
+    logger.info("ok")
+    logger.info("flush-now")
+    logger.wait_idle()
+    inspect(logger.has_failed(), content="true")
+    inspect(logger.pending_count(), content="1")
+    logger.close(clear=true)
+  })
+
+  inspect(writes.val, content="1")
+  inspect(logger.has_failed(), content="true")
+  inspect(logger.last_error().contains("TestFlushError"), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
 }
 
 async test "library async logger keeps a smaller async facade" {

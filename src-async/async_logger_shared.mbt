@@ -88,7 +88,7 @@ pub struct AsyncLogger[S] {
   linger_ms : Int
   flush_policy : AsyncFlushPolicy
   sink : S
-  flush_sink : (S) -> Int
+  flush_sink : (S) -> Int raise
   context_fields : Array[@bitlogger.Field]
   filter : (@bitlogger.Record) -> Bool
   patch : @bitlogger.RecordPatch
@@ -106,7 +106,7 @@ pub fn[S] async_logger(
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
   target~ : String = "",
-  flush~ : (S) -> Int = fn(_) { 0 },
+  flush~ : (S) -> Int raise = fn(_) { 0 },
 ) -> AsyncLogger[S] {
   {
     min_level,
