@@ -1295,6 +1295,74 @@ test "library async text logger can be built from typed config" {
   inspect(full.target, content="async.lib.text")
 }
 
+async test "library async text builder unwrap matches direct text builder behavior" {
+  let config = AsyncLoggerBuildConfig::new(
+    logger=@bitlogger.LoggerConfig::new(
+      min_level=@bitlogger.Level::Warn,
+      target="async.lib.text.same-build",
+      timestamp=true,
+      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      sink=@bitlogger.SinkConfig::new(
+        kind=@bitlogger.SinkKind::TextConsole,
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+          template="TEXT:{target}:{message}",
+        ),
+      ),
+    ),
+    async_config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::DropOldest,
+      flush=AsyncFlushPolicy::Shutdown,
+    ),
+  )
+  let logger = build_library_async_text_logger(config)
+  let full = logger.to_async_logger()
+  let direct = build_async_text_logger(config)
+  let full_state = full.state()
+  let direct_state = direct.state()
+
+  inspect(full.target, content=direct.target)
+  inspect(full.timestamp == direct.timestamp, content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
+  inspect(
+    stringify_async_logger_state(full_state) == stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let record = @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.lib.text.same-build")
+  inspect((full.sink.formatter)(record) == (direct.sink.formatter)(record), content="true")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(full.pending_count() == direct.pending_count(), content="true")
+  inspect(full.dropped_count() == direct.dropped_count(), content="true")
+  inspect(full.is_closed() == direct.is_closed(), content="true")
+  inspect(full.is_running() == direct.is_running(), content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    group.spawn_bg(() => direct.run())
+    logger.shutdown()
+    direct.shutdown()
+  })
+
+  inspect(full.is_closed() == direct.is_closed(), content="true")
+  inspect(full.is_running() == direct.is_running(), content="true")
+  inspect(full.pending_count() == direct.pending_count(), content="true")
+  inspect(full.dropped_count() == direct.dropped_count(), content="true")
+  inspect(full.has_failed() == direct.has_failed(), content="true")
+  inspect(full.last_error() == direct.last_error(), content="true")
+}
+
 async test "library async text logger unwrap keeps async helper surface" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
