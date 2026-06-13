@@ -61,6 +61,9 @@ BitLogger API navigation.
 
 - [field.md](./field.md)
 - [record-formatter.md](./record-formatter.md)
+- [color-mode.md](./color-mode.md)
+- [color-support.md](./color-support.md)
+- [style-markup-mode.md](./style-markup-mode.md)
 - [text-style.md](./text-style.md)
 - [style-tag-registry.md](./style-tag-registry.md)
 - [default-style-tag-registry.md](./default-style-tag-registry.md)
