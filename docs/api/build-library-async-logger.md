@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This API builds the general async runtime logger and then wraps it in the narrower `LibraryAsyncLogger[@bitlogger.RuntimeSink]` facade.
 - The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
+- The narrower facade does not change the underlying runtime-sink failure/reset or runtime-dependent close semantics; it only hides the broader helper surface until `to_async_logger()` is used.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can be used to recover the underlying full async logger.
 
@@ -82,3 +83,5 @@ e.g.:
 1. Prefer this API when library boundaries should stay narrow.
 
 2. Use `parse_and_build_library_async_logger(...)` when starting from JSON text.
+
+3. Use `build_library_async_text_logger(...)` instead when the library-facing async type should preserve the narrower `FormattedConsoleSink` shape rather than `RuntimeSink`.

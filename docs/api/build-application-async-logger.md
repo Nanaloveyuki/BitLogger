@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This API delegates to `build_async_logger(...)`.
 - That means the embedded `LoggerConfig` is built first through the normal synchronous config path before the outer async layer is applied.
 - The returned logger keeps the standard async lifecycle and state helper surface.
+- Because the result is only the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, it also keeps the same failure/reset and runtime-dependent post-close behavior documented on the underlying runtime-sink async logger.
 - Use this facade when application code wants a dedicated async app-level entry point.
 
 ### How to Use
@@ -72,3 +73,5 @@ e.g.:
 1. This is a facade over the existing async runtime logger builder.
 
 2. Use `parse_and_build_application_async_logger(...)` when starting from JSON text.
+
+3. Use `build_application_text_async_logger(...)` instead when callers should keep the concrete text-console sink type and the direct text-builder path.
