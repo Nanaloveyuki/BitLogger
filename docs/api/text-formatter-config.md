@@ -52,6 +52,8 @@ Detailed rules explaining key parameters and behaviors
 - `to_formatter()` converts config into a runtime `TextFormatter`.
 - `style_tags` are stored as concrete style objects instead of alias-style runtime behavior.
 - This config type is used by `SinkConfig`, `LoggerConfig`, and config-driven sink assembly.
+- The constructor defaults match the parser defaults: timestamps, level, target, and fields are shown by default; separators default to a single space; `template` defaults to empty; `color_mode` defaults to `Never`; `color_support` defaults to `TrueColor`; `style_markup` defaults to `Full`; and target/field-specific markup defaults to `Disabled`.
+- `parse_logger_config_text(...)` rehydrates formatter config through this same constructor path, so omitted formatter fields fall back to the same defaults whether config is built in code or parsed from JSON.
 
 ### How to Use
 
@@ -93,3 +95,5 @@ e.g.:
 1. Prefer this API when formatter behavior must be stored, parsed, or serialized.
 
 2. Prefer `text_formatter(...)` when writing direct runtime code without config.
+
+3. Use `default_text_formatter_config()` when callers want the standard formatter baseline without spelling out every field manually.
