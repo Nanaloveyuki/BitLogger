@@ -78,6 +78,8 @@ BitLogger API navigation.
 - [default-style-tag-registry.md](./default-style-tag-registry.md)
 - [text-formatter-type.md](./text-formatter-type.md)
 - [text-formatter.md](./text-formatter.md)
+- [text-formatter-with-style-markup.md](./text-formatter-with-style-markup.md)
+- [text-formatter-without-style-markup.md](./text-formatter-without-style-markup.md)
 - [format-text.md](./format-text.md)
 - [format-json.md](./format-json.md)
 - [text-formatter-config.md](./text-formatter-config.md)
