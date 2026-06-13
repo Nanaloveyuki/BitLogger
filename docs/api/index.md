@@ -79,6 +79,7 @@ BitLogger API navigation.
 
 ## Record and level
 
+- [record.md](./record.md)
 - [record-new.md](./record-new.md)
 - [level.md](./level.md)
 - [level-priority.md](./level-priority.md)
