@@ -3,7 +3,7 @@ name: library-async-logger-is-enabled
 group: api
 category: facade
 update-time: 20260614
-description: Check whether a LibraryAsyncLogger facade would accept a record at a given level before using the repo's direct async call style.
+description: Check whether a LibraryAsyncLogger facade passes the wrapped async logger's min-level gate for a given severity.
 key-word:
     - async
     - library
@@ -38,8 +38,9 @@ pub fn[S] LibraryAsyncLogger::is_enabled(
 Detailed rules explaining key parameters and behaviors
 
 - This method delegates directly to the wrapped async logger's `is_enabled(...)` behavior.
-- It only checks logger-level severity gating; it does not evaluate later filter or overflow behavior.
-- The result reflects the current facade value, so derived facades with different thresholds can return different answers.
+- It only checks logger-level severity gating through `min_level`; it does not evaluate later filter, patch, closed-on-log, or overflow behavior.
+- The result reflects the current wrapped logger state, so derived facades with different thresholds can return different answers.
+- This check does not require unwrapping because it is part of the narrower library-facing surface.
 - Use it when message construction or field gathering is expensive enough to justify a pre-check.
 
 ### How to Use
@@ -68,6 +69,8 @@ if logger.is_enabled(@bitlogger.Level::Warn) {
 
 In this example, the check mirrors the same severity gate used by later async write calls.
 
+And a `true` result still means only that the level gate passed, not that the record is guaranteed to reach the sink.
+
 ### Error Case
 
 e.g.:
@@ -75,8 +78,12 @@ e.g.:
 
 - A `true` result does not guarantee final delivery if later queue or filter behavior rejects the record.
 
+- If callers need to inspect queue or failure state instead of only checking the level gate, they must unwrap first with `to_async_logger()`.
+
 ### Notes
 
 1. This is a cheap severity check, not a full end-to-end delivery guarantee.
 
 2. Prefer using it only when precomputing the async log payload is meaningfully expensive.
+
+3. Use `log(...)` or the severity shortcuts directly when no expensive precomputation needs to be avoided.

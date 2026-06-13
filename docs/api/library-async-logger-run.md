@@ -3,7 +3,7 @@ name: library-async-logger-run
 group: api
 category: facade
 update-time: 20260613
-description: Start the LibraryAsyncLogger worker loop so queued records are drained to the underlying sink.
+description: Start the LibraryAsyncLogger worker loop by delegating to the wrapped async logger's run behavior.
 key-word:
     - async
     - library
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - It starts the worker loop that makes accepted queued records reach the underlying sink.
 - Failure and lifecycle state are still tracked by the wrapped async logger.
 - The narrower library facade does not hide the need to explicitly activate queue draining.
+- If the worker fails, the wrapped async logger records that through its failure-state helpers, which still require `to_async_logger()` for inspection from library-facing code.
 
 ### How to Use
 
@@ -65,6 +66,8 @@ group.spawn_bg(() => logger.run())
 
 In this example, the caller decides when the worker begins instead of hiding that lifecycle step.
 
+And the started worker loop is still the same wrapped async logger runtime rather than a separate library-specific execution path.
+
 ### Error Case
 
 e.g.:
@@ -72,8 +75,12 @@ e.g.:
 
 - If `run()` is never started, accepted records may remain queued and not reach the sink.
 
+- If callers need to inspect `is_running()`, `has_failed()`, or `last_error()` directly, they must unwrap first with `to_async_logger()`.
+
 ### Notes
 
 1. `LibraryAsyncLogger::new(...)` only constructs the facade; `run()` is what activates queue draining.
 
 2. Pair this API with `shutdown()` for a complete worker lifecycle.
+
+3. Use `to_async_logger()` first when operational code needs direct lifecycle or failure inspection in addition to starting the worker.

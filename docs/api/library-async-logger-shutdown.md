@@ -3,7 +3,7 @@ name: library-async-logger-shutdown
 group: api
 category: facade
 update-time: 20260614
-description: Gracefully stop a LibraryAsyncLogger by draining or clearing queued work, with worker-wait behavior depending on the active async runtime.
+description: Gracefully stop a LibraryAsyncLogger by delegating to the wrapped async logger's shutdown behavior, including runtime-dependent drain and worker-wait rules.
 key-word:
     - async
     - library
@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - If the active async runtime uses shutdown clearing after idle and backlog still remains, the wrapped logger falls back to `close(clear=true)`.
 - `clear=true` immediately closes and abandons pending records.
 - In runtimes where shutdown waits for workers, the method then waits until the worker is no longer running before returning.
+- The narrower library facade does not change any of these runtime-dependent shutdown rules; it only keeps the broader inspection helpers out of the direct public surface.
 
 ### How to Use
 
@@ -65,6 +66,8 @@ logger.shutdown(clear=true)
 
 In this example, pending work is abandoned intentionally so shutdown can complete sooner.
 
+And the decision still applies to the same wrapped async logger state rather than a separate library-specific queue.
+
 ### Error Case
 
 e.g.:
@@ -74,6 +77,8 @@ e.g.:
 
 - If callers skip `shutdown()` and only inspect flags manually, it is easier to leave the worker lifecycle in an unclear state.
 
+- If callers need to inspect `pending_count()`, `dropped_count()`, `is_running()`, or failure state during shutdown analysis, they must unwrap first with `to_async_logger()`.
+
 ### Notes
 
 1. Prefer this API over low-level closure control in normal library shutdown paths.
@@ -81,3 +86,5 @@ e.g.:
 2. Exact post-close waiting behavior depends on the active async runtime mode.
 
 3. Choose `clear=true` only when loss of queued records is acceptable.
+
+4. Use `to_async_logger()` first when shutdown orchestration also needs direct lifecycle or backlog inspection.
