@@ -530,6 +530,24 @@ async test "library async logger can be built from config" {
   inspect(full.target, content="async.lib.config")
 }
 
+test "library async logger parse-and-build preserves parsed sync queue layer" {
+  let logger = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.config.queued")
+  inspect(match full.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+}
+
 test "library async text logger can be built from typed config" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
@@ -716,4 +734,21 @@ test "application async logger can be built from config text" {
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.app.json")
+}
+
+test "application async logger parse-and-build preserves parsed sync queue layer" {
+  let logger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.app.json.queued")
+  inspect(match logger.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
 }
