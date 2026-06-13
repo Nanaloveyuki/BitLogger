@@ -179,6 +179,7 @@ BitLogger API navigation.
 - [file-sink-policy-to-json.md](./file-sink-policy-to-json.md)
 - [file-sink-policy.md](./file-sink-policy.md)
 - [stringify-file-sink-policy.md](./stringify-file-sink-policy.md)
+- [file-sink-state-new.md](./file-sink-state-new.md)
 - [file-sink-state-to-json.md](./file-sink-state-to-json.md)
 - [file-sink-state.md](./file-sink-state.md)
 - [stringify-file-sink-state.md](./stringify-file-sink-state.md)
