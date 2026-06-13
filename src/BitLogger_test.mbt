@@ -2076,6 +2076,57 @@ test "library logger builder unwrap matches direct configured builder behavior" 
   inspect(full.pending_count() == configured.pending_count(), content="true")
 }
 
+test "library logger builder unwrap preserves file runtime helpers" {
+  let config = LoggerConfig::new(
+    min_level=Level::Warn,
+    target="lib.file.same-build",
+    sink=SinkConfig::new(kind=SinkKind::File, path="lib-file-same-build.log"),
+    queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
+  )
+  let logger = build_library_logger(config)
+  let full = logger.to_logger()
+  let configured = build_logger(config)
+
+  full.error("one")
+  full.error("two")
+  full.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.dropped_count() == configured.dropped_count(), content="true")
+  inspect(full.file_available() == configured.file_available(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let full_state = full.file_state()
+  let configured_state = configured.file_state()
+  inspect(full_state.path == configured_state.path, content="true")
+  inspect(full_state.available == configured_state.available, content="true")
+  inspect(full_state.append == configured_state.append, content="true")
+  inspect(full_state.auto_flush == configured_state.auto_flush, content="true")
+  inspect(full_state.open_failures == configured_state.open_failures, content="true")
+  inspect(full_state.write_failures == configured_state.write_failures, content="true")
+  inspect(full_state.flush_failures == configured_state.flush_failures, content="true")
+  inspect(full_state.rotation_failures == configured_state.rotation_failures, content="true")
+
+  match (full.file_runtime_state(), configured.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(full.file_flush() == configured.file_flush(), content="true")
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.file_close() == configured.file_close(), content="true")
+}
+
 test "library logger can be parsed and built from config text" {
   let logger = parse_and_build_library_logger(
     "{\"min_level\":\"warn\",\"target\":\"lib.json\",\"sink\":{\"kind\":\"console\"}}",
@@ -2129,6 +2180,52 @@ test "library logger parse-build unwrap matches parsed direct builder behavior" 
   inspect(full.dropped_count() == configured.dropped_count(), content="true")
   inspect(full.flush() == configured.flush(), content="true")
   inspect(full.pending_count() == configured.pending_count(), content="true")
+}
+
+test "library logger parse-build unwrap preserves file runtime helpers" {
+  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.file.same-build\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"lib-json-file-same-build.log\"}}"
+  let logger = parse_and_build_library_logger(raw)
+  let full = logger.to_logger()
+  let configured = parse_and_build_logger(raw)
+
+  full.error("one")
+  full.error("two")
+  full.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.dropped_count() == configured.dropped_count(), content="true")
+  inspect(full.file_available() == configured.file_available(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let full_state = full.file_state()
+  let configured_state = configured.file_state()
+  inspect(full_state.path == configured_state.path, content="true")
+  inspect(full_state.available == configured_state.available, content="true")
+  inspect(full_state.append == configured_state.append, content="true")
+  inspect(full_state.auto_flush == configured_state.auto_flush, content="true")
+  inspect(full_state.open_failures == configured_state.open_failures, content="true")
+  inspect(full_state.write_failures == configured_state.write_failures, content="true")
+  inspect(full_state.flush_failures == configured_state.flush_failures, content="true")
+  inspect(full_state.rotation_failures == configured_state.rotation_failures, content="true")
+
+  match (full.file_runtime_state(), configured.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(full.file_flush() == configured.file_flush(), content="true")
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.file_close() == configured.file_close(), content="true")
 }
 
 test "parsed library logger unwrap preserves configured runtime path" {
