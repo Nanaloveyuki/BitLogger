@@ -205,8 +205,13 @@ BitLogger API navigation.
 
 ## Application and library facades
 
+- [library-logger-new.md](./library-logger-new.md)
 - [logger-to-library-logger.md](./logger-to-library-logger.md)
 - [library-logger-to-logger.md](./library-logger-to-logger.md)
+- [library-logger-with-target.md](./library-logger-with-target.md)
+- [library-logger-child.md](./library-logger-child.md)
+- [library-logger-with-context-fields.md](./library-logger-with-context-fields.md)
+- [library-logger-bind.md](./library-logger-bind.md)
 - [build-application-logger.md](./build-application-logger.md)
 - [parse-and-build-application-logger.md](./parse-and-build-application-logger.md)
 - [build-library-logger.md](./build-library-logger.md)
