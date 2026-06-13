@@ -2,8 +2,8 @@
 name: async-logger-shutdown
 group: api
 category: async
-update-time: 20260512
-description: Gracefully stop an async logger by waiting for idle or clearing queued work, then waiting for the worker to finish.
+update-time: 20260614
+description: Gracefully stop an async logger by waiting for idle or clearing queued work, with worker-wait behavior depending on the active async runtime.
 key-word:
     - async
     - logger
@@ -35,9 +35,9 @@ pub async fn[S] AsyncLogger::shutdown(self : AsyncLogger[S], clear? : Bool = fal
 Detailed rules explaining key parameters and behaviors
 
 - `clear=false` first waits for idle, then closes the logger.
-- If backlog still remains after waiting, shutdown falls back to `close(clear=true)`.
+- In runtimes where shutdown clearing after idle is enabled, remaining backlog after `wait_idle()` triggers a fallback `close(clear=true)`.
 - `clear=true` immediately closes and abandons pending records.
-- The method waits until `is_running()` becomes `false` before returning.
+- In runtimes where shutdown waits for workers, the method then waits until `is_running()` becomes `false` before returning.
 
 ### How to Use
 
@@ -66,10 +66,14 @@ In this example, pending work is abandoned intentionally so shutdown can complet
 e.g.:
 - If `clear=true`, pending records are intentionally dropped rather than drained.
 
+- In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
+
 - If callers skip `shutdown()` and only inspect flags manually, it is easier to leave the worker lifecycle in an unclear state.
 
 ### Notes
 
 1. Prefer this API over raw `close()` in normal application shutdown paths.
 
-2. Choose `clear=true` only when loss of queued records is acceptable.
+2. Exact post-close waiting behavior depends on the active async runtime mode.
+
+3. Choose `clear=true` only when loss of queued records is acceptable.
