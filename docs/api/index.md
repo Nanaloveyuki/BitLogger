@@ -342,9 +342,12 @@ BitLogger API navigation.
 
 ## Configured logger runtime
 
+- [runtime-sink.md](./runtime-sink.md)
 - [runtime-sink-flush.md](./runtime-sink-flush.md)
 - [runtime-sink-drain.md](./runtime-sink-drain.md)
 - [runtime-sink-close.md](./runtime-sink-close.md)
+- [runtime-sink-pending-count.md](./runtime-sink-pending-count.md)
+- [runtime-sink-dropped-count.md](./runtime-sink-dropped-count.md)
 - [configured-logger.md](./configured-logger.md)
 - [configured-logger-flush.md](./configured-logger-flush.md)
 - [configured-logger-drain.md](./configured-logger-drain.md)
