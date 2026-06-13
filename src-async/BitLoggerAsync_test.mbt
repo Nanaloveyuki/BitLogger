@@ -146,6 +146,162 @@ async test "closed logger runtime determines whether later log reaches patch pat
   inspect(logger.dropped_count(), content="1")
 }
 
+async test "async logger with_filter composes and leaves base logger unchanged" {
+  let written_targets : Ref[Array[String]] = Ref([])
+  let written_messages : Ref[Array[String]] = Ref([])
+  let base = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_targets.val.push(rec.target)
+      written_messages.val.push(rec.message)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Trace,
+    target="service",
+  )
+  let filtered = base.with_filter(@bitlogger.all_of([
+    @bitlogger.target_has_prefix("service.api"),
+    @bitlogger.level_at_least(@bitlogger.Level::Info),
+    @bitlogger.message_contains("visible"),
+  ]))
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => filtered.run())
+    filtered.debug("visible debug")
+    filtered.info("hidden info")
+    filtered.child("api").info("visible info")
+    filtered.shutdown()
+  })
+
+  inspect(written_messages.val.length(), content="1")
+  inspect(written_messages.val[0], content="visible info")
+  inspect(written_targets.val[0], content="service.api")
+
+  let base_written : Ref[Array[String]] = Ref([])
+  let untouched = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      base_written.val.push(rec.message)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="base",
+  )
+  ignore(untouched.with_filter(fn(_) { false }))
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => untouched.run())
+    untouched.info("base still writes")
+    untouched.shutdown()
+  })
+
+  inspect(base_written.val.length(), content="1")
+  inspect(base_written.val[0], content="base still writes")
+}
+
+async test "async logger with_patch composes before filter and does not mutate base logger" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="auth",
+  )
+    .with_patch(@bitlogger.compose_patches([
+      @bitlogger.set_target("audit.auth"),
+      @bitlogger.prefix_message("[safe] "),
+      @bitlogger.redact_field("token"),
+      @bitlogger.append_fields([@bitlogger.field("service", "bitlogger")]),
+    ]))
+    .with_filter(@bitlogger.target_is("audit.auth"))
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("login", fields=[@bitlogger.field("token", "secret"), @bitlogger.field("user", "alice")])
+    logger.shutdown()
+  })
+
+  inspect(captured_target.val, content="audit.auth")
+  inspect(captured_message.val, content="[safe] login")
+  inspect(captured_fields.val.length(), content="3")
+  inspect(captured_fields.val[0].key, content="token")
+  inspect(captured_fields.val[0].value, content="***")
+  inspect(captured_fields.val[1].key, content="user")
+  inspect(captured_fields.val[1].value, content="alice")
+  inspect(captured_fields.val[2].key, content="service")
+  inspect(captured_fields.val[2].value, content="bitlogger")
+
+  let base_message : Ref[String] = Ref("")
+  let base_target : Ref[String] = Ref("")
+  let base_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let base = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      base_message.val = rec.message
+      base_target.val = rec.target
+      base_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="auth",
+  )
+  ignore(base.with_patch(@bitlogger.prefix_message("[safe] ")))
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => base.run())
+    base.info("plain", fields=[@bitlogger.field("token", "secret")])
+    base.shutdown()
+  })
+
+  inspect(base_target.val, content="auth")
+  inspect(base_message.val, content="plain")
+  inspect(base_fields.val.length(), content="1")
+  inspect(base_fields.val[0].value, content="secret")
+}
+
+async test "async logger with_min_level only affects derived logger threshold" {
+  let base_written : Ref[Array[String]] = Ref([])
+  let derived_written : Ref[Array[String]] = Ref([])
+  let base = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      base_written.val.push(rec.message)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="level.base",
+  )
+  let derived = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      derived_written.val.push(rec.message)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="level.derived",
+  ).with_min_level(@bitlogger.Level::Error)
+
+  inspect(base.is_enabled(@bitlogger.Level::Info), content="true")
+  inspect(derived.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(derived.is_enabled(@bitlogger.Level::Error), content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => base.run())
+    group.spawn_bg(() => derived.run())
+    base.info("base info")
+    derived.info("derived info skipped")
+    derived.error("derived error kept")
+    base.shutdown()
+    derived.shutdown()
+  })
+
+  inspect(base_written.val.length(), content="1")
+  inspect(base_written.val[0], content="base info")
+  inspect(derived_written.val.length(), content="1")
+  inspect(derived_written.val[0], content="derived error kept")
+}
+
 test "async logger config stringify roundtrips stable fields" {
   let text = stringify_async_logger_config(
     AsyncLoggerConfig::new(
