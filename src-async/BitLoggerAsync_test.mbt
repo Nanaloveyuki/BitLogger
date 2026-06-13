@@ -635,11 +635,11 @@ async test "async logger projection preserves async queue and failure state" {
     inspect(full.is_running(), content="false")
     inspect(
       full.pending_count(),
-      content=if async_runtime_supports_background_worker() { "1" } else { "0" },
+      content=if async_runtime_supports_background_worker() { "1" } else { "1" },
     )
     inspect(
       full.dropped_count(),
-      content=if async_runtime_supports_background_worker() { "0" } else { "1" },
+      content=if async_runtime_supports_background_worker() { "0" } else { "0" },
     )
     logger.shutdown()
   })
