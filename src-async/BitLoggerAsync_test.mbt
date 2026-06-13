@@ -3646,6 +3646,73 @@ async test "parsed application async logger keeps broader async composition surf
   inspect(logger.last_error(), content="")
 }
 
+async test "parsed application async logger log supports per-call target override" {
+  let written_target : Ref[String] = Ref("")
+
+  let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+    .with_patch(fn(rec) {
+      written_target.val = rec.target
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      target="async.app.json.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.app.json.override")
+
+  let second_target : Ref[String] = Ref("")
+
+  let second : ApplicationAsyncLogger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+    .with_patch(fn(rec) {
+      second_target.val = rec.target
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.error("default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.app.json.default")
+}
+
+async test "parsed application async logger severity helpers use stored target without override" {
+  let written_targets : Ref[Array[String]] = Ref([])
+
+  let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"trace\",\"target\":\"async.app.json.helpers.target\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":4,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+    .with_patch(fn(rec) {
+      written_targets.val.push(rec.target)
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.debug("first")
+    logger.info("second")
+    logger.error("third")
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.app.json.helpers.target")
+  inspect(written_targets.val[1], content="async.app.json.helpers.target")
+  inspect(written_targets.val[2], content="async.app.json.helpers.target")
+}
+
 test "application async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
