@@ -2,8 +2,8 @@
 name: async-logger-run
 group: api
 category: async
-update-time: 20260512
-description: Start the async logger worker loop so queued records are drained to the underlying sink.
+update-time: 20260614
+description: Start the async logger worker loop so queued records are drained to the underlying sink while lifecycle and failure state are reset and updated around execution.
 key-word:
     - async
     - logger
@@ -35,7 +35,9 @@ Detailed rules explaining key parameters and behaviors
 
 - `run()` sets `is_running` to `true` while the worker loop is active.
 - It clears previous failure state before worker execution begins.
+- It also resets `last_error()` to an empty string before worker execution begins.
 - On failure, the logger records `has_failed=true` and stores the error text in `last_error`.
+- On failure, `is_running` is cleared before the error is raised back out of `run()`.
 - The worker exits when the queue is closed or when a failure aborts processing.
 
 ### How to Use
@@ -72,8 +74,12 @@ e.g.:
 
 - If `run()` is never started, accepted records may remain queued and not reach the sink.
 
+- A later `run()` attempt starts from a fresh failure flag and empty `last_error()` string, even if an earlier run failed.
+
 ### Notes
 
 1. `async_logger(...)` only constructs the logger; `run()` is what activates queue draining.
 
 2. Pair this API with `shutdown()` for a complete worker lifecycle.
+
+3. Pair it with `has_failed()`, `last_error()`, or `state()` when tests need to inspect how a worker exit affected logger health.
