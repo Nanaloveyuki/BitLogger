@@ -386,6 +386,8 @@ BitLogger API navigation.
 - [runtime-sink-file-policy.md](./runtime-sink-file-policy.md)
 - [runtime-sink-file-default-policy.md](./runtime-sink-file-default-policy.md)
 - [runtime-sink-file-policy-matches-default.md](./runtime-sink-file-policy-matches-default.md)
+- [runtime-sink-file-state.md](./runtime-sink-file-state.md)
+- [runtime-sink-file-runtime-state.md](./runtime-sink-file-runtime-state.md)
 - [configured-logger.md](./configured-logger.md)
 - [configured-logger-flush.md](./configured-logger-flush.md)
 - [configured-logger-drain.md](./configured-logger-drain.md)
