@@ -3,7 +3,7 @@ name: build-library-async-text-logger
 group: api
 category: facade
 update-time: 20260614
-description: Build the library-facing text-console async logger facade from an AsyncLoggerBuildConfig using the configured text formatter directly.
+description: Build the library-facing text-console async logger facade from an AsyncLoggerBuildConfig using the concrete text-console builder path.
 key-word:
     - library
     - async
@@ -13,7 +13,7 @@ key-word:
 
 ## Build-library-async-text-logger
 
-Build a `LibraryAsyncLogger[FormattedConsoleSink]` from `AsyncLoggerBuildConfig`. This facade is the library-oriented async builder for text-console runtime output.
+Build a `LibraryAsyncLogger[FormattedConsoleSink]` from `AsyncLoggerBuildConfig`. This facade is the library-oriented async builder for the concrete text-console sink shape returned by `build_async_text_logger(...)`.
 
 ### Interface
 
@@ -35,11 +35,12 @@ pub fn build_library_async_text_logger(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API delegates to `build_async_text_logger(...)` and then wraps the result as `LibraryAsyncLogger`.
-- It always produces a concrete `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
+- This API delegates to `build_async_text_logger(...)` and then narrows the result to `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- It always produces a concrete `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of branching on sink kinds.
 - Unlike `build_library_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
-- It is useful when library code wants a narrow async facade while preserving a concrete text-console sink type.
+- The returned facade still wraps the same underlying async logger behavior, so `run()`, `shutdown()`, failure/reset handling, and runtime-dependent close behavior are unchanged under the narrower public type.
+- Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying full async logger if needed.
 
 ### How to Use
@@ -60,10 +61,23 @@ let logger = build_library_async_text_logger(
 
 In this example, the async text sink shape is preserved under the library facade.
 
+#### When Need Async State Helpers After Library Text Construction
+
+When library-facing text-console construction should still allow internal async inspection later:
+```moonbit
+let logger = build_library_async_text_logger(config)
+let full = logger.to_async_logger()
+ignore(full.pending_count())
+```
+
+In this example, the facade is unwrapped before using async state helpers.
+
 ### Error Case
 
 e.g.:
 - If callers need sink-kind-driven branching such as JSON console or file-backed async output, they should use `build_library_async_logger(...)` instead.
+
+- If callers expect async state or idle-wait helpers directly on the returned facade, they must unwrap first with `to_async_logger()`.
 
 - Normal async lifecycle expectations still apply if the logger is never run.
 
@@ -72,3 +86,5 @@ e.g.:
 1. This is the library-side counterpart to `build_application_text_async_logger(...)`.
 
 2. It is most useful when a concrete text-console async sink type matters to the caller boundary.
+
+3. Use `build_library_async_logger(...)` instead when the library-facing async type should keep the broader `RuntimeSink` build path, including sync queue application through `build_logger(config.logger)`.
