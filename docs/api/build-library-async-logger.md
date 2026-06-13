@@ -2,8 +2,8 @@
 name: build-library-async-logger
 group: api
 category: facade
-update-time: 20260520
-description: Build the library-facing async logger facade from an AsyncLoggerBuildConfig.
+update-time: 20260614
+description: Build the library-facing async logger facade from an AsyncLoggerBuildConfig while intentionally hiding direct async state helpers.
 key-word:
     - library
     - async
@@ -35,8 +35,9 @@ pub fn build_library_async_logger(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API builds the general async runtime logger and then wraps it in the narrower `LibraryAsyncLogger` facade.
+- This API builds the general async runtime logger and then wraps it in the narrower `LibraryAsyncLogger[@bitlogger.RuntimeSink]` facade.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
+- Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can be used to recover the underlying full async logger.
 
 ### How to Use
@@ -57,12 +58,23 @@ let logger = build_library_async_logger(
 
 In this example, async runtime construction is hidden behind the library facade.
 
+#### When Need Async State Helpers After Library-oriented Construction
+
+When config-built async state inspection is still needed internally:
+```moonbit
+let logger = build_library_async_logger(config)
+let full = logger.to_async_logger()
+ignore(full.pending_count())
+```
+
+In this example, the library async facade is unwrapped before using async state helpers.
+
 ### Error Case
 
 e.g.:
 - If backend-specific sink limitations exist, they still apply under the facade.
 
-- If callers need methods outside the library facade, they must unwrap with `to_async_logger()`.
+- If callers need async state, failure-status, or idle-wait helpers outside the library facade, they must unwrap with `to_async_logger()`.
 
 ### Notes
 

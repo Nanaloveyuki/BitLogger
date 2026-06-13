@@ -2,8 +2,8 @@
 name: parse-and-build-library-async-logger
 group: api
 category: facade
-update-time: 20260520
-description: Parse JSON async build config text and build the library-facing async logger facade.
+update-time: 20260614
+description: Parse JSON async build config text and build the library-facing async logger facade while intentionally hiding direct async state helpers.
 key-word:
     - library
     - async
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This API parses async build config text, validates it, builds the async runtime logger, and narrows it to the library facade.
 - The resulting facade keeps async lifecycle helpers while exposing a smaller public surface.
+- Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection stay on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying async logger when a wider API is required.
 
 ### How to Use
@@ -54,12 +55,27 @@ let logger = parse_and_build_library_async_logger(
 
 In this example, parsing and library-facade construction happen together.
 
+#### When Need Async State Helpers After Text-driven Library Bootstrapping
+
+When JSON-driven construction should still allow internal async state inspection later:
+```moonbit
+let logger = parse_and_build_library_async_logger(raw) catch {
+  err => return
+}
+let full = logger.to_async_logger()
+ignore(full.pending_count())
+```
+
+In this example, the caller unwraps the library async facade before using async state helpers.
+
 ### Error Case
 
 e.g.:
 - If the JSON text is malformed, parsing raises an error.
 
 - If the embedded config is invalid, parsing raises before the library facade is returned.
+
+- If callers assume async state or idle-wait helpers are available directly on the returned facade, they must unwrap first with `to_async_logger()`.
 
 ### Notes
 

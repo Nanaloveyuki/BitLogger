@@ -2,8 +2,8 @@
 name: library-async-logger
 group: api
 category: facade
-update-time: 20260613
-description: Public library-facing async logger facade type used to expose a narrower surface than AsyncLogger.
+update-time: 20260614
+description: Public library-facing async logger facade type used to expose a narrower surface than AsyncLogger while preserving sink typing.
 key-word:
     - library
     - async
@@ -33,7 +33,8 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a public facade struct, not a type alias.
 - The wrapped sink type `S` is preserved, so sink-specific typing remains available through the facade type parameter.
-- The facade keeps common library-safe async operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, `run()`, `shutdown()`, and the main async write methods.
+- The facade keeps common library-safe async operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, `run()`, `shutdown()`, and the main async write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
+- It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
 
 ### How to Use
@@ -68,6 +69,8 @@ e.g.:
 - `LibraryAsyncLogger[S]` itself does not have a runtime failure mode.
 
 - Runtime behavior still depends on the wrapped sink `S` and async runtime support, so sink-specific or target-specific limitations remain unchanged behind the facade.
+
+- Helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, `is_running()`, `has_failed()`, `last_error()`, `flush_policy()`, `state()`, and `wait_idle()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 
 ### Notes
 
