@@ -2,8 +2,8 @@
 name: build-async-text-logger
 group: api
 category: async
-update-time: 20260520
-description: Build an async logger with a concrete text-console sink from combined logger and async config.
+update-time: 20260614
+description: Build an async logger with a concrete text-console sink from combined logger and async config, always using the configured text formatter.
 key-word:
     - async
     - text
@@ -34,6 +34,7 @@ pub fn build_async_text_logger(config : AsyncLoggerBuildConfig) -> AsyncLogger[@
 Detailed rules explaining key parameters and behaviors
 
 - This builder converts `config.logger.sink.text_formatter` into a runtime `TextFormatter` and wires it into `text_console_sink(...)`.
+- It always constructs a `FormattedConsoleSink` directly instead of branching on `config.logger.sink.kind`.
 - The returned logger inherits `min_level`, `target`, and timestamp behavior from `config.logger`.
 - This helper is best suited to text-console output paths where callers want the concrete formatted sink type instead of `RuntimeSink`.
 - This async text path follows the same target story as the broader async library: `native / js / wasm / wasm-gc` have stronger local verification, while `llvm` remains experimental and locally unverified in this environment.
@@ -59,7 +60,7 @@ In this example, the async logger is built around a text console sink rather tha
 ### Error Case
 
 e.g.:
-- If the logger config was not intended for text-console style output, the broader `build_async_logger(...)` path may be a better fit.
+- If callers need sink-kind-driven branching across console, JSON, text, or file output, `build_async_logger(...)` is the better fit.
 
 - If the logger is never `run()`, pending records still follow the normal async queue lifecycle rules.
 

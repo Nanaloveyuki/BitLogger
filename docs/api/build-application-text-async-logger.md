@@ -2,8 +2,8 @@
 name: build-application-text-async-logger
 group: api
 category: facade
-update-time: 20260520
-description: Build the application-facing text-console async logger facade from an AsyncLoggerBuildConfig.
+update-time: 20260614
+description: Build the application-facing text-console async logger facade from an AsyncLoggerBuildConfig using the configured text formatter directly.
 key-word:
     - application
     - async
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This API delegates to `build_async_text_logger(...)`.
 - It is intended for config-driven async text console output where callers want the concrete text sink shape rather than the broader runtime sink enum wrapper.
+- The builder always creates a `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
 - The returned logger keeps the usual async lifecycle helpers.
 
 ### How to Use
@@ -60,7 +61,7 @@ In this example, the async logger is built for text-console output specifically.
 ### Error Case
 
 e.g.:
-- If the embedded logger config selects a non-text sink shape, the caller should use the general async builder facade instead.
+- If callers need sink-kind-driven branching such as JSON console or file-backed async output, they should use `build_application_async_logger(...)` instead.
 
 - If runtime draining is never started, records still follow the normal async queue lifecycle rules.
 
