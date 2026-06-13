@@ -2,8 +2,8 @@
 name: async-logger-close
 group: api
 category: async
-update-time: 20260512
-description: Close the async logger queue and optionally clear pending records immediately.
+update-time: 20260614
+description: Close the async logger queue immediately and optionally convert current pending backlog into dropped records before queue closure.
 key-word:
     - async
     - logger
@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - `clear=false` closes the queue without explicitly abandoning pending records in the helper itself.
 - `clear=true` counts pending records as dropped and resets `pending_count` to `0` before closing the queue.
 - This helper does not itself wait for the worker to finish.
+- Because this is a low-level close primitive, it does not first run `wait_idle()` or apply the runtime-dependent fallback logic used by `shutdown()`.
 
 ### How to Use
 
@@ -66,6 +67,8 @@ In this example, queued backlog is counted as dropped instead of waiting for fur
 e.g.:
 - If `clear=true`, pending records are intentionally discarded and contribute to `dropped_count()`.
 
+- If `clear=false`, pending records may still exist after closure until worker drain or later cleanup resolves them.
+
 - If callers need graceful waiting for drain completion, `shutdown()` is usually the better API.
 
 ### Notes
@@ -73,3 +76,5 @@ e.g.:
 1. This is a low-level lifecycle helper; prefer `shutdown()` for normal graceful teardown.
 
 2. Use `clear=true` only when backlog loss is an acceptable shutdown tradeoff.
+
+3. Pair it with `pending_count()`, `dropped_count()`, or `state()` when you need to observe what happened to existing backlog after closure.

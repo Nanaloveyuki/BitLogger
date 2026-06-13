@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - In runtimes where shutdown clearing after idle is enabled, remaining backlog after `wait_idle()` triggers a fallback `close(clear=true)`.
 - `clear=true` immediately closes and abandons pending records.
 - In runtimes where shutdown waits for workers, the method then waits until `is_running()` becomes `false` before returning.
+- In the current backend split, native-worker runtimes enable both the post-`wait_idle()` clear fallback and the final wait-for-worker phase, while compatibility runtimes skip both extra steps.
 
 ### How to Use
 
@@ -66,6 +67,8 @@ In this example, pending work is abandoned intentionally so shutdown can complet
 e.g.:
 - If `clear=true`, pending records are intentionally dropped rather than drained.
 
+- If `wait_idle()` returns early because the worker failed, shutdown behavior after that point still depends on the active runtime's fallback and worker-wait rules.
+
 - In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
 
 - If callers skip `shutdown()` and only inspect flags manually, it is easier to leave the worker lifecycle in an unclear state.
@@ -77,3 +80,5 @@ e.g.:
 2. Exact post-close waiting behavior depends on the active async runtime mode.
 
 3. Choose `clear=true` only when loss of queued records is acceptable.
+
+4. Pair it with `state()` or focused counters when tests need to assert whether shutdown drained backlog or converted it into dropped records.
