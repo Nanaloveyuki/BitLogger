@@ -44,7 +44,10 @@ pub fn[S] async_logger(
 Detailed rules explaining key parameters and behaviors
 
 - `async_logger(...)` only builds the logger. Actual background draining is started by `run()`.
+- `async_logger(...)` returns the full `AsyncLogger[S]` surface directly. It is therefore the underlying constructor used by both application-facing async aliases and the narrower `LibraryAsyncLogger[S]` wrapper line.
 - The constructed logger starts with `is_closed=false`, `is_running=false`, `has_failed=false`, `last_error=""`, and zeroed pending/dropped counters.
+- `ApplicationAsyncLogger` and `ApplicationTextAsyncLogger` are only alias names over concrete `AsyncLogger[...]` shapes, so they keep the same lifecycle, queue, failure, and state helpers without adding a wrapper layer.
+- `LibraryAsyncLogger[S]` wraps an `AsyncLogger[S]` value instead of aliasing it. That library facade preserves queue-backed logging behavior, but it narrows the directly exposed helper surface until callers recover the full logger with `to_async_logger()`.
 - In non-native targets, the implementation uses compatibility behavior while keeping the same public surface.
 - `src-async` is designed for `native / llvm / js / wasm / wasm-gc`, but current release-facing local verification is stronger for `native / js / wasm / wasm-gc` than for `llvm`.
 - `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
@@ -108,3 +111,5 @@ e.g.:
 4. See [target-verification.md](./target-verification.md) for the current local verification matrix.
 
 5. Pair this constructor with `run()` and `shutdown()` when you need the full worker lifecycle rather than just a configured async logger value.
+
+6. Choose the facade name based on boundary intent: use `AsyncLogger[S]` for the full surface, `ApplicationAsyncLogger` or `ApplicationTextAsyncLogger` for application-facing alias names, and `LibraryAsyncLogger[S]` when a package boundary should intentionally narrow what downstream code can call directly.

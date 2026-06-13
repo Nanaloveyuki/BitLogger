@@ -38,6 +38,9 @@ Detailed rules explaining key parameters and behaviors
 - The resulting async logger inherits `min_level`, `target`, and timestamp behavior from the built synchronous logger.
 - File, formatter, and any configured synchronous queue choices all come from config rather than direct code-side sink wiring.
 - The returned sink type is `RuntimeSink`, which keeps configured control helpers available where relevant.
+- This builder returns the underlying `AsyncLogger[@bitlogger.RuntimeSink]` value directly. `build_application_async_logger(...)` only re-exports the same result under the `ApplicationAsyncLogger` alias, while `build_library_async_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.RuntimeSink]`.
+- Because this path starts from `build_logger(config.logger)`, it preserves the broader runtime-sink build path, including sync-side queue decoration when `LoggerConfig.queue` is present.
+- Use `build_async_text_logger(...)` instead when you want the direct text-console async builder path with `FormattedConsoleSink` and without the sync runtime-sink construction layer.
 - The `src-async` library is designed to compile on `native / llvm / js / wasm / wasm-gc`, but runtime mode differs by backend.
 - Current local release-facing verification is explicit for `native / js / wasm / wasm-gc`.
 - `llvm` remains experimental and did not complete local verification in this environment.
@@ -89,3 +92,5 @@ e.g.:
 3. Library portability is broader than example portability: a runnable `async fn main` example may still be target-limited even when the async library itself compiles for that backend.
 
 4. See [target-verification.md](./target-verification.md) for the current verification boundary.
+
+5. If the next boundary is library-facing rather than application-facing, build here and then narrow with `build_library_async_logger(...)` instead of documenting the broader runtime helper surface directly.
