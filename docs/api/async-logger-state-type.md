@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - The remaining fields capture queue counts, lifecycle status, failure state, last error text, and active flush policy.
 - `AsyncLogger::state()` returns this type directly, while `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` export the same data shape for diagnostics.
 - `AsyncLogger::state()` currently builds this snapshot from `async_runtime_state()` plus the logger's current counters, lifecycle flags, last error, and flush policy.
+- When the value comes from `AsyncLogger::state()`, the fields are read one by one rather than through a transactional snapshot primitive.
 - `AsyncLoggerState::new(...)` can also construct this type manually, but manual construction is synthetic snapshot data and does not read one live logger instant by itself.
 
 ### How to Use

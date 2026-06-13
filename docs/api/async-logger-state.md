@@ -34,11 +34,12 @@ pub fn[S] AsyncLogger::state(self : AsyncLogger[S]) -> AsyncLoggerState {}
 Detailed rules explaining key parameters and behaviors
 
 - `AsyncLoggerState` includes `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
-- `state()` returns a point-in-time snapshot rather than a live handle.
+- `state()` returns a value snapshot rather than a live handle.
 - This helper is equivalent to `AsyncLoggerState::new(async_runtime_state(), self.pending_count(), self.dropped_count(), self.is_closed(), self.is_running(), self.has_failed(), self.last_error(), self.flush_policy())`.
 - `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` convert the snapshot to stable diagnostic output.
 - `runtime` embeds the result of `async_runtime_state()` so callers do not need to join separate helpers manually.
 - Because the snapshot is assembled field by field when `state()` is called, later logger changes require calling `state()` again rather than reusing an older `AsyncLoggerState` value as if it refreshed itself.
+- That field-by-field assembly also means this helper is not an atomic freeze across all refs; under concurrent logger activity, neighboring fields can reflect slightly different instants.
 
 ### How to Use
 
@@ -77,6 +78,8 @@ e.g.:
 
 - `flush_policy` reports the logger's configured async flush mode, not whether a flush has already happened.
 
+- If concurrent logger activity is still changing counters or flags while `state()` runs, the returned value is still useful for diagnostics but should not be treated as a transactional snapshot.
+
 ### Notes
 
 1. Prefer this API over manually combining `pending_count()`, `dropped_count()`, and runtime-mode helpers.
@@ -84,3 +87,5 @@ e.g.:
 2. Use `pretty=true` when emitting logs for humans and the compact form for machine-oriented payloads.
 
 3. Use `AsyncLoggerState::new(...)` only when tests or adapters need to construct a manual snapshot instead of reading one directly from a logger instance.
+
+4. If consumers need stronger cross-field consistency than a diagnostic snapshot, they should not assume `state()` provides an atomic read barrier.

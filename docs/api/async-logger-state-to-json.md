@@ -13,7 +13,7 @@ key-word:
 
 ## Async-logger-state-to-json
 
-Convert `AsyncLoggerState` into a `JsonValue`. This helper is the structured export path for async logger runtime snapshots when callers want machine-readable diagnostics instead of a plain string.
+Convert `AsyncLoggerState` into a `JsonValue`. This helper is the structured export path for async logger runtime snapshots or manually constructed state values when callers want machine-readable diagnostics instead of a plain string.
 
 ### Interface
 
@@ -23,7 +23,7 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 
 #### input
 
-- `state : AsyncLoggerState` - Snapshot produced by `AsyncLogger::state()`.
+- `state : AsyncLoggerState` - Snapshot produced by `AsyncLogger::state()` or any manually constructed `AsyncLoggerState` value.
 
 #### output
 
@@ -39,7 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - The public helper returns the same internal JSON snapshot shape used by `stringify_async_logger_state(...)`, so both export paths stay aligned without duplicate field assembly logic.
 - This helper is suitable for health endpoints, diagnostics payloads, and custom serialization flows.
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
-- The state must already have been captured before serialization.
+- The state must already have been captured or constructed before serialization.
 
 ### How to Use
 
@@ -79,5 +79,5 @@ e.g.:
 
 3. Use this API when downstream code wants a JSON value rather than a ready-made string.
 
-4. Pair it with `AsyncLogger::state()` to capture the snapshot first.
+4. Pair it with `AsyncLogger::state()` when you want current logger data, or with `AsyncLoggerState::new(...)` when tests or adapters are exporting a synthetic snapshot.
 
