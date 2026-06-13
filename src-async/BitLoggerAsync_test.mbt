@@ -1031,6 +1031,69 @@ async test "async logger can project to library async logger" {
   inspect(logger.to_async_logger().target, content="async.projected")
 }
 
+async test "build async logger keeps direct helper surface and runtime sink path" {
+  let logger = build_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.direct.helpers",
+        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::DropOldest,
+        flush=AsyncFlushPolicy::Shutdown,
+      ),
+    ),
+  )
+
+  let state = logger.state()
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.direct.helpers")
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="0")
+  inspect(state.is_closed, content="false")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(match state.flush_policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
+  inspect(match logger.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.is_closed(), content="false")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.sink.pending_count(), content="0")
+  inspect(logger.sink.dropped_count(), content="0")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
+}
+
 async test "async logger projection preserves async queue and failure state" {
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) {
