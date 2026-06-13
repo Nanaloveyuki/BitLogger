@@ -33,9 +33,10 @@ pub fn parse_and_build_logger(input : String) -> ConfiguredLogger raise ConfigEr
 
 Detailed rules explaining key parameters and behaviors
 
-- Parsing and building are done in one step, which is useful when you do not need to inspect the intermediate `LoggerConfig`.
+- Parsing and building are done in one step by calling `parse_logger_config_text(input)` first and then passing the resulting `LoggerConfig` into `build_logger(...)`.
 - The returned `ConfiguredLogger` is just `Logger[RuntimeSink]`, so it still supports regular logging calls.
 - Queue wrapping and file control helpers remain available after config assembly.
+- `parse_and_build_application_logger(...)` only re-exports this same configured runtime logger result under the `ApplicationLogger` alias, while `parse_and_build_library_logger(...)` wraps the same result in `LibraryLogger[RuntimeSink]`.
 - Errors are surfaced as `ConfigError` rather than silent fallback.
 
 ### How to Use
@@ -85,4 +86,6 @@ e.g.:
 1. Use `parse_logger_config_text(...)` first if you want to validate and inspect config separately.
 
 2. Prefer this API for app bootstrapping paths that read config once and then construct the runtime logger.
+
+3. Use the application or library parse/build facades only when the public name or exposed surface should differ; they do not change the configured runtime logger pipeline produced here.
 

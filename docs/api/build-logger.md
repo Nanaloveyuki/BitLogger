@@ -33,9 +33,10 @@ pub fn build_logger(config : LoggerConfig) -> ConfiguredLogger {}
 
 Detailed rules explaining key parameters and behaviors
 
-- `build_logger(...)` constructs the runtime sink shape based on `SinkConfig` and optional queue wrapper.
+- `build_logger(...)` first constructs a base `RuntimeSink` from `config.sink`, then applies `config.queue` when present, and finally builds `Logger::new(...)` with `config.min_level`, `config.target`, and `config.timestamp`.
 - The returned logger still supports normal logging methods because `ConfiguredLogger` is `Logger[RuntimeSink]`.
 - Queue metrics and file controls remain available through forwarding helpers on the configured logger.
+- `build_application_logger(...)` only re-exports this same configured runtime logger result under the `ApplicationLogger` alias, while `build_library_logger(...)` wraps the same result in `LibraryLogger[RuntimeSink]`.
 - This API is deterministic and data-driven, making it suitable for bootstrapping from parsed config.
 
 ### How to Use
@@ -82,4 +83,6 @@ e.g.:
 1. Use this API when config is already typed as `LoggerConfig`.
 
 2. Use `parse_and_build_logger(...)` when the starting point is raw JSON text.
+
+3. Use the application or library facade builders only when the boundary name or exposed surface should differ; they do not change the underlying configured runtime logger pipeline built here.
 
