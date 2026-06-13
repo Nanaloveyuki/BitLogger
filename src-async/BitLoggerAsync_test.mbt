@@ -140,6 +140,41 @@ test "async logger config stringify roundtrips stable fields" {
   }, content="Batch")
 }
 
+async test "async logger config constructor normalizes batch and linger but preserves pending input" {
+  let config = AsyncLoggerConfig::new(
+    max_pending=-3,
+    overflow=AsyncOverflowPolicy::DropNewest,
+    max_batch=0,
+    linger_ms=-5,
+    flush=AsyncFlushPolicy::Batch,
+  )
+  inspect(config.max_pending, content="-3")
+  inspect(config.max_batch, content="1")
+  inspect(config.linger_ms, content="0")
+  inspect(match config.overflow {
+    AsyncOverflowPolicy::Blocking => "Blocking"
+    AsyncOverflowPolicy::DropOldest => "DropOldest"
+    AsyncOverflowPolicy::DropNewest => "DropNewest"
+  }, content="DropNewest")
+  inspect(match config.flush {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Batch")
+
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=config,
+    min_level=@bitlogger.Level::Info,
+    target="async.config.normalized",
+  )
+  logger.info("one")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+}
+
 test "async build config stringify roundtrips nested logger and async fields" {
   let text = stringify_async_logger_build_config(
     AsyncLoggerBuildConfig::new(
