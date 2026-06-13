@@ -44,11 +44,13 @@ pub fn[S] async_logger(
 Detailed rules explaining key parameters and behaviors
 
 - `async_logger(...)` only builds the logger. Actual background draining is started by `run()`.
+- The constructed logger starts with `is_closed=false`, `is_running=false`, `has_failed=false`, `last_error=""`, and zeroed pending/dropped counters.
 - In non-native targets, the implementation uses compatibility behavior while keeping the same public surface.
 - `src-async` is designed for `native / llvm / js / wasm / wasm-gc`, but current release-facing local verification is stronger for `native / js / wasm / wasm-gc` than for `llvm`.
 - `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
 - `flush` is used only when batch or shutdown policy wants explicit flushing.
 - If the supplied flush callback raises, worker failure state is recorded through `has_failed()` and `last_error()`.
+- The exact behavior of late log attempts after closure is runtime-dependent, so callers should use lifecycle helpers like `is_closed()` and `shutdown()` instead of assuming identical post-close enqueue semantics everywhere.
 - Queue overflow behavior depends on `AsyncOverflowPolicy`.
 
 ### How to Use
@@ -104,3 +106,5 @@ e.g.:
 3. Example entrypoint limitations such as `async fn main` support are separate from the library-level portability of this API.
 
 4. See [target-verification.md](./target-verification.md) for the current local verification matrix.
+
+5. Pair this constructor with `run()` and `shutdown()` when you need the full worker lifecycle rather than just a configured async logger value.
