@@ -2542,6 +2542,82 @@ async test "build async text logger keeps direct helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+async test "build async text logger batch flush policy keeps default no-op flush callback" {
+  let config = AsyncLoggerBuildConfig::new(
+    logger=@bitlogger.LoggerConfig::new(
+      min_level=@bitlogger.Level::Info,
+      target="async.text.batch.flush",
+      timestamp=true,
+      sink=@bitlogger.SinkConfig::new(
+        kind=@bitlogger.SinkKind::TextConsole,
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+          template="TEXT:{target}:{message}",
+        ),
+      ),
+    ),
+    async_config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      max_batch=2,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+  )
+  let configured = build_async_text_logger(config)
+  let manual = async_logger(
+    @bitlogger.text_console_sink(config.logger.sink.text_formatter.to_formatter()),
+    config=config.async_config,
+    min_level=config.logger.min_level,
+    target=config.logger.target,
+    flush=fn(_) -> Int raise {
+      raise TestFlushError("text batch flush exploded")
+    },
+  ).with_timestamp(enabled=config.logger.timestamp)
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => configured.run())
+    group.spawn_bg(allow_failure=true, () => manual.run())
+
+    configured.error("one")
+    configured.error("two")
+    manual.error("one")
+    manual.error("two")
+
+    configured.wait_idle()
+    manual.wait_idle()
+
+    inspect(match configured.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    }, content="Batch")
+    inspect(match manual.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    }, content="Batch")
+    inspect(configured.has_failed(), content="false")
+    inspect(configured.last_error(), content="")
+    inspect(configured.pending_count(), content="0")
+    inspect(manual.has_failed(), content="true")
+    inspect(manual.last_error().contains("TestFlushError"), content="true")
+
+    configured.shutdown()
+    manual.shutdown(clear=true)
+  })
+
+  inspect(configured.is_closed(), content="true")
+  inspect(configured.is_running(), content="false")
+  inspect(configured.has_failed(), content="false")
+  inspect(configured.last_error(), content="")
+  inspect(configured.pending_count(), content="0")
+  inspect(manual.is_closed(), content="true")
+  inspect(manual.is_running(), content="false")
+  inspect(manual.has_failed(), content="true")
+  inspect(manual.last_error().contains("TestFlushError"), content="true")
+}
+
 test "build async text logger ignores sync queue layer" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
