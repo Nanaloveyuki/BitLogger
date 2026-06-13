@@ -1653,6 +1653,51 @@ test "library logger can be parsed and built from config text" {
   inspect(full.target, content="lib.json")
 }
 
+test "library logger parse-build unwrap matches parsed direct builder behavior" {
+  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":2,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}}"
+  let logger = parse_and_build_library_logger(raw)
+  let full = logger.to_logger()
+  let configured = parse_and_build_logger(raw)
+
+  inspect(full.target, content=configured.target)
+  inspect(full.timestamp == configured.timestamp, content="true")
+  inspect(logger.is_enabled(Level::Error) == configured.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info) == configured.is_enabled(Level::Info), content="true")
+  let full_sink_kind = match full.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    RuntimeSink::Console(_) => "Console"
+    RuntimeSink::JsonConsole(_) => "JsonConsole"
+    RuntimeSink::TextConsole(_) => "TextConsole"
+    RuntimeSink::File(_) => "File"
+  }
+  let configured_sink_kind = match configured.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    RuntimeSink::Console(_) => "Console"
+    RuntimeSink::JsonConsole(_) => "JsonConsole"
+    RuntimeSink::TextConsole(_) => "TextConsole"
+    RuntimeSink::File(_) => "File"
+  }
+  inspect(full_sink_kind == configured_sink_kind, content="true")
+
+  full.error("one")
+  full.error("two")
+  full.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.dropped_count() == configured.dropped_count(), content="true")
+  inspect(full.flush() == configured.flush(), content="true")
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+}
+
 test "parsed library logger unwrap preserves configured runtime path" {
   let logger = parse_and_build_library_logger(
     "{\"min_level\":\"warn\",\"target\":\"lib.json.runtime\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}}",
