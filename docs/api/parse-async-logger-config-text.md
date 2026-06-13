@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - Parsed values then flow through `AsyncLoggerConfig::new(...)`, so `max_batch` and `linger_ms` receive the same constructor normalization.
 - Overflow parsing accepts both `DropNewest` and the compatibility alias `DropLatest`.
 - Flush parsing accepts both `Never` and the compatibility alias `None`.
+- The error surface here is the general `Failure` path used by the async config utilities, including malformed JSON, non-object roots, wrong field types, and unsupported enum text.
 - Use this API when async policy comes from config text but sink choice is still assembled elsewhere.
 
 ### How to Use

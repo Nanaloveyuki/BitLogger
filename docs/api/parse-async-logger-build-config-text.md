@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_config` is parsed through `parse_async_logger_config_text(...)`.
 - If `logger` is omitted, parsing falls back to `default_logger_config()`.
 - If `async_config` is omitted, parsing falls back to `AsyncLoggerConfig::new()`.
+- When either section is present, that nested JSON value is re-stringified and passed through the existing sync or async parser helper rather than being reparsed by a separate schema implementation here.
 - This API separates validation from actual async runtime construction.
 - When the parsed config is later passed to `build_async_logger(...)`, the embedded `logger` section goes through the normal sync builder path first, including optional `LoggerConfig.queue` handling.
 - When the same parsed config is passed to `build_async_text_logger(...)`, only `logger.sink.text_formatter` plus the top-level `min_level`, `target`, and `timestamp` fields are consumed directly, so the sync queue layer is not applied.

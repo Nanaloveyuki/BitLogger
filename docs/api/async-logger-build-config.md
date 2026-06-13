@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - Omitting `logger` uses `default_logger_config()`.
 - Omitting `async_config` uses `AsyncLoggerConfig::new()`.
 - The constructor simply packages both config objects into one public build shape.
+- The constructor does not normalize or reinterpret either embedded config beyond those defaults; any normalization has already happened inside the `LoggerConfig` or `AsyncLoggerConfig` values passed in.
 - When passed to `build_async_logger(...)`, the `logger` portion is built first through the normal synchronous config path before the outer async queue layer is applied.
 - When passed to `build_async_text_logger(...)`, the same `logger` portion is consumed more narrowly: `text_formatter`, `min_level`, `target`, and `timestamp` are used directly to build a text console sink, while `LoggerConfig.queue` is not applied.
 - This helper is the main code-side counterpart to `parse_async_logger_build_config_text(...)`.
