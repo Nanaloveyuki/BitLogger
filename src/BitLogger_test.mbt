@@ -1454,6 +1454,24 @@ test "default library logger mirrors shared sync defaults" {
   inspect(logger.to_logger().target, content="lib.default")
 }
 
+test "default library logger snapshots shared defaults at creation time" {
+  set_default_min_level(Level::Warn)
+  set_default_target("lib.before")
+  let before = default_library_logger()
+
+  set_default_min_level(Level::Debug)
+  set_default_target("lib.after")
+  let after = default_library_logger()
+
+  inspect(before.is_enabled(Level::Error), content="true")
+  inspect(before.is_enabled(Level::Info), content="false")
+  inspect(before.to_logger().target, content="lib.before")
+
+  inspect(after.is_enabled(Level::Error), content="true")
+  inspect(after.is_enabled(Level::Info), content="true")
+  inspect(after.to_logger().target, content="lib.after")
+}
+
 test "application logger aliases configured runtime entry" {
   let logger = build_application_logger(
     LoggerConfig::new(min_level=Level::Warn, target="app.runtime"),
