@@ -3,7 +3,7 @@ name: parse-and-build-application-logger
 group: api
 category: facade
 update-time: 20260520
-description: Parse JSON logger config text and build the application-facing sync logger facade.
+description: Parse JSON logger config text and build the application-facing sync logger alias by delegating directly to the configured runtime logger parse-and-build path.
 key-word:
     - application
     - facade
@@ -35,9 +35,10 @@ pub fn parse_and_build_application_logger(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API delegates to `parse_and_build_logger(...)`.
+- This API delegates to `parse_and_build_logger(...)` directly.
 - JSON parsing and config validation happen before the logger is built.
-- The returned logger keeps the same queue and file helper surface as other configured sync runtime loggers.
+- The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
+- Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this parse-and-build path does not hide any queue, drain, flush, or file runtime helper methods.
 
 ### How to Use
 
@@ -54,6 +55,8 @@ let logger = parse_and_build_application_logger(
 
 In this example, parsing and runtime construction are combined into one facade call.
 
+And any queue/file/runtime helpers selected by the parsed config remain directly available on the returned alias value.
+
 ### Error Case
 
 e.g.:
@@ -66,3 +69,5 @@ e.g.:
 1. Use this facade when application code wants a text-to-runtime entry point.
 
 2. Use `build_application_logger(...)` when the config is already typed as `LoggerConfig`.
+
+3. Use `parse_and_build_library_logger(...)` instead when text-driven construction should narrow the public sync logger surface for a library boundary.

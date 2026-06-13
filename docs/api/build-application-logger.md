@@ -3,7 +3,7 @@ name: build-application-logger
 group: api
 category: facade
 update-time: 20260520
-description: Build the application-facing configured logger facade from a LoggerConfig.
+description: Build the application-facing configured logger alias from a LoggerConfig by delegating directly to the normal runtime logger build path.
 key-word:
     - application
     - facade
@@ -33,9 +33,10 @@ pub fn build_application_logger(config : LoggerConfig) -> ApplicationLogger {
 
 Detailed rules explaining key parameters and behaviors
 
-- This API delegates to `build_logger(...)`.
-- The returned value keeps the same public logging, queue, and file runtime helper surface as `ConfiguredLogger`.
-- Use this facade when application boot code wants an app-specific entry name without exposing lower-level builder naming in its own code.
+- This API delegates to `build_logger(...)` directly.
+- The embedded config still goes through the normal runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
+- Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this builder does not hide any queue, drain, flush, or file runtime helper methods.
+- Use this alias-oriented entrypoint when application boot code wants an app-specific name without changing the underlying configured runtime logger surface.
 
 ### How to Use
 
@@ -52,6 +53,8 @@ let logger = build_application_logger(
 
 In this example, the application facade builds the same configured runtime logger shape as `build_logger(...)`.
 
+And any queue/file/runtime helpers selected by the config remain directly available on the returned alias value.
+
 ### Error Case
 
 e.g.:
@@ -64,3 +67,5 @@ e.g.:
 1. This is a facade API, not a separate runtime implementation.
 
 2. Use `parse_and_build_application_logger(...)` when starting from JSON text.
+
+3. Use `build_library_logger(...)` instead when the public surface should intentionally hide configured-runtime helper methods.

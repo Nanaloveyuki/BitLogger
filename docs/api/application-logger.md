@@ -3,7 +3,7 @@ name: application-logger
 group: api
 category: facade
 update-time: 20260613
-description: Application-facing alias for the configured sync runtime logger surface.
+description: Application-facing alias for the configured sync runtime logger surface, preserving the full ConfiguredLogger helper set.
 key-word:
     - application
     - facade
@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same logging, queue, and file helper APIs exposed by `ConfiguredLogger`.
+- Because this is only an alias, the application-facing type does not hide any configured-runtime helpers or broader logger surface.
 - The alias exists to give application boot code a clearer public entry name.
 - Builders such as `build_application_logger(...)` and `parse_and_build_application_logger(...)` return this alias.
 
@@ -58,6 +59,8 @@ fn start(logger : ApplicationLogger) -> Unit {
 
 In this example, callers see the app-facing alias instead of the lower-level `ConfiguredLogger` name.
 
+And the same queue/file/runtime helpers remain directly callable because no narrowing wrapper is added.
+
 ### Error Case
 
 e.g.:
@@ -70,3 +73,5 @@ e.g.:
 1. This alias is about naming and public intent, not a different runtime implementation.
 
 2. Use `build_application_logger(...)` or `parse_and_build_application_logger(...)` for the usual construction paths.
+
+3. Use `LibraryLogger` instead when a library boundary should intentionally hide configured-runtime helper methods behind a narrower facade.
