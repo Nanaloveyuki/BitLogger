@@ -2524,6 +2524,56 @@ test "application logger file helpers match direct configured builder behavior" 
   inspect(application.file_close() == configured.file_close(), content="true")
 }
 
+test "application logger file controls match direct configured builder behavior" {
+  let config = LoggerConfig::new(
+    min_level=Level::Warn,
+    target="app.file.controls.same-build",
+    sink=SinkConfig::new(kind=SinkKind::File, path="app-file-controls-same-build.log"),
+  )
+  let application = build_application_logger(config)
+  let configured = build_logger(config)
+
+  inspect(application.file_set_append_mode(false) == configured.file_set_append_mode(false), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+
+  inspect(application.file_set_auto_flush(false) == configured.file_set_auto_flush(false), content="true")
+  inspect(application.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let rotation = Some(file_rotation(48, max_backups=3))
+  inspect(application.file_set_rotation(rotation) == configured.file_set_rotation(rotation), content="true")
+  inspect(application.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+
+  let application_policy = application.file_policy()
+  let configured_policy = configured.file_policy()
+  inspect(application_policy.append == configured_policy.append, content="true")
+  inspect(application_policy.auto_flush == configured_policy.auto_flush, content="true")
+  inspect(match application_policy.rotation {
+    Some(value) => match configured_policy.rotation {
+      Some(other) => value.max_bytes == other.max_bytes && value.max_backups == other.max_backups
+      None => false
+    }
+    None => configured_policy.rotation is None
+  }, content="true")
+
+  inspect(application.file_reopen_append() == configured.file_reopen_append(), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(application.file_reopen_truncate() == configured.file_reopen_truncate(), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(
+    application.file_reopen_with_current_policy() == configured.file_reopen_with_current_policy(),
+    content="true",
+  )
+
+  inspect(application.file_clear_rotation() == configured.file_clear_rotation(), content="true")
+  inspect(application.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(application.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(application.file_reset_policy() == configured.file_reset_policy(), content="true")
+  inspect(application.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(application.file_reset_failure_counters() == configured.file_reset_failure_counters(), content="true")
+
+  inspect(application.file_close() == configured.file_close(), content="true")
+}
+
 test "parsed application logger keeps direct runtime helper surface" {
   let logger : ApplicationLogger = parse_and_build_application_logger(
     "{\"min_level\":\"warn\",\"target\":\"app.json.helpers\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"app-json-helpers.log\"}}",
@@ -2591,6 +2641,32 @@ test "parsed application logger file helpers match parsed configured builder beh
 
   inspect(application.file_flush() == configured.file_flush(), content="true")
   inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.file_close() == configured.file_close(), content="true")
+}
+
+test "parsed application logger file controls match parsed configured builder behavior" {
+  let raw = "{\"min_level\":\"warn\",\"target\":\"app.json.file.controls.same-build\",\"sink\":{\"kind\":\"file\",\"path\":\"app-json-file-controls-same-build.log\"}}"
+  let application = parse_and_build_application_logger(raw)
+  let configured = parse_and_build_logger(raw)
+
+  inspect(application.file_set_append_mode(false) == configured.file_set_append_mode(false), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(application.file_set_auto_flush(false) == configured.file_set_auto_flush(false), content="true")
+  inspect(application.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let rotation = Some(file_rotation(40, max_backups=2))
+  inspect(application.file_set_rotation(rotation) == configured.file_set_rotation(rotation), content="true")
+  inspect(application.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(application.file_reopen(append=Some(false)) == configured.file_reopen(append=Some(false)), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(application.file_reopen_append() == configured.file_reopen_append(), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(application.file_clear_rotation() == configured.file_clear_rotation(), content="true")
+  inspect(application.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(application.file_reset_policy() == configured.file_reset_policy(), content="true")
+  inspect(application.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(application.file_reset_failure_counters() == configured.file_reset_failure_counters(), content="true")
+
   inspect(application.file_close() == configured.file_close(), content="true")
 }
 
