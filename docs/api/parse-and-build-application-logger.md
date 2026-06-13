@@ -38,7 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - This API delegates to `parse_and_build_logger(...)` directly.
 - JSON parsing and config validation happen before the logger is built.
 - The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
-- Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this parse-and-build path does not hide any queue, drain, flush, or file runtime helper methods.
+- Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this parse-and-build path returns the same underlying configured runtime logger value that `parse_and_build_logger(...)` would produce directly, without hiding any queue, drain, flush, or file runtime helper methods.
+- Use `parse_and_build_library_logger(...)` instead when the same parsed configured logger result should be wrapped and narrowed for a library boundary.
 
 ### How to Use
 

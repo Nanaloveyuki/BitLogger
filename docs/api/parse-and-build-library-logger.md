@@ -37,9 +37,11 @@ Detailed rules explaining key parameters and behaviors
 
 - This API parses config text, validates it, builds the configured logger through `parse_and_build_logger(...)`, and wraps that same value as a library facade.
 - The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
+- The returned facade wraps the same underlying `ConfiguredLogger` value that `parse_and_build_logger(...)` would produce directly.
 - The returned facade keeps a narrower surface than the underlying configured logger.
 - Queue metrics, flush and drain helpers, and file runtime controls stay on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - `to_logger()` can be used to recover the underlying full logger object when necessary.
+- Use this parse/build facade when text-driven construction should preserve the configured runtime logger path but still hide broader runtime helper methods at the package boundary.
 
 ### How to Use
 
