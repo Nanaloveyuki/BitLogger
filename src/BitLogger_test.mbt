@@ -1580,6 +1580,30 @@ test "application logger can be built from config text" {
   inspect(logger.target, content="app.json")
 }
 
+test "parsed application logger keeps direct runtime helper surface" {
+  let logger : ApplicationLogger = parse_and_build_application_logger(
+    "{\"min_level\":\"warn\",\"target\":\"app.json.helpers\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"app-json-helpers.log\"}}",
+  )
+
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.file_policy().append, content="true")
+  inspect(logger.file_runtime_state() is None, content="false")
+  inspect(logger.flush(), content="2")
+  inspect(logger.pending_count(), content="0")
+
+  if logger.file_available() {
+    inspect(logger.file_flush(), content="true")
+    inspect(logger.file_close(), content="true")
+  } else {
+    inspect(logger.file_flush(), content="false")
+    inspect(logger.file_close(), content="false")
+  }
+}
+
 test "parsed configured logger keeps composition and runtime helper surface" {
   let logger : ConfiguredLogger = parse_and_build_logger(
     "{\"min_level\":\"warn\",\"target\":\"parsed.compose\",\"timestamp\":true,\"queue\":{\"max_pending\":2,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}}",
