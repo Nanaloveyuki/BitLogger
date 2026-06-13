@@ -54,6 +54,7 @@ Detailed rules explaining key parameters and behaviors
 - `AsyncLogger::state()` is the higher-level API that reads these values from a concrete logger.
 - It also does not validate whether the supplied fields represent a combination that could come from one real logger instant.
 - The constructed value matches the same public shape used by async logger serializers.
+- Because `AsyncLoggerState` is only a data snapshot type, this constructor is mainly useful for tests, adapters, and synthetic diagnostics rather than ordinary logger inspection.
 
 ### How to Use
 

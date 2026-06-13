@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_runtime_state()` returns this type directly as an environment-level snapshot.
 - `async_runtime_state()` currently builds that snapshot from `async_runtime_mode()` and `async_runtime_supports_background_worker()`.
 - `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` serialize the same snapshot shape for diagnostics.
+- `AsyncRuntimeState::new(...)` can also construct this type manually, but manual construction is synthetic data and does not probe the current backend by itself.
 
 ### How to Use
 

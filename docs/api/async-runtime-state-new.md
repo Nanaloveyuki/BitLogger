@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_runtime_state()` is the higher-level API that reads these values from the live runtime environment.
 - It also does not validate whether the supplied pair matches the current backend contract.
 - The constructed value matches the same public shape used by async runtime serializers.
+- Because `AsyncRuntimeState` is only a data snapshot type, this constructor is mainly useful for tests, adapters, and synthetic diagnostics rather than ordinary runtime probing.
 
 ### How to Use
 
