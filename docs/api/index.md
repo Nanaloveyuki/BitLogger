@@ -60,6 +60,7 @@ BitLogger API navigation.
 ## Formatter and fields
 
 - [field.md](./field.md)
+- [field-type.md](./field-type.md)
 - [field-with-value.md](./field-with-value.md)
 - [record-formatter.md](./record-formatter.md)
 - [color-mode.md](./color-mode.md)
@@ -112,6 +113,7 @@ BitLogger API navigation.
 - [patch-sink.md](./patch-sink.md)
 - [file-sink.md](./file-sink.md)
 - [file-rotation.md](./file-rotation.md)
+- [file-rotation-type.md](./file-rotation-type.md)
 - [file-sink-policy-to-json.md](./file-sink-policy-to-json.md)
 - [file-sink-policy.md](./file-sink-policy.md)
 - [stringify-file-sink-policy.md](./stringify-file-sink-policy.md)
