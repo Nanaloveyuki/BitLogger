@@ -468,6 +468,108 @@ async test "async logger with_timestamp only affects derived logger timestamp fl
   inspect(derived_timestamp.val > 0UL, content="true")
 }
 
+async test "async logger log supports per-call target override" {
+  let written_target : Ref[String] = Ref("")
+  let written_message : Ref[String] = Ref("")
+  let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_target.val = rec.target
+      written_message.val = rec.message
+      written_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.default",
+  ).with_context_fields([@bitlogger.field("service", "bitlogger")])
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      fields=[@bitlogger.field("mode", "test")],
+      target="async.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.override")
+  inspect(written_message.val, content="override")
+  inspect(written_fields.val.length(), content="2")
+  inspect(written_fields.val[0].key, content="service")
+  inspect(written_fields.val[0].value, content="bitlogger")
+  inspect(written_fields.val[1].key, content="mode")
+  inspect(written_fields.val[1].value, content="test")
+
+  let second_target : Ref[String] = Ref("")
+  let second_message : Ref[String] = Ref("")
+  let second_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let second = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      second_target.val = rec.target
+      second_message.val = rec.message
+      second_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.default",
+  ).with_context_fields([@bitlogger.field("service", "bitlogger")])
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.log(@bitlogger.Level::Error, "default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.default")
+  inspect(second_message.val, content="default")
+  inspect(second_fields.val.length(), content="1")
+  inspect(second_fields.val[0].key, content="service")
+}
+
+async test "async logger severity helpers use stored target without override" {
+  let written_levels : Ref[Array[String]] = Ref([])
+  let written_targets : Ref[Array[String]] = Ref([])
+  let written_fields : Ref[Array[Array[@bitlogger.Field]]] = Ref([])
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_levels.val.push(rec.level.label())
+      written_targets.val.push(rec.target)
+      written_fields.val.push(rec.fields)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="async.helpers",
+  ).with_context_fields([@bitlogger.field("service", "bitlogger")])
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("info", fields=[@bitlogger.field("mode", "info")])
+    logger.warn("warn", fields=[@bitlogger.field("mode", "warn")])
+    logger.error("error", fields=[@bitlogger.field("mode", "error")])
+    logger.shutdown()
+  })
+
+  inspect(written_levels.val.length(), content="3")
+  inspect(written_levels.val[0], content="INFO")
+  inspect(written_levels.val[1], content="WARN")
+  inspect(written_levels.val[2], content="ERROR")
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.helpers")
+  inspect(written_targets.val[1], content="async.helpers")
+  inspect(written_targets.val[2], content="async.helpers")
+  inspect(written_fields.val[0].length(), content="2")
+  inspect(written_fields.val[1].length(), content="2")
+  inspect(written_fields.val[2].length(), content="2")
+  inspect(written_fields.val[0][0].key, content="service")
+  inspect(written_fields.val[0][1].value, content="info")
+  inspect(written_fields.val[1][0].key, content="service")
+  inspect(written_fields.val[1][1].value, content="warn")
+  inspect(written_fields.val[2][0].key, content="service")
+  inspect(written_fields.val[2][1].value, content="error")
+}
+
 test "async logger config stringify roundtrips stable fields" {
   let text = stringify_async_logger_config(
     AsyncLoggerConfig::new(
