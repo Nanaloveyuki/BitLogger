@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - This helper is suitable for health endpoints, diagnostics payloads, and custom serialization flows.
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
 - The state must already have been captured or constructed before serialization.
+- Serialization preserves whatever snapshot combination it receives, including failure flags together with remaining backlog counts.
 
 ### How to Use
 
@@ -70,6 +71,8 @@ e.g.:
 - If the snapshot contains no error, `last_error` is serialized as an empty string.
 
 - If the queue is empty, `pending_count` and `dropped_count` are still serialized normally as numeric values.
+
+- If `has_failed` is `true`, serialization does not force `pending_count` to `0` or clear `last_error`; it reports the snapshot exactly as provided.
 
 ### Notes
 

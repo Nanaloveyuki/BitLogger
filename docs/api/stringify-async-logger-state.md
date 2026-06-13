@@ -44,6 +44,7 @@ Detailed rules explaining key parameters and behaviors
 - The compact form matches snapshots such as `{"runtime":{"mode":"native_worker","background_worker":true},"pending_count":0,...}`.
 - String output is convenient for logs, CLI output, and startup diagnostics.
 - The serializer does not care whether the input came from a live logger read or a synthetic `AsyncLoggerState::new(...)` call.
+- It also preserves mixed diagnostic states exactly as provided, such as a failure flag together with non-zero backlog.
 
 ### How to Use
 
@@ -73,6 +74,8 @@ e.g.:
 - If the snapshot contains an empty `last_error`, it is still included as an empty string in the serialized output.
 
 - If callers need a JSON value instead of text, they should use `async_logger_state_to_json(...)` instead.
+
+- Stringification does not apply cleanup behavior; it only formats the supplied snapshot fields.
 
 ### Notes
 

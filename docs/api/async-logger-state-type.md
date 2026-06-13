@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `AsyncLogger::state()` currently builds this snapshot from `async_runtime_state()` plus the logger's current counters, lifecycle flags, last error, and flush policy.
 - When the value comes from `AsyncLogger::state()`, the fields are read one by one rather than through a transactional snapshot primitive.
 - `AsyncLoggerState::new(...)` can also construct this type manually, but manual construction is synthetic snapshot data and does not read one live logger instant by itself.
+- When a live snapshot is taken after worker failure, `has_failed=true`, a retained `last_error`, and non-zero `pending_count` may legitimately coexist until later cleanup or restart.
 
 ### How to Use
 
@@ -70,6 +71,8 @@ e.g.:
 - `last_error` may be an empty string when no failure has occurred, which is normal and not a special error condition by itself.
 
 - Because this is just a data shape, manual construction can represent combinations that do not come from a live logger at one exact instant.
+
+- This type does not imply cleanup semantics by itself; values only report the supplied or captured fields and do not drain backlog or clear recorded failure state.
 
 ### Notes
 
