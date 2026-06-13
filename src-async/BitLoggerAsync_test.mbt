@@ -1799,6 +1799,80 @@ test "application async logger can be built from config text" {
   inspect(logger.target, content="async.app.json")
 }
 
+async test "application async parse-build matches parsed direct async builder behavior" {
+  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
+  let application = parse_and_build_application_async_logger(raw)
+  let direct = build_async_logger(parse_async_logger_build_config_text(raw))
+  let application_state = application.state()
+  let direct_state = direct.state()
+
+  inspect(application.target, content=direct.target)
+  inspect(application.timestamp == direct.timestamp, content="true")
+  inspect(
+    application.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error),
+    content="true",
+  )
+  inspect(
+    application.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info),
+    content="true",
+  )
+  inspect(
+    stringify_async_logger_state(application_state) == stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let application_sink_kind = match application.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    @bitlogger.RuntimeSink::Console(_) => "Console"
+    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
+    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
+    @bitlogger.RuntimeSink::File(_) => "File"
+  }
+  let direct_sink_kind = match direct.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    @bitlogger.RuntimeSink::Console(_) => "Console"
+    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
+    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
+    @bitlogger.RuntimeSink::File(_) => "File"
+  }
+  inspect(application_sink_kind == direct_sink_kind, content="true")
+
+  application.info("skip")
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.dropped_count() == direct.dropped_count(), content="true")
+  inspect(application.is_closed() == direct.is_closed(), content="true")
+  inspect(application.is_running() == direct.is_running(), content="true")
+  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
+  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => application.run())
+    group.spawn_bg(() => direct.run())
+    application.shutdown()
+    direct.shutdown()
+  })
+
+  inspect(application.is_closed() == direct.is_closed(), content="true")
+  inspect(application.is_running() == direct.is_running(), content="true")
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.dropped_count() == direct.dropped_count(), content="true")
+  inspect(application.has_failed() == direct.has_failed(), content="true")
+  inspect(application.last_error() == direct.last_error(), content="true")
+}
+
 async test "parsed application async logger keeps async helper surface" {
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.helpers\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
