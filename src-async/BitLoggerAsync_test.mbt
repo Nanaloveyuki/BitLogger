@@ -1191,6 +1191,75 @@ async test "parsed library async logger unwrap keeps async helper surface" {
   inspect(full.last_error(), content="")
 }
 
+async test "library async parse-build unwrap matches parsed direct async builder behavior" {
+  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
+  let logger = parse_and_build_library_async_logger(raw)
+  let full = logger.to_async_logger()
+  let direct = build_async_logger(parse_async_logger_build_config_text(raw))
+  let full_state = full.state()
+  let direct_state = direct.state()
+
+  inspect(full.target, content=direct.target)
+  inspect(full.timestamp == direct.timestamp, content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
+  inspect(
+    stringify_async_logger_state(full_state) == stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let full_sink_kind = match full.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    @bitlogger.RuntimeSink::Console(_) => "Console"
+    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
+    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
+    @bitlogger.RuntimeSink::File(_) => "File"
+  }
+  let direct_sink_kind = match direct.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    @bitlogger.RuntimeSink::Console(_) => "Console"
+    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
+    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
+    @bitlogger.RuntimeSink::File(_) => "File"
+  }
+  inspect(full_sink_kind == direct_sink_kind, content="true")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(full.pending_count() == direct.pending_count(), content="true")
+  inspect(full.dropped_count() == direct.dropped_count(), content="true")
+  inspect(full.is_closed() == direct.is_closed(), content="true")
+  inspect(full.is_running() == direct.is_running(), content="true")
+  inspect(full.sink.pending_count() == direct.sink.pending_count(), content="true")
+  inspect(full.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    group.spawn_bg(() => direct.run())
+    logger.shutdown()
+    direct.shutdown()
+  })
+
+  inspect(full.is_closed() == direct.is_closed(), content="true")
+  inspect(full.is_running() == direct.is_running(), content="true")
+  inspect(full.pending_count() == direct.pending_count(), content="true")
+  inspect(full.dropped_count() == direct.dropped_count(), content="true")
+  inspect(full.has_failed() == direct.has_failed(), content="true")
+  inspect(full.last_error() == direct.last_error(), content="true")
+}
+
 test "library async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
