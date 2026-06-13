@@ -21,6 +21,7 @@ BitLogger API navigation.
 
 ## Core logger
 
+- [logger.md](./logger.md)
 - [logger-new.md](./logger-new.md)
 - [logger-with-target.md](./logger-with-target.md)
 - [logger-child.md](./logger-child.md)
@@ -180,6 +181,7 @@ BitLogger API navigation.
 
 ## Async logger
 
+- [async-logger-type.md](./async-logger-type.md)
 - [async-logger.md](./async-logger.md)
 - [async-logger-run.md](./async-logger-run.md)
 - [async-logger-log.md](./async-logger-log.md)
