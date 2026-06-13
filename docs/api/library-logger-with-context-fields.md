@@ -3,7 +3,7 @@ name: library-logger-with-context-fields
 group: api
 category: facade
 update-time: 20260613
-description: Attach reusable structured fields to a LibraryLogger facade.
+description: Attach reusable structured fields to a LibraryLogger facade while extending the visible sink type to ContextSink.
 key-word:
     - library
     - facade
@@ -27,7 +27,7 @@ pub fn[S] LibraryLogger::with_context_fields(
 #### input
 
 - `self : LibraryLogger[S]` - Base facade that should gain shared fields.
-- `fields : Array[Field]` - Structured fields that will be prepended to each emitted record.
+- `fields : Array[Field]` - Structured fields stored in the added `ContextSink` and prepended to each emitted record.
 
 #### output
 
@@ -39,7 +39,9 @@ Detailed rules explaining key parameters and behaviors
 
 - This API delegates to the wrapped logger's `with_context_fields(...)` behavior and then narrows the result back to `LibraryLogger`.
 - Context fields are merged at write time rather than by mutating previously created records.
-- The returned facade carries `ContextSink[S]` because the sink pipeline has been extended.
+- The returned facade carries `ContextSink[S]` because the sink pipeline is extended around the previous sink instead of keeping the original visible sink type `S`.
+- Minimum level, target, and timestamp behavior are preserved while the sink pipeline changes from `S` to `ContextSink[S]`.
+- Broader composition helpers remain hidden behind the narrower facade after rewrapping; use `to_logger()` if later code needs them.
 - `bind(...)` is an ergonomic alias for this same behavior.
 
 ### How to Use
@@ -68,15 +70,21 @@ let worker = LibraryLogger::new(console_sink(), target="sdk")
 
 In this example, target composition and field binding stay separate but compose cleanly.
 
+And the returned facade keeps the same logger configuration while exposing the widened sink type `ContextSink[S]`.
+
 ### Error Case
 
 e.g.:
-- If `fields` is empty, the returned facade remains valid and simply adds no extra metadata.
+- If `fields` is empty, the returned facade remains valid and simply stores an empty shared field set inside `ContextSink[S]`.
 
 - If duplicate field keys are provided, all fields are still emitted for downstream formatting or inspection.
+
+- If callers want event-specific fields without changing the shared bound set, they should pass those through `log(..., fields=...)` on the returned facade.
 
 ### Notes
 
 1. Use this for stable shared metadata, not highly dynamic event-specific values.
 
-2. The narrower `LibraryLogger` surface is preserved after context binding.
+2. The narrower `LibraryLogger` surface is preserved after context binding, even though the visible sink type changes to `ContextSink[S]`.
+
+3. Use `bind(...)` when the shorter alias reads better in chained library code.
