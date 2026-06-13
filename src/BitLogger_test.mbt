@@ -1156,6 +1156,58 @@ test "library logger keeps a smaller stable facade" {
   inspect(captured_fields.val[1].key, content="mode")
 }
 
+test "library logger context binding unwraps to context sink shape" {
+  let logger = LibraryLogger::new(console_sink(), min_level=Level::Warn, target="lib.ctx")
+    .with_context_fields([field("service", "bitlogger"), field("scope", "sdk")])
+  let full = logger.to_logger()
+
+  inspect(full.target, content="lib.ctx")
+  inspect(full.timestamp, content="false")
+  inspect(full.is_enabled(Level::Error), content="true")
+  inspect(full.is_enabled(Level::Info), content="false")
+  inspect(full.sink.context_fields.length(), content="2")
+  inspect(full.sink.context_fields[0].key, content="service")
+  inspect(full.sink.context_fields[0].value, content="bitlogger")
+  inspect(full.sink.context_fields[1].key, content="scope")
+  inspect(full.sink.context_fields[1].value, content="sdk")
+}
+
+test "library logger bind matches context facade contract" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_timestamp : Ref[UInt64] = Ref(0UL)
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let logger = Logger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_timestamp.val = rec.timestamp_ms
+      captured_fields.val = rec.fields
+    }),
+    min_level=Level::Warn,
+    target="lib.bind",
+  )
+    .with_timestamp()
+    .to_library_logger()
+    .bind([field("service", "bitlogger")])
+  let full = logger.to_logger()
+
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.bind")
+  inspect(full.timestamp, content="true")
+  inspect(full.sink.context_fields.length(), content="1")
+  inspect(full.sink.context_fields[0].key, content="service")
+  inspect(full.sink.context_fields[0].value, content="bitlogger")
+
+  logger.error("bound", fields=[field("mode", "test")])
+  inspect(captured_target.val, content="lib.bind")
+  inspect(captured_timestamp.val > 0UL, content="true")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="mode")
+  inspect(captured_fields.val[1].value, content="test")
+}
+
 test "library logger can unwrap to full logger when needed" {
   let base = LibraryLogger::new(console_sink(), min_level=Level::Warn, target="lib")
   let full = base.to_logger().with_timestamp()
