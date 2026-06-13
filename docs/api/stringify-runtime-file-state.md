@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=true` returns indented JSON for human diagnostics.
 - This helper builds on top of `runtime_file_state_to_json(...)`.
 - The output is useful when queued file runtime state should be printed directly during support or incident handling.
+- Typical inputs come from `RuntimeSink::file_runtime_state()` or `ConfiguredLogger::file_runtime_state()`.
 
 ### How to Use
 

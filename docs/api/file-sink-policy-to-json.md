@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `rotation` is exported as `null` when rotation is disabled.
 - This helper exports runtime file policy, not current file health counters or availability.
 - The JSON value is useful for policy snapshots, comparisons, and diagnostics payloads.
+- Typical inputs come from `FileSink::policy()`, `RuntimeSink::file_policy()`, or `ConfiguredLogger::file_policy()`.
 
 ### How to Use
 
@@ -44,9 +45,9 @@ Here are some specific examples provided.
 
 #### When Need Structured Policy Snapshots
 
-When file sink policy should be embedded into a larger JSON payload:
+When file policy should be embedded into a larger JSON payload:
 ```moonbit
-let value = file_sink_policy_to_json(sink.policy())
+let value = file_sink_policy_to_json(runtime.file_policy())
 ```
 
 In this example, the runtime file policy becomes a reusable structured value.
@@ -71,4 +72,4 @@ e.g.:
 
 1. Use this helper when downstream code expects `JsonValue` rather than text.
 
-2. It pairs naturally with `policy()` and `default_policy()` runtime accessors.
+2. It pairs naturally with `FileSink::policy()`, `RuntimeSink::file_policy()`, and related default-policy accessors.

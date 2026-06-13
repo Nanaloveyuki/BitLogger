@@ -13,7 +13,7 @@ key-word:
 
 ## Runtime-file-state-to-json
 
-Convert `RuntimeFileState` into a `JsonValue`. This helper exports both file sink status and outer queue metrics for queued file runtime diagnostics.
+Convert `RuntimeFileState` into a `JsonValue`. This helper exports both file sink status and queue metrics for combined runtime file diagnostics.
 
 ### Interface
 
@@ -36,7 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The output includes `file`, `queued`, `pending_count`, and `dropped_count`.
 - `file` is itself exported as a nested file sink state object.
 - This helper is richer than `file_sink_state_to_json(...)` because it also carries queue wrapping context.
-- It is useful for `ConfiguredLogger::file_runtime_state()` and similar queued-file diagnostics flows.
+- It is useful for `RuntimeSink::file_runtime_state()`, `ConfiguredLogger::file_runtime_state()`, and similar queued-file diagnostics flows.
 
 ### How to Use
 
@@ -71,4 +71,4 @@ e.g.:
 
 1. Use this helper when file and queue runtime context should stay together.
 
-2. It is especially useful for configured queued file loggers.
+2. It is especially useful for queued file runtime paths, whether accessed directly or through configured loggers.

@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=true` returns indented JSON for human inspection.
 - This helper builds on top of `file_sink_policy_to_json(...)`.
 - The output is suited for support dumps, policy snapshots, and generated diagnostics text.
+- Typical inputs come from `FileSink::policy()`, `RuntimeSink::file_policy()`, or `ConfiguredLogger::file_policy()`.
 
 ### How to Use
 
@@ -47,7 +48,7 @@ Here are some specific examples provided.
 
 When current file policy should be printed for diagnostics:
 ```moonbit
-println(stringify_file_sink_policy(sink.policy(), pretty=true))
+println(stringify_file_sink_policy(runtime.file_policy(), pretty=true))
 ```
 
 In this example, the runtime file policy is rendered in readable JSON.
@@ -56,7 +57,7 @@ In this example, the runtime file policy is rendered in readable JSON.
 
 When a file policy snapshot should stay small:
 ```moonbit
-let text = stringify_file_sink_policy(sink.policy())
+let text = stringify_file_sink_policy(runtime.file_policy())
 ```
 
 In this example, compact JSON is produced without extra formatting logic.

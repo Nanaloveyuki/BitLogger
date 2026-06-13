@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=true` returns indented JSON for human diagnostics.
 - This helper builds on top of `file_sink_state_to_json(...)`.
 - The output is well-suited for support dumps, incident reports, and log snapshots.
+- Typical inputs come from `FileSink::state()`, `RuntimeSink::file_state()`, or `ConfiguredLogger::file_state()`.
 
 ### How to Use
 
@@ -45,9 +46,9 @@ Here are some specific examples provided.
 
 #### When Need Human-readable File Diagnostics
 
-When file sink status should be printed for operators:
+When file runtime status should be printed for operators:
 ```moonbit
-println(stringify_file_sink_state(sink.state(), pretty=true))
+println(stringify_file_sink_state(runtime.file_state(), pretty=true))
 ```
 
 In this example, the full file-state snapshot is rendered in readable JSON.
@@ -56,7 +57,7 @@ In this example, the full file-state snapshot is rendered in readable JSON.
 
 When a snapshot should stay small:
 ```moonbit
-let text = stringify_file_sink_state(sink.state())
+let text = stringify_file_sink_state(runtime.file_state())
 ```
 
 In this example, compact JSON is returned without extra formatting logic.

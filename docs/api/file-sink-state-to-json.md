@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `rotation` is exported as `null` when rotation is disabled.
 - This helper exports state snapshots, not mutable runtime control handles.
 - It is useful when file sink state should be embedded into larger diagnostics payloads.
+- Typical inputs come from `FileSink::state()`, `RuntimeSink::file_state()`, or `ConfiguredLogger::file_state()`.
 
 ### How to Use
 
@@ -44,9 +45,9 @@ Here are some specific examples provided.
 
 #### When Need Structured File Diagnostics
 
-When file sink status should be composed into a larger JSON object:
+When file runtime status should be composed into a larger JSON object:
 ```moonbit
-let value = file_sink_state_to_json(sink.state())
+let value = file_sink_state_to_json(runtime.file_state())
 ```
 
 In this example, callers receive a structured file-state snapshot instead of plain text.
@@ -71,4 +72,4 @@ e.g.:
 
 1. Use this helper when diagnostics consumers expect `JsonValue`.
 
-2. It pairs naturally with `FileSink::state()` and `ConfiguredLogger::file_state()`.
+2. It pairs naturally with `FileSink::state()`, `RuntimeSink::file_state()`, and `ConfiguredLogger::file_state()`.
