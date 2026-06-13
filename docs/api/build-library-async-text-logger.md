@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - A sync queue configured on `LoggerConfig.queue` is therefore ignored by this builder instead of being preserved behind the wrapped text-console async logger.
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value that `build_async_text_logger(...)` would return directly, so `run()`, `shutdown()`, and queue or failure-state behavior are unchanged under the narrower public type.
+- In the current direct text-builder coverage, unwrapping this facade yields the same async state snapshot, formatter behavior, queue counters, lifecycle flags, and later failure fields as calling `build_async_text_logger(config)` directly.
 - The configured `flush_policy` is still carried by that underlying async logger, but this text-specific builder path does not provide the explicit sink flush callback used by `build_library_async_logger(...)` through `build_async_logger(...)`.
 - As a result, `Batch` and `Shutdown` only invoke the default no-op async flush callback on this text-console path unless downstream code unwraps and adds different behavior elsewhere.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`, not on the returned facade itself.
@@ -82,6 +83,8 @@ e.g.:
 - If callers need sink-kind-driven branching such as JSON console or file-backed async output, they should use `build_library_async_logger(...)` instead.
 
 - If callers expect async state or idle-wait helpers directly on the returned facade, they must unwrap first with `to_async_logger()`.
+
+- If callers need to inspect the actual formatter-backed async state after library-level `run()` or `shutdown()` calls, unwrapping exposes the same post-call counters and failure fields that the direct text builder would have produced.
 
 - Normal async lifecycle expectations still apply if the logger is never run.
 
