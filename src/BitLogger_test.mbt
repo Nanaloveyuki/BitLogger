@@ -1481,6 +1481,36 @@ test "application logger aliases configured runtime entry" {
   inspect(logger.target, content="app.runtime")
 }
 
+test "configured logger keeps broader logger composition surface" {
+  let logger : ConfiguredLogger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="configured.compose",
+      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+  let derived = logger.with_timestamp().child("worker")
+
+  inspect(derived.target, content="configured.compose.worker")
+  inspect(derived.timestamp, content="true")
+  inspect(derived.is_enabled(Level::Error), content="true")
+  inspect(derived.is_enabled(Level::Info), content="false")
+  inspect(match derived.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+
+  derived.error("one")
+  derived.error("two")
+  inspect(derived.pending_count(), content="2")
+  inspect(derived.dropped_count(), content="0")
+  inspect(derived.flush(), content="2")
+}
+
 test "application logger keeps configured runtime helper surface" {
   let logger : ApplicationLogger = build_application_logger(
     LoggerConfig::new(
