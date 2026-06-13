@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::info(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Info, ...)`.
+- This helper delegates to `log(Level::Info, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Info is often the default operational logging level for async application events.
 - Use this helper when explicit info intent is clearer than a raw `log(...)` call.
 
@@ -80,4 +81,4 @@ e.g.:
 
 1. This is often the most common convenience method for normal async application events.
 
-2. Use `log(...)` when the call site needs a dynamic level or target override.
+2. Use `log(...)` when the call site needs a dynamic level or a one-off target override.

@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::trace(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Trace, ...)`.
+- This helper delegates to `log(Level::Trace, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Trace records are often skipped in production because they are the lowest built-in severity.
 - Use this helper when explicit trace intent is clearer than a raw `log(...)` call.
 
@@ -80,4 +81,6 @@ e.g.:
 
 1. Prefer this helper when trace intent is more readable than `log(Level::Trace, ...)`.
 
-2. Trace-level async logging can increase queue pressure quickly under verbose workloads.
+2. Use `log(...)` instead when one trace call needs a one-off target override.
+
+3. Trace-level async logging can increase queue pressure quickly under verbose workloads.

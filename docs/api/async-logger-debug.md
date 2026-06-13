@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::debug(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Debug, ...)`.
+- This helper delegates to `log(Level::Debug, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Debug records are useful for development and targeted diagnostics.
 - Use this helper when a named debug call is clearer than a raw `log(...)` call.
 
@@ -80,4 +81,4 @@ e.g.:
 
 1. Prefer this helper when the event is semantically debug-level.
 
-2. Use `log(...)` when the level must be chosen dynamically.
+2. Use `log(...)` when the level must be chosen dynamically or one call needs a target override.

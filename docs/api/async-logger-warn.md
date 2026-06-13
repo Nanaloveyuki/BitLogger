@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::warn(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Warn, ...)`.
+- This helper delegates to `log(Level::Warn, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Warning records are useful for degraded but non-fatal runtime conditions.
 - Use this helper when a named warning call is clearer than a raw `log(...)` call.
 
@@ -80,4 +81,4 @@ e.g.:
 
 1. Use this helper for notable but non-fatal async runtime conditions.
 
-2. Pair warnings with structured fields when operators need quick context.
+2. Use `log(...)` instead when one warning call must override the target without deriving a new logger value.

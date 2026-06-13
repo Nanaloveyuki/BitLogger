@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::error(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Error, ...)`.
+- This helper delegates to `log(Level::Error, ..., fields=fields)`.
 - The record is still subject to patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Error records represent the highest built-in severity in this logger API.
 - Use this helper when a named error call is clearer than a raw `log(...)` call.
 
@@ -80,4 +81,6 @@ e.g.:
 
 1. Use this helper for high-severity async application failures.
 
-2. Emitting an error record is separate from the logger worker itself entering failure state.
+2. Use `log(...)` instead when an error call needs a one-off target override.
+
+3. Emitting an error record is separate from the logger worker itself entering failure state.
