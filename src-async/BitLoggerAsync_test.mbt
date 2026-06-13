@@ -2040,6 +2040,31 @@ async test "application async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+async test "application async logger shutdown clear abandons pending records" {
+  let logger : ApplicationAsyncLogger = build_application_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Info,
+        target="async.app.clear",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+      ),
+    ),
+  )
+
+  logger.info("one")
+  inspect(logger.pending_count(), content="1")
+  inspect(logger.dropped_count(), content="0")
+  logger.shutdown(clear=true)
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+}
+
 async test "application async logger keeps broader async composition surface" {
   let logger : ApplicationAsyncLogger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
