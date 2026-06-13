@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-state
 
-`FileSinkState` is the public snapshot object used to describe the current state of a file sink. It is a direct alias to the file state model returned by `FileSink::state()` and configured runtime file inspection helpers.
+`FileSinkState` is the public snapshot object used to describe the current state of a file sink. It is a direct alias to the file state model returned by `FileSink::state()` and by higher-level runtime file inspection helpers.
 
 ### Interface
 
@@ -32,7 +32,8 @@ Detailed rules explaining key parameters and behaviors
 - This is a type alias, not a live file handle wrapper.
 - The current snapshot fields are `path`, `available`, `append`, `auto_flush`, `rotation`, `open_failures`, `write_failures`, `flush_failures`, and `rotation_failures`.
 - `FileSink::state()` returns this object directly for a concrete file sink.
-- `ConfiguredLogger::file_state()` also returns this type, including fallback snapshots for non-file runtime sinks.
+- `RuntimeSink::file_state()` also returns this type, including fallback snapshots for non-file runtime sinks.
+- `ConfiguredLogger::file_state()` returns the same snapshot type through the config-built runtime wrapper.
 
 ### How to Use
 

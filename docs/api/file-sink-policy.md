@@ -3,7 +3,7 @@ name: file-sink-policy
 group: api
 category: sink
 update-time: 20260613
-description: Public file policy alias used by file sinks and configured runtime file controls.
+description: Public file policy alias used by file sinks and runtime file-control APIs.
 key-word:
     - file
     - policy
@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-policy
 
-`FileSinkPolicy` is the public policy object used to describe file append mode, auto-flush behavior, and optional rotation settings together. It is a direct alias to the file policy model shared by `FileSink`, `ConfiguredLogger`, and file policy JSON helpers.
+`FileSinkPolicy` is the public policy object used to describe file append mode, auto-flush behavior, and optional rotation settings together. It is a direct alias to the file policy model shared by `FileSink`, `RuntimeSink`, `ConfiguredLogger`, and file policy JSON helpers.
 
 ### Interface
 
@@ -31,8 +31,8 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a separate runtime wrapper.
 - The current policy fields are `append : Bool`, `auto_flush : Bool`, and `rotation : FileRotation?`.
-- The same policy object is returned by `FileSink::policy()` and `ConfiguredLogger::file_policy()`.
-- It is also accepted by `FileSink::set_policy(...)` and `ConfiguredLogger::file_set_policy(...)`.
+- The same policy object is returned by `FileSink::policy()`, `RuntimeSink::file_policy()`, and `ConfiguredLogger::file_policy()`.
+- It is also accepted by `FileSink::set_policy(...)`, `RuntimeSink::file_set_policy(...)`, and `ConfiguredLogger::file_set_policy(...)`.
 
 ### How to Use
 
@@ -55,7 +55,7 @@ In this example, the file policy can be passed around as one typed value instead
 
 When current file behavior should be read, adjusted, and written back:
 ```moonbit
-let policy = logger.file_policy()
+let policy = sink.file_policy()
 let next = FileSinkPolicy::new(
   append=policy.append,
   auto_flush=false,
@@ -63,7 +63,7 @@ let next = FileSinkPolicy::new(
 )
 ```
 
-In this example, the policy object is the handoff boundary for runtime file control.
+In this example, the policy object is the handoff boundary for direct runtime file control.
 
 ### Error Case
 

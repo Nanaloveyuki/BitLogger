@@ -3,7 +3,7 @@ name: runtime-file-state
 group: api
 category: runtime
 update-time: 20260613
-description: Public combined file-and-queue runtime state alias used by configured logger diagnostics.
+description: Public combined file-and-queue runtime state alias used by runtime file diagnostics.
 key-word:
     - runtime
     - file
@@ -13,7 +13,7 @@ key-word:
 
 ## Runtime-file-state
 
-`RuntimeFileState` is the public snapshot object that combines file state with queue runtime context for configured loggers. It is a direct alias to the runtime model used by configured file diagnostics and JSON export helpers.
+`RuntimeFileState` is the public snapshot object that combines file state with queue runtime context for file-backed runtime diagnostics. It is a direct alias to the runtime model used by `RuntimeSink`, `ConfiguredLogger`, and JSON export helpers.
 
 ### Interface
 
@@ -31,7 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a live runtime controller.
 - The current fields are `file : FileSinkState`, `queued : Bool`, `pending_count : Int`, and `dropped_count : Int`.
-- This type is returned by `ConfiguredLogger::file_runtime_state()` when the configured sink can expose file runtime context.
+- This type is returned by `RuntimeSink::file_runtime_state()` and by `ConfiguredLogger::file_runtime_state()` when file runtime context is available.
 - It is broader than `FileSinkState` because it also reports whether queue wrapping is involved and how the queue is behaving.
 
 ### How to Use
@@ -40,9 +40,9 @@ Here are some specific examples provided.
 
 #### When Need Combined File And Queue Diagnostics
 
-When a configured logger may wrap a file sink in a queue:
+When a direct runtime sink may wrap a file sink in a queue:
 ```moonbit
-match logger.file_runtime_state() {
+match sink.file_runtime_state() {
   Some(snapshot) => println(snapshot.pending_count)
   None => ()
 }
@@ -54,7 +54,7 @@ In this example, queue backlog can be inspected alongside the embedded file stat
 
 When runtime support output should include both file and queue context:
 ```moonbit
-match logger.file_runtime_state() {
+match sink.file_runtime_state() {
   Some(snapshot) => println(stringify_runtime_file_state(snapshot, pretty=true))
   None => ()
 }
@@ -67,7 +67,7 @@ In this example, one typed object covers both the file snapshot and queue counte
 e.g.:
 - `RuntimeFileState` itself does not have a runtime failure mode.
 
-- If the configured logger is not file-backed, `file_runtime_state()` may return `None` instead of producing this snapshot.
+- If the runtime sink is not file-backed, `file_runtime_state()` may return `None` instead of producing this snapshot.
 
 ### Notes
 
