@@ -80,6 +80,7 @@ BitLogger API navigation.
 - [style-markup-mode-label.md](./style-markup-mode-label.md)
 - [color-mode-label.md](./color-mode-label.md)
 - [fields.md](./fields.md)
+- [text-formatter-config-type.md](./text-formatter-config-type.md)
 
 ## Record and level
 
@@ -149,11 +150,14 @@ BitLogger API navigation.
 
 - [config-error.md](./config-error.md)
 - [sink-kind.md](./sink-kind.md)
+- [queue-config-type.md](./queue-config-type.md)
 - [queue-config.md](./queue-config.md)
 - [queue-config-to-json.md](./queue-config-to-json.md)
 - [stringify-queue-config.md](./stringify-queue-config.md)
+- [sink-config-type.md](./sink-config-type.md)
 - [default-sink-config.md](./default-sink-config.md)
 - [logger-config.md](./logger-config.md)
+- [logger-config-type.md](./logger-config-type.md)
 - [default-logger-config.md](./default-logger-config.md)
 - [logger-config-to-json.md](./logger-config-to-json.md)
 - [stringify-logger-config.md](./stringify-logger-config.md)
