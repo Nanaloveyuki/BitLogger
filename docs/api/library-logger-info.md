@@ -3,7 +3,7 @@ name: library-logger-info
 group: api
 category: facade
 update-time: 20260613
-description: Emit an info-level record through a LibraryLogger facade using the informational severity shortcut.
+description: Emit an info-level record through a LibraryLogger facade by delegating to the wrapped logger's info shortcut.
 key-word:
     - library
     - facade
@@ -39,10 +39,12 @@ pub fn[S : Sink] LibraryLogger::info(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Info, ...)` on the wrapped logger.
+- This helper delegates to `info(...)` on the wrapped logger, which in turn uses `log(Level::Info, ...)`.
 - `Info` is the default minimum logger threshold unless changed explicitly.
 - Per-call target override is not exposed here; use `log(...)` if needed.
+- Any existing sink wrappers inside the logger pipeline still participate normally in the write path.
 - The library facade keeps the same write semantics while exposing a smaller public surface.
+- Broader composition helpers remain on the underlying `Logger[S]` and require `to_logger()` first.
 
 ### How to Use
 
@@ -66,6 +68,8 @@ logger.info("request completed", fields=[field("status", "200")])
 
 In this example, the event remains concise while still carrying useful fields.
 
+And any shared context already carried by the facade still participates through the wrapped logger pipeline.
+
 ### Error Case
 
 e.g.:
@@ -73,8 +77,12 @@ e.g.:
 
 - If the event needs an explicit alternate target, use `log(...)` instead of this shortcut.
 
+- If callers need broader composition helpers after logging, they must unwrap first with `to_logger()`.
+
 ### Notes
 
 1. This is the common convenience method for normal library-facing events.
 
 2. Because `Info` is often the default threshold, this helper is a natural baseline for facade examples.
+
+3. Use `log(...)` instead when the call site needs a per-call target override or a dynamic level.
