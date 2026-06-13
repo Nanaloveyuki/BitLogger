@@ -2,8 +2,8 @@
 name: async-runtime-state
 group: api
 category: async
-update-time: 20260512
-description: Read the current backend-specific async runtime mode and worker capability.
+update-time: 20260614
+description: Read the current backend-specific async runtime snapshot as the paired result of runtime mode and background-worker capability.
 key-word:
     - async
     - runtime
@@ -35,6 +35,8 @@ Detailed rules explaining key parameters and behaviors
 
 - `mode` is derived from the active backend implementation.
 - `background_worker` tells callers whether native worker semantics are available.
+- This helper is equivalent to `AsyncRuntimeState::new(async_runtime_mode(), async_runtime_supports_background_worker())`.
+- In the current backend implementations, the resulting pair is `NativeWorker + true` or `Compatibility + false`.
 - `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` serialize this state.
 - This API is environment-scoped and does not depend on a particular `AsyncLogger` instance.
 
@@ -75,3 +77,5 @@ e.g.:
 1. Use this API for environment-level diagnostics.
 
 2. Use `AsyncLogger::state()` for logger-instance diagnostics.
+
+3. Use `AsyncRuntimeState::new(...)` only when code or tests need to construct a manual snapshot instead of probing the current backend.
