@@ -114,6 +114,38 @@ async test "closed blocking logger does not add pending count on later log attem
   inspect(logger.dropped_count(), content="1")
 }
 
+async test "closed logger runtime determines whether later log reaches patch path" {
+  let patched : Ref[Int] = Ref(0)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::Blocking,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.closed.patch",
+  ).with_patch(fn(rec) {
+    patched.val += 1
+    rec
+  })
+
+  logger.info("one")
+  inspect(patched.val, content="1")
+  logger.close(clear=true)
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+
+  logger.info("late")
+  inspect(
+    patched.val,
+    content=if async_runtime_supports_background_worker() { "2" } else { "1" },
+  )
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+}
+
 test "async logger config stringify roundtrips stable fields" {
   let text = stringify_async_logger_config(
     AsyncLoggerConfig::new(
