@@ -3,7 +3,7 @@ name: build-application-async-logger
 group: api
 category: facade
 update-time: 20260614
-description: Build the application-facing async logger facade from an AsyncLoggerBuildConfig through the sync-first async builder path.
+description: Build the application-facing runtime-sink async logger alias from an AsyncLoggerBuildConfig through the sync-first async builder path.
 key-word:
     - application
     - async
@@ -13,7 +13,7 @@ key-word:
 
 ## Build-application-async-logger
 
-Build an `ApplicationAsyncLogger` from `AsyncLoggerBuildConfig`. This is the application-facing async facade over `build_async_logger(...)`.
+Build an `ApplicationAsyncLogger` from `AsyncLoggerBuildConfig`. This is the application-facing runtime-sink async alias returned through `build_async_logger(...)`.
 
 ### Interface
 
@@ -35,11 +35,13 @@ pub fn build_application_async_logger(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API delegates to `build_async_logger(...)`.
+- This API delegates to `build_async_logger(...)` directly.
 - That means the embedded `LoggerConfig` is built first through the normal synchronous config path before the outer async layer is applied.
-- The returned logger keeps the standard async lifecycle and state helper surface.
-- Because the result is only the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, it also keeps the same failure/reset and runtime-dependent post-close behavior documented on the underlying runtime-sink async logger.
-- Use this facade when application code wants a dedicated async app-level entry point.
+- Any optional synchronous queue layer and runtime-sink controls chosen by `build_logger(config.logger)` remain active under the returned logger.
+- Because the result is only the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this builder does not hide any async helpers or introduce a wrapper layer.
+- The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
+- It also keeps the same failure/reset and runtime-dependent post-close behavior documented on the underlying runtime-sink async logger.
+- Use this alias-oriented builder when application code wants the standard runtime-sink async shape without narrowing the public surface.
 
 ### How to Use
 
@@ -61,6 +63,17 @@ In this example, the app-facing async facade is built directly from typed config
 
 And any configured synchronous runtime sink controls remain available through the returned `RuntimeSink`-backed async logger.
 
+#### When Need Async State Helpers Immediately After App Construction
+
+When application code should keep the ordinary async helper surface directly:
+```moonbit
+let logger = build_application_async_logger(config)
+ignore(logger.pending_count())
+ignore(logger.state())
+```
+
+In this example, the application alias exposes async state helpers directly because no narrowing wrapper is added.
+
 ### Error Case
 
 e.g.:
@@ -75,3 +88,5 @@ e.g.:
 2. Use `parse_and_build_application_async_logger(...)` when starting from JSON text.
 
 3. Use `build_application_text_async_logger(...)` instead when callers should keep the concrete text-console sink type and the direct text-builder path.
+
+4. Use `build_library_async_logger(...)` instead when a library boundary should narrow the exposed async surface.
