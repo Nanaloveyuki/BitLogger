@@ -863,6 +863,49 @@ async test "library async logger can be built from config" {
   inspect(full.target, content="async.lib.config")
 }
 
+async test "parsed library async logger unwrap keeps async helper surface" {
+  let logger = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.helpers\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
+  )
+  let full = logger.to_async_logger()
+
+  let state = full.state()
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.config.helpers")
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="0")
+  inspect(state.is_closed, content="false")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(match state.flush_policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(full.pending_count(), content="2")
+  inspect(full.dropped_count(), content="1")
+  inspect(full.is_closed(), content="false")
+  inspect(full.is_running(), content="false")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(full.is_closed(), content="true")
+  inspect(full.is_running(), content="false")
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="1")
+  inspect(full.has_failed(), content="false")
+  inspect(full.last_error(), content="")
+}
+
 test "library async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
