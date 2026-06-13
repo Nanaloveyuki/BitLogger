@@ -70,6 +70,7 @@ e.g.:
 - If the worker is not running, `pending_count()` may stay above `0` until records are drained or cleared.
 
 - If `wait_idle()` returns early because `has_failed()` became `true`, `pending_count()` may still be above `0` until later cleanup or clear-close handling runs.
+- In the current tested split, that later cleanup can either force the leftover pending item into `dropped_count()` on native-worker shutdown paths or leave the closed-queue remainder visible in `pending_count()` on compatibility shutdown paths.
 
 - If the queue is empty, the method simply returns `0`.
 

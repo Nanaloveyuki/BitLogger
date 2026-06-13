@@ -70,6 +70,7 @@ e.g.:
 - If `has_failed()` is `false`, queue pressure or dropped records may still exist for non-failure reasons.
 
 - If `has_failed()` becomes `true`, `wait_idle()` may stop early while pending records still remain until a later close or clear path handles them.
+- In the current regression coverage, that later handling can be an explicit `close(clear=true)` that resets pending backlog immediately or a runtime-dependent `shutdown(...)` path that either clears pending into dropped records or leaves the closed-queue remainder visible.
 
 - If `has_failed()` is `true`, callers should inspect `last_error()` or `state()` for more context.
 

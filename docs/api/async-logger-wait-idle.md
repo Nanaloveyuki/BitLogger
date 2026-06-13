@@ -71,6 +71,7 @@ e.g.:
 - If the worker was never started, or if nothing is making pending records decrease, `wait_idle()` can block indefinitely.
 
 - If callers need backlog cleanup after a failure-short-circuit, they still need a later `close(clear=true)` or `shutdown(...)` path.
+- In the current direct coverage, `wait_idle()` can return with `pending_count() > 0` after a worker failure, and the later cleanup path may either clear that backlog explicitly or follow the runtime-dependent shutdown split documented on `shutdown(...)`.
 
 ### Notes
 
