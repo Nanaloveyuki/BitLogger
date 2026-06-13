@@ -38,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - This API delegates to `build_async_text_logger(...)`.
 - It is intended for config-driven async text console output where callers want the concrete text sink shape rather than the broader runtime sink enum wrapper.
 - The builder always creates a `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
+- Unlike `build_application_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
+- It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - The returned logger keeps the usual async lifecycle helpers.
 
 ### How to Use

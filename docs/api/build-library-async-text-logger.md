@@ -37,6 +37,8 @@ Detailed rules explaining key parameters and behaviors
 
 - This API delegates to `build_async_text_logger(...)` and then wraps the result as `LibraryAsyncLogger`.
 - It always produces a concrete `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
+- Unlike `build_library_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
+- It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - It is useful when library code wants a narrow async facade while preserving a concrete text-console sink type.
 - `to_async_logger()` can recover the underlying full async logger if needed.
 
