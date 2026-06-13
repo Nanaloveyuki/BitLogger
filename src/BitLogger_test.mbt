@@ -1398,6 +1398,43 @@ test "configured logger file setters update file sink policy state" {
   ignore(logger.close())
 }
 
+test "configured logger file reopen helpers stay aligned with runtime sink helpers" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-reopen-delegate.log"),
+    ),
+  )
+  let sink = logger.sink
+
+  inspect(logger.file_set_append_mode(false) == sink.file_set_append_mode(false), content="true")
+  inspect(logger.file_reopen() == sink.file_reopen(), content="true")
+  inspect(logger.file_append_mode() == sink.file_append_mode(), content="true")
+
+  inspect(logger.file_reopen_append() == sink.file_reopen_append(), content="true")
+  inspect(logger.file_append_mode() == sink.file_append_mode(), content="true")
+
+  inspect(logger.file_reopen_truncate() == sink.file_reopen_truncate(), content="true")
+  inspect(logger.file_append_mode() == sink.file_append_mode(), content="true")
+
+  inspect(logger.file_set_append_mode(true) == sink.file_set_append_mode(true), content="true")
+  inspect(logger.file_reopen_with_current_policy() == sink.file_reopen_with_current_policy(), content="true")
+  inspect(logger.file_append_mode() == sink.file_append_mode(), content="true")
+
+  inspect(logger.file_reopen(append=Some(false)) == sink.file_reopen(append=Some(false)), content="true")
+  inspect(logger.file_append_mode() == sink.file_append_mode(), content="true")
+
+  let console_logger = build_logger(
+    LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)),
+  )
+  let console_sink = console_logger.sink
+  inspect(console_logger.file_reopen() == console_sink.file_reopen(), content="true")
+  inspect(console_logger.file_reopen_with_current_policy() == console_sink.file_reopen_with_current_policy(), content="true")
+  inspect(console_logger.file_reopen_append() == console_sink.file_reopen_append(), content="true")
+  inspect(console_logger.file_reopen_truncate() == console_sink.file_reopen_truncate(), content="true")
+
+  ignore(logger.close())
+}
+
 test "configured logger reset policy restores configured file defaults" {
   let logger = build_logger(
     LoggerConfig::new(
