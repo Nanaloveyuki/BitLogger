@@ -39,8 +39,9 @@ Detailed rules explaining key parameters and behaviors
 - Both the embedded sync logger config and async queue/runtime config are validated by the parser layer.
 - The embedded `LoggerConfig` is then built through the normal synchronous config path before the outer async layer is applied.
 - Any optional synchronous queue layer and runtime-sink controls from the parsed `logger` section remain active under the returned async logger.
-- Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path does not narrow the helper surface.
+- Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path returns the same underlying async logger value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce, without narrowing the helper surface.
 - The returned logger keeps the full async lifecycle and state helpers directly.
+- Use `parse_and_build_library_async_logger(...)` instead when the same parsed runtime-sink result should be wrapped and narrowed for a library boundary.
 
 ### How to Use
 
