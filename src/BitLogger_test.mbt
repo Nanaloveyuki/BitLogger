@@ -138,6 +138,41 @@ test "logger config parser fills omitted top-level keys from defaults" {
   inspect(config.sink.text_formatter.template, content="")
 }
 
+test "logger config parser fills nested queue and formatter defaults" {
+  let config = parse_logger_config_text(
+    "{\"sink\":{\"kind\":\"text_console\",\"text_formatter\":{\"separator\":\" | \"}},\"queue\":{\"max_pending\":4}}",
+  )
+  inspect(match config.sink.kind {
+    SinkKind::Console => "Console"
+    SinkKind::JsonConsole => "JsonConsole"
+    SinkKind::TextConsole => "TextConsole"
+    SinkKind::File => "File"
+  }, content="TextConsole")
+  inspect(config.sink.text_formatter.show_timestamp, content="true")
+  inspect(config.sink.text_formatter.show_level, content="true")
+  inspect(config.sink.text_formatter.show_target, content="true")
+  inspect(config.sink.text_formatter.show_fields, content="true")
+  inspect(config.sink.text_formatter.separator, content=" | ")
+  inspect(config.sink.text_formatter.field_separator, content=" ")
+  inspect(config.sink.text_formatter.template, content="")
+  inspect(color_mode_label(config.sink.text_formatter.color_mode), content="never")
+  inspect(color_support_label(config.sink.text_formatter.color_support), content="truecolor")
+  inspect(style_markup_mode_label(config.sink.text_formatter.style_markup), content="full")
+  inspect(style_markup_mode_label(config.sink.text_formatter.target_style_markup), content="disabled")
+  inspect(style_markup_mode_label(config.sink.text_formatter.fields_style_markup), content="disabled")
+  inspect(config.sink.text_formatter.style_tags.length(), content="0")
+  match config.queue {
+    Some(queue) => {
+      inspect(queue.max_pending, content="4")
+      inspect(match queue.overflow {
+        QueueOverflowPolicy::DropNewest => "DropNewest"
+        QueueOverflowPolicy::DropOldest => "DropOldest"
+      }, content="DropNewest")
+    }
+    None => inspect(false, content="true")
+  }
+}
+
 test "logger config parser rejects malformed sync config input" {
   let invalid_json_error = (fn() -> String raise ConfigError {
     ignore(parse_logger_config_text("{"))
