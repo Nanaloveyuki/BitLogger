@@ -476,6 +476,90 @@ async test "library async logger keeps a smaller async facade" {
   inspect(written_field_counts.val[0], content="2")
 }
 
+async test "library async context binding replaces stored field set" {
+  let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let logger = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(rec) {
+      written_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.lib.ctx",
+  )
+    .with_context_fields([@bitlogger.field("old", "gone")])
+    .with_context_fields([
+      @bitlogger.field("service", "bitlogger"),
+      @bitlogger.field("scope", "sdk"),
+    ])
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.ctx")
+  inspect(full.timestamp, content="false")
+  inspect(full.context_fields.length(), content="2")
+  inspect(full.context_fields[0].key, content="service")
+  inspect(full.context_fields[0].value, content="bitlogger")
+  inspect(full.context_fields[1].key, content="scope")
+  inspect(full.context_fields[1].value, content="sdk")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.error("ctx", fields=[@bitlogger.field("mode", "test")])
+    logger.shutdown()
+  })
+
+  inspect(written_fields.val.length(), content="3")
+  inspect(written_fields.val[0].key, content="service")
+  inspect(written_fields.val[0].value, content="bitlogger")
+  inspect(written_fields.val[1].key, content="scope")
+  inspect(written_fields.val[1].value, content="sdk")
+  inspect(written_fields.val[2].key, content="mode")
+  inspect(written_fields.val[2].value, content="test")
+}
+
+async test "library async bind matches context facade contract" {
+  let written_target : Ref[String] = Ref("")
+  let written_timestamp : Ref[UInt64] = Ref(0UL)
+  let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_target.val = rec.target
+      written_timestamp.val = rec.timestamp_ms
+      written_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.lib.bind",
+  )
+    .with_timestamp()
+    .to_library_async_logger()
+    .bind([@bitlogger.field("service", "bitlogger")])
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.bind")
+  inspect(full.timestamp, content="true")
+  inspect(full.context_fields.length(), content="1")
+  inspect(full.context_fields[0].key, content="service")
+  inspect(full.context_fields[0].value, content="bitlogger")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.error("bound", fields=[@bitlogger.field("mode", "test")])
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.lib.bind")
+  inspect(written_timestamp.val > 0UL, content="true")
+  inspect(written_fields.val.length(), content="2")
+  inspect(written_fields.val[0].key, content="service")
+  inspect(written_fields.val[0].value, content="bitlogger")
+  inspect(written_fields.val[1].key, content="mode")
+  inspect(written_fields.val[1].value, content="test")
+}
+
 async test "library async shutdown preserves wrapped failure cleanup semantics" {
   let writes : Ref[Int] = Ref(0)
   let logger = LibraryAsyncLogger::new(
