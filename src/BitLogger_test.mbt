@@ -437,6 +437,47 @@ test "configured logger reports dropped_count for bounded queue" {
   inspect(logger.flush(), content="2")
 }
 
+test "runtime sink queue helpers forward direct queue state" {
+  let sink = RuntimeSink::QueuedTextConsole(
+    queued_sink(
+      text_console_sink(text_formatter(show_timestamp=false, show_target=false)),
+      max_pending=2,
+      overflow=QueueOverflowPolicy::DropOldest,
+    ),
+  )
+  let logger = Logger::new(sink, min_level=Level::Info, target="runtime.queue")
+  logger.info("one")
+  logger.info("two")
+  logger.info("three")
+  inspect(sink.pending_count(), content="2")
+  inspect(sink.dropped_count(), content="1")
+  inspect(sink.drain(max_items=1), content="1")
+  inspect(sink.pending_count(), content="1")
+  inspect(sink.flush(), content="1")
+  inspect(sink.pending_count(), content="0")
+}
+
+test "runtime sink plain variants use documented fallback counts" {
+  let console_sink = RuntimeSink::Console(console_sink())
+  inspect(console_sink.pending_count(), content="0")
+  inspect(console_sink.dropped_count(), content="0")
+  inspect(console_sink.flush(), content="0")
+  inspect(console_sink.drain(), content="0")
+
+  let file_sink = RuntimeSink::File(file_sink("runtime-direct.log", auto_flush=false))
+  inspect(file_sink.pending_count(), content="0")
+  inspect(file_sink.dropped_count(), content="0")
+  if file_sink.file_available() {
+    inspect(file_sink.flush(), content="1")
+    inspect(file_sink.drain(), content="1")
+    inspect(file_sink.close(), content="true")
+  } else {
+    inspect(file_sink.flush(), content="0")
+    inspect(file_sink.drain(), content="0")
+    inspect(file_sink.close(), content="false")
+  }
+}
+
 test "configured logger exposes file sink observability helpers" {
   let logger = build_logger(
     LoggerConfig::new(
