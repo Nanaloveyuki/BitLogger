@@ -1633,6 +1633,104 @@ async test "async logger projection preserves async queue and failure state" {
   inspect(full.last_error().contains("TestFlushError"), content="true")
 }
 
+async test "async logger projection preserves file-backed runtime helpers through unwrap" {
+  let configured = build_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.projected.file",
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::File,
+          path="async-projected-file.log",
+        ),
+        queue=Some(@bitlogger.QueueConfig::new(2, overflow=@bitlogger.QueueOverflowPolicy::DropOldest)),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::DropOldest,
+        flush=AsyncFlushPolicy::Shutdown,
+      ),
+    ),
+  )
+  let projected = configured.to_library_async_logger()
+  let full = projected.to_async_logger()
+
+  inspect(projected.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(projected.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.projected.file")
+
+  full.error("one")
+  full.error("two")
+  full.error("three")
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.dropped_count() == configured.dropped_count(), content="true")
+  inspect(full.sink.pending_count() == configured.sink.pending_count(), content="true")
+  inspect(full.sink.dropped_count() == configured.sink.dropped_count(), content="true")
+  inspect(full.sink.file_available() == configured.sink.file_available(), content="true")
+  inspect(full.sink.file_append_mode() == configured.sink.file_append_mode(), content="true")
+  inspect(full.sink.file_auto_flush() == configured.sink.file_auto_flush(), content="true")
+
+  let full_state = full.sink.file_state()
+  let configured_state = configured.sink.file_state()
+  inspect(full_state.path == configured_state.path, content="true")
+  inspect(full_state.available == configured_state.available, content="true")
+  inspect(full_state.append == configured_state.append, content="true")
+  inspect(full_state.auto_flush == configured_state.auto_flush, content="true")
+  inspect(full_state.open_failures == configured_state.open_failures, content="true")
+  inspect(full_state.write_failures == configured_state.write_failures, content="true")
+  inspect(full_state.flush_failures == configured_state.flush_failures, content="true")
+  inspect(full_state.rotation_failures == configured_state.rotation_failures, content="true")
+
+  match (full.sink.file_runtime_state(), configured.sink.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(full.sink.file_set_append_mode(false), content="true")
+  inspect(configured.sink.file_append_mode(), content="false")
+  inspect(full.sink.file_append_mode() == configured.sink.file_append_mode(), content="true")
+
+  inspect(full.sink.file_set_auto_flush(false), content="true")
+  inspect(configured.sink.file_auto_flush(), content="false")
+  inspect(full.sink.file_auto_flush() == configured.sink.file_auto_flush(), content="true")
+
+  inspect(full.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))), content="true")
+  inspect(configured.sink.file_rotation_enabled(), content="true")
+  inspect(full.sink.file_rotation_enabled() == configured.sink.file_rotation_enabled(), content="true")
+
+  let reopen_append_ok = full.sink.file_reopen_append()
+  inspect(reopen_append_ok == configured.sink.file_reopen_append(), content="true")
+  inspect(full.sink.file_append_mode() == configured.sink.file_append_mode(), content="true")
+
+  inspect(full.sink.file_clear_rotation(), content="true")
+  inspect(configured.sink.file_rotation_enabled(), content="false")
+  inspect(full.sink.file_rotation_enabled() == configured.sink.file_rotation_enabled(), content="true")
+
+  inspect(full.sink.file_reset_policy(), content="true")
+  inspect(full.sink.file_policy_matches_default() == configured.sink.file_policy_matches_default(), content="true")
+
+  inspect(full.sink.file_reset_failure_counters(), content="true")
+  let reset_full_state = full.sink.file_state()
+  let reset_configured_state = configured.sink.file_state()
+  inspect(reset_full_state.open_failures == reset_configured_state.open_failures, content="true")
+  inspect(reset_full_state.write_failures == reset_configured_state.write_failures, content="true")
+  inspect(reset_full_state.flush_failures == reset_configured_state.flush_failures, content="true")
+  inspect(reset_full_state.rotation_failures == reset_configured_state.rotation_failures, content="true")
+
+  inspect(full.sink.file_flush(), content=if configured.sink.file_available() { "true" } else { "false" })
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+
+  let close_expected = configured.sink.file_available()
+  inspect(full.sink.file_close(), content=if close_expected { "true" } else { "false" })
+  inspect(full.sink.file_available() == configured.sink.file_available(), content="true")
+}
+
 test "application async logger aliases runtime async entry" {
   let logger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
