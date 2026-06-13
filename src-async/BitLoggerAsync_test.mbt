@@ -686,6 +686,29 @@ test "build async text logger keeps text-console config fields" {
   }, content="Never")
 }
 
+test "build async text logger ignores sync queue layer" {
+  let logger = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.text.queued",
+        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.text.queued")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="0")
+}
+
 test "application async logger can be built from config text" {
   let logger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
