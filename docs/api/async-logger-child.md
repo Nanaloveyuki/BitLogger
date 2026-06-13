@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - If the child target is empty, the parent target is preserved.
 - If both are non-empty, they are joined with `.`.
 - Queue settings, sink wiring, and runtime behavior are preserved in the returned logger.
+- In the current direct async coverage, other flags such as `timestamp` and the enabled-level gate are preserved on the derived child logger while the original logger keeps its parent target unchanged.
 
 ### How to Use
 
@@ -76,3 +77,5 @@ e.g.:
 1. This is the preferred API for hierarchical async logger naming.
 
 2. Composition changes the target only and does not rebuild the queue or sink.
+
+3. Use `child("")` when code should keep the current target while still following a target-composition code path.

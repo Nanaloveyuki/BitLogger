@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - When a log call also passes per-record fields, the context fields are placed before those per-call fields.
 - This API returns a new logger value; it does not mutate the original async logger.
 - Unlike synchronous `Logger::with_context_fields(...)`, this async variant stores fields directly on `AsyncLogger` instead of changing the visible sink type.
+- In the current direct async coverage, the original logger keeps its previous `context_fields`, while the derived logger prepends the stored shared fields ahead of per-call fields exactly once when records are built.
 
 ### How to Use
 
@@ -82,3 +83,5 @@ e.g.:
 1. Use this for stable metadata, not highly dynamic event-specific values.
 
 2. This async variant preserves the visible `AsyncLogger[S]` type while still injecting shared fields.
+
+3. Use a fresh derived logger when one code path needs shared metadata and another should stay unchanged.

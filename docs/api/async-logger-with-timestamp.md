@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - When disabled, emitted records use `0UL` as the timestamp value.
 - This setting affects later emitted records only.
 - Queue, batching, and flush behavior are unchanged.
+- In the current direct async coverage, a derived timestamp-enabled logger records non-zero timestamps while the original logger continues emitting `0UL` timestamps when it was left disabled.
 
 ### How to Use
 
@@ -75,3 +76,5 @@ e.g.:
 1. This API controls record creation before enqueue, not formatter display policy.
 
 2. It is useful for tests, deterministic snapshots, and production timing.
+
+3. Use a derived logger value when only one branch should capture timestamps and the base logger should remain deterministic.
