@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_close(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- Plain file sinks forward directly to file close behavior.
-- Queued file sinks flush queue work before closing the wrapped file sink.
+- Plain file sinks forward directly to file close behavior through the wrapped `RuntimeSink`.
+- Queued file sinks flush queue work before closing the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is narrower than generic `close()` because it specifically targets file sink shutdown.
 

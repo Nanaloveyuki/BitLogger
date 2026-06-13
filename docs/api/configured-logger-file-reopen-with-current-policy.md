@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_reopen_with_current_policy(self : ConfiguredLogger
 
 Detailed rules explaining key parameters and behaviors
 
-- Plain file sinks reuse their current stored reopen policy.
-- Queued file sinks forward reopen behavior to the wrapped file sink.
+- Plain file sinks reuse their current stored reopen policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward reopen behavior to the wrapped inner file sink.
 - This helper differs from `file_reopen(...)` because it does not accept a per-call append override.
 - Non-file sinks return `false`.
 

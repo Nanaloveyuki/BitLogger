@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_flush(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- Plain file sinks forward directly to file flush behavior.
-- Queued file sinks first flush queued records, then flush the wrapped file sink.
+- Plain file sinks forward directly to file flush behavior through the wrapped `RuntimeSink`.
+- Queued file sinks first flush queued records, then flush the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is narrower than generic `flush()` because it targets file sink behavior specifically.
 

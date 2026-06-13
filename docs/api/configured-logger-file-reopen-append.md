@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_reopen_append(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- Plain file sinks reopen in append mode.
-- Queued file sinks forward reopen behavior to the wrapped file sink.
+- Plain file sinks reopen in append mode through the wrapped `RuntimeSink`.
+- Queued file sinks forward reopen behavior to the wrapped inner file sink.
 - This helper is a specialized shortcut for a common reopen mode.
 - Non-file sinks return `false`.
 
