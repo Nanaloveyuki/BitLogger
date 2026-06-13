@@ -116,6 +116,28 @@ test "logger config parser reads file rotation options" {
   }
 }
 
+test "logger config parser fills omitted top-level keys from defaults" {
+  let config = parse_logger_config_text("{}")
+  inspect(config.min_level.label(), content="INFO")
+  inspect(config.target, content="")
+  inspect(config.timestamp, content="false")
+  inspect(config.queue is None, content="true")
+  inspect(match config.sink.kind {
+    SinkKind::Console => "Console"
+    SinkKind::JsonConsole => "JsonConsole"
+    SinkKind::TextConsole => "TextConsole"
+    SinkKind::File => "File"
+  }, content="Console")
+  inspect(config.sink.path, content="")
+  inspect(config.sink.append, content="true")
+  inspect(config.sink.auto_flush, content="true")
+  inspect(config.sink.rotation is None, content="true")
+  inspect(config.sink.text_formatter.show_timestamp, content="true")
+  inspect(config.sink.text_formatter.separator, content=" ")
+  inspect(config.sink.text_formatter.field_separator, content=" ")
+  inspect(config.sink.text_formatter.template, content="")
+}
+
 test "logger config parser rejects malformed sync config input" {
   let invalid_json_error = (fn() -> String raise ConfigError {
     ignore(parse_logger_config_text("{"))
