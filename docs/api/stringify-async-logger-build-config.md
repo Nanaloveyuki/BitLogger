@@ -2,8 +2,8 @@
 name: stringify-async-logger-build-config
 group: api
 category: async
-update-time: 20260512
-description: Serialize AsyncLoggerBuildConfig into compact or pretty JSON text for export and diagnostics.
+update-time: 20260614
+description: Serialize AsyncLoggerBuildConfig into compact or pretty JSON text for export and diagnostics across both async builder paths.
 key-word:
     - async
     - build
@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=true` returns indented JSON for human inspection.
 - This helper is built on top of `async_logger_build_config_to_json(...)`.
 - The output keeps `logger` and `async_config` as separate sections, matching supported parser input.
+- The serialized `logger` section preserves the full `LoggerConfig` shape, even though `build_async_text_logger(...)` later consumes only the selected text-oriented subset of that logger config.
 
 ### How to Use
 
@@ -54,6 +55,8 @@ println(stringify_async_logger_build_config(AsyncLoggerBuildConfig::new(), prett
 ```
 
 In this example, the full build configuration is rendered as readable JSON.
+
+And the resulting text still describes a shared config object that can feed either async builder path later.
 
 #### When Need Compact Generated Build Config
 
@@ -72,4 +75,12 @@ e.g.:
 - If callers need a `JsonValue` for further composition, they should use `async_logger_build_config_to_json(...)` instead.
 
 - If only one layer of config is required, this helper may be broader than necessary.
+
+### Notes
+
+1. Use this helper when the async build shape should be logged or stored as text directly.
+
+2. Use `pretty=true` for review and diagnostics, or the default compact form for snapshots and transport.
+
+3. The serialized shape round-trips through `parse_async_logger_build_config_text(...)`, but the later builder choice still controls whether the full sync config path or only the text-oriented subset is consumed during construction.
 

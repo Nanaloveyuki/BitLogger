@@ -2,8 +2,8 @@
 name: async-logger-build-config-to-json
 group: api
 category: async
-update-time: 20260512
-description: Convert AsyncLoggerBuildConfig into a JSON value for exporting complete async logger build settings.
+update-time: 20260614
+description: Convert AsyncLoggerBuildConfig into a JSON value for exporting the full shared async build shape that can later feed either async builder path.
 key-word:
     - async
     - build
@@ -39,6 +39,8 @@ Detailed rules explaining key parameters and behaviors
 - Logger export is delegated to `@bitlogger.logger_config_to_json(...)`.
 - Async export is delegated to `async_logger_config_to_json(...)`.
 - This helper is useful when generated setup should preserve both sink/logger behavior and async runtime behavior together.
+- The exported `logger` section keeps the full `LoggerConfig` shape, including fields that only matter on the full sync-first builder path such as the optional sync queue layer.
+- That means the JSON shape is broader than the consumption pattern of `build_async_text_logger(...)`, which only uses selected text-oriented logger fields when building the sink.
 
 ### How to Use
 
@@ -58,6 +60,8 @@ let payload = async_logger_build_config_to_json(
 
 In this example, both layers of configuration are exported together.
 
+And later consumers can still choose whether to rebuild through `build_async_logger(...)` or the narrower `build_async_text_logger(...)` path.
+
 #### When Need Roundtrip-friendly Build Config Data
 
 When generated build config should later be parsed again:
@@ -73,4 +77,14 @@ e.g.:
 - If callers only need the async runtime section, this API is broader than necessary and `async_logger_config_to_json(...)` should be used instead.
 
 - If callers want direct text output, they should use `stringify_async_logger_build_config(...)` instead.
+
+- Exporting the full `logger` section does not imply that every async builder will later consume every logger field equally.
+
+### Notes
+
+1. Use this helper when tools or tests need a structured JSON object instead of text.
+
+2. Use `stringify_async_logger_build_config(...)` when the same build shape should be emitted as JSON text directly.
+
+3. The resulting object round-trips through `parse_async_logger_build_config_text(...)`, even though different async builders later consume different parts of the embedded `LoggerConfig`.
 
