@@ -2596,6 +2596,36 @@ async test "parsed application async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+async test "parsed application async logger keeps broader async composition surface" {
+  let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.compose\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
+  )
+    .with_timestamp()
+    .with_context_fields([@bitlogger.field("service", "bitlogger")])
+    .child("worker")
+
+  inspect(logger.target, content="async.app.json.compose.worker")
+  inspect(logger.timestamp, content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+
+  logger.error("one")
+  logger.error("two")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="0")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="0")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
+}
+
 test "application async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
