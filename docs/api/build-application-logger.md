@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - This API delegates to `build_logger(...)` directly.
 - The embedded config still goes through the normal runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this builder does not hide any queue, drain, flush, or file runtime helper methods.
+- The returned alias also keeps inherited `Logger` behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - Use this alias-oriented entrypoint when application boot code wants an app-specific name without changing the underlying configured runtime logger surface.
 
 ### How to Use
@@ -54,6 +55,8 @@ let logger = build_application_logger(
 In this example, the application facade builds the same configured runtime logger shape as `build_logger(...)`.
 
 And any queue/file/runtime helpers selected by the config remain directly available on the returned alias value.
+
+The returned value also keeps the ordinary logger target semantics because the facade does not wrap or narrow the underlying `ConfiguredLogger`.
 
 ### Error Case
 

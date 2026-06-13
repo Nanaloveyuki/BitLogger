@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same logging, queue, and file helper APIs exposed by `ConfiguredLogger`.
+- Because `ConfiguredLogger` is itself `Logger[RuntimeSink]`, the alias also keeps ordinary logger composition and write behavior such as `with_target(...)`, `child(...)`, and `log(..., target=...)`.
 - Because this is only an alias, the application-facing type does not hide any configured-runtime helpers or broader logger surface.
 - The alias exists to give application boot code a clearer public entry name.
 - Builders such as `build_application_logger(...)` and `parse_and_build_application_logger(...)` return this alias.
@@ -61,6 +62,8 @@ In this example, callers see the app-facing alias instead of the lower-level `Co
 
 And the same queue/file/runtime helpers remain directly callable because no narrowing wrapper is added.
 
+And the inherited logger target rules stay the same: `log(..., target=...)` can override the target per call, while `with_target(...)` and `child(...)` derive new logger values with changed default targets.
+
 ### Error Case
 
 e.g.:
@@ -72,6 +75,8 @@ e.g.:
 
 1. This alias is about naming and public intent, not a different runtime implementation.
 
-2. Use `build_application_logger(...)` or `parse_and_build_application_logger(...)` for the usual construction paths.
+2. Inherited `Logger` behavior stays unchanged on this alias, including target overrides on `log(...)` and derived target composition through `with_target(...)` and `child(...)`.
 
-3. Use `LibraryLogger` instead when a library boundary should intentionally hide configured-runtime helper methods behind a narrower facade.
+3. Use `build_application_logger(...)` or `parse_and_build_application_logger(...)` for the usual construction paths.
+
+4. Use `LibraryLogger` instead when a library boundary should intentionally hide configured-runtime helper methods behind a narrower facade.
