@@ -614,6 +614,33 @@ test "configured logger reports dropped_count for bounded queue" {
   inspect(logger.flush(), content="2")
 }
 
+test "configured logger queue helpers stay aligned with runtime sink helpers" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="config.delegate",
+      sink=SinkConfig::new(
+        kind=SinkKind::TextConsole,
+        text_formatter=TextFormatterConfig::new(show_timestamp=false, show_target=false),
+      ),
+      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
+    ),
+  )
+  let sink = logger.sink
+
+  logger.info("one")
+  logger.info("two")
+  logger.info("three")
+
+  inspect(logger.pending_count() == sink.pending_count(), content="true")
+  inspect(logger.dropped_count() == sink.dropped_count(), content="true")
+  inspect(logger.drain(max_items=1) == sink.drain(max_items=1), content="true")
+  inspect(logger.pending_count() == sink.pending_count(), content="true")
+  inspect(logger.flush() == sink.flush(), content="true")
+  inspect(logger.pending_count() == sink.pending_count(), content="true")
+  inspect(logger.dropped_count() == sink.dropped_count(), content="true")
+}
+
 test "runtime sink queue helpers forward direct queue state" {
   let sink = RuntimeSink::QueuedTextConsole(
     queued_sink(
