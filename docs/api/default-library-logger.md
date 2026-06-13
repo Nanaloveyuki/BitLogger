@@ -31,8 +31,10 @@ Detailed rules explaining key parameters and behaviors
 
 - This API wraps `default_logger()` as a library facade.
 - Each call reflects the current shared default minimum level and default target at that moment.
+- The returned facade wraps the same underlying `Logger[ConsoleSink]` value that `default_logger()` would produce directly at that moment.
 - The returned value exposes the narrower `LibraryLogger` surface rather than the full `Logger` surface.
 - Later changes to shared defaults do not mutate an already-created facade value because the wrapped logger is captured when `default_library_logger()` is called.
+- Call `default_library_logger()` again after shared default changes if a fresh narrowed value should reflect the updated defaults.
 
 ### How to Use
 

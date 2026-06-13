@@ -31,7 +31,9 @@ Detailed rules explaining key parameters and behaviors
 
 - The returned logger is built from `default_console_sink`, `default_min_level_ref`, and `default_target_ref`.
 - Each call reflects the current shared configuration at that moment.
+- `default_logger()` constructs a fresh `Logger::new(...)` value on each call while reusing the shared default console sink and the current stored default level and target values.
 - The logger writes to the standard console sink path.
+- The global helper functions such as `log(...)`, `info(...)`, and `error(...)` call `default_logger()` for each write instead of holding one long-lived default logger instance.
 - This helper is useful when you want the same baseline behavior as the global shortcuts but still need the explicit `Logger` object for chaining or inspection.
 
 ### How to Use
@@ -72,4 +74,6 @@ e.g.:
 1. This helper returns a normal `Logger`, so further chaining is available.
 
 2. It is the bridge between the simple global API and the explicit typed logger workflow.
+
+3. Call `default_logger()` again after `set_default_min_level(...)` or `set_default_target(...)` if a fresh explicit logger value should reflect the updated shared defaults.
 
