@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This helper is equivalent to `AsyncLoggerState::new(async_runtime_state(), self.pending_count(), self.dropped_count(), self.is_closed(), self.is_running(), self.has_failed(), self.last_error(), self.flush_policy())`.
 - `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` convert the snapshot to stable diagnostic output.
 - `runtime` embeds the result of `async_runtime_state()` so callers do not need to join separate helpers manually.
+- Because the snapshot is assembled field by field when `state()` is called, later logger changes require calling `state()` again rather than reusing an older `AsyncLoggerState` value as if it refreshed itself.
 
 ### How to Use
 

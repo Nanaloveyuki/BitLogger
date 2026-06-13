@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - In the current backend implementations, the resulting pair is `NativeWorker + true` or `Compatibility + false`.
 - `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` serialize this state.
 - This API is environment-scoped and does not depend on a particular `AsyncLogger` instance.
+- The returned value is a snapshot data object, not a live runtime handle, so later backend checks require calling `async_runtime_state()` again rather than reusing an older value as if it refreshed itself.
 
 ### How to Use
 
