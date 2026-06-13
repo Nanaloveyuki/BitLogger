@@ -375,6 +375,8 @@ BitLogger API navigation.
 - [runtime-sink-file-rotation-config.md](./runtime-sink-file-rotation-config.md)
 - [runtime-sink-file-set-rotation.md](./runtime-sink-file-set-rotation.md)
 - [runtime-sink-file-clear-rotation.md](./runtime-sink-file-clear-rotation.md)
+- [runtime-sink-file-flush.md](./runtime-sink-file-flush.md)
+- [runtime-sink-file-close.md](./runtime-sink-file-close.md)
 - [configured-logger.md](./configured-logger.md)
 - [configured-logger-flush.md](./configured-logger-flush.md)
 - [configured-logger-drain.md](./configured-logger-drain.md)
