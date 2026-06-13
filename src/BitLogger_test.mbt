@@ -1409,6 +1409,26 @@ test "configured logger exposes file flush and close helpers" {
   }
 }
 
+test "configured logger file flush and close stay aligned with runtime sink helpers" {
+  let file_logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-file-helper-delegate.log"),
+    ),
+  )
+  let file_sink = file_logger.sink
+
+  inspect(file_logger.file_flush() == file_sink.file_flush(), content="true")
+  inspect(file_logger.file_close() == file_sink.file_close(), content="true")
+
+  let console_logger = build_logger(
+    LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)),
+  )
+  let console_sink = console_logger.sink
+
+  inspect(console_logger.file_flush() == console_sink.file_flush(), content="true")
+  inspect(console_logger.file_close() == console_sink.file_close(), content="true")
+}
+
 test "configured queued file logger flushes queue through file helper" {
   let logger = build_logger(
     LoggerConfig::new(
