@@ -3,7 +3,7 @@ name: application-text-async-logger
 group: api
 category: facade
 update-time: 20260614
-description: Application-facing alias for the text-console async logger surface, preserving the same async calling semantics as AsyncLogger.
+description: Application-facing alias for the text-console async logger surface, preserving the full AsyncLogger helper set for the concrete text sink shape.
 key-word:
     - application
     - async
@@ -33,6 +33,7 @@ Detailed rules explaining key parameters and behaviors
 - It preserves the same async lifecycle helpers as other async logger aliases.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
 - The alias therefore keeps the same text-console-specific builder and lifecycle semantics already documented on `AsyncLogger[@bitlogger.FormattedConsoleSink]`, including the concrete sink shape and runtime-dependent close/failure behavior.
+- The application-facing type does not hide any async state or lifecycle helpers; queue/backlog/failure inspection remains directly available on this alias just as it is on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
 - The alias exists to give application code a clearer public name when it wants the concrete text-console sink shape explicitly.
 - `build_application_text_async_logger(...)` returns this alias.
 
@@ -62,6 +63,8 @@ async fn start_text_async(logger : ApplicationTextAsyncLogger) -> Unit {
 
 In this example, the app-facing alias communicates the concrete text-console async shape directly, while `run()` keeps its async calling contract.
 
+And the same pending-count, state, and failure helpers remain directly available because no narrowing wrapper is added.
+
 ### Error Case
 
 e.g.:
@@ -76,3 +79,5 @@ e.g.:
 2. Use `build_application_text_async_logger(...)` when callers want the `FormattedConsoleSink`-backed async type explicitly.
 
 3. Use `ApplicationAsyncLogger` when application code should keep the broader runtime-sink shape instead of the text-console-specific one.
+
+4. Use `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]` instead when a library boundary should intentionally narrow the exposed async surface while still preserving the concrete text sink type.

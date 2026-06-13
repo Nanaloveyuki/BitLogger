@@ -3,7 +3,7 @@ name: build-application-text-async-logger
 group: api
 category: facade
 update-time: 20260614
-description: Build the application-facing text-console async logger facade from an AsyncLoggerBuildConfig using the configured text formatter directly.
+description: Build the application-facing text-console async logger alias from an AsyncLoggerBuildConfig using the configured text formatter directly.
 key-word:
     - application
     - async
@@ -13,7 +13,7 @@ key-word:
 
 ## Build-application-text-async-logger
 
-Build an `ApplicationTextAsyncLogger` from `AsyncLoggerBuildConfig`. This facade is the application-oriented async builder for the text-console runtime sink shape returned by `build_async_text_logger(...)`.
+Build an `ApplicationTextAsyncLogger` from `AsyncLoggerBuildConfig`. This is the application-oriented async alias builder for the text-console runtime sink shape returned by `build_async_text_logger(...)`.
 
 ### Interface
 
@@ -35,13 +35,14 @@ pub fn build_application_text_async_logger(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API delegates to `build_async_text_logger(...)`.
+- This API delegates to `build_async_text_logger(...)` directly.
 - It is intended for config-driven async text console output where callers want the concrete text sink shape rather than the broader runtime sink enum wrapper.
 - The builder always creates a `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
-- Unlike `build_application_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
+- Unlike `build_application_async_logger(...)`, this alias-oriented builder does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
-- The returned logger keeps the usual async lifecycle helpers.
-- Because it returns the direct `ApplicationTextAsyncLogger` alias, the resulting logger also keeps the same runtime-dependent close/failure semantics as the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- Because the result is only the `ApplicationTextAsyncLogger` alias over `AsyncLogger[@bitlogger.FormattedConsoleSink]`, this builder does not hide any async helpers or introduce a wrapper layer.
+- The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
+- It also keeps the same runtime-dependent close/failure semantics as the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
 
 ### How to Use
 
@@ -61,6 +62,17 @@ let logger = build_application_text_async_logger(
 
 In this example, the async logger is built for text-console output specifically.
 
+#### When Need Async State Helpers Immediately After Text App Construction
+
+When application code should keep the ordinary async helper surface directly on the text-console variant:
+```moonbit
+let logger = build_application_text_async_logger(config)
+ignore(logger.pending_count())
+ignore(logger.state())
+```
+
+In this example, the application text alias exposes async state helpers directly because no narrowing wrapper is added.
+
 ### Error Case
 
 e.g.:
@@ -75,3 +87,5 @@ e.g.:
 2. It is most useful when callers want the `FormattedConsoleSink`-backed async type explicitly.
 
 3. Use `build_application_async_logger(...)` instead when callers need the broader runtime-sink build path, including sync queue application through `build_logger(config.logger)`.
+
+4. Use `build_library_async_text_logger(...)` instead when the public boundary should narrow the exposed async surface while preserving the same concrete text sink type.
