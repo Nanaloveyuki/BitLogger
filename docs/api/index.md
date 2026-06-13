@@ -284,6 +284,7 @@ BitLogger API navigation.
 
 ## Configured logger runtime
 
+- [configured-logger.md](./configured-logger.md)
 - [configured-logger-flush.md](./configured-logger-flush.md)
 - [configured-logger-drain.md](./configured-logger-drain.md)
 - [configured-logger-close.md](./configured-logger-close.md)
