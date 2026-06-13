@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - `clear=false` closes the queue without explicitly abandoning pending records in the helper itself.
 - `clear=true` counts pending records as dropped and resets `pending_count` to `0` before closing the queue.
 - This helper does not itself wait for the worker to finish.
+- `close(...)` also does not change `has_failed()` or `last_error()`; it is a closure primitive, not a failure reset API.
 - Because this is a low-level close primitive, it does not first run `wait_idle()` or apply the runtime-dependent fallback logic used by `shutdown()`.
 
 ### How to Use

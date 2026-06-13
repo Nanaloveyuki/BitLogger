@@ -34,9 +34,10 @@ pub async fn[S] AsyncLogger::wait_idle(self : AsyncLogger[S]) -> Unit {}
 Detailed rules explaining key parameters and behaviors
 
 - The helper keeps yielding while `pending_count() > 0`.
-- If `has_failed()` becomes `true`, waiting stops early instead of looping forever.
+- If `has_failed()` becomes `true`, waiting stops early instead of continuing to spin.
 - This API does not close the logger or stop the worker.
 - A return from `wait_idle()` therefore means either backlog reached `0` or failure interrupted normal drain progress.
+- If no worker is draining the queue and no failure flag is raised, `wait_idle()` can wait indefinitely.
 - It is narrower than `shutdown()` and is useful when the logger should continue to be used later.
 
 ### How to Use
@@ -67,7 +68,7 @@ In this example, the wait acts as a barrier between test phases.
 e.g.:
 - If the worker has failed, `wait_idle()` stops waiting even if pending records remain.
 
-- If the worker was never started, pending records may not drain and callers should not expect idle progress automatically.
+- If the worker was never started, or if nothing is making pending records decrease, `wait_idle()` can block indefinitely.
 
 - If callers need backlog cleanup after a failure-short-circuit, they still need a later `close(clear=true)` or `shutdown(...)` path.
 
