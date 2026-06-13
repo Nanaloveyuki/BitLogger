@@ -371,6 +371,7 @@ BitLogger API navigation.
 - [runtime-sink-file-set-append-mode.md](./runtime-sink-file-set-append-mode.md)
 - [runtime-sink-file-auto-flush.md](./runtime-sink-file-auto-flush.md)
 - [runtime-sink-file-set-auto-flush.md](./runtime-sink-file-set-auto-flush.md)
+- [runtime-sink-file-set-policy.md](./runtime-sink-file-set-policy.md)
 - [runtime-sink-file-rotation-enabled.md](./runtime-sink-file-rotation-enabled.md)
 - [runtime-sink-file-rotation-config.md](./runtime-sink-file-rotation-config.md)
 - [runtime-sink-file-set-rotation.md](./runtime-sink-file-set-rotation.md)
