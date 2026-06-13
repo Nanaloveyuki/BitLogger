@@ -2127,6 +2127,53 @@ test "library logger builder unwrap preserves file runtime helpers" {
   inspect(full.file_close() == configured.file_close(), content="true")
 }
 
+test "library logger builder unwrap preserves file controls" {
+  let config = LoggerConfig::new(
+    min_level=Level::Warn,
+    target="lib.file.controls.same-build",
+    sink=SinkConfig::new(kind=SinkKind::File, path="lib-file-controls-same-build.log"),
+  )
+  let logger = build_library_logger(config)
+  let full = logger.to_logger()
+  let configured = build_logger(config)
+
+  inspect(full.file_set_append_mode(false) == configured.file_set_append_mode(false), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_set_auto_flush(false) == configured.file_set_auto_flush(false), content="true")
+  inspect(full.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let rotation = Some(file_rotation(48, max_backups=3))
+  inspect(full.file_set_rotation(rotation) == configured.file_set_rotation(rotation), content="true")
+  inspect(full.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+
+  let full_policy = full.file_policy()
+  let configured_policy = configured.file_policy()
+  inspect(full_policy.append == configured_policy.append, content="true")
+  inspect(full_policy.auto_flush == configured_policy.auto_flush, content="true")
+  inspect(match full_policy.rotation {
+    Some(value) => match configured_policy.rotation {
+      Some(other) => value.max_bytes == other.max_bytes && value.max_backups == other.max_backups
+      None => false
+    }
+    None => configured_policy.rotation is None
+  }, content="true")
+
+  inspect(full.file_reopen_append() == configured.file_reopen_append(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_reopen_truncate() == configured.file_reopen_truncate(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_reopen_with_current_policy() == configured.file_reopen_with_current_policy(), content="true")
+
+  inspect(full.file_clear_rotation() == configured.file_clear_rotation(), content="true")
+  inspect(full.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(full.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(full.file_reset_policy() == configured.file_reset_policy(), content="true")
+  inspect(full.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(full.file_reset_failure_counters() == configured.file_reset_failure_counters(), content="true")
+
+  inspect(full.file_close() == configured.file_close(), content="true")
+}
+
 test "library logger can be parsed and built from config text" {
   let logger = parse_and_build_library_logger(
     "{\"min_level\":\"warn\",\"target\":\"lib.json\",\"sink\":{\"kind\":\"console\"}}",
@@ -2225,6 +2272,33 @@ test "library logger parse-build unwrap preserves file runtime helpers" {
 
   inspect(full.file_flush() == configured.file_flush(), content="true")
   inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.file_close() == configured.file_close(), content="true")
+}
+
+test "library logger parse-build unwrap preserves file controls" {
+  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.file.controls.same-build\",\"sink\":{\"kind\":\"file\",\"path\":\"lib-json-file-controls-same-build.log\"}}"
+  let logger = parse_and_build_library_logger(raw)
+  let full = logger.to_logger()
+  let configured = parse_and_build_logger(raw)
+
+  inspect(full.file_set_append_mode(false) == configured.file_set_append_mode(false), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_set_auto_flush(false) == configured.file_set_auto_flush(false), content="true")
+  inspect(full.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let rotation = Some(file_rotation(40, max_backups=2))
+  inspect(full.file_set_rotation(rotation) == configured.file_set_rotation(rotation), content="true")
+  inspect(full.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(full.file_reopen(append=Some(false)) == configured.file_reopen(append=Some(false)), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_reopen_append() == configured.file_reopen_append(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_clear_rotation() == configured.file_clear_rotation(), content="true")
+  inspect(full.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(full.file_reset_policy() == configured.file_reset_policy(), content="true")
+  inspect(full.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(full.file_reset_failure_counters() == configured.file_reset_failure_counters(), content="true")
+
   inspect(full.file_close() == configured.file_close(), content="true")
 }
 
