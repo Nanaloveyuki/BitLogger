@@ -2,8 +2,8 @@
 name: async-logger-last-error
 group: api
 category: async
-update-time: 20260512
-description: Read the last error recorded by the async logger worker during runtime failure handling.
+update-time: 20260614
+description: Read the last error string recorded by the async logger worker after run() resets and runtime failure capture.
 key-word:
     - async
     - logger
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - If the worker loop fails, the error text is captured from the raised exception.
 - An empty string normally means no failure has been recorded.
 - This helper reports worker execution errors, not ordinary overflow or backpressure conditions.
+- A new successful `run()` attempt clears any previously stored error text before drain work begins again.
 
 ### How to Use
 
@@ -67,6 +68,8 @@ In this example, the helper provides the textual failure detail without building
 e.g.:
 - If no runtime failure has occurred, the method returns an empty string.
 
+- An empty string does not prove the queue is empty or the worker is idle; it only means no failure string is currently recorded.
+
 - If callers need broader context than just the error text, they should use `state()`.
 
 ### Notes
@@ -74,3 +77,5 @@ e.g.:
 1. Read this helper together with `has_failed()` when interpreting worker health.
 
 2. The stored value is a diagnostic string, not a typed error object.
+
+3. Pair it with `is_running()` or `pending_count()` when you need to know whether failure left the logger with unfinished backlog.

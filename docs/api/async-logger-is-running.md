@@ -2,8 +2,8 @@
 name: async-logger-is-running
 group: api
 category: async
-update-time: 20260512
-description: Read whether the async logger worker is currently running and draining the queue.
+update-time: 20260614
+description: Read whether the async logger worker loop is currently running, regardless of queue backlog or recorded failure state.
 key-word:
     - async
     - logger
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - The flag is cleared when the worker exits normally or after failure handling finishes.
 - A logger may be closed while still running briefly during final drain or shutdown processing.
 - This helper focuses on worker activity rather than queue size or failure details.
+- `is_running()` can be `false` even when `pending_count()` is still nonzero, for example if the worker was never started or if it exited after a recorded failure.
 
 ### How to Use
 
@@ -69,8 +70,12 @@ e.g.:
 
 - If callers need a one-shot lifecycle flow, `shutdown()` is usually better than manual polling.
 
+- If `is_running()` is `true`, that still does not guarantee healthy drain progress; callers may need `has_failed()` or `state()` for failure context.
+
 ### Notes
 
 1. Use this helper for worker activity checks, not as a complete health signal.
 
 2. Pair it with `has_failed()` or `state()` when diagnosing stalled pipelines.
+
+3. Pair it with `pending_count()` when you need to distinguish an idle worker from a stopped logger that still has backlog.
