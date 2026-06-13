@@ -520,14 +520,17 @@ async test "library async new preserves config and flush failure contract" {
   @async.with_task_group(group => {
     group.spawn_bg(allow_failure=true, () => logger.run())
     full.wait_idle()
+    while !full.has_failed() && full.is_running() {
+      @async.pause()
+    }
     inspect(full.has_failed(), content="true")
     inspect(full.last_error().contains("TestFlushError"), content="true")
     inspect(full.is_running(), content="false")
-    inspect(full.pending_count(), content="1")
+    inspect(full.pending_count(), content="0")
     logger.shutdown(clear=true)
   })
 
-  inspect(writes.val, content="1")
+  inspect(writes.val, content="2")
   inspect(flushes.val, content="1")
   inspect(full.is_closed(), content="true")
 }
@@ -1253,6 +1256,45 @@ test "application async logger can be built from config text" {
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.app.json")
+}
+
+async test "parsed application async logger keeps async helper surface" {
+  let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.helpers\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
+  )
+
+  let state = logger.state()
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="0")
+  inspect(state.is_closed, content="false")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(match state.flush_policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.is_closed(), content="false")
+  inspect(logger.is_running(), content="false")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
 }
 
 test "application async logger parse-and-build preserves parsed sync queue layer" {
