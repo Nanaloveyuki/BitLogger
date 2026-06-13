@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - Queue state, sink wiring, target, min level, flush policy, and current failure/lifecycle state remain the same.
 - Use this when code needs wider async logger APIs outside the library facade.
 - This is the step required for helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, `last_error()`, or broader composition methods that are intentionally hidden by `LibraryAsyncLogger[S]`.
+- It is also the step that exposes the real post-run or post-shutdown state after facade-level lifecycle calls, because those calls delegated to this same wrapped logger all along.
 
 ### How to Use
 

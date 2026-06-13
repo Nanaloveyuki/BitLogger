@@ -44,6 +44,7 @@ Detailed rules explaining key parameters and behaviors
 - In runtimes where shutdown waits for workers, the method then waits until the worker is no longer running before returning.
 - After a worker-failure short-circuit, native-worker backends can still convert remaining backlog into dropped records, while compatibility backends skip that extra forced-clear step.
 - The narrower library facade does not change any of these runtime-dependent shutdown rules; it only keeps the broader inspection helpers out of the direct public surface.
+- Inspecting the logger later through `to_async_logger()` reveals the same delegated shutdown result rather than a rebuilt or translated lifecycle snapshot.
 
 ### How to Use
 

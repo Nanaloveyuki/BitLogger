@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - Failure and lifecycle state are still tracked by the wrapped async logger.
 - The narrower library facade does not hide the need to explicitly activate queue draining.
 - If the worker fails, the wrapped async logger records that through its failure-state helpers, which still require `to_async_logger()` for inspection from library-facing code.
+- Unwrapping after a delegated `run()` exposes the same failure and backlog state that accumulated behind the facade; it does not create a second runtime view.
 
 ### How to Use
 

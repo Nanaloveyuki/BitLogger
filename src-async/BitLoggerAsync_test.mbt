@@ -476,6 +476,50 @@ async test "library async logger keeps a smaller async facade" {
   inspect(written_field_counts.val[0], content="2")
 }
 
+async test "library async shutdown preserves wrapped failure cleanup semantics" {
+  let writes : Ref[Int] = Ref(0)
+  let logger = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(_) {
+      writes.val += 1
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.lib.failure",
+    flush=fn(_) -> Int raise {
+      raise TestFlushError("library facade flush exploded")
+    },
+  )
+  let full = logger.to_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(allow_failure=true, () => logger.run())
+    logger.info("one")
+    logger.info("two")
+    full.wait_idle()
+    inspect(full.has_failed(), content="true")
+    inspect(full.pending_count(), content="1")
+    logger.shutdown()
+  })
+
+  inspect(full.is_closed(), content="true")
+  inspect(full.has_failed(), content="true")
+  inspect(full.last_error().contains("TestFlushError"), content="true")
+  inspect(full.is_running(), content="false")
+  inspect(writes.val, content="1")
+  inspect(
+    full.pending_count(),
+    content=if async_runtime_supports_background_worker() { "0" } else { "1" },
+  )
+  inspect(
+    full.dropped_count(),
+    content=if async_runtime_supports_background_worker() { "1" } else { "0" },
+  )
+}
+
 async test "library async logger can be built from config" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
