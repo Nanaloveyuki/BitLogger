@@ -99,6 +99,7 @@ BitLogger API navigation.
 
 ## Sink and file
 
+- [context-sink-type.md](./context-sink-type.md)
 - [console-sink.md](./console-sink.md)
 - [console-sink-type.md](./console-sink-type.md)
 - [json-console-sink.md](./json-console-sink.md)
@@ -126,6 +127,7 @@ BitLogger API navigation.
 - [patch-sink.md](./patch-sink.md)
 - [patch-sink-type.md](./patch-sink-type.md)
 - [file-sink.md](./file-sink.md)
+- [file-sink-type.md](./file-sink-type.md)
 - [native-files-supported.md](./native-files-supported.md)
 - [file-rotation.md](./file-rotation.md)
 - [file-rotation-type.md](./file-rotation-type.md)
