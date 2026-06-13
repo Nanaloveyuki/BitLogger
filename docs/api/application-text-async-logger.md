@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
 - The alias therefore keeps the same text-console-specific builder and lifecycle semantics already documented on `AsyncLogger[@bitlogger.FormattedConsoleSink]`, including the concrete sink shape and runtime-dependent close/failure behavior.
 - The application-facing type does not hide any async state or lifecycle helpers; queue/backlog/failure inspection remains directly available on this alias just as it is on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- When the value is built through `build_application_text_async_logger(...)`, the direct async counters come from the outer async logger only; any optional sync queue configured on `LoggerConfig.queue` is not carried into this text-specific build path.
 - The alias exists to give application code a clearer public name when it wants the concrete text-console sink shape explicitly.
 - `build_application_text_async_logger(...)` returns this alias.
 

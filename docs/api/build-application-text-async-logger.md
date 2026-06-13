@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - The builder always creates a `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
 - Unlike `build_application_async_logger(...)`, this alias-oriented builder does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
+- A sync queue configured on `LoggerConfig.queue` is therefore ignored by this builder instead of being preserved under the returned async logger.
 - Because the result is only the `ApplicationTextAsyncLogger` alias over `AsyncLogger[@bitlogger.FormattedConsoleSink]`, this builder returns the same underlying async logger value as `build_async_text_logger(...)` and does not hide any async helpers or introduce a wrapper layer.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
 - It also keeps the same runtime-dependent close/failure semantics as the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.

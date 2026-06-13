@@ -613,6 +613,29 @@ test "application text async logger uses text facade build path" {
   inspect(logger.target, content="async.app.text")
 }
 
+test "application text async logger builder ignores sync queue layer" {
+  let logger = build_application_text_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.app.text.queued",
+        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.app.text.queued")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="0")
+}
+
 test "build async text logger keeps text-console config fields" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
