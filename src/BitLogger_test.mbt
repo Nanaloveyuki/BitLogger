@@ -1266,6 +1266,80 @@ test "library logger child composes target through facade" {
   inspect(keep_parent.to_logger().target, content="sdk")
 }
 
+test "library logger log supports per-call target override" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let logger = LibraryLogger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+    }),
+    min_level=Level::Warn,
+    target="lib.default",
+  )
+    .with_context_fields([field("service", "bitlogger")])
+
+  logger.log(
+    Level::Error,
+    "override",
+    fields=[field("mode", "test")],
+    target="lib.override",
+  )
+  inspect(captured_target.val, content="lib.override")
+  inspect(captured_message.val, content="override")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="mode")
+  inspect(captured_fields.val[1].value, content="test")
+
+  logger.log(Level::Error, "default")
+  inspect(captured_target.val, content="lib.default")
+  inspect(captured_message.val, content="default")
+  inspect(captured_fields.val.length(), content="1")
+  inspect(captured_fields.val[0].key, content="service")
+}
+
+test "library logger severity helpers use stored target without override" {
+  let captured_levels : Ref[Array[String]] = Ref([])
+  let captured_targets : Ref[Array[String]] = Ref([])
+  let captured_fields : Ref[Array[Array[Field]]] = Ref([])
+  let logger = LibraryLogger::new(
+    callback_sink(fn(rec) {
+      captured_levels.val.push(rec.level.label())
+      captured_targets.val.push(rec.target)
+      captured_fields.val.push(rec.fields)
+    }),
+    min_level=Level::Info,
+    target="lib.helpers",
+  )
+    .bind([field("service", "bitlogger")])
+
+  logger.info("info", fields=[field("mode", "info")])
+  logger.warn("warn", fields=[field("mode", "warn")])
+  logger.error("error", fields=[field("mode", "error")])
+
+  inspect(captured_levels.val.length(), content="3")
+  inspect(captured_levels.val[0], content="INFO")
+  inspect(captured_levels.val[1], content="WARN")
+  inspect(captured_levels.val[2], content="ERROR")
+  inspect(captured_targets.val.length(), content="3")
+  inspect(captured_targets.val[0], content="lib.helpers")
+  inspect(captured_targets.val[1], content="lib.helpers")
+  inspect(captured_targets.val[2], content="lib.helpers")
+  inspect(captured_fields.val[0].length(), content="2")
+  inspect(captured_fields.val[1].length(), content="2")
+  inspect(captured_fields.val[2].length(), content="2")
+  inspect(captured_fields.val[0][0].key, content="service")
+  inspect(captured_fields.val[0][1].value, content="info")
+  inspect(captured_fields.val[1][0].key, content="service")
+  inspect(captured_fields.val[1][1].value, content="warn")
+  inspect(captured_fields.val[2][0].key, content="service")
+  inspect(captured_fields.val[2][1].value, content="error")
+}
+
 test "library logger can unwrap to full logger when needed" {
   let base = LibraryLogger::new(console_sink(), min_level=Level::Warn, target="lib")
   let full = base.to_logger().with_timestamp()
