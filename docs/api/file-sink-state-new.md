@@ -54,7 +54,7 @@ Detailed rules explaining key parameters and behaviors
 - Omitting optional arguments uses a conservative baseline snapshot: unavailable, append enabled, auto-flush enabled, no rotation, and zeroed counters.
 - This constructor simply packages the supplied fields into one public snapshot value.
 - It does not inspect a live `FileSink` by itself.
-- `FileSink::state()` and `ConfiguredLogger::file_state()` are the higher-level APIs that read these values from concrete runtime objects.
+- `FileSink::state()`, `RuntimeSink::file_state()`, and `ConfiguredLogger::file_state()` are the higher-level APIs that read these values from concrete runtime objects.
 
 ### How to Use
 
@@ -99,7 +99,7 @@ In this example, callers still use the direct constructor while making each diag
 e.g.:
 - This constructor itself does not have a normal failure mode; it only packages the provided values.
 
-- If callers want a snapshot directly from a live file sink or configured logger, `state()` or `file_state()` is the simpler API.
+- If callers want a snapshot directly from a live file sink, runtime sink, or configured logger, `state()` or `file_state()` is the simpler API.
 
 ### Notes
 

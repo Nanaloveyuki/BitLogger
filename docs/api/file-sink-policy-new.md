@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-policy-new
 
-Construct a `FileSinkPolicy` value from explicit append, auto-flush, and rotation settings. This is the low-level constructor behind the public file policy shape used by direct file sinks and configured runtime file controls.
+Construct a `FileSinkPolicy` value from explicit append, auto-flush, and rotation settings. This is the low-level constructor behind the public file policy shape used by direct file sinks and higher-level runtime file-control APIs.
 
 ### Interface
 
@@ -42,7 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - Omitting optional arguments uses the baseline policy: append enabled, auto-flush enabled, and no rotation.
 - This constructor simply packages the supplied settings into one public policy value.
 - It does not inspect or mutate a live file sink by itself.
-- The resulting value matches the same public shape accepted by `FileSink::set_policy(...)` and `ConfiguredLogger::file_set_policy(...)`.
+- The resulting value matches the same public shape accepted by `FileSink::set_policy(...)`, `RuntimeSink::file_set_policy(...)`, and `ConfiguredLogger::file_set_policy(...)`.
 
 ### How to Use
 

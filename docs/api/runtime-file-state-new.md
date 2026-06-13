@@ -43,8 +43,8 @@ Detailed rules explaining key parameters and behaviors
 
 - Omitting optional arguments builds a non-queued baseline around the supplied file snapshot.
 - This constructor simply packages the supplied fields into one public runtime snapshot value.
-- It does not inspect a live configured logger by itself.
-- `ConfiguredLogger::file_runtime_state()` is the higher-level API that reads these values from concrete runtime objects.
+- It does not inspect a live runtime sink or configured logger by itself.
+- `RuntimeSink::file_runtime_state()` and `ConfiguredLogger::file_runtime_state()` are the higher-level APIs that read these values from concrete runtime objects.
 
 ### How to Use
 
@@ -62,17 +62,17 @@ let snapshot = RuntimeFileState::new(
 )
 ```
 
-In this example, the runtime file snapshot is built directly without querying a live configured logger.
+In this example, the runtime file snapshot is built directly without querying a live runtime object.
 
 #### When Need Structured Runtime Diagnostics Input Before Serialization
 
 When code should prepare a typed runtime file state value for later export:
 ```moonbit
 let snapshot = RuntimeFileState::new(
-  logger.file_state(),
+  runtime.file_state(),
   queued=true,
-  pending_count=logger.pending_count(),
-  dropped_count=logger.dropped_count(),
+  pending_count=runtime.pending_count(),
+  dropped_count=runtime.dropped_count(),
 )
 ```
 
@@ -83,7 +83,7 @@ In this example, callers still use the direct constructor while making each queu
 e.g.:
 - This constructor itself does not have a normal failure mode; it only packages the provided values.
 
-- If callers want a snapshot directly from a live configured logger, `file_runtime_state()` is the simpler API.
+- If callers want a snapshot directly from a live runtime sink or configured logger, `file_runtime_state()` is the simpler API.
 
 ### Notes
 
