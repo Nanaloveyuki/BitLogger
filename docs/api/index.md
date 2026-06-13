@@ -100,8 +100,11 @@ BitLogger API navigation.
 ## Sink and file
 
 - [console-sink.md](./console-sink.md)
+- [console-sink-type.md](./console-sink-type.md)
 - [json-console-sink.md](./json-console-sink.md)
+- [json-console-sink-type.md](./json-console-sink-type.md)
 - [formatted-console-sink.md](./formatted-console-sink.md)
+- [formatted-console-sink-type.md](./formatted-console-sink-type.md)
 - [text-console-sink.md](./text-console-sink.md)
 - [callback-sink.md](./callback-sink.md)
 - [formatted-callback-sink.md](./formatted-callback-sink.md)
