@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` gives compact JSON.
 - `pretty=true` gives indented output.
 - This helper builds on top of `sink_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured sink export helper.
 - It is useful when examples or generated docs want to show only sink-specific config.
 
 ### How to Use
@@ -67,4 +68,10 @@ e.g.:
 - If callers need a JSON value instead of text, use `sink_config_to_json(...)` instead.
 
 - If optional `rotation` is absent, the serialized sink config simply omits that field.
+
+### Notes
+
+1. Use this helper when the next consumer expects JSON text instead of `JsonValue`.
+
+2. Use `sink_config_to_json(...)` when you still need to embed the sink config inside a larger JSON object before final stringification.
 

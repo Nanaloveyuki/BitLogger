@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON suitable for logs and snapshots.
 - `pretty=true` returns indented JSON for human inspection.
 - This helper is built on top of `queue_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured export helper.
 - The resulting text follows the same queue schema accepted by config parsing flows.
 
 ### How to Use
@@ -69,4 +70,10 @@ e.g.:
 - If callers need a `JsonValue` for further composition, this API is the wrong layer and `queue_config_to_json(...)` should be used instead.
 
 - If queue policy is too aggressive for workload burst size, serialization still succeeds because this helper only exports config.
+
+### Notes
+
+1. Use this helper when the next consumer expects JSON text instead of `JsonValue`.
+
+2. Use `queue_config_to_json(...)` when you still need to embed the queue config inside a larger JSON object before final stringification.
 

@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` produces compact JSON.
 - `pretty=true` produces indented human-readable JSON.
 - This helper builds on top of `logger_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured logger-config export helper.
 - Output is stable and suited for roundtrip config workflows.
 
 ### How to Use
@@ -67,4 +68,10 @@ e.g.:
 - If callers need a JSON value rather than text, use `logger_config_to_json(...)` instead.
 
 - If config contains optional `queue=None`, the output omits that section rather than failing.
+
+### Notes
+
+1. Use this helper when the next consumer expects JSON text instead of `JsonValue`.
+
+2. Use `logger_config_to_json(...)` when you still need to embed the config inside a larger JSON object before final stringification.
 
