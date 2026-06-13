@@ -1386,6 +1386,64 @@ test "build async text logger keeps text-console config fields" {
   }, content="Never")
 }
 
+async test "build async text logger keeps direct helper surface" {
+  let logger = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.text.helpers",
+        timestamp=true,
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::DropOldest,
+        flush=AsyncFlushPolicy::Shutdown,
+      ),
+    ),
+  )
+
+  let state = logger.state()
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.text.helpers")
+  inspect(logger.timestamp, content="true")
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="0")
+  inspect(state.is_closed, content="false")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(match state.flush_policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.is_closed(), content="false")
+  inspect(logger.is_running(), content="false")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
+}
+
 test "build async text logger ignores sync queue layer" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
