@@ -264,6 +264,7 @@ BitLogger API navigation.
 ## Async lifecycle and state
 
 - [async-logger-state-type.md](./async-logger-state-type.md)
+- [async-logger-state-new.md](./async-logger-state-new.md)
 - [async-logger-pending-count.md](./async-logger-pending-count.md)
 - [async-logger-dropped-count.md](./async-logger-dropped-count.md)
 - [async-logger-is-closed.md](./async-logger-is-closed.md)
@@ -283,6 +284,7 @@ BitLogger API navigation.
 - [async-overflow-policy.md](./async-overflow-policy.md)
 - [async-flush-policy.md](./async-flush-policy.md)
 - [async-runtime-state-type.md](./async-runtime-state-type.md)
+- [async-runtime-state-new.md](./async-runtime-state-new.md)
 - [async-runtime-mode.md](./async-runtime-mode.md)
 - [async-runtime-mode-label.md](./async-runtime-mode-label.md)
 - [async-runtime-supports-background-worker.md](./async-runtime-supports-background-worker.md)
