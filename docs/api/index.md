@@ -60,6 +60,7 @@ BitLogger API navigation.
 ## Formatter and fields
 
 - [field.md](./field.md)
+- [field-with-value.md](./field-with-value.md)
 - [record-formatter.md](./record-formatter.md)
 - [color-mode.md](./color-mode.md)
 - [color-support.md](./color-support.md)
@@ -81,6 +82,7 @@ BitLogger API navigation.
 
 - [record.md](./record.md)
 - [record-new.md](./record-new.md)
+- [record-copy.md](./record-copy.md)
 - [record-with-target.md](./record-with-target.md)
 - [record-with-message.md](./record-with-message.md)
 - [record-with-fields.md](./record-with-fields.md)
