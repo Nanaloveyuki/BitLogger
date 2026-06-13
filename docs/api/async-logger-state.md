@@ -40,6 +40,8 @@ Detailed rules explaining key parameters and behaviors
 - `runtime` embeds the result of `async_runtime_state()` so callers do not need to join separate helpers manually.
 - Because the snapshot is assembled field by field when `state()` is called, later logger changes require calling `state()` again rather than reusing an older `AsyncLoggerState` value as if it refreshed itself.
 - That field-by-field assembly also means this helper is not an atomic freeze across all refs; under concurrent logger activity, neighboring fields can reflect slightly different instants.
+- After a worker failure, `has_failed=true`, a non-empty `last_error`, and `pending_count>0` can legitimately appear together in one snapshot until later cleanup or a later started `run()` changes them.
+- `state()` only reports the current field values; it does not clear failure state, drain backlog, or synchronize pending work by itself.
 
 ### How to Use
 
@@ -69,6 +71,8 @@ if state.has_failed {
 
 In this example, the same snapshot object works for conditional diagnostics and serialization.
 
+And the reported failure fields can still appear together with non-zero backlog when a worker stopped early.
+
 ### Error Case
 
 e.g.:
@@ -79,6 +83,8 @@ e.g.:
 - `flush_policy` reports the logger's configured async flush mode, not whether a flush has already happened.
 
 - If concurrent logger activity is still changing counters or flags while `state()` runs, the returned value is still useful for diagnostics but should not be treated as a transactional snapshot.
+
+- A snapshot showing `has_failed=true` does not imply `pending_count` is already `0`; remaining queued records may still be visible until later cleanup or restart.
 
 ### Notes
 

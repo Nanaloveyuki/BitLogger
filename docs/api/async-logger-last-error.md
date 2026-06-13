@@ -33,12 +33,12 @@ pub fn[S] AsyncLogger::last_error(self : AsyncLogger[S]) -> String {}
 
 Detailed rules explaining key parameters and behaviors
 
-- `run()` resets the stored error string when the worker starts.
+- A later `run()` clears the stored error string only after that run has actually started.
 - If the worker loop fails, the error text is captured from the raised exception.
 - An empty string normally means no failure has been recorded.
 - Once a failure string is recorded, it stays in place until a later `run()` invocation actually starts and clears it.
 - This helper reports worker execution errors, not ordinary overflow or backpressure conditions.
-- A new successful `run()` attempt clears any previously stored error text before drain work begins again.
+- That reset happens before the restarted worker resumes drain work.
 
 ### How to Use
 
@@ -73,7 +73,7 @@ e.g.:
 
 - If callers need broader context than just the error text, they should use `state()`.
 
-- `close()` or `shutdown()` do not clear a previously recorded error string by themselves; the reset happens when a later `run()` has already started.
+- `close()` or `shutdown()` do not clear a previously recorded error string by themselves; the reset happens only after a later `run()` has already started.
 
 ### Notes
 
@@ -81,4 +81,4 @@ e.g.:
 
 2. The stored value is a diagnostic string, not a typed error object.
 
-3. Pair it with `is_running()` or `pending_count()` when you need to know whether failure left the logger with unfinished backlog.
+3. Pair it with `is_running()` or `pending_count()` when you need to know whether failure left the logger with unfinished backlog, because the previous error string can coexist with remaining pending records until later cleanup or restart.
