@@ -3,7 +3,7 @@ name: library-logger
 group: api
 category: facade
 update-time: 20260613
-description: Public library-facing sync logger facade type used to expose a narrower surface than Logger.
+description: Public library-facing sync logger facade type used to expose a narrower surface than Logger while preserving sink typing.
 key-word:
     - library
     - logger
@@ -33,7 +33,8 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a public facade struct, not a type alias.
 - The wrapped sink type `S` is preserved, so sink-specific typing remains available through the facade type parameter.
-- The facade keeps common library-safe operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, and the main write methods.
+- The facade keeps common library-safe operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, and the main write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
+- It does not expose the wider `Logger[S]` composition surface or `ConfiguredLogger` runtime helper methods directly.
 - Call `to_logger()` when later code must recover the full underlying `Logger[S]` surface.
 
 ### How to Use
@@ -65,6 +66,8 @@ e.g.:
 - `LibraryLogger[S]` itself does not have a runtime failure mode.
 
 - Runtime behavior still depends on the wrapped sink `S`, so any sink-specific limitations remain unchanged behind the facade.
+
+- If the wrapped sink type is `RuntimeSink`, queue and file runtime helpers still exist on the underlying logger but are not callable through `LibraryLogger[RuntimeSink]` unless it is unwrapped with `to_logger()`.
 
 ### Notes
 
