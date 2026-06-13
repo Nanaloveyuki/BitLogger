@@ -1357,6 +1357,93 @@ test "application async logger aliases runtime async entry" {
   inspect(logger.target, content="async.app")
 }
 
+async test "application async logger builder matches direct async builder behavior" {
+  let config = AsyncLoggerBuildConfig::new(
+    logger=@bitlogger.LoggerConfig::new(
+      min_level=@bitlogger.Level::Warn,
+      target="async.app.same-build",
+      timestamp=true,
+      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+    ),
+    async_config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::DropOldest,
+      flush=AsyncFlushPolicy::Shutdown,
+    ),
+  )
+  let application = build_application_async_logger(config)
+  let direct = build_async_logger(config)
+  let application_state = application.state()
+  let direct_state = direct.state()
+
+  inspect(application.target, content=direct.target)
+  inspect(application.timestamp == direct.timestamp, content="true")
+  inspect(
+    application.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error),
+    content="true",
+  )
+  inspect(
+    application.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info),
+    content="true",
+  )
+  inspect(
+    stringify_async_logger_state(application_state) == stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let application_sink_kind = match application.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    @bitlogger.RuntimeSink::Console(_) => "Console"
+    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
+    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
+    @bitlogger.RuntimeSink::File(_) => "File"
+  }
+  let direct_sink_kind = match direct.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    @bitlogger.RuntimeSink::Console(_) => "Console"
+    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
+    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
+    @bitlogger.RuntimeSink::File(_) => "File"
+  }
+  inspect(application_sink_kind == direct_sink_kind, content="true")
+
+  application.info("skip")
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.dropped_count() == direct.dropped_count(), content="true")
+  inspect(application.is_closed() == direct.is_closed(), content="true")
+  inspect(application.is_running() == direct.is_running(), content="true")
+  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
+  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => application.run())
+    group.spawn_bg(() => direct.run())
+    application.shutdown()
+    direct.shutdown()
+  })
+
+  inspect(application.is_closed() == direct.is_closed(), content="true")
+  inspect(application.is_running() == direct.is_running(), content="true")
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.dropped_count() == direct.dropped_count(), content="true")
+  inspect(application.has_failed() == direct.has_failed(), content="true")
+  inspect(application.last_error() == direct.last_error(), content="true")
+}
+
 async test "application async logger keeps async helper surface" {
   let logger : ApplicationAsyncLogger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
