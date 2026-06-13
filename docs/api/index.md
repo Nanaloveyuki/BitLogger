@@ -184,6 +184,7 @@ BitLogger API navigation.
 - [file-sink-state-to-json.md](./file-sink-state-to-json.md)
 - [file-sink-state.md](./file-sink-state.md)
 - [stringify-file-sink-state.md](./stringify-file-sink-state.md)
+- [runtime-file-state-new.md](./runtime-file-state-new.md)
 - [runtime-file-state-to-json.md](./runtime-file-state-to-json.md)
 - [runtime-file-state.md](./runtime-file-state.md)
 - [stringify-runtime-file-state.md](./stringify-runtime-file-state.md)
