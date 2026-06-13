@@ -1260,6 +1260,75 @@ async test "library async parse-build unwrap matches parsed direct async builder
   inspect(full.last_error() == direct.last_error(), content="true")
 }
 
+async test "library async parse-build unwrap preserves file-backed runtime helpers" {
+  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"async-lib-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
+  let logger = parse_and_build_library_async_logger(raw)
+  let full = logger.to_async_logger()
+  let direct = build_async_logger(parse_async_logger_build_config_text(raw))
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(full.pending_count() == direct.pending_count(), content="true")
+  inspect(full.dropped_count() == direct.dropped_count(), content="true")
+  inspect(full.sink.pending_count() == direct.sink.pending_count(), content="true")
+  inspect(full.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(full.sink.file_available() == direct.sink.file_available(), content="true")
+  inspect(full.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(full.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+
+  let full_state = full.sink.file_state()
+  let direct_state = direct.sink.file_state()
+  inspect(full_state.path == direct_state.path, content="true")
+  inspect(full_state.available == direct_state.available, content="true")
+  inspect(full_state.append == direct_state.append, content="true")
+  inspect(full_state.auto_flush == direct_state.auto_flush, content="true")
+  inspect(full_state.open_failures == direct_state.open_failures, content="true")
+  inspect(full_state.write_failures == direct_state.write_failures, content="true")
+  inspect(full_state.flush_failures == direct_state.flush_failures, content="true")
+  inspect(full_state.rotation_failures == direct_state.rotation_failures, content="true")
+
+  match (full.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(full.sink.file_set_append_mode(false) == direct.sink.file_set_append_mode(false), content="true")
+  inspect(full.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(full.sink.file_set_auto_flush(false) == direct.sink.file_set_auto_flush(false), content="true")
+  inspect(full.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+  inspect(
+    full.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))) ==
+      direct.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))),
+    content="true",
+  )
+  inspect(full.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(), content="true")
+  inspect(full.sink.file_reopen_append() == direct.sink.file_reopen_append(), content="true")
+  inspect(full.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(full.sink.file_clear_rotation() == direct.sink.file_clear_rotation(), content="true")
+  inspect(full.sink.file_reset_policy() == direct.sink.file_reset_policy(), content="true")
+  inspect(full.sink.file_policy_matches_default() == direct.sink.file_policy_matches_default(), content="true")
+  inspect(
+    full.sink.file_reset_failure_counters() == direct.sink.file_reset_failure_counters(),
+    content="true",
+  )
+  inspect(full.sink.file_flush() == direct.sink.file_flush(), content="true")
+  inspect(full.pending_count() == direct.pending_count(), content="true")
+  inspect(full.sink.file_close() == direct.sink.file_close(), content="true")
+}
+
 test "library async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
