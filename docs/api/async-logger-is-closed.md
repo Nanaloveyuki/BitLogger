@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `close(...)` sets the closed state immediately.
 - `shutdown(...)` also results in a closed logger by the end of its lifecycle flow.
 - A closed logger should no longer be treated as a normal active enqueue target.
+- This helper is only a direct read of the current `is_closed` ref; it does not wait for drain completion or clear any other state.
 - This helper reflects lifecycle state only and does not indicate whether the worker is still draining.
 - Exact post-close logging behavior is runtime-dependent, so `is_closed()` should be read as a lifecycle signal rather than a full enqueue-policy contract.
 
@@ -72,6 +73,8 @@ e.g.:
 - If callers need to know whether the worker is still active, they should also inspect `is_running()`.
 
 - If callers need to know whether closure also prevented later log attempts on the current backend, they must interpret this together with the active runtime behavior rather than this flag alone.
+
+- Closing a logger does not by itself reset `has_failed()` or `last_error()`.
 
 ### Notes
 

@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `run()` sets the running state while the worker loop is active.
 - The flag is cleared when the worker exits normally or after failure handling finishes.
 - A logger may be closed while still running briefly during final drain or shutdown processing.
+- This helper is only a direct read of the current `is_running` ref; it does not wait, synchronize, or infer why the value is what it is.
 - This helper focuses on worker activity rather than queue size or failure details.
 - `is_running()` can be `false` even when `pending_count()` is still nonzero, for example if the worker was never started or if it exited after a recorded failure.
 
@@ -71,6 +72,8 @@ e.g.:
 - If callers need a one-shot lifecycle flow, `shutdown()` is usually better than manual polling.
 
 - If `is_running()` is `true`, that still does not guarantee healthy drain progress; callers may need `has_failed()` or `state()` for failure context.
+
+- Under concurrent activity, the returned value may change immediately after it is read.
 
 ### Notes
 
