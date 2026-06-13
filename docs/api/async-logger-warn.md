@@ -2,8 +2,8 @@
 name: async-logger-warn
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a warning-level record through the async logger using the built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a warning-level record through the async logger using the built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -52,7 +52,7 @@ Here are some specific examples provided.
 
 When the system should report a non-fatal problem:
 ```moonbit
-await logger.warn("retry budget running low")
+logger.warn("retry budget running low")
 ```
 
 In this example, the event is surfaced at warning severity without using the generic `log(...)` form.
@@ -61,7 +61,7 @@ In this example, the event is surfaced at warning severity without using the gen
 
 When a warning event should include context:
 ```moonbit
-await logger.warn(
+logger.warn(
   "queue near capacity",
   fields=[@bitlogger.field("pending", logger.pending_count().to_string())],
 )

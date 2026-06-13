@@ -2,8 +2,8 @@
 name: async-logger-log
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a record into the async logger with an explicit level, message, optional fields, and optional target override.
+update-time: 20260614
+description: Enqueue a record into the async logger with an explicit level, message, optional fields, and optional target override, using the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -56,7 +56,7 @@ Here are some specific examples provided.
 
 When code should choose level, fields, and target per event:
 ```moonbit
-await logger.log(
+logger.log(
   @bitlogger.Level::Info,
   "worker started",
   fields=[@bitlogger.field("job", "sync")],
@@ -70,7 +70,7 @@ In this example, all per-record inputs are supplied explicitly.
 
 When application code wants a custom wrapper around the base API:
 ```moonbit
-await logger.log(@bitlogger.Level::Warn, "slow request")
+logger.log(@bitlogger.Level::Warn, "slow request")
 ```
 
 In this example, `log(...)` acts as the common primitive under custom wrappers or convenience methods.

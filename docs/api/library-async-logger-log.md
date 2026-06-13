@@ -2,8 +2,8 @@
 name: library-async-logger-log
 group: api
 category: facade
-update-time: 20260613
-description: Enqueue a record through a LibraryAsyncLogger facade with explicit level, message, fields, and optional target override.
+update-time: 20260614
+description: Enqueue a record through a LibraryAsyncLogger facade with explicit level, message, fields, and optional target override, using the repo's direct async call style.
 key-word:
     - async
     - library
@@ -56,7 +56,7 @@ Here are some specific examples provided.
 
 When library code should choose level, fields, and target per event:
 ```moonbit
-await logger.log(
+logger.log(
   @bitlogger.Level::Info,
   "worker started",
   fields=[@bitlogger.field("job", "sync")],
@@ -70,7 +70,7 @@ In this example, the call site controls every major record property while keepin
 
 When package code defines its own logging helpers:
 ```moonbit
-await logger.log(@bitlogger.Level::Warn, "slow request")
+logger.log(@bitlogger.Level::Warn, "slow request")
 ```
 
 In this example, `log(...)` acts as the shared primitive under custom library-facing wrappers.

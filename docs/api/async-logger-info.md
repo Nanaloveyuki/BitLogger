@@ -2,8 +2,8 @@
 name: async-logger-info
 group: api
 category: async
-update-time: 20260512
-description: Enqueue an info-level record through the async logger using the most common built-in severity shortcut.
+update-time: 20260614
+description: Enqueue an info-level record through the async logger using the most common built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -52,7 +52,7 @@ Here are some specific examples provided.
 
 When async code should report routine progress or lifecycle events:
 ```moonbit
-await logger.info("worker started")
+logger.info("worker started")
 ```
 
 In this example, the event is expressed at the most common operational logging level.
@@ -61,7 +61,7 @@ In this example, the event is expressed at the most common operational logging l
 
 When an info event should include stable structured detail:
 ```moonbit
-await logger.info(
+logger.info(
   "job queued",
   fields=[@bitlogger.field("queue", "sync")],
 )

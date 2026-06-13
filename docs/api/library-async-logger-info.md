@@ -2,8 +2,8 @@
 name: library-async-logger-info
 group: api
 category: facade
-update-time: 20260613
-description: Enqueue an info-level record through a LibraryAsyncLogger facade using the informational severity shortcut.
+update-time: 20260614
+description: Enqueue an info-level record through a LibraryAsyncLogger facade using the informational severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - library
@@ -52,7 +52,7 @@ Here are some specific examples provided.
 
 When async package code should report routine progress or lifecycle events:
 ```moonbit
-await logger.info("worker started")
+logger.info("worker started")
 ```
 
 In this example, the event is expressed at the common operational logging level through the narrower facade.
@@ -61,7 +61,7 @@ In this example, the event is expressed at the common operational logging level 
 
 When an info event should include stable structured detail:
 ```moonbit
-await logger.info(
+logger.info(
   "job queued",
   fields=[@bitlogger.field("queue", "sync")],
 )

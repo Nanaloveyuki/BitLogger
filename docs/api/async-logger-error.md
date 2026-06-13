@@ -2,8 +2,8 @@
 name: async-logger-error
 group: api
 category: async
-update-time: 20260512
-description: Enqueue an error-level record through the async logger using the highest built-in severity shortcut.
+update-time: 20260614
+description: Enqueue an error-level record through the async logger using the highest built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -52,7 +52,7 @@ Here are some specific examples provided.
 
 When an operation should emit a high-severity failure event:
 ```moonbit
-await logger.error("worker execution failed")
+logger.error("worker execution failed")
 ```
 
 In this example, failure intent is explicit at the call site.
@@ -61,7 +61,7 @@ In this example, failure intent is explicit at the call site.
 
 When an error event should include diagnostic fields:
 ```moonbit
-await logger.error(
+logger.error(
   "dispatch failed",
   fields=[@bitlogger.field("job_id", "42")],
 )
