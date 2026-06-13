@@ -51,7 +51,7 @@ Here are some specific examples provided.
 
 When a service should stop logging only after queued records are drained:
 ```moonbit
-await logger.shutdown()
+logger.shutdown()
 ```
 
 In this example, the facade waits for normal drain behavior before final closure.
@@ -60,7 +60,7 @@ In this example, the facade waits for normal drain behavior before final closure
 
 When teardown should prefer speed over preserving backlog:
 ```moonbit
-await logger.shutdown(clear=true)
+logger.shutdown(clear=true)
 ```
 
 In this example, pending work is abandoned intentionally so shutdown can complete sooner.

@@ -2,8 +2,8 @@
 name: async-logger-wait-idle
 group: api
 category: async
-update-time: 20260512
-description: Wait until the async logger backlog drains to zero or a worker failure interrupts normal progress.
+update-time: 20260614
+description: Wait until the async logger backlog drains to zero or a worker failure interrupts normal progress, using the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -46,7 +46,7 @@ Here are some specific examples provided.
 
 When code should wait for queued work to flush before continuing:
 ```moonbit
-await logger.wait_idle()
+logger.wait_idle()
 ```
 
 In this example, the caller waits for backlog drain but leaves the logger usable afterward.
@@ -55,7 +55,7 @@ In this example, the caller waits for backlog drain but leaves the logger usable
 
 When a test wants to ensure earlier async logs were processed:
 ```moonbit
-await logger.wait_idle()
+logger.wait_idle()
 println("phase complete")
 ```
 
