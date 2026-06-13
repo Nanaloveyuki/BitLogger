@@ -3,7 +3,7 @@ name: build-library-logger
 group: api
 category: facade
 update-time: 20260613
-description: Build the library-facing sync logger facade from a LoggerConfig and intentionally hide direct runtime helper methods.
+description: Build the library-facing sync logger facade from a LoggerConfig by delegating to the configured runtime logger build path and then wrapping the result.
 key-word:
     - library
     - facade
@@ -33,7 +33,8 @@ pub fn build_library_logger(config : LoggerConfig) -> LibraryLogger[RuntimeSink]
 
 Detailed rules explaining key parameters and behaviors
 
-- This API builds a configured runtime logger first and then wraps it as `LibraryLogger[RuntimeSink]`.
+- This API builds a configured runtime logger first and then wraps that same value as `LibraryLogger[RuntimeSink]`.
+- The embedded config still goes through the normal runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - The facade intentionally exposes a smaller logging surface than the full configured runtime logger.
 - Queue metrics, flush and drain helpers, and file runtime controls remain on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - Call `to_logger()` if a caller must recover the underlying full logger object.
@@ -64,6 +65,8 @@ ignore(full.pending_count())
 
 In this example, the library facade is unwrapped before using configured runtime helper methods.
 
+And the unwrapped value still carries the same `RuntimeSink` pipeline built from the original config.
+
 ### Error Case
 
 e.g.:
@@ -76,3 +79,5 @@ e.g.:
 1. Prefer this facade when library APIs should not expose the full configured runtime logger type.
 
 2. Use `parse_and_build_library_logger(...)` when starting from JSON text.
+
+3. Use `to_logger()` when internal code later needs configured-runtime helpers or broader logger composition without changing the public facade type.

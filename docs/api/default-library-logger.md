@@ -3,7 +3,7 @@ name: default-library-logger
 group: api
 category: facade
 update-time: 20260520
-description: Create the default library-facing console logger facade from shared global defaults.
+description: Create the default library-facing console logger facade by wrapping the current shared default logger at call time.
 key-word:
     - library
     - facade
@@ -32,6 +32,7 @@ Detailed rules explaining key parameters and behaviors
 - This API wraps `default_logger()` as a library facade.
 - Each call reflects the current shared default minimum level and default target at that moment.
 - The returned value exposes the narrower `LibraryLogger` surface rather than the full `Logger` surface.
+- Later changes to shared defaults do not mutate an already-created facade value because the wrapped logger is captured when `default_library_logger()` is called.
 
 ### How to Use
 
@@ -49,6 +50,8 @@ if logger.is_enabled(Level::Info) {
 
 In this example, the library facade mirrors the current global defaults.
 
+And if the caller later unwraps it with `to_logger()`, the same captured default target and minimum level are still present on the full logger value.
+
 ### Error Case
 
 e.g.:
@@ -61,3 +64,5 @@ e.g.:
 1. Use `to_logger()` if callers need the full sync logger surface.
 
 2. This helper is useful for library-facing APIs that should stay narrower than `Logger`.
+
+3. Call `default_library_logger()` again after shared default changes if a fresh facade value should reflect the new defaults.
