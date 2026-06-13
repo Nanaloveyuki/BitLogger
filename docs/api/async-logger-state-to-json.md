@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The JSON includes runtime mode, worker support, queue counters, lifecycle flags, last error, and flush policy.
 - The top-level fields are `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
 - The nested `runtime` field reuses `async_runtime_state_to_json(...)`, and `flush_policy` is serialized with the canonical labels `Never`, `Batch`, or `Shutdown`.
+- The public helper returns the same internal JSON snapshot shape used by `stringify_async_logger_state(...)`, so both export paths stay aligned without duplicate field assembly logic.
 - This helper is suitable for health endpoints, diagnostics payloads, and custom serialization flows.
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
 - The state must already have been captured before serialization.
