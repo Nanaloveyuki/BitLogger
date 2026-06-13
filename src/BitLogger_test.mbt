@@ -411,6 +411,40 @@ test "config json helpers export stable structured shapes" {
   inspect(logger_queue_obj.get("overflow").unwrap().as_string().unwrap(), content="DropNewest")
 }
 
+test "logger config json export materializes parsed omitted defaults" {
+  let parsed = parse_logger_config_text("{}")
+  let logger_json = logger_config_to_json(parsed)
+  let logger_obj = logger_json.as_object().unwrap()
+  let sink_obj = logger_obj.get("sink").unwrap().as_object().unwrap()
+  let formatter_obj = sink_obj.get("text_formatter").unwrap().as_object().unwrap()
+
+  inspect(
+    @json_parser.stringify(logger_json),
+    content="{\"min_level\":\"INFO\",\"target\":\"\",\"timestamp\":false,\"sink\":{\"kind\":\"console\",\"path\":\"\",\"append\":true,\"auto_flush\":true,\"text_formatter\":{\"show_timestamp\":true,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"never\",\"color_support\":\"truecolor\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"}}}",
+  )
+  inspect(logger_obj.get("min_level").unwrap().as_string().unwrap(), content="INFO")
+  inspect(logger_obj.get("target").unwrap().as_string().unwrap(), content="")
+  inspect(logger_obj.get("timestamp").unwrap().as_bool().unwrap(), content="false")
+  inspect(logger_obj.get("queue") is None, content="true")
+  inspect(sink_obj.get("kind").unwrap().as_string().unwrap(), content="console")
+  inspect(sink_obj.get("path").unwrap().as_string().unwrap(), content="")
+  inspect(sink_obj.get("append").unwrap().as_bool().unwrap(), content="true")
+  inspect(sink_obj.get("auto_flush").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("show_timestamp").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("show_level").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("show_target").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("show_fields").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("separator").unwrap().as_string().unwrap(), content=" ")
+  inspect(formatter_obj.get("field_separator").unwrap().as_string().unwrap(), content=" ")
+  inspect(formatter_obj.get("template").unwrap().as_string().unwrap(), content="")
+  inspect(formatter_obj.get("color_mode").unwrap().as_string().unwrap(), content="never")
+  inspect(formatter_obj.get("color_support").unwrap().as_string().unwrap(), content="truecolor")
+  inspect(formatter_obj.get("style_markup").unwrap().as_string().unwrap(), content="full")
+  inspect(formatter_obj.get("target_style_markup").unwrap().as_string().unwrap(), content="disabled")
+  inspect(formatter_obj.get("fields_style_markup").unwrap().as_string().unwrap(), content="disabled")
+  inspect(formatter_obj.get("style_tags") is None, content="true")
+}
+
 test "default config helpers expose baseline config shapes" {
   let formatter = default_text_formatter_config()
   inspect(formatter.show_timestamp, content="true")
