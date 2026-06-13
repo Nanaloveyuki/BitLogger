@@ -2,8 +2,8 @@
 name: async-logger
 group: api
 category: async
-update-time: 20260512
-description: Create an async logger with bounded queueing, overflow policy, lifecycle helpers, and background run control.
+update-time: 20260614
+description: Create an async logger with bounded queueing, overflow policy, lifecycle helpers, background run control, and a raising flush callback.
 key-word:
     - async
     - logger
@@ -23,7 +23,7 @@ pub fn[S] async_logger(
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
   target~ : String = "",
-  flush~ : (S) -> Int = fn(_) { 0 },
+  flush~ : (S) -> Int raise = fn(_) { 0 },
 ) -> AsyncLogger[S] {}
 ```
 
@@ -33,7 +33,7 @@ pub fn[S] async_logger(
 - `config : AsyncLoggerConfig` - Queue size, overflow behavior, batching, linger, and flush policy.
 - `min_level : Level` - Level gate applied before enqueue.
 - `target : String` - Default target for emitted records.
-- `flush : (S) -> Int` - Flush callback used by batch/shutdown flush policies.
+- `flush : (S) -> Int raise` - Flush callback used by batch/shutdown flush policies and allowed to raise if sink flushing fails.
 
 #### output
 
@@ -48,6 +48,7 @@ Detailed rules explaining key parameters and behaviors
 - `src-async` is designed for `native / llvm / js / wasm / wasm-gc`, but current release-facing local verification is stronger for `native / js / wasm / wasm-gc` than for `llvm`.
 - `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
 - `flush` is used only when batch or shutdown policy wants explicit flushing.
+- If the supplied flush callback raises, worker failure state is recorded through `has_failed()` and `last_error()`.
 - Queue overflow behavior depends on `AsyncOverflowPolicy`.
 
 ### How to Use
