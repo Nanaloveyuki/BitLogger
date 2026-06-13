@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for humans.
 - This helper is built on top of `text_formatter_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured formatter export helper.
 - The output preserves the supported formatter config schema instead of any runtime-only formatter instance details.
 
 ### How to Use
@@ -72,4 +73,10 @@ e.g.:
 - If callers need a JSON value for composition, they should use `text_formatter_config_to_json(...)` instead.
 
 - If `style_tags` is empty, the serialized text omits that field rather than forcing an empty object.
+
+### Notes
+
+1. Use this helper when the next consumer expects JSON text instead of `JsonValue`.
+
+2. Use `text_formatter_config_to_json(...)` when you still need to embed formatter config inside a larger JSON object before final stringification.
 
