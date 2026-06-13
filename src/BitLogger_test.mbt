@@ -1003,6 +1003,40 @@ test "configured logger exposes file sink observability helpers" {
   ignore(logger.close())
 }
 
+test "configured logger file observation helpers stay aligned with runtime sink helpers" {
+  let file_logger = build_logger(
+    LoggerConfig::new(
+      target="config.file.delegate",
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-file-delegate.log"),
+    ),
+  )
+  let file_sink = file_logger.sink
+
+  inspect(file_logger.file_available() == file_sink.file_available(), content="true")
+  inspect(file_logger.file_path() == file_sink.file_path(), content="true")
+  inspect(file_logger.file_open_failures() == file_sink.file_open_failures(), content="true")
+  inspect(file_logger.file_write_failures() == file_sink.file_write_failures(), content="true")
+  inspect(file_logger.file_flush_failures() == file_sink.file_flush_failures(), content="true")
+  inspect(file_logger.file_rotation_failures() == file_sink.file_rotation_failures(), content="true")
+
+  let console_logger = build_logger(
+    LoggerConfig::new(
+      target="config.file.delegate.console",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+  let console_sink = console_logger.sink
+
+  inspect(console_logger.file_available() == console_sink.file_available(), content="true")
+  inspect(console_logger.file_path() == console_sink.file_path(), content="true")
+  inspect(console_logger.file_open_failures() == console_sink.file_open_failures(), content="true")
+  inspect(console_logger.file_write_failures() == console_sink.file_write_failures(), content="true")
+  inspect(console_logger.file_flush_failures() == console_sink.file_flush_failures(), content="true")
+  inspect(console_logger.file_rotation_failures() == console_sink.file_rotation_failures(), content="true")
+
+  ignore(file_logger.close())
+}
+
 test "file state json helpers stringify stable snapshots" {
   let rotation_json = file_rotation_config_to_json(file_rotation(64, max_backups=2))
   let rotation_obj = rotation_json.as_object().unwrap()
