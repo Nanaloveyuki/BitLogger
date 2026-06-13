@@ -36,6 +36,9 @@ Detailed rules explaining key parameters and behaviors
 - Parsing is separated from runtime construction.
 - This API is ideal for validating, editing, or inspecting config values before calling `build_logger(...)`.
 - Supported keys are intentionally constrained to stable built-in sink shapes and formatter options.
+- Omitted top-level keys fall back to the same defaults used by the typed config constructors: `min_level=Info`, `target=""`, `timestamp=false`, `sink=default_sink_config()`, and `queue=None`.
+- When a `sink` object is present, parsing selects the built-in sink kind and validates sink-specific data before any runtime logger is built. In particular, `kind=File` requires a non-empty `path`.
+- `parse_and_build_logger(...)` is only this parser plus `build_logger(...)`, so using the two-step path here does not change the configured runtime pipeline.
 - The error surface is `ConfigError` rather than silent fallback behavior.
 
 ### How to Use
@@ -72,6 +75,8 @@ e.g.:
 - If `input` is invalid JSON, parsing raises `ConfigError`.
 
 - If supported fields have wrong types or unsupported enum text, parsing raises `ConfigError`.
+
+- If `sink.kind` is `File` but `sink.path` is empty, parsing raises `ConfigError` before runtime construction.
 
 ### Notes
 

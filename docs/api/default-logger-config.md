@@ -31,6 +31,8 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper returns the same baseline config shape used by `LoggerConfig::new()` defaults.
 - It includes the default minimum level, empty target, disabled timestamp, default sink config, and no queue wrapper.
+- The implementation is exactly `LoggerConfig::new()`, so it stays aligned with the constructor defaults rather than duplicating a separate preset object.
+- That means `build_logger(...)` can consume the returned value directly, and `build_async_logger(...)` reuses the same sync-side defaults before adding the outer async layer.
 - It is useful for explicit config composition when callers want a known baseline object.
 
 ### How to Use
@@ -58,3 +60,5 @@ e.g.:
 1. This helper is the top-level default config entry point.
 
 2. It is useful for explicit config-first workflows and tests.
+
+3. Use `default_sink_config()` when callers only want the baseline sink portion rather than the full top-level logger config.
