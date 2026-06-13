@@ -48,10 +48,13 @@ Here are some specific examples provided.
 
 When a queued file runtime snapshot should be printed directly:
 ```moonbit
-println(stringify_runtime_file_state(snapshot, pretty=true))
+match runtime.file_runtime_state() {
+  Some(snapshot) => println(stringify_runtime_file_state(snapshot, pretty=true))
+  None => ()
+}
 ```
 
-In this example, both file state and queue metrics are shown in one readable JSON payload.
+In this example, both file state and queue metrics are shown in one readable JSON payload after the optional runtime snapshot is checked.
 
 #### When Need Compact Runtime Snapshot Export
 

@@ -56,10 +56,11 @@ In this example, the runtime file policy becomes a reusable structured value.
 
 When current and default policy should be exported separately:
 ```moonbit
-let current = file_sink_policy_to_json(sink.policy())
+let current = file_sink_policy_to_json(runtime.file_policy())
+let defaults = file_sink_policy_to_json(runtime.file_default_policy())
 ```
 
-In this example, callers can compare policy snapshots without formatting text first.
+In this example, callers can compare current and default policy snapshots without formatting text first.
 
 ### Error Case
 

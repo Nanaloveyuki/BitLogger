@@ -56,10 +56,10 @@ In this example, callers receive a structured file-state snapshot instead of pla
 
 When support tooling should ingest file sink state programmatically:
 ```moonbit
-let snapshot = file_sink_state_to_json(state)
+let snapshot = file_sink_state_to_json(runtime.file_state())
 ```
 
-In this example, the helper exposes all major file-state fields in machine-readable form.
+In this example, the helper exposes all major live file-state fields in machine-readable form.
 
 ### Error Case
 

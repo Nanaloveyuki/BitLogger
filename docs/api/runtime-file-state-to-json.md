@@ -55,10 +55,16 @@ In this example, callers receive a machine-readable combined runtime snapshot.
 
 When queued file runtime data should be embedded into a larger JSON object:
 ```moonbit
-let payload = runtime_file_state_to_json(state)
+match runtime.file_runtime_state() {
+  Some(snapshot) => {
+    let payload = runtime_file_state_to_json(snapshot)
+    ignore(payload)
+  }
+  None => ()
+}
 ```
 
-In this example, the helper keeps file-plus-queue diagnostics in one reusable JSON value.
+In this example, the helper keeps file-plus-queue diagnostics in one reusable JSON value after the optional runtime snapshot is read.
 
 ### Error Case
 
