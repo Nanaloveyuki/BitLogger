@@ -60,6 +60,7 @@ BitLogger API navigation.
 ## Formatter and fields
 
 - [field.md](./field.md)
+- [record-formatter.md](./record-formatter.md)
 - [text-style.md](./text-style.md)
 - [style-tag-registry.md](./style-tag-registry.md)
 - [default-style-tag-registry.md](./default-style-tag-registry.md)
@@ -108,6 +109,8 @@ BitLogger API navigation.
 
 ## Predicates and helpers
 
+- [record-predicate.md](./record-predicate.md)
+- [record-patch.md](./record-patch.md)
 - [level-at-least.md](./level-at-least.md)
 - [target-is.md](./target-is.md)
 - [target-has-prefix.md](./target-has-prefix.md)
