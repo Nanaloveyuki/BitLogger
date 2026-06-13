@@ -1510,6 +1510,36 @@ test "library async text logger builder ignores sync queue layer" {
   inspect(full.dropped_count(), content="0")
 }
 
+test "library async text logger ignores sink kind and still uses text formatter" {
+  let logger = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.text.kind",
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::File,
+          path="ignored.log",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+            template="TEXT:{target}:{message}",
+          ),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.text.kind")
+  let rendered = (full.sink.formatter)(
+    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.lib.text.kind"),
+  )
+  inspect(rendered, content="TEXT:async.lib.text.kind:boom")
+}
+
 async test "async logger can project to library async logger" {
   let logger = build_async_logger(
     AsyncLoggerBuildConfig::new(
