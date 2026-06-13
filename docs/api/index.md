@@ -205,11 +205,15 @@ BitLogger API navigation.
 
 ## Application and library facades
 
+- [logger-to-library-logger.md](./logger-to-library-logger.md)
+- [library-logger-to-logger.md](./library-logger-to-logger.md)
 - [build-application-logger.md](./build-application-logger.md)
 - [parse-and-build-application-logger.md](./parse-and-build-application-logger.md)
 - [build-library-logger.md](./build-library-logger.md)
 - [parse-and-build-library-logger.md](./parse-and-build-library-logger.md)
 - [default-library-logger.md](./default-library-logger.md)
+- [async-logger-to-library-async-logger.md](./async-logger-to-library-async-logger.md)
+- [library-async-logger-to-async-logger.md](./library-async-logger-to-async-logger.md)
 - [build-application-async-logger.md](./build-application-async-logger.md)
 - [build-application-text-async-logger.md](./build-application-text-async-logger.md)
 - [parse-and-build-application-async-logger.md](./parse-and-build-application-async-logger.md)
