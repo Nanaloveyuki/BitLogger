@@ -2,8 +2,8 @@
 name: application-text-async-logger
 group: api
 category: facade
-update-time: 20260613
-description: Application-facing alias for the text-console async logger surface.
+update-time: 20260614
+description: Application-facing alias for the text-console async logger surface, preserving the same async calling semantics as AsyncLogger.
 key-word:
     - application
     - async
@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers as other async logger aliases.
+- Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
 - The alias exists to give application code a clearer public name when it wants the concrete text-console sink shape explicitly.
 - `build_application_text_async_logger(...)` returns this alias.
 
@@ -53,12 +54,12 @@ In this example, the application alias keeps the same underlying async logger be
 
 When caller code should know it is working with the text-console variant:
 ```moonbit
-fn start_text_async(logger : ApplicationTextAsyncLogger) -> Unit {
+async fn start_text_async(logger : ApplicationTextAsyncLogger) -> Unit {
   logger.run()
 }
 ```
 
-In this example, the app-facing alias communicates the concrete text-console async shape directly.
+In this example, the app-facing alias communicates the concrete text-console async shape directly, while `run()` keeps its async calling contract.
 
 ### Error Case
 
