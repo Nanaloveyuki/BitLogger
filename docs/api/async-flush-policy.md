@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - `AsyncFlushPolicy::Batch` calls the configured flush function after each processed batch.
 - `AsyncFlushPolicy::Shutdown` calls the configured flush function once after the worker loop exits.
 - The current flush policy is also exposed through `AsyncLogger::flush_policy()` and included in `AsyncLoggerState`.
+- The canonical labels `Never`, `Batch`, and `Shutdown` are also the labels emitted by async config and logger-state serializers, so parsing and diagnostics share one public vocabulary.
 - Async config parsing accepts the canonical label `Never` and also the compatibility alias `None`, both mapping to the same public enum variant.
 - `Batch` flushing happens after the worker finishes one drained batch, not after every individual record write.
 
@@ -63,6 +64,8 @@ In this example, flushing happens when the worker loop exits instead of after ea
 
 e.g.:
 - If async config text uses unsupported flush policy text, async config parsing raises a failure.
+
+- The parser error path for unsupported flush text is the same `Failure` surface used by the async config utilities.
 
 - If a sink never needs explicit flushing, `Batch` or `Shutdown` can add unnecessary work without changing output.
 

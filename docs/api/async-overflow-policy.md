@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - `AsyncOverflowPolicy::DropOldest` lets the underlying async queue discard older pending records when capacity is limited.
 - `AsyncOverflowPolicy::DropNewest` discards the incoming record instead of blocking.
 - The same enum is used by `AsyncLoggerConfig::new(...)`, async config parsing, and the queue-kind mapping inside `AsyncLogger`.
+- The canonical labels `Blocking`, `DropOldest`, and `DropNewest` are also the labels emitted again by async config serializers, so export and parse stay aligned around one public vocabulary.
 - Async config parsing accepts the canonical label `DropNewest` and also the compatibility alias `DropLatest`, both mapping to the same public enum variant.
 - When `try_put(...)` reports that a record was not accepted under a drop policy, `dropped_count()` increases for that rejected enqueue.
 
@@ -63,6 +64,8 @@ In this example, the incoming record is dropped if the queue cannot accept it.
 
 e.g.:
 - If async config text uses unsupported overflow text, async config parsing raises a failure.
+
+- The parser error path for unsupported overflow text is the same `Failure` surface used by the async config utilities.
 
 - Under drop policies, sustained overload increases `dropped_count()` instead of guaranteeing delivery.
 
