@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - This is a public facade struct, not a type alias.
 - The wrapped sink type `S` is preserved, so sink-specific typing remains available through the facade type parameter.
 - The facade keeps common library-safe async operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, `run()`, `shutdown()`, and the main async write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
+- `LibraryAsyncLogger::new(...)` delegates to `async_logger(...)`, so the same async queue, raising flush callback, and runtime-dependent lifecycle behavior still exist behind the narrower facade.
 - It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
 
@@ -70,6 +71,8 @@ e.g.:
 
 - Runtime behavior still depends on the wrapped sink `S` and async runtime support, so sink-specific or target-specific limitations remain unchanged behind the facade.
 
+- Post-close logging behavior and failure/reset semantics remain those of the wrapped `AsyncLogger[S]`; the facade only narrows what is directly exposed.
+
 - Helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, `is_running()`, `has_failed()`, `last_error()`, `flush_policy()`, `state()`, and `wait_idle()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 
 ### Notes
@@ -77,3 +80,5 @@ e.g.:
 1. Use `LibraryAsyncLogger::new(...)`, `build_library_async_logger(...)`, or `parse_and_build_library_async_logger(...)` when you need a value of this type.
 
 2. Use `AsyncLogger[S]` directly when exposing the full async lifecycle and state surface is acceptable.
+
+3. Use `to_async_logger()` when internal code later needs the broader lifecycle/state helpers without changing the facade type exposed at the package boundary.
