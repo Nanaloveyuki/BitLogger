@@ -32,6 +32,7 @@ Detailed rules explaining key parameters and behaviors
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers as other async logger aliases.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
+- The alias therefore keeps the same text-console-specific builder and lifecycle semantics already documented on `AsyncLogger[@bitlogger.FormattedConsoleSink]`, including the concrete sink shape and runtime-dependent close/failure behavior.
 - The alias exists to give application code a clearer public name when it wants the concrete text-console sink shape explicitly.
 - `build_application_text_async_logger(...)` returns this alias.
 
@@ -73,3 +74,5 @@ e.g.:
 1. This alias is about naming and public intent, not a different async implementation.
 
 2. Use `build_application_text_async_logger(...)` when callers want the `FormattedConsoleSink`-backed async type explicitly.
+
+3. Use `ApplicationAsyncLogger` when application code should keep the broader runtime-sink shape instead of the text-console-specific one.

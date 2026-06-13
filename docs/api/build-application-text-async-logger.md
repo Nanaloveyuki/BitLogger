@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - Unlike `build_application_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - The returned logger keeps the usual async lifecycle helpers.
+- Because it returns the direct `ApplicationTextAsyncLogger` alias, the resulting logger also keeps the same runtime-dependent close/failure semantics as the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
 
 ### How to Use
 
@@ -72,3 +73,5 @@ e.g.:
 1. This is a narrower text-console async facade than `build_application_async_logger(...)`.
 
 2. It is most useful when callers want the `FormattedConsoleSink`-backed async type explicitly.
+
+3. Use `build_application_async_logger(...)` instead when callers need the broader runtime-sink build path, including sync queue application through `build_logger(config.logger)`.
