@@ -230,6 +230,33 @@ test "async build config stringify roundtrips nested logger and async fields" {
   }, content="Shutdown")
 }
 
+test "async build config parser fills omitted sections from defaults" {
+  let config = parse_async_logger_build_config_text("{}")
+  inspect(config.logger.min_level.label(), content="INFO")
+  inspect(config.logger.target, content="")
+  inspect(config.logger.timestamp, content="false")
+  inspect(match config.logger.sink.kind {
+    @bitlogger.SinkKind::Console => "Console"
+    @bitlogger.SinkKind::JsonConsole => "JsonConsole"
+    @bitlogger.SinkKind::TextConsole => "TextConsole"
+    @bitlogger.SinkKind::File => "File"
+  }, content="Console")
+  inspect(config.logger.queue is None, content="true")
+  inspect(config.async_config.max_pending, content="0")
+  inspect(config.async_config.max_batch, content="1")
+  inspect(config.async_config.linger_ms, content="0")
+  inspect(match config.async_config.overflow {
+    AsyncOverflowPolicy::Blocking => "Blocking"
+    AsyncOverflowPolicy::DropOldest => "DropOldest"
+    AsyncOverflowPolicy::DropNewest => "DropNewest"
+  }, content="Blocking")
+  inspect(match config.async_config.flush {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Never")
+}
+
 test "async json helpers export stable structured shapes" {
   let config_json = async_logger_config_to_json(
     AsyncLoggerConfig::new(
