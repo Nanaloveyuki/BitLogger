@@ -2402,6 +2402,74 @@ test "configured logger projection preserves runtime helpers through unwrap" {
   inspect(full.sink.pending_count(), content="0")
 }
 
+test "configured logger projection preserves file runtime helpers through unwrap" {
+  let configured = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="lib.projected.file",
+      sink=SinkConfig::new(kind=SinkKind::File, path="lib-projected-file.log"),
+      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
+    ),
+  )
+  let projected = configured.to_library_logger()
+  let full = projected.to_logger()
+
+  inspect(projected.is_enabled(Level::Error), content="true")
+  inspect(projected.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.projected.file")
+
+  full.error("one")
+  full.error("two")
+  full.error("three")
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.dropped_count() == configured.dropped_count(), content="true")
+  inspect(full.file_available() == configured.file_available(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_auto_flush() == configured.file_auto_flush(), content="true")
+
+  let full_state = full.file_state()
+  let configured_state = configured.file_state()
+  inspect(full_state.path == configured_state.path, content="true")
+  inspect(full_state.available == configured_state.available, content="true")
+  inspect(full_state.append == configured_state.append, content="true")
+  inspect(full_state.auto_flush == configured_state.auto_flush, content="true")
+  inspect(full_state.open_failures == configured_state.open_failures, content="true")
+  inspect(full_state.write_failures == configured_state.write_failures, content="true")
+  inspect(full_state.flush_failures == configured_state.flush_failures, content="true")
+  inspect(full_state.rotation_failures == configured_state.rotation_failures, content="true")
+
+  match (full.file_runtime_state(), configured.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(full.file_set_append_mode(false) == configured.file_set_append_mode(false), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_set_auto_flush(false) == configured.file_set_auto_flush(false), content="true")
+  inspect(full.file_auto_flush() == configured.file_auto_flush(), content="true")
+  inspect(
+    full.file_set_rotation(Some(file_rotation(36, max_backups=2))) ==
+      configured.file_set_rotation(Some(file_rotation(36, max_backups=2))),
+    content="true",
+  )
+  inspect(full.file_rotation_enabled() == configured.file_rotation_enabled(), content="true")
+  inspect(full.file_reopen_append() == configured.file_reopen_append(), content="true")
+  inspect(full.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(full.file_clear_rotation() == configured.file_clear_rotation(), content="true")
+  inspect(full.file_reset_policy() == configured.file_reset_policy(), content="true")
+  inspect(full.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+  inspect(full.file_reset_failure_counters() == configured.file_reset_failure_counters(), content="true")
+  inspect(full.file_flush() == configured.file_flush(), content="true")
+  inspect(full.pending_count() == configured.pending_count(), content="true")
+  inspect(full.file_close() == configured.file_close(), content="true")
+}
+
 test "default library logger mirrors shared sync defaults" {
   set_default_min_level(Level::Warn)
   set_default_target("lib.default")
