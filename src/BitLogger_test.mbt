@@ -1888,6 +1888,50 @@ test "application logger can be built from config text" {
   inspect(logger.target, content="app.json")
 }
 
+test "application logger parse-build matches parsed direct builder behavior" {
+  let raw = "{\"min_level\":\"warn\",\"target\":\"app.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":2,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}}"
+  let application = parse_and_build_application_logger(raw)
+  let configured = build_logger(parse_logger_config_text(raw))
+
+  inspect(application.target, content=configured.target)
+  inspect(application.timestamp == configured.timestamp, content="true")
+  inspect(application.is_enabled(Level::Error) == configured.is_enabled(Level::Error), content="true")
+  inspect(application.is_enabled(Level::Info) == configured.is_enabled(Level::Info), content="true")
+  let application_sink_kind = match application.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    RuntimeSink::Console(_) => "Console"
+    RuntimeSink::JsonConsole(_) => "JsonConsole"
+    RuntimeSink::TextConsole(_) => "TextConsole"
+    RuntimeSink::File(_) => "File"
+  }
+  let configured_sink_kind = match configured.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    RuntimeSink::Console(_) => "Console"
+    RuntimeSink::JsonConsole(_) => "JsonConsole"
+    RuntimeSink::TextConsole(_) => "TextConsole"
+    RuntimeSink::File(_) => "File"
+  }
+  inspect(application_sink_kind == configured_sink_kind, content="true")
+
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.dropped_count() == configured.dropped_count(), content="true")
+  inspect(application.flush() == configured.flush(), content="true")
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+}
+
 test "parsed application logger keeps direct runtime helper surface" {
   let logger : ApplicationLogger = parse_and_build_application_logger(
     "{\"min_level\":\"warn\",\"target\":\"app.json.helpers\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"app-json-helpers.log\"}}",
