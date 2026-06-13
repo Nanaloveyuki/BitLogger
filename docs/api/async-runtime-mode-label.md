@@ -2,8 +2,8 @@
 name: async-runtime-mode-label
 group: api
 category: async
-update-time: 20260512
-description: Convert AsyncRuntimeMode into a stable string label for logs, JSON, and diagnostics.
+update-time: 20260614
+description: Convert AsyncRuntimeMode into its canonical stable string label for logs, JSON, and diagnostics.
 key-word:
     - async
     - runtime
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - It keeps mode serialization logic in one place.
 - This helper is used by async runtime JSON helpers.
 - Labels are more stable for telemetry and docs than ad hoc manual matching at call sites.
+- The current canonical labels are exactly `native_worker` for `NativeWorker` and `compatibility` for `Compatibility`.
 
 ### How to Use
 
@@ -66,4 +67,10 @@ e.g.:
 - This API assumes a valid `AsyncRuntimeMode` input and does not expose a normal runtime error path.
 
 - If callers need the whole runtime object rather than a string label, use `async_runtime_state()`.
+
+### Notes
+
+1. Use this helper when mode values should be rendered as stable text instead of manual enum matching.
+
+2. `async_runtime_state_to_json(...)` uses these exact labels when serializing runtime snapshots.
 

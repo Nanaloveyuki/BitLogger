@@ -2,8 +2,8 @@
 name: stringify-async-runtime-state
 group: api
 category: async
-update-time: 20260512
-description: Serialize AsyncRuntimeState into compact or pretty JSON text for diagnostics and startup reporting.
+update-time: 20260614
+description: Serialize AsyncRuntimeState into compact or pretty JSON text for diagnostics and startup reporting using the canonical runtime snapshot shape.
 key-word:
     - async
     - state
@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human diagnostics.
 - This helper is built on top of `async_runtime_state_to_json(...)`.
+- The compact form matches the tested snapshot shape such as `{"mode":"native_worker","background_worker":true}`.
 - It is well-suited for startup banners, support reports, and target capability logs.
 
 ### How to Use
@@ -70,4 +71,10 @@ e.g.:
 - If callers need a JSON value rather than text, they should use `async_runtime_state_to_json(...)` instead.
 
 - If more complete async logger diagnostics are required, this helper should be replaced with `stringify_async_logger_state(...)`.
+
+### Notes
+
+1. The compact output uses the same canonical `mode` labels as `async_runtime_mode_label(...)`.
+
+2. This helper is the direct text form of the same two-field runtime snapshot exported by `async_runtime_state_to_json(...)`.
 
