@@ -3,7 +3,7 @@ name: library-async-logger-warn
 group: api
 category: facade
 update-time: 20260614
-description: Enqueue a warning-level record through a LibraryAsyncLogger facade using the built-in severity shortcut and the repo's direct async call style.
+description: Enqueue a warning-level record through a LibraryAsyncLogger facade by delegating to the wrapped async logger's warn shortcut.
 key-word:
     - async
     - library
@@ -39,10 +39,11 @@ pub async fn[S] LibraryAsyncLogger::warn(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Warn, ...)` on the wrapped async logger.
-- The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper delegates to `warn(...)` on the wrapped async logger, which in turn uses `log(Level::Warn, ...)`.
+- The record is still subject to min-level gating, stored shared context fields, patching, filtering, and overflow policy.
 - Warning records are useful for degraded but non-fatal runtime conditions.
 - Use this helper when a named warning call is clearer than a raw `log(...)` call.
+- Async state helpers remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 
 ### How to Use
 
@@ -69,6 +70,8 @@ logger.warn(
 
 In this example, the warning carries structured operational detail.
 
+And any shared context fields already stored on the facade are still prepended before these per-call fields.
+
 ### Error Case
 
 e.g.:
@@ -76,8 +79,12 @@ e.g.:
 
 - If the logger is closed or overflow policy prevents acceptance, the write may not become a normal queued record.
 
+- If callers need a per-call target override, they should use `log(...)` instead of this fixed-level shortcut.
+
 ### Notes
 
 1. Use this helper for notable but non-fatal async runtime conditions.
 
 2. Pair warnings with structured fields when operators need quick context.
+
+3. Use `to_async_logger()` first when later code needs queue or failure inspection rather than another write shortcut.
