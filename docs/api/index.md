@@ -101,8 +101,10 @@ BitLogger API navigation.
 
 - [console-sink.md](./console-sink.md)
 - [json-console-sink.md](./json-console-sink.md)
+- [formatted-console-sink.md](./formatted-console-sink.md)
 - [text-console-sink.md](./text-console-sink.md)
 - [callback-sink.md](./callback-sink.md)
+- [formatted-callback-sink.md](./formatted-callback-sink.md)
 - [text-callback-sink.md](./text-callback-sink.md)
 - [fanout-sink.md](./fanout-sink.md)
 - [split-sink.md](./split-sink.md)
