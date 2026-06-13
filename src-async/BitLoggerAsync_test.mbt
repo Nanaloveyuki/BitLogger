@@ -2739,6 +2739,21 @@ async test "parsed application async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+async test "parsed application async logger shutdown clear abandons pending records" {
+  let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
+    "{\"logger\":{\"min_level\":\"info\",\"target\":\"async.app.json.clear\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+
+  logger.info("one")
+  inspect(logger.pending_count(), content="1")
+  inspect(logger.dropped_count(), content="0")
+  logger.shutdown(clear=true)
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+}
+
 async test "parsed application async logger keeps broader async composition surface" {
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.compose\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
