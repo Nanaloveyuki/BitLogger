@@ -34,8 +34,8 @@ pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {}
 Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks return a live snapshot of file state.
-- Queued file sinks forward the snapshot from the wrapped file sink.
-- Non-file sinks return a fallback empty-state snapshot.
+- Queued file sinks forward the snapshot from the wrapped inner file sink.
+- Non-file sinks return the same fallback empty-style state produced by `RuntimeSink::file_state()`, with an empty path, disabled policy flags, no rotation, and zeroed counters.
 - This helper is broader than individual file counters or policy accessors because it aggregates core file status into one read.
 
 ### How to Use

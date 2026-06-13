@@ -33,7 +33,7 @@ pub fn ConfiguredLogger::file_runtime_state(self : ConfiguredLogger) -> RuntimeF
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks return `Some(RuntimeFileState)`.
+- File-backed sinks return `Some(RuntimeFileState)` through the wrapped `RuntimeSink`.
 - Queued file sinks include both file status and queue metrics in the returned state.
 - Non-file sinks return `None`.
 - This helper is richer than `file_state()` because it can also surface queued backlog and dropped counts.
