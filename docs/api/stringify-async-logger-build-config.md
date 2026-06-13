@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human inspection.
 - This helper is built on top of `async_logger_build_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured async build-config export helper.
 - The output keeps `logger` and `async_config` as separate sections, matching supported parser input.
 - The serialized `logger` section preserves the full `LoggerConfig` shape, even though `build_async_text_logger(...)` later consumes only the selected text-oriented subset of that logger config.
 
@@ -83,4 +84,6 @@ e.g.:
 2. Use `pretty=true` for review and diagnostics, or the default compact form for snapshots and transport.
 
 3. The serialized shape round-trips through `parse_async_logger_build_config_text(...)`, but the later builder choice still controls whether the full sync config path or only the text-oriented subset is consumed during construction.
+
+4. Use `async_logger_build_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
 

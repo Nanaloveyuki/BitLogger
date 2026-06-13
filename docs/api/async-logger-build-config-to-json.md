@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - The output always includes `logger` and `async_config`.
 - Logger export is delegated to `@bitlogger.logger_config_to_json(...)`.
 - Async export is delegated to `async_logger_config_to_json(...)`.
+- Because both sections are always materialized, parsed defaults that were originally omitted in JSON input become explicit again in the exported build-config shape.
 - This helper is useful when generated setup should preserve both sink/logger behavior and async runtime behavior together.
 - The exported `logger` section keeps the full `LoggerConfig` shape, including fields that only matter on the full sync-first builder path such as the optional sync queue layer.
 - That means the JSON shape is broader than the consumption pattern of `build_async_text_logger(...)`, which only uses selected text-oriented logger fields when building the sink.
