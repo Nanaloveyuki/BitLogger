@@ -1241,6 +1241,22 @@ async test "parsed library async logger unwrap keeps async helper surface" {
   inspect(full.last_error(), content="")
 }
 
+async test "parsed library async logger shutdown clear abandons pending records through facade" {
+  let logger = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"info\",\"target\":\"async.lib.json.clear\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+  let full = logger.to_async_logger()
+
+  logger.info("one")
+  inspect(full.pending_count(), content="1")
+  inspect(full.dropped_count(), content="0")
+  logger.shutdown(clear=true)
+  inspect(full.is_closed(), content="true")
+  inspect(full.is_running(), content="false")
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="1")
+}
+
 async test "library async parse-build unwrap matches parsed direct async builder behavior" {
   let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let logger = parse_and_build_library_async_logger(raw)
