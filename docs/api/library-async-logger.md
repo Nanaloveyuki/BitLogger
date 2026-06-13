@@ -71,7 +71,7 @@ e.g.:
 
 - Runtime behavior still depends on the wrapped sink `S` and async runtime support, so sink-specific or target-specific limitations remain unchanged behind the facade.
 
-- Post-close logging behavior and failure/reset semantics remain those of the wrapped `AsyncLogger[S]`; the facade only narrows what is directly exposed.
+- Post-close logging behavior, queue state, and failure-state behavior remain those of the wrapped `AsyncLogger[S]`; the facade only narrows what is directly exposed.
 
 - Helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, `is_running()`, `has_failed()`, `last_error()`, `flush_policy()`, `state()`, and `wait_idle()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 

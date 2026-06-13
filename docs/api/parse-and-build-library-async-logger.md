@@ -40,7 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce directly.
 - The resulting facade keeps library-facing async operations such as `run()` and `shutdown()` while exposing a smaller public surface.
-- The narrower facade does not change the underlying runtime-sink failure/reset or runtime-dependent close semantics; it only hides the broader helper surface until `to_async_logger()` is used.
+- The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection stay on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying async logger when a wider API is required.
 - Use this parse/build facade when text-driven construction should preserve the runtime-sink build path but still hide broader async inspection helpers at the package boundary.

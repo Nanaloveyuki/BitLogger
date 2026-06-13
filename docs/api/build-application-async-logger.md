@@ -41,7 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - In particular, a sync queue configured on `LoggerConfig.queue` is preserved inside the wrapped `RuntimeSink` variant instead of being stripped away by the application alias.
 - Because the result is only the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this builder does not hide any async helpers or introduce a wrapper layer.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
-- It also keeps the same failure/reset and runtime-dependent post-close behavior documented on the underlying runtime-sink async logger.
+- It also keeps the same queue counters, failure state, sink shape, and runtime-dependent post-close behavior as the underlying runtime-sink async logger.
 - Use this alias-oriented builder when application code wants the standard runtime-sink async shape without narrowing the public surface.
 
 ### How to Use

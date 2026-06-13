@@ -32,7 +32,7 @@ Detailed rules explaining key parameters and behaviors
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers such as `run()`, `shutdown()`, `pending_count()`, and `state()`.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.RuntimeSink]` remain async here as well.
-- The alias therefore keeps the same runtime-sink lifecycle, failure/reset behavior, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
+- The alias therefore keeps the same runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
 - The alias exists to give application boot code a clearer public type name for the standard runtime-sink async logger.
 - Builders such as `build_application_async_logger(...)` and `parse_and_build_application_async_logger(...)` return this alias.
 
