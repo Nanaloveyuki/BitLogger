@@ -2,8 +2,8 @@
 name: async-logger-debug
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a debug-level record through the async logger using the built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a debug-level record through the async logger using the built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -52,7 +52,7 @@ Here are some specific examples provided.
 
 When intermediate async flow details should be visible during debugging:
 ```moonbit
-await logger.debug("loaded worker config")
+logger.debug("loaded worker config")
 ```
 
 In this example, the call site communicates its intended diagnostic level directly.
@@ -61,7 +61,7 @@ In this example, the call site communicates its intended diagnostic level direct
 
 When a debug event should include extra fields:
 ```moonbit
-await logger.debug(
+logger.debug(
   "dispatch start",
   fields=[@bitlogger.field("job_id", "42")],
 )

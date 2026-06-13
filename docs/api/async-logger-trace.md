@@ -2,8 +2,8 @@
 name: async-logger-trace
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a trace-level record through the async logger using the lowest built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a trace-level record through the async logger using the lowest built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -52,7 +52,7 @@ Here are some specific examples provided.
 
 When low-level execution flow should be observable during debugging:
 ```moonbit
-await logger.trace("entered reconciliation step")
+logger.trace("entered reconciliation step")
 ```
 
 In this example, the call site makes trace intent explicit.
@@ -61,7 +61,7 @@ In this example, the call site makes trace intent explicit.
 
 When a trace event should carry extra fields:
 ```moonbit
-await logger.trace(
+logger.trace(
   "cache probe",
   fields=[@bitlogger.field("key", "user:42")],
 )

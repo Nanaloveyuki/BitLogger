@@ -2,8 +2,8 @@
 name: library-async-logger-is-enabled
 group: api
 category: facade
-update-time: 20260613
-description: Check whether a LibraryAsyncLogger facade would accept a record at a given level.
+update-time: 20260614
+description: Check whether a LibraryAsyncLogger facade would accept a record at a given level before using the repo's direct async call style.
 key-word:
     - async
     - library
@@ -51,7 +51,7 @@ Here are some specific examples provided.
 When debug data should only be built if needed:
 ```moonbit
 if logger.is_enabled(@bitlogger.Level::Info) {
-  await logger.info(build_summary())
+  logger.info(build_summary())
 }
 ```
 
@@ -62,7 +62,7 @@ In this example, expensive preparation is skipped unless the current threshold a
 When package code should branch based on current logger behavior:
 ```moonbit
 if logger.is_enabled(@bitlogger.Level::Warn) {
-  await logger.warn("slow path active")
+  logger.warn("slow path active")
 }
 ```
 
