@@ -641,6 +641,28 @@ test "configured logger queue helpers stay aligned with runtime sink helpers" {
   inspect(logger.dropped_count() == sink.dropped_count(), content="true")
 }
 
+test "configured logger close stays aligned with runtime sink close" {
+  let console_logger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="config.close.console",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  )
+  let console_sink = console_logger.sink
+  inspect(console_logger.close() == console_sink.close(), content="true")
+
+  let file_logger = build_logger(
+    LoggerConfig::new(
+      target="config.close.file",
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-close.log"),
+    ),
+  )
+  let file_sink = file_logger.sink
+  inspect(file_logger.close() == file_sink.close(), content="true")
+}
+
 test "runtime sink queue helpers forward direct queue state" {
   let sink = RuntimeSink::QueuedTextConsole(
     queued_sink(
