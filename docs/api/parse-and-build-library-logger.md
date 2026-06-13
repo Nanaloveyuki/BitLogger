@@ -66,10 +66,10 @@ let logger = parse_and_build_library_logger(raw) catch {
   err => return
 }
 let full = logger.to_logger()
-ignore(full.pending_count())
+ignore(full.sink.pending_count())
 ```
 
-In this example, the caller unwraps the library facade before using configured runtime helper methods.
+In this example, the caller unwraps the library facade before using runtime-specific helpers through the preserved `RuntimeSink` value.
 
 And the unwrapped value still reflects the same `RuntimeSink` pipeline built from the parsed config text.
 
@@ -88,4 +88,4 @@ e.g.:
 
 2. Use `build_library_logger(...)` when the config is already typed.
 
-3. Use `to_logger()` when internal code later needs configured-runtime helpers or broader logger composition without changing the public facade type.
+3. Use `to_logger()` when internal code later needs broader logger composition or direct access to the preserved `RuntimeSink` value without changing the public facade type.

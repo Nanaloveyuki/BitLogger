@@ -1199,6 +1199,68 @@ test "configured logger can project to library logger" {
   inspect(logger.to_logger().target, content="lib.projected")
 }
 
+test "logger projection preserves sync composition state through library facade" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_timestamp : Ref[UInt64] = Ref(0UL)
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let base = Logger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_timestamp.val = rec.timestamp_ms
+      captured_fields.val = rec.fields
+    }),
+    min_level=Level::Warn,
+    target="lib.projected.state",
+  )
+    .with_timestamp()
+    .with_context_fields([field("service", "bitlogger")])
+  let projected = base.to_library_logger()
+  let full = projected.to_logger()
+
+  inspect(projected.is_enabled(Level::Error), content="true")
+  inspect(projected.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.projected.state")
+  inspect(full.timestamp, content="true")
+  full.error("boom", fields=[field("mode", "test")])
+  inspect(captured_target.val, content="lib.projected.state")
+  inspect(captured_timestamp.val > 0UL, content="true")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="mode")
+}
+
+test "configured logger projection preserves runtime helpers through unwrap" {
+  let projected = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="lib.projected.runtime",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+      queue=Some(QueueConfig::new(3, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  ).to_library_logger()
+  let full = projected.to_logger()
+
+  inspect(projected.is_enabled(Level::Error), content="true")
+  inspect(projected.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.projected.runtime")
+  full.error("one")
+  full.error("two")
+  inspect(match full.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+  inspect(full.sink.pending_count(), content="2")
+  inspect(full.sink.dropped_count(), content="0")
+  inspect(full.sink.drain(max_items=1), content="1")
+  inspect(full.sink.pending_count(), content="1")
+  inspect(full.sink.flush(), content="1")
+  inspect(full.sink.pending_count(), content="0")
+}
+
 test "default library logger mirrors shared sync defaults" {
   set_default_min_level(Level::Warn)
   set_default_target("lib.default")

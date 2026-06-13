@@ -62,10 +62,10 @@ When config-built runtime queue or file controls are still needed internally:
 ```moonbit
 let logger = build_library_logger(config)
 let full = logger.to_logger()
-ignore(full.pending_count())
+ignore(full.sink.pending_count())
 ```
 
-In this example, the library facade is unwrapped before using configured runtime helper methods.
+In this example, the library facade is unwrapped before using runtime-specific helpers through the preserved `RuntimeSink` value.
 
 And the unwrapped value still carries the same `RuntimeSink` pipeline built from the original config.
 
@@ -82,4 +82,4 @@ e.g.:
 
 2. Use `parse_and_build_library_logger(...)` when starting from JSON text.
 
-3. Use `to_logger()` when internal code later needs configured-runtime helpers or broader logger composition without changing the public facade type.
+3. Use `to_logger()` when internal code later needs broader logger composition or direct access to the preserved `RuntimeSink` value without changing the public facade type.

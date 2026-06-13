@@ -36,7 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - This conversion unwraps the existing logger instead of rebuilding it.
 - Sink wiring, target, min level, timestamp behavior, and attached wrappers remain the same.
 - Use this when code needs full-surface APIs such as `with_timestamp(...)`, `with_filter(...)`, or `with_patch(...)`.
-- This is also the step required for configured-runtime helpers such as `flush()`, `drain()`, `pending_count()`, or file controls when the wrapped sink is `RuntimeSink`.
+- When the wrapped sink is `RuntimeSink`, unwrapping preserves that runtime sink value, but the result type is still `Logger[RuntimeSink]` rather than the `ConfiguredLogger` alias. Runtime-specific operations remain available through `full.sink` or by keeping a `ConfiguredLogger` value directly.
 
 ### How to Use
 
@@ -57,10 +57,10 @@ In this example, the facade is unwrapped so the caller can access full logger co
 When a library-facing runtime logger should later expose configured runtime controls internally:
 ```moonbit
 let full = logger.to_logger()
-ignore(full.pending_count())
+ignore(full.sink.pending_count())
 ```
 
-In this example, unwrapping exposes the broader configured-runtime helper surface on the same underlying logger state.
+In this example, unwrapping preserves the same `RuntimeSink` pipeline, and callers reach runtime-specific helpers through that preserved sink value.
 
 ### Error Case
 
