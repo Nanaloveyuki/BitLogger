@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - The returned logger inherits `min_level`, `target`, and timestamp behavior from `config.logger`.
 - Unlike `build_async_logger(...)`, this helper does not run the full synchronous `build_logger(config.logger)` path first.
 - That means it uses `config.logger.sink.text_formatter`, `min_level`, `target`, and `timestamp` directly, but it does not apply `LoggerConfig.queue` or preserve other sync runtime sink controls.
+- This builder returns the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value directly. `build_application_text_async_logger(...)` only re-exports that same result under the `ApplicationTextAsyncLogger` alias, while `build_library_async_text_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]`.
 - This helper is best suited to text-console output paths where callers want the concrete formatted sink type instead of `RuntimeSink`.
 - This async text path follows the same target story as the broader async library: `native / js / wasm / wasm-gc` have stronger local verification, while `llvm` remains experimental and locally unverified in this environment.
 
@@ -73,3 +74,5 @@ e.g.:
 2. It is the base builder used by the application and library async text facades.
 
 3. See [target-verification.md](./target-verification.md) for the current local verification matrix.
+
+4. Use this direct builder when callers should keep the full async helper surface on the concrete text sink type rather than a naming alias or a narrowed library wrapper.

@@ -3,7 +3,7 @@ name: build-application-text-async-logger
 group: api
 category: facade
 update-time: 20260614
-description: Build the application-facing text-console async logger alias from an AsyncLoggerBuildConfig using the configured text formatter directly.
+description: Build the application-facing text-console async logger alias from an AsyncLoggerBuildConfig using the direct concrete text-sink builder path.
 key-word:
     - application
     - async
@@ -13,7 +13,7 @@ key-word:
 
 ## Build-application-text-async-logger
 
-Build an `ApplicationTextAsyncLogger` from `AsyncLoggerBuildConfig`. This is the application-oriented async alias builder for the text-console runtime sink shape returned by `build_async_text_logger(...)`.
+Build an `ApplicationTextAsyncLogger` from `AsyncLoggerBuildConfig`. This is the application-oriented async alias builder for the concrete text-console sink shape returned by `build_async_text_logger(...)`.
 
 ### Interface
 
@@ -40,9 +40,10 @@ Detailed rules explaining key parameters and behaviors
 - The builder always creates a `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
 - Unlike `build_application_async_logger(...)`, this alias-oriented builder does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
-- Because the result is only the `ApplicationTextAsyncLogger` alias over `AsyncLogger[@bitlogger.FormattedConsoleSink]`, this builder does not hide any async helpers or introduce a wrapper layer.
+- Because the result is only the `ApplicationTextAsyncLogger` alias over `AsyncLogger[@bitlogger.FormattedConsoleSink]`, this builder returns the same underlying async logger value as `build_async_text_logger(...)` and does not hide any async helpers or introduce a wrapper layer.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
 - It also keeps the same runtime-dependent close/failure semantics as the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- Use `build_library_async_text_logger(...)` instead when the next boundary should keep the same concrete text sink type but intentionally narrow the directly exposed async helper surface.
 
 ### How to Use
 

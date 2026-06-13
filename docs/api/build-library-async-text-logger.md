@@ -39,9 +39,10 @@ Detailed rules explaining key parameters and behaviors
 - It always produces a concrete `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of branching on sink kinds.
 - Unlike `build_library_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
-- The returned facade still wraps the same underlying async logger behavior, so `run()`, `shutdown()`, failure/reset handling, and runtime-dependent close behavior are unchanged under the narrower public type.
+- The returned facade wraps the same underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value that `build_async_text_logger(...)` would return directly, so `run()`, `shutdown()`, failure/reset handling, and runtime-dependent close behavior are unchanged under the narrower public type.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying full async logger if needed.
+- Use this builder when the boundary should preserve the concrete text-console sink type while still hiding broader async inspection and helper APIs from downstream callers.
 
 ### How to Use
 
