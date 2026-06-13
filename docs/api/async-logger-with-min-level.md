@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - Lower-severity records below `min_level` are skipped before enqueue.
 - This API replaces the logger threshold and does not alter queue configuration.
 - The returned logger keeps the same sink, target, and timestamp settings.
+- In the current direct async coverage, the derived logger reports the new threshold through `is_enabled(...)`, while the original logger keeps its previous minimum level and still accepts records that remain enabled there.
 
 ### How to Use
 
@@ -78,3 +79,5 @@ e.g.:
 1. This API reduces async queue pressure by dropping disabled levels before enqueue.
 
 2. Use it before adding more complex async filtering rules.
+
+3. Use a derived logger value when one branch should tighten the threshold and the base async logger should keep its broader level gate.

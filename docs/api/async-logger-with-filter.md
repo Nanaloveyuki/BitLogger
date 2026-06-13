@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - Existing filter logic is preserved and combined with the new predicate using logical `and`.
 - The original async logger is not mutated.
 - Filtering avoids unnecessary queue pressure for records that should never be delivered.
+- In the current direct async coverage, derived filters can compose target, level, and message predicates together while the original logger still accepts writes according to its previous filter state.
 
 ### How to Use
 
@@ -80,3 +81,5 @@ e.g.:
 1. Use this API for selection logic, not record mutation.
 
 2. Async filtering is especially useful when queue capacity should be reserved for high-value records.
+
+3. Use a derived logger value when one branch should enforce extra filter rules and the base async logger should stay unchanged.

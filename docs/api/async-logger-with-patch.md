@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - Existing patch logic is preserved and composed so the new patch wraps the current one.
 - The original async logger is not mutated.
 - Patching can normalize, redact, or enrich records before they consume queue capacity.
+- In the current direct async coverage, patched target/message/field changes are visible to later filter logic, and the original async logger still emits unpatched records when used separately.
 
 ### How to Use
 
@@ -80,3 +81,5 @@ e.g.:
 1. Use patches for transformation, not filtering decisions.
 
 2. Redaction before enqueue helps keep sensitive data out of the queued pipeline.
+
+3. Derive a patched logger when one path needs rewritten records and another should keep the original async record shape.
