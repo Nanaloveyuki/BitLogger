@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers as other async logger aliases.
+- Because it is `AsyncLogger[@bitlogger.FormattedConsoleSink]`, the alias also keeps ordinary async logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
 - The alias therefore keeps the same text-console-specific builder and lifecycle semantics already documented on `AsyncLogger[@bitlogger.FormattedConsoleSink]`, including the concrete sink shape plus the same close, queue, and failure-state behavior.
 - The application-facing type does not hide any async state or lifecycle helpers; queue/backlog/failure inspection remains directly available on this alias just as it is on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
@@ -68,6 +69,8 @@ In this example, the app-facing alias communicates the concrete text-console asy
 
 And the same pending-count, state, and failure helpers remain directly available because no narrowing wrapper is added.
 
+And the inherited async logger target rules stay the same: `log(..., target=...)` can override the target per call, while `with_target(...)` and `child(...)` derive new logger values with changed default targets.
+
 ### Error Case
 
 e.g.:
@@ -81,8 +84,10 @@ e.g.:
 
 1. This alias is about naming and public intent, not a different async implementation.
 
-2. Use `build_application_text_async_logger(...)` when callers want the `FormattedConsoleSink`-backed async type explicitly.
+2. Inherited `AsyncLogger` behavior stays unchanged on this alias, including target overrides on `log(...)` and derived target composition through `with_target(...)` and `child(...)`.
 
-3. Use `ApplicationAsyncLogger` when application code should keep the broader runtime-sink shape instead of the text-console-specific one.
+3. Use `build_application_text_async_logger(...)` when callers want the `FormattedConsoleSink`-backed async type explicitly.
 
-4. Use `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]` instead when a library boundary should intentionally narrow the exposed async surface while still preserving the concrete text sink type.
+4. Use `ApplicationAsyncLogger` when application code should keep the broader runtime-sink shape instead of the text-console-specific one.
+
+5. Use `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]` instead when a library boundary should intentionally narrow the exposed async surface while still preserving the concrete text sink type.

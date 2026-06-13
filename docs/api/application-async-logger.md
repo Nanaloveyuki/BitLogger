@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers such as `run()`, `shutdown()`, `pending_count()`, and `state()`.
+- Because it is `AsyncLogger[@bitlogger.RuntimeSink]`, the alias also keeps ordinary async logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.RuntimeSink]` remain async here as well.
 - The alias therefore keeps the same runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
 - In the current direct alias coverage, values built through `build_application_async_logger(...)` keep the same serialized state snapshot shape, queue counters, lifecycle flags, failure fields, and runtime-sink helper surface that the underlying runtime-sink async logger exposes directly.
@@ -64,6 +65,8 @@ async fn start_async(logger : ApplicationAsyncLogger) -> Unit {
 
 In this example, callers see the app-facing alias instead of the more explicit generic async logger spelling, while `run()` keeps its async calling contract.
 
+And the inherited async logger target rules stay the same: `log(..., target=...)` can override the target per call, while `with_target(...)` and `child(...)` derive new logger values with changed default targets.
+
 ### Error Case
 
 e.g.:
@@ -77,6 +80,8 @@ e.g.:
 
 1. This alias is about naming and public intent, not a different async implementation.
 
-2. Use `build_application_async_logger(...)` or `parse_and_build_application_async_logger(...)` for the usual construction paths.
+2. Inherited `AsyncLogger` behavior stays unchanged on this alias, including target overrides on `log(...)` and derived target composition through `with_target(...)` and `child(...)`.
 
-3. Use `ApplicationTextAsyncLogger` or `build_application_text_async_logger(...)` when application code should keep the narrower text-console sink type instead of the broader runtime-sink alias.
+3. Use `build_application_async_logger(...)` or `parse_and_build_application_async_logger(...)` for the usual construction paths.
+
+4. Use `ApplicationTextAsyncLogger` or `build_application_text_async_logger(...)` when application code should keep the narrower text-console sink type instead of the broader runtime-sink alias.
