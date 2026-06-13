@@ -1208,6 +1208,64 @@ test "library logger bind matches context facade contract" {
   inspect(captured_fields.val[1].value, content="test")
 }
 
+test "library logger with_target preserves facade state while replacing target" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_timestamp : Ref[UInt64] = Ref(0UL)
+  let logger = Logger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_timestamp.val = rec.timestamp_ms
+    }),
+    min_level=Level::Warn,
+    target="lib.base",
+  )
+    .with_timestamp()
+    .to_library_logger()
+    .with_target("lib.retarget")
+  let full = logger.to_logger()
+
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.retarget")
+  inspect(full.timestamp, content="true")
+
+  logger.error("retargeted")
+  inspect(captured_target.val, content="lib.retarget")
+  inspect(captured_timestamp.val > 0UL, content="true")
+}
+
+test "library logger child composes target through facade" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_timestamp : Ref[UInt64] = Ref(0UL)
+  let logger = Logger::new(
+    callback_sink(fn(rec) {
+      captured_target.val = rec.target
+      captured_timestamp.val = rec.timestamp_ms
+    }),
+    min_level=Level::Warn,
+    target="sdk",
+  )
+    .with_timestamp()
+    .to_library_logger()
+    .child("worker")
+  let full = logger.to_logger()
+
+  inspect(full.target, content="sdk.worker")
+  inspect(full.timestamp, content="true")
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+
+  logger.error("child")
+  inspect(captured_target.val, content="sdk.worker")
+  inspect(captured_timestamp.val > 0UL, content="true")
+
+  let root_child = LibraryLogger::new(console_sink()).child("worker")
+  inspect(root_child.to_logger().target, content="worker")
+
+  let keep_parent = LibraryLogger::new(console_sink(), target="sdk").child("")
+  inspect(keep_parent.to_logger().target, content="sdk")
+}
+
 test "library logger can unwrap to full logger when needed" {
   let base = LibraryLogger::new(console_sink(), min_level=Level::Warn, target="lib")
   let full = base.to_logger().with_timestamp()
