@@ -34,8 +34,8 @@ pub fn ConfiguredLogger::file_set_auto_flush(self : ConfiguredLogger, enabled : 
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks update their runtime auto-flush policy.
-- Queued file sinks forward the update to the wrapped file sink.
+- File-backed sinks update their runtime auto-flush policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the update to the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper changes policy only; it does not itself flush pending data.
 

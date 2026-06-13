@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_rotation_config(self : ConfiguredLogger) -> FileRo
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks return their current rotation configuration when enabled.
-- Queued file sinks forward the config from the wrapped file sink.
+- File-backed sinks return their current rotation configuration when enabled through the wrapped `RuntimeSink`.
+- Queued file sinks forward the config from the wrapped inner file sink.
 - Non-file sinks return `None`.
 - This helper is useful when callers need active runtime rotation parameters rather than only a boolean flag.
 

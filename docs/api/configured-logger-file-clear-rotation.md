@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_clear_rotation(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks clear their runtime rotation policy.
-- Queued file sinks forward the update to the wrapped file sink.
+- File-backed sinks clear their runtime rotation policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the update to the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is equivalent in intent to setting rotation to `None`, but is clearer at the call site.
 

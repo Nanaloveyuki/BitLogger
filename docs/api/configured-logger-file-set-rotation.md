@@ -37,8 +37,8 @@ pub fn ConfiguredLogger::file_set_rotation(
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks update their runtime rotation policy.
-- Queued file sinks forward the update to the wrapped file sink.
+- File-backed sinks update their runtime rotation policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the update to the wrapped inner file sink.
 - Passing `None` disables rotation.
 - Non-file sinks return `false`.
 

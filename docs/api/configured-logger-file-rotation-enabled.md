@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_rotation_enabled(self : ConfiguredLogger) -> Bool 
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks report whether a rotation config is active.
-- Queued file sinks forward the state from the wrapped file sink.
+- File-backed sinks report whether a rotation config is active through the wrapped `RuntimeSink`.
+- Queued file sinks forward the state from the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is narrower than `file_rotation_config()` when only a yes/no check is needed.
 

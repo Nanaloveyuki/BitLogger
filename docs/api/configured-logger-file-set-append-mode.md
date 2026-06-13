@@ -34,8 +34,8 @@ pub fn ConfiguredLogger::file_set_append_mode(self : ConfiguredLogger, append : 
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks update their stored append policy.
-- Queued file sinks forward the policy update to the wrapped file sink.
+- File-backed sinks update their stored append policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the policy update to the wrapped inner file sink.
 - This helper updates policy only; it does not force immediate reopen.
 - Non-file sinks return `false`.
 
