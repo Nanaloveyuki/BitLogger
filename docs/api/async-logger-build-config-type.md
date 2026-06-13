@@ -1,0 +1,74 @@
+---
+name: async-logger-build-config-type
+group: api
+category: async
+update-time: 20260613
+description: Public async build config alias combining the base logger config and async runtime config.
+key-word:
+    - async
+    - build
+    - config
+    - public
+---
+
+## Async-logger-build-config-type
+
+`AsyncLoggerBuildConfig` is the public config object that combines the base synchronous `LoggerConfig` with the async runtime `AsyncLoggerConfig`. It is a direct alias to the build-config model used by async builder APIs, parsers, and serializers.
+
+### Interface
+
+```moonbit
+pub type AsyncLoggerBuildConfig = @utils.AsyncLoggerBuildConfig
+```
+
+#### output
+
+- `AsyncLoggerBuildConfig` - Public async build config object containing `logger` and `async_config`.
+
+### Explanation
+
+Detailed rules explaining key parameters and behaviors
+
+- This is a type alias, not a built logger instance.
+- The current fields are `logger : LoggerConfig` and `async_config : AsyncLoggerConfig`.
+- `AsyncLoggerBuildConfig::new(...)` constructs this type as the main handoff object for async build flows.
+- `build_async_logger(...)`, `build_async_text_logger(...)`, `parse_async_logger_build_config_text(...)`, `async_logger_build_config_to_json(...)`, and `stringify_async_logger_build_config(...)` all consume or produce this same public shape.
+
+### How to Use
+
+Here are some specific examples provided.
+
+#### When Need One Typed Object For Full Async Logger Setup
+
+When sync sink setup and async runtime policy should move together through application boot code:
+```moonbit
+let config : AsyncLoggerBuildConfig = AsyncLoggerBuildConfig::new(
+  logger=@bitlogger.LoggerConfig::new(target="svc"),
+  async_config=AsyncLoggerConfig::new(max_pending=64),
+)
+```
+
+In this example, both layers of logger setup are kept in one typed value.
+
+#### When Need To Export Or Inspect The Full Build Shape
+
+When application code should inspect the combined async build configuration before constructing the logger:
+```moonbit
+let config = AsyncLoggerBuildConfig::new(async_config=AsyncLoggerConfig::new(max_batch=4))
+println(stringify_async_logger_build_config(config, pretty=true))
+```
+
+In this example, the same public config object supports both review and later build steps.
+
+### Error Case
+
+e.g.:
+- `AsyncLoggerBuildConfig` itself does not have a runtime failure mode.
+
+- If only async runtime policy is needed and the base sync logger config is irrelevant, this type may be broader than necessary and `AsyncLoggerConfig` is the smaller fit.
+
+### Notes
+
+1. Use `AsyncLoggerBuildConfig::new(...)` when one object should carry both sync and async logger setup.
+
+2. Use `parse_async_logger_build_config_text(...)` when the same shape should come from JSON text instead of handwritten code.
