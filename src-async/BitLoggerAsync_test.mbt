@@ -1041,6 +1041,47 @@ async test "application async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+async test "application async logger keeps broader async composition surface" {
+  let logger : ApplicationAsyncLogger = build_application_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.app.compose",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::DropNewest,
+        flush=AsyncFlushPolicy::Shutdown,
+      ),
+    ),
+  )
+    .with_timestamp()
+    .with_context_fields([@bitlogger.field("service", "bitlogger")])
+    .child("worker")
+
+  inspect(logger.target, content="async.app.compose.worker")
+  inspect(logger.timestamp, content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+
+  logger.error("one")
+  logger.error("two")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="0")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="0")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
+}
+
 test "application async logger builder preserves sync queue-backed runtime sink" {
   let logger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
