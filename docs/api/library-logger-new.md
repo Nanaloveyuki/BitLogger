@@ -3,7 +3,7 @@ name: library-logger-new
 group: api
 category: facade
 update-time: 20260613
-description: Create a narrower sync library logger facade from any sink implementation.
+description: Create a narrower sync library logger facade by building a regular logger and wrapping the same underlying state.
 key-word:
     - library
     - facade
@@ -27,7 +27,7 @@ pub fn[S] LibraryLogger::new(
 
 #### input
 
-- `sink : S` - Any sink value implementing `Sink`, such as `console_sink()` or a composed sink.
+- `sink : S` - Underlying sink value that should receive writes, such as `console_sink()` or a composed sink.
 - `min_level : Level` - Minimum enabled level. Messages below this threshold are ignored.
 - `target : String` - Default target attached to emitted records unless later overridden.
 
@@ -39,9 +39,10 @@ pub fn[S] LibraryLogger::new(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API builds a regular `Logger::new(...)` internally and then wraps it as `LibraryLogger`.
+- This API builds a regular `Logger::new(...)` internally and then wraps that same value as `LibraryLogger`.
 - The returned facade intentionally exposes a smaller method set than the full `Logger[S]` type.
 - The original sink type is still preserved in `LibraryLogger[S]`.
+- This constructor does not add timestamps, filters, patches, or extra sink wrappers by itself; it only creates the base sync logger and narrows its public surface.
 - Call `to_logger()` if later code must recover the full sync logger surface.
 
 ### How to Use
@@ -67,6 +68,16 @@ let logger = LibraryLogger::new(text_console_sink(text_formatter()), target="wor
 
 In this example, sink typing remains explicit while the consumer only sees the library facade.
 
+#### When Need Full Logger Composition Later
+
+When library-facing construction should still allow later access to broader sync composition helpers:
+```moonbit
+let logger = LibraryLogger::new(console_sink(), target="lib")
+let full = logger.to_logger().with_timestamp()
+```
+
+In this example, construction starts from the narrower facade, but the same underlying logger can still be recovered and extended later.
+
 ### Error Case
 
 e.g.:
@@ -74,8 +85,12 @@ e.g.:
 
 - If later code needs methods outside the facade, it must unwrap with `to_logger()`.
 
+- If callers want additional wrappers such as timestamps, filters, patches, or queued/context sink layers immediately, they must apply those through the full `Logger[S]` surface or the dedicated facade helpers.
+
 ### Notes
 
 1. This is the direct constructor counterpart to `Logger::new(...)` for library-oriented APIs.
 
 2. Prefer this when public package boundaries should stay narrower than `Logger[S]`.
+
+3. Use `Logger::new(...)` directly when the full sync composition surface should remain public from the start.

@@ -3,7 +3,7 @@ name: library-logger-to-logger
 group: api
 category: facade
 update-time: 20260613
-description: Recover the underlying full sync logger from the library-facing sync facade.
+description: Recover the underlying full sync logger from the library-facing sync facade without rebuilding sink or logger composition state.
 key-word:
     - logger
     - library
@@ -34,8 +34,9 @@ pub fn[S] LibraryLogger::to_logger(self : LibraryLogger[S]) -> Logger[S] {}
 Detailed rules explaining key parameters and behaviors
 
 - This conversion unwraps the existing logger instead of rebuilding it.
-- Sink wiring, target, min level, and attached wrappers remain the same.
+- Sink wiring, target, min level, timestamp behavior, and attached wrappers remain the same.
 - Use this when code needs full-surface APIs such as `with_timestamp(...)`, `with_filter(...)`, or `with_patch(...)`.
+- This is also the step required for configured-runtime helpers such as `flush()`, `drain()`, `pending_count()`, or file controls when the wrapped sink is `RuntimeSink`.
 
 ### How to Use
 
@@ -51,6 +52,16 @@ let full_logger = library_logger.to_logger().with_timestamp()
 
 In this example, the facade is unwrapped so the caller can access full logger composition APIs again.
 
+#### When Need Runtime Helpers After Library-oriented Config Build
+
+When a library-facing runtime logger should later expose configured runtime controls internally:
+```moonbit
+let full = logger.to_logger()
+ignore(full.pending_count())
+```
+
+In this example, unwrapping exposes the broader configured-runtime helper surface on the same underlying logger state.
+
 ### Error Case
 
 e.g.:
@@ -58,8 +69,12 @@ e.g.:
 
 - Unwrapping does not change the current target or sink behavior by itself.
 
+- Recovering the full logger does not rebuild or reset the existing sink wrappers.
+
 ### Notes
 
 1. Use this only when the narrower facade is no longer sufficient.
 
 2. This is the inverse projection of `Logger::to_library_logger()`.
+
+3. Use `LibraryLogger[S]` directly when the narrower package-facing surface is still sufficient.
