@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a separate wrapper implementation.
 - It preserves normal logger methods such as `info(...)`, `warn(...)`, `error(...)`, and the other `Logger` APIs.
+- Because it is `Logger[RuntimeSink]`, it also keeps ordinary logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - It also exposes configured runtime helpers such as `flush()`, `drain()`, `pending_count()`, `dropped_count()`, and file-specific controls when the runtime sink supports them.
 - Builders such as `build_logger(...)` and `parse_and_build_logger(...)` return this alias as the main sync config-to-runtime result.
 - `ApplicationLogger` is another direct alias-oriented name for this same configured runtime surface, while `LibraryLogger[RuntimeSink]` is the narrowing facade variant that intentionally hides these runtime helpers until `to_logger()` is used.
@@ -58,6 +59,8 @@ ignore(logger.pending_count())
 
 In this example, the alias keeps ordinary logging calls while still exposing runtime diagnostics.
 
+And the inherited logger target rules stay unchanged: `log(..., target=...)` can override the target per call, while `with_target(...)` and `child(...)` derive new logger values with changed default targets.
+
 ### Error Case
 
 e.g.:
@@ -69,6 +72,8 @@ e.g.:
 
 1. Use `build_logger(...)` or `parse_and_build_logger(...)` when you need a value of this type.
 
-2. Use `ApplicationLogger` when application code wants the same full configured-runtime helper surface under an app-facing name.
+2. Inherited `Logger` behavior stays unchanged on this alias, including target overrides on `log(...)` and derived target composition through `with_target(...)` and `child(...)`.
 
-3. Use `LibraryLogger[RuntimeSink]` when a library boundary should intentionally hide configured-runtime helper methods behind a narrower facade.
+3. Use `ApplicationLogger` when application code wants the same full configured-runtime helper surface under an app-facing name.
+
+4. Use `LibraryLogger[RuntimeSink]` when a library boundary should intentionally hide configured-runtime helper methods behind a narrower facade.

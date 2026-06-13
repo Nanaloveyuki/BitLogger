@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - `build_logger(...)` first constructs a base `RuntimeSink` from `config.sink`, then applies `config.queue` when present, and finally builds `Logger::new(...)` with `config.min_level`, `config.target`, and `config.timestamp`.
 - The returned logger still supports normal logging methods because `ConfiguredLogger` is `Logger[RuntimeSink]`.
+- The returned logger also keeps inherited logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - Queue metrics and file controls remain available through forwarding helpers on the configured logger.
 - `build_application_logger(...)` only re-exports this same configured runtime logger result under the `ApplicationLogger` alias, while `build_library_logger(...)` wraps the same result in `LibraryLogger[RuntimeSink]`.
 - This API is deterministic and data-driven, making it suitable for bootstrapping from parsed config.
@@ -58,7 +59,7 @@ let logger = build_logger(
 
 In this example, no JSON parsing is required because config objects were built directly.
 
-And the runtime logger is ready immediately.
+And the runtime logger is ready immediately, with the same ordinary logger target semantics as any other `Logger` value.
 
 #### When Need Config-built Queue Or File Runtime Helpers
 
