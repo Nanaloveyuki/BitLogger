@@ -2698,6 +2698,7 @@ test "parsed configured logger keeps composition and runtime helper surface" {
 
 test "sync parse-build facades forward config errors" {
   let raw = "{\"sink\":{\"kind\":\"file\",\"path\":\"\"}}"
+  let malformed = "{"
 
   let configured_error = (fn() -> String raise ConfigError {
     ignore(parse_and_build_logger(raw))
@@ -2722,4 +2723,28 @@ test "sync parse-build facades forward config errors" {
     ConfigError::InvalidConfig(message) => message
   }
   inspect(library_error, content="File sink requires non-empty path")
+
+  let configured_invalid_json = (fn() -> String raise ConfigError {
+    ignore(parse_and_build_logger(malformed))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(configured_invalid_json.contains("Invalid JSON:"), content="true")
+
+  let application_invalid_json = (fn() -> String raise ConfigError {
+    ignore(parse_and_build_application_logger(malformed))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(application_invalid_json.contains("Invalid JSON:"), content="true")
+
+  let library_invalid_json = (fn() -> String raise ConfigError {
+    ignore(parse_and_build_library_logger(malformed))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(library_invalid_json.contains("Invalid JSON:"), content="true")
 }
