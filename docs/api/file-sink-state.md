@@ -52,7 +52,7 @@ In this example, availability, policy, and failure counters are captured togethe
 
 When a snapshot should be serialized for logs or support output:
 ```moonbit
-println(stringify_file_sink_state(logger.file_state(), pretty=true))
+println(stringify_file_sink_state(runtime.file_state(), pretty=true))
 ```
 
 In this example, the typed snapshot becomes readable JSON without manual field assembly.

@@ -55,7 +55,7 @@ In this example, the file policy can be passed around as one typed value instead
 
 When current file behavior should be read, adjusted, and written back:
 ```moonbit
-let policy = sink.file_policy()
+let policy = runtime.file_policy()
 let next = FileSinkPolicy::new(
   append=policy.append,
   auto_flush=false,
