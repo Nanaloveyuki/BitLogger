@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `LibraryAsyncLogger::new(...)` delegates to `async_logger(...)`, so the same async queue, raising flush callback, and runtime-dependent lifecycle behavior still exist behind the narrower facade.
 - It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
+- That recovered logger is the same live async value, so queue counters, retained failure state, runtime-dependent shutdown outcomes, and sink helper access are preserved rather than recomputed.
 
 ### How to Use
 
@@ -72,6 +73,8 @@ e.g.:
 - Runtime behavior still depends on the wrapped sink `S` and async runtime support, so sink-specific or target-specific limitations remain unchanged behind the facade.
 
 - Post-close logging behavior, queue state, and failure-state behavior remain those of the wrapped `AsyncLogger[S]`; the facade only narrows what is directly exposed.
+
+- If the wrapped async logger later ends in a mixed diagnostic state such as `has_failed=true` with retained backlog, unwrapping exposes that exact state instead of a library-specific translation.
 
 - Helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, `is_running()`, `has_failed()`, `last_error()`, `flush_policy()`, `state()`, and `wait_idle()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 

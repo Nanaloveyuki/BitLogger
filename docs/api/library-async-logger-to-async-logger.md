@@ -38,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - Use this when code needs wider async logger APIs outside the library facade.
 - This is the step required for helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, `last_error()`, or broader composition methods that are intentionally hidden by `LibraryAsyncLogger[S]`.
 - It is also the step that exposes the real post-run or post-shutdown state after facade-level lifecycle calls, because those calls delegated to this same wrapped logger all along.
+- That includes failure/backlog combinations and runtime-dependent shutdown results exactly as they accumulated behind the facade.
+- If the wrapped sink type has richer helper APIs, unwrapping also restores access to that same sink helper surface through the original `AsyncLogger[S]` value.
 
 ### How to Use
 
@@ -72,6 +74,8 @@ e.g.:
 - Unwrapping does not start or stop the background runtime by itself.
 
 - Recovering the full async logger does not clear queue contents or reset failure state.
+
+- Unwrapping does not convert facade lifecycle history into a simplified snapshot; any retained `last_error()`, pending backlog, dropped counts, or sink runtime details stay exactly as they were on the wrapped logger.
 
 ### Notes
 

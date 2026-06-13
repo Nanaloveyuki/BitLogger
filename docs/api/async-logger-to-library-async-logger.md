@@ -37,6 +37,8 @@ Detailed rules explaining key parameters and behaviors
 - Target, min level, async config, flush behavior, pending counts, and failure state are preserved because the same underlying async logger value is wrapped.
 - The returned facade keeps library-facing async operations including `log(...)`, `run()`, and `shutdown(...)`.
 - Async inspection helpers and broader composition APIs remain on the underlying `AsyncLogger[S]` and are intentionally hidden until `to_async_logger()` is used again.
+- If later facade-level `run()` or `shutdown()` calls record worker failure, leave backlog behind, or follow runtime-dependent shutdown cleanup rules, unwrapping later still exposes that same post-call state instead of a translated facade copy.
+- When `S` itself exposes richer runtime helpers, projecting to the library facade does not strip those capabilities from the wrapped logger; they are still reachable after `to_async_logger()`.
 
 ### How to Use
 
@@ -71,6 +73,8 @@ e.g.:
 - The conversion does not clear pending items or reset runtime state.
 
 - If callers later need state helpers such as `pending_count()` or `state()`, they must unwrap again with `to_async_logger()`.
+
+- Projection does not normalize failure snapshots; a later unwrap can still show combinations such as retained `last_error()` with remaining `pending_count()` when the wrapped async logger really ended up in that state.
 
 ### Notes
 
