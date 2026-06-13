@@ -1481,6 +1481,35 @@ test "application logger aliases configured runtime entry" {
   inspect(logger.target, content="app.runtime")
 }
 
+test "application logger keeps configured runtime helper surface" {
+  let logger : ApplicationLogger = build_application_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="app.alias.helpers",
+      sink=SinkConfig::new(kind=SinkKind::File, path="app-alias.log"),
+      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
+    ),
+  )
+
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.file_policy().append, content="true")
+  inspect(logger.file_runtime_state() is None, content="false")
+  inspect(logger.flush(), content="2")
+  inspect(logger.pending_count(), content="0")
+
+  if logger.file_available() {
+    inspect(logger.file_flush(), content="true")
+    inspect(logger.file_close(), content="true")
+  } else {
+    inspect(logger.file_flush(), content="false")
+    inspect(logger.file_close(), content="false")
+  }
+}
+
 test "application logger can be built from config text" {
   let logger = parse_and_build_application_logger(
     "{\"min_level\":\"warn\",\"target\":\"app.json\",\"sink\":{\"kind\":\"console\"}}",
