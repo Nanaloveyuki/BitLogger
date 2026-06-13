@@ -1579,3 +1579,29 @@ test "application logger can be built from config text" {
   inspect(logger.is_enabled(Level::Info), content="false")
   inspect(logger.target, content="app.json")
 }
+
+test "parsed configured logger keeps composition and runtime helper surface" {
+  let logger : ConfiguredLogger = parse_and_build_logger(
+    "{\"min_level\":\"warn\",\"target\":\"parsed.compose\",\"timestamp\":true,\"queue\":{\"max_pending\":2,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}}",
+  )
+  let derived = logger.child("worker")
+
+  inspect(derived.target, content="parsed.compose.worker")
+  inspect(derived.timestamp, content="true")
+  inspect(derived.is_enabled(Level::Error), content="true")
+  inspect(derived.is_enabled(Level::Info), content="false")
+  inspect(match derived.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+
+  derived.error("one")
+  derived.error("two")
+  inspect(derived.pending_count(), content="2")
+  inspect(derived.dropped_count(), content="0")
+  inspect(derived.flush(), content="2")
+  inspect(derived.pending_count(), content="0")
+}
