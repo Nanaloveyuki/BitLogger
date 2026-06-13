@@ -42,6 +42,8 @@ Detailed rules explaining key parameters and behaviors
 - Because the result is only the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this builder does not hide any async helpers or introduce a wrapper layer.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
 - It also keeps the same queue counters, failure state, sink shape, and runtime-dependent post-close behavior as the underlying runtime-sink async logger.
+- In the current direct builder coverage, this alias matches `build_async_logger(config)` all the way through serialized state snapshots, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after `run()` or `shutdown()`.
+- File-backed runtime helpers on the returned `RuntimeSink` also stay aligned with the direct builder result instead of being hidden behind a separate application-layer wrapper.
 - Use this alias-oriented builder when application code wants the standard runtime-sink async shape without narrowing the public surface.
 
 ### How to Use
@@ -81,6 +83,8 @@ e.g.:
 - If file output is selected on a backend without native file support, backend behavior still applies when the worker drains records.
 
 - If the logger is never `run()`, enqueue behavior and lifecycle state still follow the normal async logger rules.
+
+- If callers rely on file-backed runtime helpers, they should treat this builder as the same runtime-sink result as `build_async_logger(config)`, not as a reduced alias with different helper behavior.
 
 ### Notes
 

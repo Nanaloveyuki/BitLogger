@@ -42,6 +42,8 @@ Detailed rules explaining key parameters and behaviors
 - That includes preserving a parsed sync queue configuration inside the resulting `RuntimeSink` variant rather than collapsing it away during application-alias construction.
 - Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path returns the same underlying async logger value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce, without narrowing the helper surface.
 - The returned logger keeps the full async lifecycle and state helpers directly.
+- In the current parsed-builder coverage, that direct equivalence also holds for serialized async state snapshots, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after worker execution.
+- Parsed file-backed runtime helpers remain available on the returned logger with the same behavior as the direct `build_async_logger(parse_async_logger_build_config_text(input))` path.
 - Use `parse_and_build_library_async_logger(...)` instead when the same parsed runtime-sink result should be wrapped and narrowed for a library boundary.
 
 ### How to Use
@@ -80,6 +82,8 @@ e.g.:
 - If the JSON text is malformed, parsing raises an error.
 
 - If the embedded config is invalid, parsing raises before the async facade is returned.
+
+- If callers depend on file-backed runtime helpers, they can use them directly on the returned logger because this parse/build alias does not replace the underlying runtime-sink helper surface.
 
 ### Notes
 

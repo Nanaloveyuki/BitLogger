@@ -41,6 +41,8 @@ Detailed rules explaining key parameters and behaviors
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce directly.
 - The resulting facade keeps library-facing async operations such as `run()` and `shutdown()` while exposing a smaller public surface.
 - The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
+- In the current parsed-builder coverage, unwrapping this facade yields the same async state snapshot, runtime-sink variant, queue counters, lifecycle flags, and failure fields as `build_async_logger(parse_async_logger_build_config_text(input))`.
+- Parsed file-backed runtime helpers also remain aligned after unwrap instead of being rebuilt into a different facade-specific sink state.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection stay on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying async logger when a wider API is required.
 - Use this parse/build facade when text-driven construction should preserve the runtime-sink build path but still hide broader async inspection helpers at the package boundary.
@@ -83,6 +85,8 @@ e.g.:
 - If the embedded config is invalid, parsing raises before the library facade is returned.
 
 - If callers assume async state or idle-wait helpers are available directly on the returned facade, they must unwrap first with `to_async_logger()`.
+
+- If callers need file-backed runtime helpers after parse/build, they must unwrap first, but the resulting helper surface still matches the parsed direct builder path.
 
 ### Notes
 

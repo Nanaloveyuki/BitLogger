@@ -40,6 +40,8 @@ Detailed rules explaining key parameters and behaviors
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `build_async_logger(...)` would produce directly.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
 - The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
+- In the current direct builder coverage, unwrapping this facade produces the same async state snapshot, runtime-sink variant, queue counters, lifecycle flags, and failure fields as calling `build_async_logger(config)` directly.
+- That same unwrap also preserves file-backed runtime helpers on `RuntimeSink` values rather than replacing them with facade-specific behavior.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can be used to recover the underlying full async logger.
 - Use this builder when the boundary should preserve the runtime-sink async build path but still hide broader async inspection helpers from downstream callers.
@@ -79,6 +81,8 @@ e.g.:
 - If backend-specific sink limitations exist, they still apply under the facade.
 
 - If callers need async state, failure-status, or idle-wait helpers outside the library facade, they must unwrap with `to_async_logger()`.
+
+- If callers need file-backed runtime helpers such as file-state or queued runtime inspection, they must unwrap first, but the helper behavior itself stays aligned with the direct `build_async_logger(config)` result.
 
 ### Notes
 
