@@ -36,6 +36,7 @@ pub fn parse_and_build_library_async_logger(
 Detailed rules explaining key parameters and behaviors
 
 - This API parses async build config text, validates it, builds the async runtime logger, and narrows it to the library facade.
+- The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
 - The resulting facade keeps async lifecycle helpers while exposing a smaller public surface.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection stay on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying async logger when a wider API is required.

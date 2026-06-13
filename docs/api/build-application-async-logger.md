@@ -2,8 +2,8 @@
 name: build-application-async-logger
 group: api
 category: facade
-update-time: 20260520
-description: Build the application-facing async logger facade from an AsyncLoggerBuildConfig.
+update-time: 20260614
+description: Build the application-facing async logger facade from an AsyncLoggerBuildConfig through the sync-first async builder path.
 key-word:
     - application
     - async
@@ -36,6 +36,7 @@ pub fn build_application_async_logger(
 Detailed rules explaining key parameters and behaviors
 
 - This API delegates to `build_async_logger(...)`.
+- That means the embedded `LoggerConfig` is built first through the normal synchronous config path before the outer async layer is applied.
 - The returned logger keeps the standard async lifecycle and state helper surface.
 - Use this facade when application code wants a dedicated async app-level entry point.
 
@@ -56,6 +57,8 @@ let logger = build_application_async_logger(
 ```
 
 In this example, the app-facing async facade is built directly from typed config.
+
+And any configured synchronous runtime sink controls remain available through the returned `RuntimeSink`-backed async logger.
 
 ### Error Case
 

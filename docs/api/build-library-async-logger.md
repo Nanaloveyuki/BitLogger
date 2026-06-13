@@ -36,6 +36,7 @@ pub fn build_library_async_logger(
 Detailed rules explaining key parameters and behaviors
 
 - This API builds the general async runtime logger and then wraps it in the narrower `LibraryAsyncLogger[@bitlogger.RuntimeSink]` facade.
+- The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can be used to recover the underlying full async logger.

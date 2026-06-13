@@ -2,8 +2,8 @@
 name: parse-and-build-application-async-logger
 group: api
 category: facade
-update-time: 20260520
-description: Parse JSON async build config text and build the application-facing async logger facade.
+update-time: 20260614
+description: Parse JSON async build config text and build the application-facing async logger facade through the sync-first async builder path.
 key-word:
     - application
     - async
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This API parses async build config text first, then builds the async application facade.
 - Both the embedded sync logger config and async queue/runtime config are validated by the parser layer.
+- The embedded `LoggerConfig` is then built through the normal synchronous config path before the outer async layer is applied.
 - The returned logger keeps the normal async lifecycle and state helpers.
 
 ### How to Use
@@ -53,6 +54,8 @@ let logger = parse_and_build_application_async_logger(
 ```
 
 In this example, text parsing and async logger construction happen in one facade call.
+
+And any configured synchronous runtime sink controls remain available through the returned `RuntimeSink`-backed async logger.
 
 ### Error Case
 
