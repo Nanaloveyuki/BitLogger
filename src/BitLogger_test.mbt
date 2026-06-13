@@ -1738,6 +1738,57 @@ test "application logger aliases configured runtime entry" {
   inspect(logger.target, content="app.runtime")
 }
 
+test "application logger builder matches direct configured builder behavior" {
+  let config = LoggerConfig::new(
+    min_level=Level::Warn,
+    target="app.runtime.same-build",
+    timestamp=true,
+    queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
+    sink=SinkConfig::new(kind=SinkKind::Console),
+  )
+  let application = build_application_logger(config)
+  let configured = build_logger(config)
+
+  inspect(application.target, content=configured.target)
+  inspect(application.timestamp, content="true")
+  inspect(configured.timestamp, content="true")
+  inspect(application.is_enabled(Level::Error) == configured.is_enabled(Level::Error), content="true")
+  inspect(application.is_enabled(Level::Info) == configured.is_enabled(Level::Info), content="true")
+  let application_sink_kind = match application.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    RuntimeSink::Console(_) => "Console"
+    RuntimeSink::JsonConsole(_) => "JsonConsole"
+    RuntimeSink::TextConsole(_) => "TextConsole"
+    RuntimeSink::File(_) => "File"
+  }
+  let configured_sink_kind = match configured.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    RuntimeSink::Console(_) => "Console"
+    RuntimeSink::JsonConsole(_) => "JsonConsole"
+    RuntimeSink::TextConsole(_) => "TextConsole"
+    RuntimeSink::File(_) => "File"
+  }
+  inspect(application_sink_kind == configured_sink_kind, content="true")
+
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.dropped_count() == configured.dropped_count(), content="true")
+  inspect(application.flush() == configured.flush(), content="true")
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+}
+
 test "configured logger keeps broader logger composition surface" {
   let logger : ConfiguredLogger = build_logger(
     LoggerConfig::new(
