@@ -2,8 +2,8 @@
 name: async-logger-flush-policy
 group: api
 category: async
-update-time: 20260512
-description: Read the async logger flush policy currently governing batch and shutdown flushing behavior.
+update-time: 20260614
+description: Read the async logger flush policy currently governing batch-end and shutdown-end flushing behavior.
 key-word:
     - async
     - logger
@@ -34,8 +34,8 @@ pub fn[S] AsyncLogger::flush_policy(self : AsyncLogger[S]) -> AsyncFlushPolicy {
 Detailed rules explaining key parameters and behaviors
 
 - The returned value reflects the policy captured when the async logger was created.
-- `Batch` causes explicit flush calls after worker batch processing.
-- `Shutdown` causes explicit flush calls at worker shutdown.
+- `Batch` causes explicit flush calls after each completed drained batch, not after every individual record write.
+- `Shutdown` causes one explicit flush call after the worker loop exits.
 - `Never` leaves flushing entirely to sink behavior or external control.
 
 ### How to Use
