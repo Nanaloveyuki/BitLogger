@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
 - The alias therefore keeps the same text-console-specific builder and lifecycle semantics already documented on `AsyncLogger[@bitlogger.FormattedConsoleSink]`, including the concrete sink shape plus the same close, queue, and failure-state behavior.
 - The application-facing type does not hide any async state or lifecycle helpers; queue/backlog/failure inspection remains directly available on this alias just as it is on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- In the current direct alias coverage, values built through `build_application_text_async_logger(...)` keep the same serialized state snapshot shape, formatter behavior, queue counters, lifecycle flags, and failure fields that the underlying text-console async logger exposes directly.
 - When the value is built through `build_application_text_async_logger(...)`, the direct async counters come from the outer async logger only; any optional sync queue configured on `LoggerConfig.queue` is not carried into this text-specific build path.
 - When the value is built through `build_application_text_async_logger(...)`, `flush_policy()` still reports the configured async policy, but the text-specific build path keeps the default no-op async flush callback instead of wiring an explicit sink flush step.
 - The alias exists to give application code a clearer public name when it wants the concrete text-console sink shape explicitly.
@@ -73,6 +74,8 @@ e.g.:
 - Because this is only an alias, any async target limitations or runtime behavior still apply unchanged.
 
 - If code does not need the concrete text-console sink shape, `ApplicationAsyncLogger` is the broader runtime-sink async alias.
+
+- If callers depend on the concrete formatter or direct text-console helper surface, they remain available on this alias because no wrapper layer narrows them away.
 
 ### Notes
 
