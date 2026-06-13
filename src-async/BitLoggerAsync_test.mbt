@@ -140,6 +140,24 @@ test "async logger config stringify roundtrips stable fields" {
   }, content="Batch")
 }
 
+test "async logger config parser accepts compatibility aliases" {
+  let config = parse_async_logger_config_text(
+    "{\"overflow\":\"DropLatest\",\"flush\":\"None\",\"max_batch\":0,\"linger_ms\":-2}",
+  )
+  inspect(config.max_batch, content="1")
+  inspect(config.linger_ms, content="0")
+  inspect(match config.overflow {
+    AsyncOverflowPolicy::Blocking => "Blocking"
+    AsyncOverflowPolicy::DropOldest => "DropOldest"
+    AsyncOverflowPolicy::DropNewest => "DropNewest"
+  }, content="DropNewest")
+  inspect(match config.flush {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Never")
+}
+
 async test "async logger config constructor normalizes batch and linger but preserves pending input" {
   let config = AsyncLoggerConfig::new(
     max_pending=-3,
