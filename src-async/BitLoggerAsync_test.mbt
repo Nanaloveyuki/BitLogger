@@ -1613,3 +1613,23 @@ test "application async logger parse-and-build preserves parsed sync queue layer
     _ => "Other"
   }, content="QueuedConsole")
 }
+
+test "async parse-build facades forward parse failures" {
+  let raw = "{\"logger\":{\"sink\":{\"kind\":\"file\",\"path\":\"\"}},\"async_config\":{\"max_pending\":2}}"
+
+  let application_error = (fn() -> String raise {
+    ignore(parse_and_build_application_async_logger(raw))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(application_error != "no error", content="true")
+
+  let library_error = (fn() -> String raise {
+    ignore(parse_and_build_library_async_logger(raw))
+    "no error"
+  })() catch {
+    err => err.to_string()
+  }
+  inspect(library_error != "no error", content="true")
+}
