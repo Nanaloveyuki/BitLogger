@@ -47,7 +47,7 @@ Detailed rules explaining key parameters and behaviors
 - The logger checks `is_enabled(level)` before building a record.
 - Stored shared context fields are prepended ahead of per-call `fields`, then patch and filter logic are applied before enqueue.
 - If `target` is empty, the logger uses its current default target; otherwise the provided per-call target overrides that default for this one write.
-- The narrower library facade does not change enqueue semantics, overflow handling, or runtime-dependent closed-on-log behavior; it only limits the visible API surface.
+- The narrower library facade does not change enqueue semantics, overflow handling, or runtime-dependent closed-on-log behavior; in particular, compatibility runtimes can short-circuit before patch and enqueue work, while native-worker runtimes may still reach wrapped record construction and then treat the closed queue as a non-accepted write. The facade only limits the visible API surface.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `has_failed()`, and `last_error()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 
 ### How to Use

@@ -38,7 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - A closed logger should no longer be treated as a normal active enqueue target.
 - This helper is only a direct read of the current `is_closed` ref; it does not wait for drain completion or clear any other state.
 - This helper reflects lifecycle state only and does not indicate whether the worker is still draining.
-- Exact post-close logging behavior is runtime-dependent, so `is_closed()` should be read as a lifecycle signal rather than a full enqueue-policy contract.
+- Exact post-close logging behavior is runtime-dependent: compatibility runtimes can short-circuit before patch and enqueue work, while native-worker runtimes may still build and patch a record before the closed queue rejects it, so `is_closed()` should be read as a lifecycle signal rather than a full enqueue-policy contract.
 
 ### How to Use
 
