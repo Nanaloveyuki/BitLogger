@@ -77,6 +77,7 @@ BitLogger API navigation.
 ## Record and level
 
 - [record-new.md](./record-new.md)
+- [level.md](./level.md)
 - [level-priority.md](./level-priority.md)
 - [level-label.md](./level-label.md)
 - [level-enabled.md](./level-enabled.md)
@@ -93,6 +94,7 @@ BitLogger API navigation.
 - [split-by-level.md](./split-by-level.md)
 - [buffered-sink.md](./buffered-sink.md)
 - [queued-sink.md](./queued-sink.md)
+- [queue-overflow-policy.md](./queue-overflow-policy.md)
 - [filter-sink.md](./filter-sink.md)
 - [patch-sink.md](./patch-sink.md)
 - [file-sink.md](./file-sink.md)
@@ -130,6 +132,8 @@ BitLogger API navigation.
 
 ## Config build flow
 
+- [config-error.md](./config-error.md)
+- [sink-kind.md](./sink-kind.md)
 - [queue-config.md](./queue-config.md)
 - [queue-config-to-json.md](./queue-config-to-json.md)
 - [stringify-queue-config.md](./stringify-queue-config.md)
@@ -190,6 +194,8 @@ BitLogger API navigation.
 
 ## Async runtime and config
 
+- [async-overflow-policy.md](./async-overflow-policy.md)
+- [async-flush-policy.md](./async-flush-policy.md)
 - [async-runtime-mode.md](./async-runtime-mode.md)
 - [async-runtime-mode-label.md](./async-runtime-mode-label.md)
 - [async-runtime-supports-background-worker.md](./async-runtime-supports-background-worker.md)
