@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain file sinks forward directly to file flush behavior through the wrapped `RuntimeSink`.
 - Queued file sinks first flush queued records, then flush the wrapped inner file sink.
+- For queued file sinks, this step may also be the point where queued records finally hit the inner file sink, so write-failure counters can change here even if earlier log calls only queued records.
 - Non-file sinks return `false`.
 - This helper is narrower than generic `flush()` because it targets file sink behavior specifically.
 
@@ -71,4 +72,4 @@ e.g.:
 
 1. Prefer this helper when the configured sink is known to be file-backed.
 
-2. Queued file sinks may perform both queue flush and file flush work here.
+2. Queued file sinks may perform both queue flush and file flush work here, including surfacing delayed write failures from previously queued records.

@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - Plain `File` runtime variants forward directly to `FileSink::flush()`.
 - `QueuedFile` runtime variants first attempt `sink.flush()` on the queue wrapper, then call `sink.sink.flush()` on the wrapped file sink.
 - For `QueuedFile`, the queue flush result is ignored and the returned `Bool` comes from the inner file flush.
+- For `QueuedFile`, this step may also be the point where queued records finally reach the inner file sink, so write-failure counters can change here even if earlier `log(...)` calls only enqueued records.
 - Non-file runtime variants return `false`.
 
 ### How to Use
@@ -71,4 +72,4 @@ e.g.:
 
 1. Prefer this helper when direct runtime code specifically cares about file flush behavior.
 
-2. Queued file sinks may perform both queue flush work and file flush work here.
+2. Queued file sinks may perform both queue flush work and file flush work here, including surfacing delayed write failures from previously queued records.

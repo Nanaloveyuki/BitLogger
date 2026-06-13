@@ -72,4 +72,4 @@ e.g.:
 
 1. Use this helper after diagnostics or recovery, not before capturing needed evidence.
 
-2. It is the reset companion for the file failure-counter helpers.
+2. For queued file sinks, it resets the inner file counters only; it does not clear still-pending queued records that may produce new failures on a later `file_flush()`.
