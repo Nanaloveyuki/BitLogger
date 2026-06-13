@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a built logger instance.
 - The current fields are `logger : LoggerConfig` and `async_config : AsyncLoggerConfig`.
+- The public `src-async` surface forwards this alias directly from `@utils.AsyncLoggerBuildConfig`, so constructor, parser, export, and stringify helpers all operate on one shared underlying build-config model.
 - `AsyncLoggerBuildConfig::new(...)` constructs this type as the main handoff object for async build flows.
 - `build_async_logger(...)`, `build_async_text_logger(...)`, `parse_async_logger_build_config_text(...)`, `async_logger_build_config_to_json(...)`, and `stringify_async_logger_build_config(...)` all consume or produce this same public shape.
 - `build_async_logger(...)` consumes the full sync build path by calling `build_logger(config.logger)` first, so `LoggerConfig.sink`, `LoggerConfig.queue`, and the resulting runtime sink behavior all participate before the async layer is added.

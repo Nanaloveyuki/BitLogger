@@ -31,6 +31,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a runtime logger handle.
 - The current fields are `max_pending : Int`, `overflow : AsyncOverflowPolicy`, `max_batch : Int`, `linger_ms : Int`, and `flush : AsyncFlushPolicy`.
+- The public `src-async` surface forwards this alias directly from `@utils.AsyncLoggerConfig`, so constructor, parser, export, and stringify helpers all operate on one shared underlying config model.
 - `AsyncLoggerConfig::new(...)` normalizes `max_batch` and `linger_ms`, but it preserves the provided `max_pending` value.
 - Runtime queue creation later interprets negative `max_pending` as `0` when choosing the internal queue kind.
 - `parse_async_logger_config_text(...)`, `async_logger_config_to_json(...)`, and `stringify_async_logger_config(...)` all operate on this same public config shape.
