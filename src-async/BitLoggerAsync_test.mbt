@@ -177,6 +177,72 @@ test "async build config stringify roundtrips nested logger and async fields" {
   }, content="Shutdown")
 }
 
+test "async json helpers export stable structured shapes" {
+  let config_json = async_logger_config_to_json(
+    AsyncLoggerConfig::new(
+      max_pending=8,
+      overflow=AsyncOverflowPolicy::DropOldest,
+      max_batch=3,
+      linger_ms=25,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+  )
+  let config_obj = config_json.as_object().unwrap()
+  inspect(
+    @json_parser.stringify(config_json),
+    content="{\"max_pending\":8,\"max_batch\":3,\"linger_ms\":25,\"overflow\":\"DropOldest\",\"flush\":\"Batch\"}",
+  )
+  inspect(config_obj.get("max_pending").unwrap().as_number().unwrap().to_int(), content="8")
+  inspect(config_obj.get("max_batch").unwrap().as_number().unwrap().to_int(), content="3")
+  inspect(config_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(), content="25")
+  inspect(config_obj.get("overflow").unwrap().as_string().unwrap(), content="DropOldest")
+  inspect(config_obj.get("flush").unwrap().as_string().unwrap(), content="Batch")
+
+  let build_json = async_logger_build_config_to_json(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.roundtrip",
+        timestamp=true,
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::TextConsole),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::DropNewest,
+        max_batch=5,
+        linger_ms=40,
+        flush=AsyncFlushPolicy::Shutdown,
+      ),
+    ),
+  )
+  let build_obj = build_json.as_object().unwrap()
+  let logger_obj = build_obj.get("logger").unwrap().as_object().unwrap()
+  let sink_obj = logger_obj.get("sink").unwrap().as_object().unwrap()
+  let formatter_obj = sink_obj.get("text_formatter").unwrap().as_object().unwrap()
+  let async_obj = build_obj.get("async_config").unwrap().as_object().unwrap()
+
+  inspect(logger_obj.get("min_level").unwrap().as_string().unwrap(), content="WARN")
+  inspect(logger_obj.get("target").unwrap().as_string().unwrap(), content="async.roundtrip")
+  inspect(logger_obj.get("timestamp").unwrap().as_bool().unwrap(), content="true")
+  inspect(logger_obj.get("queue") is None, content="true")
+  inspect(sink_obj.get("kind").unwrap().as_string().unwrap(), content="text_console")
+  inspect(sink_obj.get("path").unwrap().as_string().unwrap(), content="")
+  inspect(sink_obj.get("append").unwrap().as_bool().unwrap(), content="true")
+  inspect(sink_obj.get("auto_flush").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("show_timestamp").unwrap().as_bool().unwrap(), content="true")
+  inspect(formatter_obj.get("separator").unwrap().as_string().unwrap(), content=" ")
+  inspect(formatter_obj.get("field_separator").unwrap().as_string().unwrap(), content=" ")
+  inspect(formatter_obj.get("template").unwrap().as_string().unwrap(), content="")
+  inspect(formatter_obj.get("color_mode").unwrap().as_string().unwrap(), content="never")
+  inspect(formatter_obj.get("color_support").unwrap().as_string().unwrap(), content="truecolor")
+  inspect(formatter_obj.get("style_markup").unwrap().as_string().unwrap(), content="full")
+  inspect(async_obj.get("max_pending").unwrap().as_number().unwrap().to_int(), content="2")
+  inspect(async_obj.get("max_batch").unwrap().as_number().unwrap().to_int(), content="5")
+  inspect(async_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(), content="40")
+  inspect(async_obj.get("overflow").unwrap().as_string().unwrap(), content="DropNewest")
+  inspect(async_obj.get("flush").unwrap().as_string().unwrap(), content="Shutdown")
+}
+
 test "async config parsers reject malformed input" {
   let invalid_json_error = (fn() -> String raise {
     ignore(parse_async_logger_config_text("{"))
@@ -234,6 +300,14 @@ test "async runtime capability helpers stay consistent" {
   inspect(async_runtime_mode_label(state.mode) == async_runtime_mode_label(mode), content="true")
   inspect(state.background_worker == worker_supported, content="true")
   inspect(
+    @json_parser.stringify(async_runtime_state_to_json(state)),
+    content=if worker_supported {
+      "{\"mode\":\"native_worker\",\"background_worker\":true}"
+    } else {
+      "{\"mode\":\"compatibility\",\"background_worker\":false}"
+    },
+  )
+  inspect(
     stringify_async_runtime_state(state),
     content=if worker_supported {
       "{\"mode\":\"native_worker\",\"background_worker\":true}"
@@ -278,6 +352,14 @@ test "async logger state snapshot reflects current counters and runtime" {
     AsyncFlushPolicy::Batch => "Batch"
     AsyncFlushPolicy::Shutdown => "Shutdown"
   }, content="Shutdown")
+  inspect(
+    @json_parser.stringify(async_logger_state_to_json(state)),
+    content=if async_runtime_supports_background_worker() {
+      "{\"runtime\":{\"mode\":\"native_worker\",\"background_worker\":true},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+    } else {
+      "{\"runtime\":{\"mode\":\"compatibility\",\"background_worker\":false},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+    },
+  )
   inspect(
     stringify_async_logger_state(state),
     content=if async_runtime_supports_background_worker() {
