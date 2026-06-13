@@ -88,6 +88,7 @@ BitLogger API navigation.
 - [format-json.md](./format-json.md)
 - [text-formatter-config.md](./text-formatter-config.md)
 - [default-text-formatter-config.md](./default-text-formatter-config.md)
+- [text-formatter-config-to-formatter.md](./text-formatter-config-to-formatter.md)
 - [text-formatter-config-to-json.md](./text-formatter-config-to-json.md)
 - [stringify-text-formatter-config.md](./stringify-text-formatter-config.md)
 - [color-support-label.md](./color-support-label.md)
