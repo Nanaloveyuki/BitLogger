@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - Unlike `build_async_logger(...)`, this helper does not run the full synchronous `build_logger(config.logger)` path first.
 - That means it uses `config.logger.sink.text_formatter`, `min_level`, `target`, and `timestamp` directly, but it does not apply `LoggerConfig.queue` or preserve other sync runtime sink controls.
 - This builder returns the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value directly. `build_application_text_async_logger(...)` only re-exports that same result under the `ApplicationTextAsyncLogger` alias, while `build_library_async_text_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- In the current direct text-builder coverage, the returned logger exposes the expected serialized async state snapshot, formatter behavior, queue counters, lifecycle flags, and later failure fields after worker execution.
 - The async `flush_policy` still comes from `config.async_config`, but this text-specific builder does not supply the explicit `flush=fn(sink) { sink.flush() }` callback used by `build_async_logger(...)`.
 - In practice, `Batch` and `Shutdown` therefore only trigger the default no-op async flush callback on this path, while each record write still follows whatever immediate behavior `FormattedConsoleSink` already has on its own.
 - This helper is best suited to text-console output paths where callers want the concrete formatted sink type instead of `RuntimeSink`.
@@ -68,6 +69,8 @@ e.g.:
 - If callers need sink-kind-driven branching across console, JSON, text, or file output, `build_async_logger(...)` is the better fit.
 
 - If the logger is never `run()`, pending records still follow the normal async queue lifecycle rules.
+
+- If callers rely on the concrete formatter or post-run state shape, this builder is the direct API that preserves those text-console details rather than a reduced alias or wrapper.
 
 ### Notes
 

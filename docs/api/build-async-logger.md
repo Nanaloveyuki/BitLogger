@@ -40,6 +40,8 @@ Detailed rules explaining key parameters and behaviors
 - The returned sink type is `RuntimeSink`, which keeps configured control helpers available where relevant.
 - This builder returns the underlying `AsyncLogger[@bitlogger.RuntimeSink]` value directly. `build_application_async_logger(...)` only re-exports the same result under the `ApplicationAsyncLogger` alias, while `build_library_async_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.RuntimeSink]`.
 - Because this path starts from `build_logger(config.logger)`, it preserves the broader runtime-sink build path, including sync-side queue decoration when `LoggerConfig.queue` is present.
+- In the current direct builder coverage, the returned logger exposes the expected serialized async state snapshot, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after `run()` or `shutdown()`.
+- File-backed runtime helpers also stay directly available on the returned `RuntimeSink` with the same behavior later observed through the application and library facade equivalence tests.
 - Use `build_async_text_logger(...)` instead when you want the direct text-console async builder path with `FormattedConsoleSink` and without the sync runtime-sink construction layer.
 - The `src-async` library is designed to compile on `native / llvm / js / wasm / wasm-gc`, but runtime mode differs by backend.
 - Current local release-facing verification is explicit for `native / js / wasm / wasm-gc`.
@@ -82,6 +84,8 @@ e.g.:
 - If the config text was invalid, error handling should happen earlier in `parse_async_logger_build_config_text(...)`.
 
 - If the configured sink shape is unsupported for a specific capability, the resulting runtime behavior follows the existing sink/runtime rules rather than inventing a separate builder-only failure model.
+
+- If callers depend on queued runtime-sink helpers or file-backed runtime helpers, this builder is the direct API that preserves them rather than a reduced facade path.
 
 ### Notes
 
