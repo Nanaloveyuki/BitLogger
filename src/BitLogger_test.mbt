@@ -2461,6 +2461,69 @@ test "application logger parse-build matches parsed direct builder behavior" {
   inspect(application.pending_count() == configured.pending_count(), content="true")
 }
 
+test "application logger file helpers match direct configured builder behavior" {
+  let config = LoggerConfig::new(
+    min_level=Level::Warn,
+    target="app.file.same-build",
+    sink=SinkConfig::new(kind=SinkKind::File, path="app-file-same-build.log"),
+    queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
+  )
+  let application = build_application_logger(config)
+  let configured = build_logger(config)
+
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.dropped_count() == configured.dropped_count(), content="true")
+  inspect(application.file_available() == configured.file_available(), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(application.file_auto_flush() == configured.file_auto_flush(), content="true")
+  inspect(application.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+
+  let application_policy = application.file_policy()
+  let configured_policy = configured.file_policy()
+  inspect(application_policy.append == configured_policy.append, content="true")
+  inspect(application_policy.auto_flush == configured_policy.auto_flush, content="true")
+  inspect(match application_policy.rotation {
+    Some(rotation) => match configured_policy.rotation {
+      Some(other) => rotation.max_bytes == other.max_bytes && rotation.max_backups == other.max_backups
+      None => false
+    }
+    None => configured_policy.rotation is None
+  }, content="true")
+
+  let application_state = application.file_state()
+  let configured_state = configured.file_state()
+  inspect(application_state.path == configured_state.path, content="true")
+  inspect(application_state.available == configured_state.available, content="true")
+  inspect(application_state.append == configured_state.append, content="true")
+  inspect(application_state.auto_flush == configured_state.auto_flush, content="true")
+  inspect(application_state.open_failures == configured_state.open_failures, content="true")
+  inspect(application_state.write_failures == configured_state.write_failures, content="true")
+  inspect(application_state.flush_failures == configured_state.flush_failures, content="true")
+  inspect(application_state.rotation_failures == configured_state.rotation_failures, content="true")
+
+  match (application.file_runtime_state(), configured.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(application.file_flush() == configured.file_flush(), content="true")
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.file_close() == configured.file_close(), content="true")
+}
+
 test "parsed application logger keeps direct runtime helper surface" {
   let logger : ApplicationLogger = parse_and_build_application_logger(
     "{\"min_level\":\"warn\",\"target\":\"app.json.helpers\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"app-json-helpers.log\"}}",
@@ -2483,6 +2546,52 @@ test "parsed application logger keeps direct runtime helper surface" {
     inspect(logger.file_flush(), content="false")
     inspect(logger.file_close(), content="false")
   }
+}
+
+test "parsed application logger file helpers match parsed configured builder behavior" {
+  let raw = "{\"min_level\":\"warn\",\"target\":\"app.json.file.same-build\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"app-json-file-same-build.log\"}}"
+  let application = parse_and_build_application_logger(raw)
+  let configured = parse_and_build_logger(raw)
+
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  configured.error("one")
+  configured.error("two")
+  configured.error("three")
+
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.dropped_count() == configured.dropped_count(), content="true")
+  inspect(application.file_available() == configured.file_available(), content="true")
+  inspect(application.file_append_mode() == configured.file_append_mode(), content="true")
+  inspect(application.file_auto_flush() == configured.file_auto_flush(), content="true")
+  inspect(application.file_policy_matches_default() == configured.file_policy_matches_default(), content="true")
+
+  let application_state = application.file_state()
+  let configured_state = configured.file_state()
+  inspect(application_state.path == configured_state.path, content="true")
+  inspect(application_state.available == configured_state.available, content="true")
+  inspect(application_state.append == configured_state.append, content="true")
+  inspect(application_state.auto_flush == configured_state.auto_flush, content="true")
+  inspect(application_state.open_failures == configured_state.open_failures, content="true")
+  inspect(application_state.write_failures == configured_state.write_failures, content="true")
+  inspect(application_state.flush_failures == configured_state.flush_failures, content="true")
+  inspect(application_state.rotation_failures == configured_state.rotation_failures, content="true")
+
+  match (application.file_runtime_state(), configured.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(application.file_flush() == configured.file_flush(), content="true")
+  inspect(application.pending_count() == configured.pending_count(), content="true")
+  inspect(application.file_close() == configured.file_close(), content="true")
 }
 
 test "parsed configured logger keeps composition and runtime helper surface" {
