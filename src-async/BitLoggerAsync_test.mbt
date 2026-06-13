@@ -547,6 +547,30 @@ test "library async text logger can be built from typed config" {
   inspect(full.target, content="async.lib.text")
 }
 
+test "library async text logger builder ignores sync queue layer" {
+  let logger = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.text.queued",
+        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.text.queued")
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="0")
+}
+
 async test "async logger can project to library async logger" {
   let logger = build_async_logger(
     AsyncLoggerBuildConfig::new(
