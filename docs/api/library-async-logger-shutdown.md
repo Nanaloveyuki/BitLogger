@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - If the active async runtime uses shutdown clearing after idle and backlog still remains, the wrapped logger falls back to `close(clear=true)`.
 - `clear=true` immediately closes and abandons pending records.
 - In runtimes where shutdown waits for workers, the method then waits until the worker is no longer running before returning.
+- After a worker-failure short-circuit, native-worker backends can still convert remaining backlog into dropped records, while compatibility backends skip that extra forced-clear step.
 - The narrower library facade does not change any of these runtime-dependent shutdown rules; it only keeps the broader inspection helpers out of the direct public surface.
 
 ### How to Use

@@ -406,6 +406,49 @@ async test "later started run resets async failure state before draining remaini
   inspect(logger.pending_count(), content="0")
 }
 
+async test "shutdown after worker failure uses runtime-specific pending cleanup" {
+  let writes : Ref[Int] = Ref(0)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+      writes.val += 1
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.failure.shutdown",
+    flush=fn(_) -> Int raise {
+      raise TestFlushError("flush exploded on shutdown path")
+    },
+  )
+
+  @async.with_task_group(group => {
+    group.spawn_bg(allow_failure=true, () => logger.run())
+    logger.info("one")
+    logger.info("two")
+    logger.wait_idle()
+    inspect(logger.has_failed(), content="true")
+    inspect(logger.pending_count(), content="1")
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.has_failed(), content="true")
+  inspect(logger.last_error().contains("TestFlushError"), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(writes.val, content="1")
+  inspect(
+    logger.pending_count(),
+    content=if async_runtime_supports_background_worker() { "0" } else { "1" },
+  )
+  inspect(
+    logger.dropped_count(),
+    content=if async_runtime_supports_background_worker() { "1" } else { "0" },
+  )
+}
+
 async test "library async logger keeps a smaller async facade" {
   let written_targets : Ref[Array[String]] = Ref([])
   let written_messages : Ref[Array[String]] = Ref([])
