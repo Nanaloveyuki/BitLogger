@@ -1510,6 +1510,32 @@ async test "library async text logger unwrap keeps async helper surface" {
   inspect(full.last_error(), content="")
 }
 
+async test "library async text logger shutdown clear abandons pending records through facade" {
+  let logger = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Info,
+        target="async.lib.text.clear",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+      ),
+    ),
+  )
+  let full = logger.to_async_logger()
+
+  logger.info("one")
+  inspect(full.pending_count(), content="1")
+  inspect(full.dropped_count(), content="0")
+  logger.shutdown(clear=true)
+  inspect(full.is_closed(), content="true")
+  inspect(full.is_running(), content="false")
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="1")
+}
+
 test "library async text logger builder ignores sync queue layer" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
