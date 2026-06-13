@@ -560,6 +560,91 @@ async test "library async bind matches context facade contract" {
   inspect(written_fields.val[1].value, content="test")
 }
 
+async test "library async logger with_target preserves facade state while replacing target" {
+  let written_target : Ref[String] = Ref("")
+  let written_timestamp : Ref[UInt64] = Ref(0UL)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_target.val = rec.target
+      written_timestamp.val = rec.timestamp_ms
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.lib.base",
+  )
+    .with_timestamp()
+    .to_library_async_logger()
+    .with_target("async.lib.retarget")
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.retarget")
+  inspect(full.timestamp, content="true")
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="0")
+  inspect(full.is_closed(), content="false")
+  inspect(full.is_running(), content="false")
+  inspect(full.has_failed(), content="false")
+  inspect(full.last_error(), content="")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.error("retargeted")
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.lib.retarget")
+  inspect(written_timestamp.val > 0UL, content="true")
+}
+
+async test "library async logger child composes target through facade" {
+  let written_target : Ref[String] = Ref("")
+  let written_timestamp : Ref[UInt64] = Ref(0UL)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_target.val = rec.target
+      written_timestamp.val = rec.timestamp_ms
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="sdk",
+  )
+    .with_timestamp()
+    .to_library_async_logger()
+    .child("worker")
+  let full = logger.to_async_logger()
+
+  inspect(full.target, content="sdk.worker")
+  inspect(full.timestamp, content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.error("child")
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="sdk.worker")
+  inspect(written_timestamp.val > 0UL, content="true")
+
+  let root_child = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+  ).child("worker")
+  inspect(root_child.to_async_logger().target, content="worker")
+
+  let keep_parent = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    target="sdk",
+  ).child("")
+  inspect(keep_parent.to_async_logger().target, content="sdk")
+}
+
 async test "library async shutdown preserves wrapped failure cleanup semantics" {
   let writes : Ref[Int] = Ref(0)
   let logger = LibraryAsyncLogger::new(
