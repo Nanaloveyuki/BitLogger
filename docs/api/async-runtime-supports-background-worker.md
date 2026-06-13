@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `true` indicates native worker capability.
 - `false` indicates compatibility-mode behavior.
 - This helper is derived from backend-specific async runtime implementation choice.
+- In the current backend split, the native implementation returns `true` while the compatibility stub returns `false`, matching the same mode pair exposed through `async_runtime_mode()` and `async_runtime_state()`.
 - The async library still targets multiple backends even when this helper returns `false`.
 - Use it when an enum branch is unnecessary and a boolean capability check is enough.
 

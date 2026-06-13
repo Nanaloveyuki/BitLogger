@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_runtime_supports_background_worker()` is a narrower boolean probe built on the same idea.
 - `async_runtime_state()` packages this mode together with the current background-worker capability into one `AsyncRuntimeState` snapshot.
 - In the current backend implementations, `NativeWorker` pairs with `background_worker=true` and `Compatibility` pairs with `background_worker=false`.
+- Concretely, the native runtime entrypoint returns `native_worker_async_runtime_mode()`, while the compatibility stub returns `compatibility_async_runtime_mode()`.
 - This API is intentionally small and useful for lightweight branching.
 - The mode result describes runtime behavior only; it should not be read as proof that every backend has been equally re-verified in the current release cycle.
 

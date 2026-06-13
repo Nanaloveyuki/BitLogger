@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The returned value is intended for diagnostics and stable output, not just debugging prints.
 - It keeps mode serialization logic in one place.
 - This helper is used by async runtime JSON helpers.
+- `async_runtime_state_to_json(...)` serializes the `mode` field through this helper, so runtime snapshots and direct label rendering share the same canonical text.
 - Labels are more stable for telemetry and docs than ad hoc manual matching at call sites.
 - The current canonical labels are exactly `native_worker` for `NativeWorker` and `compatibility` for `Compatibility`.
 
