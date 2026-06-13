@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - The counter increases when overflow policy discards records.
 - The counter can also increase when `close(clear=true)` or `shutdown(clear=true)` abandons queued records.
+- It can also increase when shutdown fallback logic converts remaining pending records into dropped records during a clear-close path.
 - This is a cumulative counter for the lifetime of the logger value.
 - Use this helper when you need a focused loss metric rather than a full `state()` snapshot.
 
