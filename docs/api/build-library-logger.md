@@ -35,9 +35,11 @@ Detailed rules explaining key parameters and behaviors
 
 - This API builds a configured runtime logger first and then wraps that same value as `LibraryLogger[RuntimeSink]`.
 - The embedded config still goes through the normal runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
+- The returned facade wraps the same underlying `ConfiguredLogger` value that `build_logger(...)` would produce directly.
 - The facade intentionally exposes a smaller logging surface than the full configured runtime logger.
 - Queue metrics, flush and drain helpers, and file runtime controls remain on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - Call `to_logger()` if a caller must recover the underlying full logger object.
+- Use this builder when the boundary should preserve the configured runtime logger path but still hide broader runtime helper methods from downstream callers.
 
 ### How to Use
 
