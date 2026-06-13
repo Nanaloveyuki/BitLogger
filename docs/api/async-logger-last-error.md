@@ -36,7 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `run()` resets the stored error string when the worker starts.
 - If the worker loop fails, the error text is captured from the raised exception.
 - An empty string normally means no failure has been recorded.
-- Once a failure string is recorded, it stays in place until a later `run()` start clears it.
+- Once a failure string is recorded, it stays in place until a later `run()` invocation actually starts and clears it.
 - This helper reports worker execution errors, not ordinary overflow or backpressure conditions.
 - A new successful `run()` attempt clears any previously stored error text before drain work begins again.
 
@@ -73,7 +73,7 @@ e.g.:
 
 - If callers need broader context than just the error text, they should use `state()`.
 
-- `close()` or `shutdown()` do not clear a previously recorded error string by themselves.
+- `close()` or `shutdown()` do not clear a previously recorded error string by themselves; the reset happens when a later `run()` has already started.
 
 ### Notes
 

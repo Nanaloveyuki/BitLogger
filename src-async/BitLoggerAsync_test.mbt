@@ -355,6 +355,57 @@ async test "async logger records worker failures and wait_idle stops early" {
   inspect(logger.pending_count(), content="0")
 }
 
+async test "later started run resets async failure state before draining remaining backlog" {
+  let writes : Ref[Int] = Ref(0)
+  let flushes : Ref[Int] = Ref(0)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+      writes.val += 1
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.retry",
+    flush=fn(_) -> Int raise {
+      flushes.val += 1
+      if flushes.val == 1 {
+        raise TestFlushError("flush exploded once")
+      }
+      1
+    },
+  )
+
+  @async.with_task_group(group => {
+    group.spawn_bg(allow_failure=true, () => logger.run())
+    logger.info("one")
+    logger.info("two")
+    logger.wait_idle()
+    inspect(logger.has_failed(), content="true")
+    inspect(logger.last_error().contains("TestFlushError"), content="true")
+    inspect(logger.is_running(), content="false")
+    inspect(logger.pending_count(), content="1")
+
+    group.spawn_bg(() => logger.run())
+    while !logger.is_running() {
+      @async.pause()
+    }
+    inspect(logger.has_failed(), content="false")
+    inspect(logger.last_error(), content="")
+    logger.shutdown()
+  })
+
+  inspect(writes.val, content="2")
+  inspect(flushes.val, content="2")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.pending_count(), content="0")
+}
+
 async test "library async logger keeps a smaller async facade" {
   let written_targets : Ref[Array[String]] = Ref([])
   let written_messages : Ref[Array[String]] = Ref([])

@@ -34,7 +34,7 @@ pub async fn[S : @bitlogger.Sink] AsyncLogger::run(self : AsyncLogger[S]) -> Uni
 Detailed rules explaining key parameters and behaviors
 
 - `run()` sets `is_running` to `true` before worker execution begins.
-- Every invocation clears previous failure state first by setting `has_failed=false` and `last_error()` to an empty string.
+- Every invocation clears previous failure state first by setting `has_failed=false` and `last_error()` to an empty string once that `run()` call has actually started executing.
 - The method then keeps draining records until `queue.get()` stops with `AsyncLoggerClosed` or a worker error escapes.
 - On a normal queue-close exit, `run()` clears `is_running` and returns normally.
 - On failure, the logger records `has_failed=true`, stores the error text in `last_error`, clears `is_running`, and then raises the error back out of `run()`.

@@ -36,7 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `run()` clears previous failure state at startup.
 - `run()` also clears the stored `last_error()` string at startup before drain work begins.
 - If the worker loop raises an error, the logger records that failure and exposes it through this flag.
-- Once set by a failed run, the flag stays `true` until a later `run()` start resets it.
+- Once set by a failed run, the flag stays `true` until a later `run()` invocation actually starts and resets it.
 - This helper is intentionally compact and should usually be paired with `last_error()` for details.
 - Failure state is about runtime drain execution, not whether records were dropped due to overflow policy.
 
@@ -73,7 +73,7 @@ e.g.:
 
 - If `has_failed()` is `true`, callers should inspect `last_error()` or `state()` for more context.
 
-- `close()` or `shutdown()` do not clear this flag by themselves; only a later `run()` start resets it.
+- `close()` or `shutdown()` do not clear this flag by themselves; only a later `run()` that has already started resets it.
 
 ### Notes
 
