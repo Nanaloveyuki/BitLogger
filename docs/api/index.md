@@ -295,6 +295,7 @@ BitLogger API navigation.
 - [async-logger-config-to-json.md](./async-logger-config-to-json.md)
 - [stringify-async-logger-config.md](./stringify-async-logger-config.md)
 - [async-logger-build-config-type.md](./async-logger-build-config-type.md)
+- [async-logger-build-config.md](./async-logger-build-config.md)
 - [parse-async-logger-build-config-text.md](./parse-async-logger-build-config-text.md)
 - [build-async-logger.md](./build-async-logger.md)
 - [build-async-text-logger.md](./build-async-text-logger.md)
