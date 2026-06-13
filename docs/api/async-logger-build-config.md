@@ -2,8 +2,8 @@
 name: async-logger-build-config
 group: api
 category: async
-update-time: 20260613
-description: Create the combined sync-and-async build config used by async logger builder APIs.
+update-time: 20260614
+description: Create the combined sync-and-async build config used by async logger builder APIs, with the sync logger config applied before the outer async layer.
 key-word:
     - async
     - build
@@ -26,7 +26,7 @@ pub fn AsyncLoggerBuildConfig::new(
 
 #### input
 
-- `logger : LoggerConfig` - Base synchronous logger config describing the sink, level, target, and related sync logger settings.
+- `logger : LoggerConfig` - Base synchronous logger config describing the sink, level, target, related sync logger settings, and any optional synchronous queue wrapper.
 - `async_config : AsyncLoggerConfig` - Async runtime config describing queue, batching, linger, and flush behavior.
 
 #### output
@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - Omitting `logger` uses `default_logger_config()`.
 - Omitting `async_config` uses `AsyncLoggerConfig::new()`.
 - The constructor simply packages both config objects into one public build shape.
+- When passed to `build_async_logger(...)`, the `logger` portion is built first through the normal synchronous config path before the outer async queue layer is applied.
 - This helper is the main code-side counterpart to `parse_async_logger_build_config_text(...)`.
 
 ### How to Use

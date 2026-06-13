@@ -2,8 +2,8 @@
 name: build-async-logger
 group: api
 category: async
-update-time: 20260512
-description: Build an async logger from combined logger and async config without manually wiring the runtime sink.
+update-time: 20260614
+description: Build an async logger from combined logger and async config by first building the sync runtime logger and then wrapping its sink in the async layer.
 key-word:
     - async
     - config
@@ -34,8 +34,9 @@ pub fn build_async_logger(config : AsyncLoggerBuildConfig) -> AsyncLogger[@bitlo
 Detailed rules explaining key parameters and behaviors
 
 - The `logger` section is built through the same config machinery used by synchronous configured loggers.
+- That means `LoggerConfig.sink` and the optional synchronous `LoggerConfig.queue` are applied before the async layer is added.
 - The resulting async logger inherits `min_level`, `target`, and timestamp behavior from the built synchronous logger.
-- File, queue, and formatter choices all come from config rather than direct code-side sink wiring.
+- File, formatter, and any configured synchronous queue choices all come from config rather than direct code-side sink wiring.
 - The returned sink type is `RuntimeSink`, which keeps configured control helpers available where relevant.
 - The `src-async` library is designed to compile on `native / llvm / js / wasm / wasm-gc`, but runtime mode differs by backend.
 - Current local release-facing verification is explicit for `native / js / wasm / wasm-gc`.
@@ -69,6 +70,8 @@ println(stringify_async_logger_state(logger.state(), pretty=true))
 ```
 
 In this example, the built async logger remains introspectable even though construction was config-driven.
+
+And any configured synchronous runtime sink controls are preserved inside the returned `RuntimeSink`.
 
 ### Error Case
 
