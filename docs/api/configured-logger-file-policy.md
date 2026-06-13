@@ -33,9 +33,9 @@ pub fn ConfiguredLogger::file_policy(self : ConfiguredLogger) -> FileSinkPolicy 
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks return their current runtime file policy.
-- Queued file sinks forward the policy from the wrapped file sink.
-- Non-file sinks return a neutral fallback policy value.
+- File-backed sinks return their current runtime file policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the policy from the wrapped inner file sink.
+- Non-file sinks return the same neutral fallback policy value produced by `RuntimeSink::file_policy()`.
 - This helper is broader than `file_append_mode()` or `file_auto_flush()` because it returns the whole policy object.
 
 ### How to Use

@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_policy_matches_default(self : ConfiguredLogger) ->
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks compare current runtime file policy against their stored defaults.
-- Queued file sinks forward the comparison from the wrapped file sink.
+- File-backed sinks compare current runtime file policy against their stored defaults through the wrapped `RuntimeSink`.
+- Queued file sinks forward the comparison from the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is a compact drift signal when callers do not need to compare full policy objects directly.
 

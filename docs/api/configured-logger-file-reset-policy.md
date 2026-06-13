@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_reset_policy(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks restore their stored default file policy.
-- Queued file sinks forward the reset behavior to the wrapped file sink.
+- File-backed sinks restore their stored default file policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the reset behavior to the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is the inverse of runtime policy drift, not a generic reopen or flush action.
 

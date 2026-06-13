@@ -34,8 +34,8 @@ pub fn ConfiguredLogger::file_set_policy(self : ConfiguredLogger, policy : FileS
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks update append, auto-flush, and rotation together.
-- Queued file sinks forward the policy update to the wrapped file sink.
+- File-backed sinks update append, auto-flush, and rotation together through the wrapped `RuntimeSink`.
+- Queued file sinks forward the policy update to the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is broader than the single-setting setters because it updates the whole file policy in one call.
 

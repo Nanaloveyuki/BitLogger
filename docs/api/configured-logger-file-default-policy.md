@@ -33,9 +33,9 @@ pub fn ConfiguredLogger::file_default_policy(self : ConfiguredLogger) -> FileSin
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks return the default policy captured at creation time.
-- Queued file sinks forward the default policy from the wrapped file sink.
-- Non-file sinks return a neutral fallback policy value.
+- File-backed sinks return the default policy captured at creation time through the wrapped `RuntimeSink`.
+- Queued file sinks forward the default policy from the wrapped inner file sink.
+- Non-file sinks return the same neutral fallback policy value produced by `RuntimeSink::file_default_policy()`.
 - This helper is useful when callers need to compare runtime drift or restore defaults later.
 
 ### How to Use
