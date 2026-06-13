@@ -30,8 +30,9 @@ Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
 
 ## Support Status
 
-- Currently verified targets: `native`, `js`, `wasm`, `wasm-gc`
-- `llvm` is still treated as experimental in the current release context
+- Current local verification covers `native`, `js`, `wasm`, and `wasm-gc` for the main `src` package and `src-async`
+- `llvm` is still treated as experimental in the current release context and was not locally re-verified in the current environment
+- The source packages still declare `wasm` support alongside `native`, `llvm`, `js`, and `wasm-gc`; see [`target-verification.md`](./api/target-verification.md) for the current release-facing verification boundary
 - File output is a native capability; check `native_files_supported()` in cross-target code
 - `src-async` is available, while `examples/async_basic` is still shipped as a native entry example
 
