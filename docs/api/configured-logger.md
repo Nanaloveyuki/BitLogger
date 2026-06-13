@@ -33,6 +33,7 @@ Detailed rules explaining key parameters and behaviors
 - It preserves normal logger methods such as `info(...)`, `warn(...)`, `error(...)`, and the other `Logger` APIs.
 - It also exposes configured runtime helpers such as `flush()`, `drain()`, `pending_count()`, `dropped_count()`, and file-specific controls when the runtime sink supports them.
 - Builders such as `build_logger(...)` and `parse_and_build_logger(...)` return this alias as the main sync config-to-runtime result.
+- `ApplicationLogger` is another direct alias-oriented name for this same configured runtime surface, while `LibraryLogger[RuntimeSink]` is the narrowing facade variant that intentionally hides these runtime helpers until `to_logger()` is used.
 
 ### How to Use
 
@@ -68,4 +69,6 @@ e.g.:
 
 1. Use `build_logger(...)` or `parse_and_build_logger(...)` when you need a value of this type.
 
-2. Use `ApplicationLogger` or `LibraryLogger[RuntimeSink]` when a more intention-specific facade name fits the calling code better.
+2. Use `ApplicationLogger` when application code wants the same full configured-runtime helper surface under an app-facing name.
+
+3. Use `LibraryLogger[RuntimeSink]` when a library boundary should intentionally hide configured-runtime helper methods behind a narrower facade.

@@ -55,6 +55,7 @@ Detailed rules explaining key parameters and behaviors
 - `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, and `last_error` are mutable runtime refs that power the higher-level lifecycle and diagnostics helpers.
 - The sink type parameter is preserved across async composition, which is why helpers such as `with_target(...)`, `with_context_fields(...)`, `with_filter(...)`, and `with_patch(...)` keep returning `AsyncLogger[S]`.
 - `async_logger(...)` constructs this type as the main asynchronous entry point.
+- This root type is also what sits underneath both async facade families: `ApplicationAsyncLogger` is a direct alias over the runtime-sink line, while `LibraryAsyncLogger[S]` is a narrowing wrapper around an `AsyncLogger[S]` value.
 
 ### How to Use
 
@@ -93,6 +94,8 @@ e.g.:
 
 1. Use `async_logger(...)`, `build_async_logger(...)`, or `build_async_text_logger(...)` when you need a value of this type.
 
-2. Use `ApplicationAsyncLogger` or `LibraryAsyncLogger[S]` when a more intention-specific async wrapper or alias fits the calling boundary better.
+2. Use `ApplicationAsyncLogger` when application code wants the same full async lifecycle and state helper surface under an app-facing alias.
 
-3. Prefer the method helpers such as `state()`, `has_failed()`, `last_error()`, `is_running()`, and `shutdown()` instead of reading these public fields conceptually as if they were a stable manual mutation surface.
+3. Use `LibraryAsyncLogger[S]` when a library boundary should intentionally narrow the public async surface and expose broader lifecycle/state helpers only through `to_async_logger()`.
+
+4. Prefer the method helpers such as `state()`, `has_failed()`, `last_error()`, `is_running()`, and `shutdown()` instead of reading these public fields conceptually as if they were a stable manual mutation surface.

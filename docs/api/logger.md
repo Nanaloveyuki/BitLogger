@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - The current fields are `min_level : Level`, `sink : S`, `target : String`, and `timestamp : Bool`.
 - The sink type parameter is preserved across composition, which is why helpers such as `with_context_fields(...)`, `with_filter(...)`, `with_patch(...)`, and `with_queue(...)` can return more specific logger shapes.
 - `Logger::new(...)` constructs this type as the main synchronous entry point.
+- This root type is also what sits underneath both facade families: `ApplicationLogger` is a direct alias over the configured `Logger[RuntimeSink]` line, while `LibraryLogger[S]` is a narrowing wrapper around a `Logger[S]` value.
 
 ### How to Use
 
@@ -74,4 +75,8 @@ e.g.:
 
 1. Use `Logger::new(...)` when you need a value of this type in code.
 
-2. Use `ConfiguredLogger`, `ApplicationLogger`, or `LibraryLogger[S]` when a more intention-specific wrapper or alias fits the calling boundary better.
+2. Use `ConfiguredLogger` when config-built runtime helpers should stay directly available on the returned logger value.
+
+3. Use `ApplicationLogger` when application code wants that same configured-runtime surface under an app-facing alias.
+
+4. Use `LibraryLogger[S]` when a library boundary should intentionally narrow the public logger surface and expose broader composition only through `to_logger()`.
