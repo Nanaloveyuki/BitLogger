@@ -131,6 +131,8 @@ BitLogger API navigation.
 - [split-by-level.md](./split-by-level.md)
 - [buffered-sink.md](./buffered-sink.md)
 - [buffered-sink-type.md](./buffered-sink-type.md)
+- [buffered-sink-pending-count.md](./buffered-sink-pending-count.md)
+- [buffered-sink-flush.md](./buffered-sink-flush.md)
 - [queued-sink.md](./queued-sink.md)
 - [queued-sink-type.md](./queued-sink-type.md)
 - [queue-overflow-policy.md](./queue-overflow-policy.md)
