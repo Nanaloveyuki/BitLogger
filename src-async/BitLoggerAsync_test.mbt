@@ -601,6 +601,54 @@ async test "async logger can project to library async logger" {
   inspect(logger.to_async_logger().target, content="async.projected")
 }
 
+async test "async logger projection preserves async queue and failure state" {
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.projected.state",
+    flush=fn(_) -> Int raise {
+      raise TestFlushError("projected facade flush exploded")
+    },
+  ).to_library_async_logger()
+  let full = logger.to_async_logger()
+
+  logger.info("one")
+  logger.info("two")
+  inspect(full.target, content="async.projected.state")
+  inspect(full.pending_count(), content="2")
+  inspect(full.dropped_count(), content="0")
+  inspect(full.has_failed(), content="false")
+  inspect(full.last_error(), content="")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(allow_failure=true, () => logger.run())
+    full.wait_idle()
+    inspect(full.has_failed(), content="true")
+    inspect(full.last_error().contains("TestFlushError"), content="true")
+    inspect(full.is_running(), content="false")
+    inspect(
+      full.pending_count(),
+      content=if async_runtime_supports_background_worker() { "1" } else { "0" },
+    )
+    inspect(
+      full.dropped_count(),
+      content=if async_runtime_supports_background_worker() { "0" } else { "1" },
+    )
+    logger.shutdown()
+  })
+
+  inspect(full.is_closed(), content="true")
+  inspect(full.has_failed(), content="true")
+  inspect(full.last_error().contains("TestFlushError"), content="true")
+}
+
 test "application async logger aliases runtime async entry" {
   let logger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
