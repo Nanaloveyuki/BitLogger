@@ -33,9 +33,9 @@ pub fn ConfiguredLogger::file_available(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed runtime sinks report actual file availability.
+- File-backed runtime sinks report actual file availability through the wrapped `RuntimeSink`.
+- Queued file sinks still expose the availability of their wrapped inner file sink.
 - Non-file sinks report `false`.
-- Queued file sinks still expose the availability of their wrapped file sink.
 - This helper delegates to the runtime sink and does not mutate logger state.
 
 ### How to Use

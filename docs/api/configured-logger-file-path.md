@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_path(self : ConfiguredLogger) -> String {}
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks return their current file path.
-- Queued file sinks forward the wrapped file sink path.
+- File-backed sinks return their current file path through the wrapped `RuntimeSink`.
+- Queued file sinks forward the wrapped inner file sink path.
 - Non-file sinks return an empty string.
 - This helper is observation-only and does not modify file state.
 

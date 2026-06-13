@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_rotation_failures(self : ConfiguredLogger) -> Int 
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks report their recorded rotation-failure count.
-- Queued file sinks forward the metric from the wrapped file sink.
+- File-backed sinks report their recorded rotation-failure count through the wrapped `RuntimeSink`.
+- Queued file sinks forward the metric from the wrapped inner file sink.
 - Non-file sinks return `0`.
 - The counter is cumulative until reset.
 

@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_auto_flush(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks report their current auto-flush policy.
-- Queued file sinks forward the policy from the wrapped file sink.
+- File-backed sinks report their current auto-flush policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the policy from the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper exposes policy state only and does not force any flush action.
 

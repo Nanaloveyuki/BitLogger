@@ -33,8 +33,8 @@ pub fn ConfiguredLogger::file_append_mode(self : ConfiguredLogger) -> Bool {}
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks report their current append policy.
-- Queued file sinks forward the policy from the wrapped file sink.
+- File-backed sinks report their current append policy through the wrapped `RuntimeSink`.
+- Queued file sinks forward the policy from the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper reports runtime file policy, not whether a file is currently writable.
 
