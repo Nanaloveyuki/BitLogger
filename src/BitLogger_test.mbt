@@ -1037,6 +1037,94 @@ test "configured logger file observation helpers stay aligned with runtime sink 
   ignore(file_logger.close())
 }
 
+test "configured logger file policy helpers stay aligned with runtime sink helpers" {
+  let file_logger = build_logger(
+    LoggerConfig::new(
+      target="config.file.policy.delegate",
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="config-file-policy-delegate.log",
+        append=false,
+        auto_flush=true,
+        rotation=Some(file_rotation(64, max_backups=2)),
+      ),
+    ),
+  )
+  let file_sink = file_logger.sink
+  let file_policy = file_logger.file_policy()
+  let file_sink_policy = file_sink.file_policy()
+  let file_defaults = file_logger.file_default_policy()
+  let file_sink_defaults = file_sink.file_default_policy()
+  let file_policy_has_rotation = match file_policy.rotation {
+    Some(_) => true
+    None => false
+  }
+  let file_sink_policy_has_rotation = match file_sink_policy.rotation {
+    Some(_) => true
+    None => false
+  }
+  let file_defaults_has_rotation = match file_defaults.rotation {
+    Some(_) => true
+    None => false
+  }
+  let file_sink_defaults_has_rotation = match file_sink_defaults.rotation {
+    Some(_) => true
+    None => false
+  }
+
+  inspect(file_logger.file_append_mode() == file_sink.file_append_mode(), content="true")
+  inspect(file_logger.file_auto_flush() == file_sink.file_auto_flush(), content="true")
+  inspect(file_logger.file_rotation_enabled() == file_sink.file_rotation_enabled(), content="true")
+  inspect(file_logger.file_policy_matches_default() == file_sink.file_policy_matches_default(), content="true")
+  inspect(file_policy.append == file_sink_policy.append, content="true")
+  inspect(file_policy.auto_flush == file_sink_policy.auto_flush, content="true")
+  inspect(file_policy_has_rotation == file_sink_policy_has_rotation, content="true")
+  inspect(file_defaults.append == file_sink_defaults.append, content="true")
+  inspect(file_defaults.auto_flush == file_sink_defaults.auto_flush, content="true")
+  inspect(file_defaults_has_rotation == file_sink_defaults_has_rotation, content="true")
+
+  let console_logger = build_logger(
+    LoggerConfig::new(
+      target="config.file.policy.console",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+  let console_sink = console_logger.sink
+  let console_policy = console_logger.file_policy()
+  let console_sink_policy = console_sink.file_policy()
+  let console_defaults = console_logger.file_default_policy()
+  let console_sink_defaults = console_sink.file_default_policy()
+  let console_policy_has_rotation = match console_policy.rotation {
+    Some(_) => true
+    None => false
+  }
+  let console_sink_policy_has_rotation = match console_sink_policy.rotation {
+    Some(_) => true
+    None => false
+  }
+  let console_defaults_has_rotation = match console_defaults.rotation {
+    Some(_) => true
+    None => false
+  }
+  let console_sink_defaults_has_rotation = match console_sink_defaults.rotation {
+    Some(_) => true
+    None => false
+  }
+
+  inspect(console_logger.file_append_mode() == console_sink.file_append_mode(), content="true")
+  inspect(console_logger.file_auto_flush() == console_sink.file_auto_flush(), content="true")
+  inspect(console_logger.file_rotation_enabled() == console_sink.file_rotation_enabled(), content="true")
+  inspect(console_logger.file_policy_matches_default() == console_sink.file_policy_matches_default(), content="true")
+  inspect(console_policy.append == console_sink_policy.append, content="true")
+  inspect(console_policy.auto_flush == console_sink_policy.auto_flush, content="true")
+  inspect(console_policy_has_rotation == console_sink_policy_has_rotation, content="true")
+  inspect(console_defaults.append == console_sink_defaults.append, content="true")
+  inspect(console_defaults.auto_flush == console_sink_defaults.auto_flush, content="true")
+  inspect(console_defaults_has_rotation == console_sink_defaults_has_rotation, content="true")
+
+  ignore(file_logger.close())
+}
+
 test "file state json helpers stringify stable snapshots" {
   let rotation_json = file_rotation_config_to_json(file_rotation(64, max_backups=2))
   let rotation_obj = rotation_json.as_object().unwrap()
