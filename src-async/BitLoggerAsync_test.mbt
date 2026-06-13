@@ -1083,6 +1083,56 @@ test "application text async logger uses text facade build path" {
   inspect(logger.target, content="async.app.text")
 }
 
+async test "application text async logger keeps async helper surface" {
+  let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Warn,
+        target="async.app.text.alias",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::DropOldest,
+        flush=AsyncFlushPolicy::Shutdown,
+      ),
+    ),
+  )
+
+  let state = logger.state()
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="0")
+  inspect(state.is_closed, content="false")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(match state.flush_policy {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Shutdown")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.is_closed(), content="false")
+  inspect(logger.is_running(), content="false")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
+}
+
 test "application text async logger builder ignores sync queue layer" {
   let logger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
