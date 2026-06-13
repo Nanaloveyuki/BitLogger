@@ -302,6 +302,172 @@ async test "async logger with_min_level only affects derived logger threshold" {
   inspect(derived_written.val[0], content="derived error kept")
 }
 
+async test "async logger with_target replaces default target without mutating base logger" {
+  let written_targets : Ref[Array[String]] = Ref([])
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_targets.val.push(rec.target)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.base",
+  ).with_timestamp()
+  let retargeted = logger.with_target("async.retarget")
+
+  inspect(logger.target, content="async.base")
+  inspect(retargeted.target, content="async.retarget")
+  inspect(logger.timestamp, content="true")
+  inspect(retargeted.timestamp, content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => retargeted.run())
+    retargeted.error("retargeted")
+    retargeted.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="1")
+  inspect(written_targets.val[0], content="async.retarget")
+
+  let base_targets : Ref[Array[String]] = Ref([])
+  let base = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      base_targets.val.push(rec.target)
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.base",
+  )
+  ignore(base.with_target("async.retarget"))
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => base.run())
+    base.error("base")
+    base.shutdown()
+  })
+
+  inspect(base_targets.val.length(), content="1")
+  inspect(base_targets.val[0], content="async.base")
+}
+
+async test "async logger with_context_fields prepends shared fields without mutating base logger" {
+  let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_fields.val = rec.fields
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.ctx",
+  )
+  let contextual = logger.with_context_fields([
+    @bitlogger.field("service", "bitlogger"),
+    @bitlogger.field("scope", "sdk"),
+  ])
+
+  inspect(logger.context_fields.length(), content="0")
+  inspect(contextual.context_fields.length(), content="2")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => contextual.run())
+    contextual.error("ctx", fields=[@bitlogger.field("mode", "test")])
+    contextual.shutdown()
+  })
+
+  inspect(written_fields.val.length(), content="3")
+  inspect(written_fields.val[0].key, content="service")
+  inspect(written_fields.val[0].value, content="bitlogger")
+  inspect(written_fields.val[1].key, content="scope")
+  inspect(written_fields.val[1].value, content="sdk")
+  inspect(written_fields.val[2].key, content="mode")
+  inspect(written_fields.val[2].value, content="test")
+}
+
+async test "async logger child composes target and preserves other state" {
+  let written_target : Ref[String] = Ref("")
+  let written_timestamp : Ref[UInt64] = Ref(0UL)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      written_target.val = rec.target
+      written_timestamp.val = rec.timestamp_ms
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="sdk",
+  ).with_timestamp()
+  let child = logger.child("worker")
+
+  inspect(logger.target, content="sdk")
+  inspect(child.target, content="sdk.worker")
+  inspect(child.timestamp, content="true")
+  inspect(child.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(child.is_enabled(@bitlogger.Level::Info), content="false")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => child.run())
+    child.error("child")
+    child.shutdown()
+  })
+
+  inspect(written_target.val, content="sdk.worker")
+  inspect(written_timestamp.val > 0UL, content="true")
+
+  let root_child = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="",
+  ).child("worker")
+  inspect(root_child.target, content="worker")
+
+  let keep_parent = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+    target="sdk",
+  ).child("")
+  inspect(keep_parent.target, content="sdk")
+}
+
+async test "async logger with_timestamp only affects derived logger timestamp flag" {
+  let base_timestamp : Ref[UInt64] = Ref(0UL)
+  let derived_timestamp : Ref[UInt64] = Ref(0UL)
+  let base = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      base_timestamp.val = rec.timestamp_ms
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.ts.base",
+  )
+  let derived = async_logger(
+    @bitlogger.callback_sink(fn(rec) {
+      derived_timestamp.val = rec.timestamp_ms
+    }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Warn,
+    target="async.ts.derived",
+  ).with_timestamp()
+
+  inspect(base.timestamp, content="false")
+  inspect(derived.timestamp, content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => base.run())
+    group.spawn_bg(() => derived.run())
+    base.error("base")
+    derived.error("derived")
+    base.shutdown()
+    derived.shutdown()
+  })
+
+  inspect(base_timestamp.val, content="0")
+  inspect(derived_timestamp.val > 0UL, content="true")
+}
+
 test "async logger config stringify roundtrips stable fields" {
   let text = stringify_async_logger_config(
     AsyncLoggerConfig::new(
