@@ -43,6 +43,7 @@ Detailed rules explaining key parameters and behaviors
 - `clear=true` immediately closes and abandons pending records.
 - In runtimes where shutdown waits for workers, the method then waits until the worker is no longer running before returning.
 - After a worker-failure short-circuit, native-worker backends can still convert remaining backlog into dropped records, while compatibility backends skip that extra forced-clear step.
+- In the current direct facade coverage, the wrapped logger ends that path with `pending_count() == 0` and one more dropped item on native-worker runtimes, versus a still-nonzero pending count and no extra dropped cleanup on compatibility runtimes.
 - The narrower library facade does not change any of these runtime-dependent shutdown rules; it only keeps the broader inspection helpers out of the direct public surface.
 - Inspecting the logger later through `to_async_logger()` reveals the same delegated shutdown result rather than a rebuilt or translated lifecycle snapshot.
 

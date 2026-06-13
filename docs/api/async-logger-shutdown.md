@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - In runtimes where shutdown waits for workers, the method then waits until `is_running()` becomes `false` before returning.
 - In the current backend split, native-worker runtimes enable both the post-`wait_idle()` clear fallback and the final wait-for-worker phase, while compatibility runtimes skip both extra steps.
 - That means a failure-short-circuited `wait_idle()` can still be followed by forced pending-to-dropped cleanup on native-worker runtimes, while compatibility runtimes close without that extra forced clear step.
+- In the current tested failure path, native-worker shutdown turns the leftover pending item into one more dropped record, while compatibility shutdown leaves that leftover closed-queue count in `pending_count()` instead.
 - Because `clear=false` delegates to `wait_idle()` first, shutdown can also wait indefinitely when pending records exist but no worker is making progress and no failure flag is raised.
 
 ### How to Use
@@ -72,6 +73,7 @@ e.g.:
 - If `wait_idle()` returns early because the worker failed, shutdown behavior after that point still depends on the active runtime's fallback and worker-wait rules.
 
 - After a worker failure, native-worker shutdown may convert the remaining backlog into dropped records, while compatibility shutdown can leave the pending counter reflecting that leftover closed queue state.
+- In the current direct regression coverage, that split appears as `pending_count() == 0` and `dropped_count()` increasing on native-worker runtimes, versus `pending_count() > 0` and no extra dropped cleanup on compatibility runtimes.
 
 - In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
 
