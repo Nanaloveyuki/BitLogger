@@ -1796,6 +1796,73 @@ test "application text async logger uses text facade build path" {
   inspect(logger.target, content="async.app.text")
 }
 
+async test "application text builder matches direct text builder behavior" {
+  let config = AsyncLoggerBuildConfig::new(
+    logger=@bitlogger.LoggerConfig::new(
+      min_level=@bitlogger.Level::Warn,
+      target="async.app.text.same-build",
+      timestamp=true,
+      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      sink=@bitlogger.SinkConfig::new(
+        kind=@bitlogger.SinkKind::TextConsole,
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+          template="TEXT:{target}:{message}",
+        ),
+      ),
+    ),
+    async_config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::DropOldest,
+      flush=AsyncFlushPolicy::Shutdown,
+    ),
+  )
+  let logger = build_application_text_async_logger(config)
+  let direct = build_async_text_logger(config)
+  let logger_state = logger.state()
+  let direct_state = direct.state()
+
+  inspect(logger.target, content=direct.target)
+  inspect(logger.timestamp == direct.timestamp, content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
+  inspect(
+    stringify_async_logger_state(logger_state) == stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let record = @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.app.text.same-build")
+  inspect((logger.sink.formatter)(record) == (direct.sink.formatter)(record), content="true")
+
+  logger.info("skip")
+  logger.error("one")
+  logger.error("two")
+  logger.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(logger.pending_count() == direct.pending_count(), content="true")
+  inspect(logger.dropped_count() == direct.dropped_count(), content="true")
+  inspect(logger.is_closed() == direct.is_closed(), content="true")
+  inspect(logger.is_running() == direct.is_running(), content="true")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    group.spawn_bg(() => direct.run())
+    logger.shutdown()
+    direct.shutdown()
+  })
+
+  inspect(logger.is_closed() == direct.is_closed(), content="true")
+  inspect(logger.is_running() == direct.is_running(), content="true")
+  inspect(logger.pending_count() == direct.pending_count(), content="true")
+  inspect(logger.dropped_count() == direct.dropped_count(), content="true")
+  inspect(logger.has_failed() == direct.has_failed(), content="true")
+  inspect(logger.last_error() == direct.last_error(), content="true")
+}
+
 async test "application text async logger keeps async helper surface" {
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
