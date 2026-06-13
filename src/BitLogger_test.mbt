@@ -1795,3 +1795,31 @@ test "parsed configured logger keeps composition and runtime helper surface" {
   inspect(derived.flush(), content="2")
   inspect(derived.pending_count(), content="0")
 }
+
+test "sync parse-build facades forward config errors" {
+  let raw = "{\"sink\":{\"kind\":\"file\",\"path\":\"\"}}"
+
+  let configured_error = (fn() -> String raise ConfigError {
+    ignore(parse_and_build_logger(raw))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(configured_error, content="File sink requires non-empty path")
+
+  let application_error = (fn() -> String raise ConfigError {
+    ignore(parse_and_build_application_logger(raw))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(application_error, content="File sink requires non-empty path")
+
+  let library_error = (fn() -> String raise ConfigError {
+    ignore(parse_and_build_library_logger(raw))
+    "no error"
+  })() catch {
+    ConfigError::InvalidConfig(message) => message
+  }
+  inspect(library_error, content="File sink requires non-empty path")
+}
