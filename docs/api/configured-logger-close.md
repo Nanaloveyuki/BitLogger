@@ -2,8 +2,8 @@
 name: configured-logger-close
 group: api
 category: runtime
-update-time: 20260512
-description: Close the configured runtime logger sink and return whether the underlying sink reported a close action.
+update-time: 20260613
+description: Close the configured runtime logger sink and return whether the wrapped RuntimeSink reported a successful close action.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-close
 
-Close the sink behind a `ConfiguredLogger`. This helper is the config-driven runtime close surface for queue-backed or file-backed sinks.
+Close the sink behind a `ConfiguredLogger`. This helper is the configured logger wrapper over `RuntimeSink::close(...)` for config-driven runtime teardown.
 
 ### Interface
 
@@ -27,16 +27,16 @@ pub fn ConfiguredLogger::close(self : ConfiguredLogger) -> Bool {}
 
 #### output
 
-- `Bool` - Whether the underlying runtime sink reported a successful close action.
+- `Bool` - Whether the wrapped `RuntimeSink::close(...)` call reported a successful close action.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- Queue-backed file sinks close the wrapped file sink.
-- Plain file sinks forward directly to file close behavior.
-- Console-style sinks usually report `true` because they do not have a meaningful close step.
-- This helper delegates to `RuntimeSink::close(...)` through the configured logger wrapper.
+- This helper delegates directly to `self.sink.close()`.
+- Plain file sinks forward to `FileSink::close()` through `RuntimeSink`.
+- Queue-backed file sinks close the wrapped file sink instead of only the queue wrapper.
+- Console-style sinks and queue-wrapped console-style sinks return `true` as a no-op success because they do not expose a meaningful close step here.
 
 ### How to Use
 
@@ -63,7 +63,7 @@ In this example, callers can branch on the reported close result.
 ### Error Case
 
 e.g.:
-- If the runtime sink has no real close action, the helper may still return `true` as a no-op success.
+- If the configured runtime sink shape has no real close action, the helper may still return `true` as a no-op success.
 
 - If callers need a file-specific close path with queue flush nuances, `file_close()` may be the better API.
 
@@ -71,4 +71,4 @@ e.g.:
 
 1. This is the generic configured runtime close helper.
 
-2. Prefer file-specific helpers when the sink shape is known to be file-backed.
+2. Prefer file-specific helpers when the configured sink shape is known to be file-backed.

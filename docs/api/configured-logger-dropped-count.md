@@ -2,8 +2,8 @@
 name: configured-logger-dropped-count
 group: api
 category: runtime
-update-time: 20260512
-description: Read the cumulative dropped-record count from a configured runtime logger.
+update-time: 20260613
+description: Read the cumulative dropped-record count from a configured runtime logger through RuntimeSink.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-dropped-count
 
-Read the cumulative dropped-record count from a `ConfiguredLogger`. This helper is useful when config-driven queue wrapping may discard records under pressure.
+Read the cumulative dropped-record count from a `ConfiguredLogger`. This helper is the configured logger wrapper over `RuntimeSink::dropped_count(...)` when config-driven queue wrapping may discard records under pressure.
 
 ### Interface
 
@@ -27,16 +27,16 @@ pub fn ConfiguredLogger::dropped_count(self : ConfiguredLogger) -> Int {}
 
 #### output
 
-- `Int` - Number of dropped records reported by the runtime sink.
+- `Int` - Number returned by the wrapped `RuntimeSink::dropped_count()` call.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- Queue-backed sinks return their live dropped-count metric.
-- Non-queued sinks report `0`.
-- The counter is cumulative for the runtime sink lifetime.
-- This helper delegates to `RuntimeSink::dropped_count(...)` through the configured logger wrapper.
+- This helper delegates directly to `self.sink.dropped_count()`.
+- Queue-backed runtime sink variants return their live dropped-count metric.
+- Plain console and plain file runtime sink variants return `0` because they do not track queued record drops.
+- The counter is cumulative for the lifetime of the concrete runtime sink value owned by the configured logger.
 
 ### How to Use
 
@@ -65,7 +65,7 @@ In this example, the helper exposes the metric needed to compare runtime queue t
 ### Error Case
 
 e.g.:
-- If the logger is not queue-backed, the method simply returns `0`.
+- If the configured logger is not queue-backed, the method simply returns `0`.
 
 - If callers need queue shape and file status together, `file_runtime_state()` may carry more useful context for file sinks.
 

@@ -2,8 +2,8 @@
 name: configured-logger-flush
 group: api
 category: runtime
-update-time: 20260512
-description: Flush a configured runtime logger and return how many queued or file-backed operations were advanced.
+update-time: 20260613
+description: Flush a configured runtime logger and return how many queued or file-backed operations were advanced through RuntimeSink.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-flush
 
-Flush a `ConfiguredLogger` and return how much work was advanced. This is the main runtime helper for forcing queued or file-backed logger output to move forward after config-driven construction.
+Flush a `ConfiguredLogger` and return how much work was advanced. This is the configured logger wrapper over `RuntimeSink::flush(...)` for forcing queued or file-backed output to move forward after config-driven construction.
 
 ### Interface
 
@@ -27,16 +27,16 @@ pub fn ConfiguredLogger::flush(self : ConfiguredLogger) -> Int {}
 
 #### output
 
-- `Int` - Count of flushed or drained items as reported by the runtime sink.
+- `Int` - Count returned by the wrapped `RuntimeSink::flush(...)` call.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- For queue-wrapped sinks, this forwards to the queue drain/flush behavior.
-- For plain file sinks, the return value reflects whether a file flush happened.
-- For plain console-style sinks, the result is typically `0` because there is no meaningful buffered flush step.
-- This helper delegates to `RuntimeSink::flush(...)` through the configured logger wrapper.
+- This helper delegates directly to `self.sink.flush()`.
+- Queue-wrapped sinks forward to the concrete queue sink's `flush()` behavior.
+- Plain file sinks call `FileSink::flush()` through `RuntimeSink` and convert the boolean result into `1` or `0`.
+- Plain console-style sinks return `0` because they do not expose a meaningful buffered flush step here.
 
 ### How to Use
 
@@ -63,7 +63,7 @@ In this example, callers can observe how much work was advanced by the flush req
 ### Error Case
 
 e.g.:
-- If the configured sink has no flushable buffering, the method may simply return `0`.
+- If the configured runtime sink shape has no flushable state, the method may simply return `0`.
 
 - If callers need bounded manual draining rather than generic flush behavior, `drain(...)` is the better API.
 
@@ -71,4 +71,4 @@ e.g.:
 
 1. Use this helper after config-driven logger construction when explicit runtime flushing matters.
 
-2. The exact return value depends on the underlying runtime sink shape.
+2. The exact return value depends on which `RuntimeSink` variant the configured logger owns.

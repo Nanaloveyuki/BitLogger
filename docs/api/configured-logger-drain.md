@@ -2,8 +2,8 @@
 name: configured-logger-drain
 group: api
 category: runtime
-update-time: 20260512
-description: Drain queued work from a configured runtime logger with optional item limits.
+update-time: 20260613
+description: Drain queued work from a configured runtime logger with optional item limits through RuntimeSink.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-drain
 
-Drain queued work from a `ConfiguredLogger`. This helper is useful when config-driven queue wrapping should be advanced in a controlled, bounded way.
+Drain queued work from a `ConfiguredLogger`. This helper is the configured logger wrapper over `RuntimeSink::drain(...)` when config-driven queue wrapping should be advanced in a controlled, bounded way.
 
 ### Interface
 
@@ -28,16 +28,16 @@ pub fn ConfiguredLogger::drain(self : ConfiguredLogger, max_items~ : Int = -1) -
 
 #### output
 
-- `Int` - Number of drained items.
+- `Int` - Count returned by the wrapped `RuntimeSink::drain(...)` call.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- Queue-wrapped sinks may drain up to `max_items` records.
-- For plain file sinks, the runtime falls back to file flush behavior instead of queue draining.
-- For sinks without queue semantics, the result is typically `0`.
-- This helper delegates to `RuntimeSink::drain(...)` through the configured logger wrapper.
+- This helper delegates directly to `self.sink.drain(max_items=max_items)`.
+- Queue-wrapped sinks forward to the concrete queue sink's `drain(...)` behavior and may drain up to `max_items` records.
+- Plain file sinks fall back to `FileSink::flush()` behavior through `RuntimeSink` and return `1` or `0`.
+- Plain console-style sinks return `0` because they do not own a drainable queue here.
 
 ### How to Use
 
@@ -64,7 +64,7 @@ In this example, the configured runtime logger drains without imposing an item c
 ### Error Case
 
 e.g.:
-- If the runtime sink is not queue-backed, draining may return `0` or follow fallback flush behavior.
+- If the configured runtime sink is not queue-backed, draining may return `0` or follow the plain-file flush fallback.
 
 - If callers only need generic flush semantics, `flush()` may be the simpler API.
 
@@ -72,4 +72,4 @@ e.g.:
 
 1. Prefer this helper when queue progress should be bounded or observable.
 
-2. Use `pending_count()` to inspect remaining backlog after the drain call.
+2. Use `pending_count()` to inspect remaining backlog after the drain call when the configured sink is queue-backed.

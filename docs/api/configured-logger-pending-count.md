@@ -2,8 +2,8 @@
 name: configured-logger-pending-count
 group: api
 category: runtime
-update-time: 20260512
-description: Read the current queued backlog count from a configured runtime logger.
+update-time: 20260613
+description: Read the current queued backlog count from a configured runtime logger through RuntimeSink.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-pending-count
 
-Read the current queued backlog count from a `ConfiguredLogger`. This is the direct runtime metric for config-driven queue wrapping.
+Read the current queued backlog count from a `ConfiguredLogger`. This is the configured logger wrapper over `RuntimeSink::pending_count(...)` for config-driven queue metrics.
 
 ### Interface
 
@@ -27,16 +27,16 @@ pub fn ConfiguredLogger::pending_count(self : ConfiguredLogger) -> Int {}
 
 #### output
 
-- `Int` - Current number of pending queued records.
+- `Int` - Current number returned by the wrapped `RuntimeSink::pending_count()` call.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- Queue-backed sinks return their live pending count.
-- Non-queued sinks report `0`.
+- This helper delegates directly to `self.sink.pending_count()`.
+- Queue-backed runtime sink variants return their live pending count.
+- Plain console and plain file runtime sink variants return `0` because they do not own a pending queue here.
 - This is a point-in-time metric and may change immediately after it is read.
-- This helper delegates to `RuntimeSink::pending_count(...)` through the configured logger wrapper.
 
 ### How to Use
 
@@ -64,7 +64,7 @@ In this example, the queue metric helps verify manual drain progress.
 ### Error Case
 
 e.g.:
-- If the logger is not queue-backed, the method simply returns `0`.
+- If the configured logger is not queue-backed, the method simply returns `0`.
 
 - If callers need richer file-plus-queue state for file sinks, `file_runtime_state()` is the better API.
 
