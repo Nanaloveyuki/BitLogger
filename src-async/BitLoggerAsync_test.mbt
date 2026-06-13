@@ -1663,6 +1663,86 @@ async test "application async logger builder matches direct async builder behavi
   inspect(application.last_error() == direct.last_error(), content="true")
 }
 
+async test "application async builder preserves file-backed runtime helpers" {
+  let config = AsyncLoggerBuildConfig::new(
+    logger=@bitlogger.LoggerConfig::new(
+      min_level=@bitlogger.Level::Warn,
+      target="async.app.file.same-build",
+      sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::File, path="async-app-file-same-build.log"),
+      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropOldest)),
+    ),
+    async_config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::DropOldest,
+      flush=AsyncFlushPolicy::Shutdown,
+    ),
+  )
+  let application = build_application_async_logger(config)
+  let direct = build_async_logger(config)
+
+  application.info("skip")
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.dropped_count() == direct.dropped_count(), content="true")
+  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
+  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(application.sink.file_available() == direct.sink.file_available(), content="true")
+  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+
+  let application_state = application.sink.file_state()
+  let direct_state = direct.sink.file_state()
+  inspect(application_state.path == direct_state.path, content="true")
+  inspect(application_state.available == direct_state.available, content="true")
+  inspect(application_state.append == direct_state.append, content="true")
+  inspect(application_state.auto_flush == direct_state.auto_flush, content="true")
+  inspect(application_state.open_failures == direct_state.open_failures, content="true")
+  inspect(application_state.write_failures == direct_state.write_failures, content="true")
+  inspect(application_state.flush_failures == direct_state.flush_failures, content="true")
+  inspect(application_state.rotation_failures == direct_state.rotation_failures, content="true")
+
+  match (application.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(application.sink.file_set_append_mode(false) == direct.sink.file_set_append_mode(false), content="true")
+  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(application.sink.file_set_auto_flush(false) == direct.sink.file_set_auto_flush(false), content="true")
+  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+  inspect(
+    application.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))) ==
+      direct.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))),
+    content="true",
+  )
+  inspect(application.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(), content="true")
+  inspect(application.sink.file_reopen_append() == direct.sink.file_reopen_append(), content="true")
+  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(application.sink.file_clear_rotation() == direct.sink.file_clear_rotation(), content="true")
+  inspect(application.sink.file_reset_policy() == direct.sink.file_reset_policy(), content="true")
+  inspect(application.sink.file_policy_matches_default() == direct.sink.file_policy_matches_default(), content="true")
+  inspect(
+    application.sink.file_reset_failure_counters() == direct.sink.file_reset_failure_counters(),
+    content="true",
+  )
+  inspect(application.sink.file_flush() == direct.sink.file_flush(), content="true")
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.sink.file_close() == direct.sink.file_close(), content="true")
+}
+
 async test "application async logger keeps async helper surface" {
   let logger : ApplicationAsyncLogger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -2157,6 +2237,74 @@ async test "application async parse-build matches parsed direct async builder be
   inspect(application.dropped_count() == direct.dropped_count(), content="true")
   inspect(application.has_failed() == direct.has_failed(), content="true")
   inspect(application.last_error() == direct.last_error(), content="true")
+}
+
+async test "application async parse-build preserves file-backed runtime helpers" {
+  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"async-app-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
+  let application = parse_and_build_application_async_logger(raw)
+  let direct = build_async_logger(parse_async_logger_build_config_text(raw))
+
+  application.info("skip")
+  application.error("one")
+  application.error("two")
+  application.error("three")
+  direct.info("skip")
+  direct.error("one")
+  direct.error("two")
+  direct.error("three")
+
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.dropped_count() == direct.dropped_count(), content="true")
+  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
+  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(application.sink.file_available() == direct.sink.file_available(), content="true")
+  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+
+  let application_state = application.sink.file_state()
+  let direct_state = direct.sink.file_state()
+  inspect(application_state.path == direct_state.path, content="true")
+  inspect(application_state.available == direct_state.available, content="true")
+  inspect(application_state.append == direct_state.append, content="true")
+  inspect(application_state.auto_flush == direct_state.auto_flush, content="true")
+  inspect(application_state.open_failures == direct_state.open_failures, content="true")
+  inspect(application_state.write_failures == direct_state.write_failures, content="true")
+  inspect(application_state.flush_failures == direct_state.flush_failures, content="true")
+  inspect(application_state.rotation_failures == direct_state.rotation_failures, content="true")
+
+  match (application.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
+    (Some(snapshot), Some(other)) => {
+      inspect(snapshot.file.path == other.file.path, content="true")
+      inspect(snapshot.file.available == other.file.available, content="true")
+      inspect(snapshot.queued == other.queued, content="true")
+      inspect(snapshot.pending_count == other.pending_count, content="true")
+      inspect(snapshot.dropped_count == other.dropped_count, content="true")
+    }
+    _ => inspect(false, content="true")
+  }
+
+  inspect(application.sink.file_set_append_mode(false) == direct.sink.file_set_append_mode(false), content="true")
+  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(application.sink.file_set_auto_flush(false) == direct.sink.file_set_auto_flush(false), content="true")
+  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+  inspect(
+    application.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))) ==
+      direct.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))),
+    content="true",
+  )
+  inspect(application.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(), content="true")
+  inspect(application.sink.file_reopen_append() == direct.sink.file_reopen_append(), content="true")
+  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
+  inspect(application.sink.file_clear_rotation() == direct.sink.file_clear_rotation(), content="true")
+  inspect(application.sink.file_reset_policy() == direct.sink.file_reset_policy(), content="true")
+  inspect(application.sink.file_policy_matches_default() == direct.sink.file_policy_matches_default(), content="true")
+  inspect(
+    application.sink.file_reset_failure_counters() == direct.sink.file_reset_failure_counters(),
+    content="true",
+  )
+  inspect(application.sink.file_flush() == direct.sink.file_flush(), content="true")
+  inspect(application.pending_count() == direct.pending_count(), content="true")
+  inspect(application.sink.file_close() == direct.sink.file_close(), content="true")
 }
 
 async test "parsed application async logger keeps async helper surface" {
