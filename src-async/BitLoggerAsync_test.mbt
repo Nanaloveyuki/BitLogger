@@ -1546,6 +1546,39 @@ test "build async text logger keeps text-console config fields" {
     AsyncFlushPolicy::Batch => "Batch"
     AsyncFlushPolicy::Shutdown => "Shutdown"
   }, content="Never")
+  let rendered = (logger.sink.formatter)(
+    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.text.direct"),
+  )
+  inspect(rendered, content="[ERROR] | [async.text.direct] | boom")
+}
+
+test "build async text logger ignores sink kind and still uses text formatter" {
+  let logger = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.text.kind",
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::File,
+          path="ignored.log",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+            template="TEXT:{target}:{message}",
+          ),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.text.kind")
+  let rendered = (logger.sink.formatter)(
+    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.text.kind"),
+  )
+  inspect(rendered, content="TEXT:async.text.kind:boom")
 }
 
 async test "build async text logger keeps direct helper surface" {
