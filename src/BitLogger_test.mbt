@@ -1373,6 +1373,34 @@ test "library logger can be parsed and built from config text" {
   inspect(full.target, content="lib.json")
 }
 
+test "parsed library logger unwrap preserves configured runtime path" {
+  let logger = parse_and_build_library_logger(
+    "{\"min_level\":\"warn\",\"target\":\"lib.json.runtime\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}}",
+  )
+  let full = logger.to_logger()
+
+  inspect(logger.is_enabled(Level::Error), content="true")
+  inspect(logger.is_enabled(Level::Info), content="false")
+  inspect(full.target, content="lib.json.runtime")
+  inspect(full.timestamp, content="true")
+
+  full.error("one")
+  full.error("two")
+  inspect(match full.sink {
+    RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+  inspect(full.sink.pending_count(), content="2")
+  inspect(full.sink.dropped_count(), content="0")
+  inspect(full.sink.drain(max_items=1), content="1")
+  inspect(full.sink.pending_count(), content="1")
+  inspect(full.sink.flush(), content="1")
+  inspect(full.sink.pending_count(), content="0")
+}
+
 test "configured logger can project to library logger" {
   let configured = build_logger(
     LoggerConfig::new(min_level=Level::Warn, target="lib.projected"),
