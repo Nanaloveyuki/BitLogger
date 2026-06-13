@@ -2,8 +2,8 @@
 name: stringify-async-logger-state
 group: api
 category: async
-update-time: 20260512
-description: Serialize AsyncLoggerState into compact or pretty JSON text for logs and diagnostics.
+update-time: 20260614
+description: Serialize AsyncLoggerState into compact or pretty JSON text for logs and diagnostics using the canonical nested runtime snapshot shape.
 key-word:
     - async
     - stringify
@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON suitable for human diagnostics.
 - This helper is built on top of `async_logger_state_to_json(...)`.
+- The compact form matches snapshots such as `{"runtime":{"mode":"native_worker","background_worker":true},"pending_count":0,...}`.
 - String output is convenient for logs, CLI output, and startup diagnostics.
 
 ### How to Use
@@ -70,4 +71,10 @@ e.g.:
 - If the snapshot contains an empty `last_error`, it is still included as an empty string in the serialized output.
 
 - If callers need a JSON value instead of text, they should use `async_logger_state_to_json(...)` instead.
+
+### Notes
+
+1. The nested `runtime` section uses the same canonical mode labels as `stringify_async_runtime_state(...)`.
+
+2. The compact output shape is already locked by the async runtime snapshot tests, so it is suitable for stable diagnostics and assertions.
 

@@ -2,8 +2,8 @@
 name: async-logger-state-type
 group: api
 category: async
-update-time: 20260613
-description: Public async logger state alias used for queue, lifecycle, and runtime diagnostics.
+update-time: 20260614
+description: Public async logger state alias used for queue, lifecycle, runtime, and flush-policy diagnostics.
 key-word:
     - async
     - logger
@@ -33,6 +33,7 @@ Detailed rules explaining key parameters and behaviors
 - The `runtime` field embeds an `AsyncRuntimeState` snapshot.
 - The remaining fields capture queue counts, lifecycle status, failure state, last error text, and active flush policy.
 - `AsyncLogger::state()` returns this type directly, while `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` export the same data shape for diagnostics.
+- `AsyncLogger::state()` currently builds this snapshot from `async_runtime_state()` plus the logger's current counters, lifecycle flags, last error, and flush policy.
 
 ### How to Use
 
@@ -66,8 +67,12 @@ e.g.:
 
 - `last_error` may be an empty string when no failure has occurred, which is normal and not a special error condition by itself.
 
+- Because this is just a data shape, manual construction can represent combinations that do not come from a live logger at one exact instant.
+
 ### Notes
 
 1. Use `AsyncLogger::state()` when you need a value of this type from one logger instance.
 
 2. Use `AsyncRuntimeState` when only backend-level capability information is needed and logger-instance state is unnecessary.
+
+3. Use `async_logger_state_to_json(...)` or `stringify_async_logger_state(...)` when this snapshot should leave typed space and become stable diagnostic output.

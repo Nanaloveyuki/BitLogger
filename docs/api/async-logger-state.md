@@ -2,8 +2,8 @@
 name: async-logger-state
 group: api
 category: async
-update-time: 20260512
-description: Read a full async logger runtime snapshot including queue counters, lifecycle flags, and runtime mode.
+update-time: 20260614
+description: Read a full async logger runtime snapshot including the embedded runtime snapshot, queue counters, lifecycle flags, last error, and flush policy.
 key-word:
     - async
     - state
@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - `AsyncLoggerState` includes `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
 - `state()` returns a point-in-time snapshot rather than a live handle.
+- This helper is equivalent to `AsyncLoggerState::new(async_runtime_state(), self.pending_count(), self.dropped_count(), self.is_closed(), self.is_running(), self.has_failed(), self.last_error(), self.flush_policy())`.
 - `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` convert the snapshot to stable diagnostic output.
 - `runtime` embeds the result of `async_runtime_state()` so callers do not need to join separate helpers manually.
 
@@ -73,8 +74,12 @@ e.g.:
 
 - If the queue is empty, `pending_count` is `0`; this is normal and not a special error condition.
 
+- `flush_policy` reports the logger's configured async flush mode, not whether a flush has already happened.
+
 ### Notes
 
 1. Prefer this API over manually combining `pending_count()`, `dropped_count()`, and runtime-mode helpers.
 
 2. Use `pretty=true` when emitting logs for humans and the compact form for machine-oriented payloads.
+
+3. Use `AsyncLoggerState::new(...)` only when tests or adapters need to construct a manual snapshot instead of reading one directly from a logger instance.

@@ -2,8 +2,8 @@
 name: async-logger-state-to-json
 group: api
 category: async
-update-time: 20260512
-description: Convert an AsyncLoggerState snapshot into a JSON value for diagnostics and transport.
+update-time: 20260614
+description: Convert an AsyncLoggerState snapshot into a JSON value for diagnostics and transport using the canonical nested runtime shape and flush-policy labels.
 key-word:
     - async
     - state
@@ -34,6 +34,8 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 Detailed rules explaining key parameters and behaviors
 
 - The JSON includes runtime mode, worker support, queue counters, lifecycle flags, last error, and flush policy.
+- The top-level fields are `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
+- The nested `runtime` field reuses `async_runtime_state_to_json(...)`, and `flush_policy` is serialized with the canonical labels `Never`, `Batch`, or `Shutdown`.
 - This helper is suitable for health endpoints, diagnostics payloads, and custom serialization flows.
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
 - The state must already have been captured before serialization.
@@ -70,7 +72,11 @@ e.g.:
 
 ### Notes
 
-1. Use this API when downstream code wants a JSON value rather than a ready-made string.
+1. This helper preserves the nested runtime snapshot instead of flattening `mode` and `background_worker` onto the top level.
 
-2. Pair it with `AsyncLogger::state()` to capture the snapshot first.
+2. The resulting object matches the compact string form produced by `stringify_async_logger_state(...)` after JSON stringification.
+
+3. Use this API when downstream code wants a JSON value rather than a ready-made string.
+
+4. Pair it with `AsyncLogger::state()` to capture the snapshot first.
 

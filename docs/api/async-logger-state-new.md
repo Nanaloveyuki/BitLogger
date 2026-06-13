@@ -2,8 +2,8 @@
 name: async-logger-state-new
 group: api
 category: async
-update-time: 20260613
-description: Construct an AsyncLoggerState snapshot from explicit runtime, queue, lifecycle, and failure values.
+update-time: 20260614
+description: Construct an AsyncLoggerState snapshot from explicit runtime, queue, lifecycle, failure, and flush-policy values without probing a live logger.
 key-word:
     - async
     - logger
@@ -52,6 +52,7 @@ Detailed rules explaining key parameters and behaviors
 - This constructor simply packages the supplied fields into one public snapshot value.
 - It does not inspect a live logger instance by itself.
 - `AsyncLogger::state()` is the higher-level API that reads these values from a concrete logger.
+- It also does not validate whether the supplied fields represent a combination that could come from one real logger instant.
 - The constructed value matches the same public shape used by async logger serializers.
 
 ### How to Use
@@ -101,8 +102,12 @@ e.g.:
 
 - If callers want a snapshot directly from one live logger instance, `AsyncLogger::state()` is the simpler API.
 
+- If callers manually combine a runtime snapshot, counters, or flush policy that do not actually belong together, the constructor still accepts that synthetic snapshot.
+
 ### Notes
 
 1. Use this helper when code should construct an `AsyncLoggerState` value explicitly.
 
 2. Pair it with `async_logger_state_to_json(...)` or `stringify_async_logger_state(...)` when the snapshot should be exported.
+
+3. Prefer `AsyncLogger::state()` when the goal is to report the actual current state of one live logger instance.
