@@ -112,6 +112,7 @@ BitLogger API navigation.
 - [filter-sink.md](./filter-sink.md)
 - [patch-sink.md](./patch-sink.md)
 - [file-sink.md](./file-sink.md)
+- [native-files-supported.md](./native-files-supported.md)
 - [file-rotation.md](./file-rotation.md)
 - [file-rotation-type.md](./file-rotation-type.md)
 - [file-sink-policy-to-json.md](./file-sink-policy-to-json.md)
@@ -152,6 +153,7 @@ BitLogger API navigation.
 
 - [config-error.md](./config-error.md)
 - [sink-kind.md](./sink-kind.md)
+- [file-rotation-config-to-json.md](./file-rotation-config-to-json.md)
 - [queue-config-type.md](./queue-config-type.md)
 - [queue-config.md](./queue-config.md)
 - [queue-config-to-json.md](./queue-config-to-json.md)
