@@ -3,7 +3,7 @@ name: async-logger-to-library-async-logger
 group: api
 category: facade
 update-time: 20260613
-description: Convert a full async logger into the narrower library-facing async facade.
+description: Convert a full async logger into the narrower library-facing async facade without rebuilding the underlying async state.
 key-word:
     - async
     - library
@@ -34,8 +34,9 @@ pub fn[S] AsyncLogger::to_library_async_logger(self : AsyncLogger[S]) -> Library
 Detailed rules explaining key parameters and behaviors
 
 - This conversion does not rebuild the queue, sink, or runtime state.
-- Target, min level, async config, and flush behavior are preserved.
+- Target, min level, async config, flush behavior, pending counts, and failure state are preserved because the same underlying async logger value is wrapped.
 - The returned facade keeps library-facing async operations including `log(...)`, `run()`, and `shutdown(...)`.
+- Async inspection helpers and broader composition APIs remain on the underlying `AsyncLogger[S]` and are intentionally hidden until `to_async_logger()` is used again.
 
 ### How to Use
 
@@ -51,6 +52,17 @@ let public_logger = logger.to_library_async_logger()
 
 In this example, `public_logger` keeps the same async behavior but exposes the library-facing facade.
 
+#### When Need To Narrow Surface Without Resetting Runtime State
+
+When an already-used async logger should be projected to a library boundary without changing its current state:
+```moonbit
+let full = build_async_logger(config)
+let public_logger = full.to_library_async_logger()
+ignore(public_logger.is_enabled(@bitlogger.Level::Info))
+```
+
+In this example, the projection changes the exposed type only; it does not rebuild queue or lifecycle state.
+
 ### Error Case
 
 e.g.:
@@ -58,8 +70,12 @@ e.g.:
 
 - The conversion does not clear pending items or reset runtime state.
 
+- If callers later need state helpers such as `pending_count()` or `state()`, they must unwrap again with `to_async_logger()`.
+
 ### Notes
 
 1. Use this when package boundaries should avoid exposing the full async logger type.
 
 2. This is a projection API, not a reconfiguration step.
+
+3. Use `build_library_async_logger(...)` or `build_library_async_text_logger(...)` when construction and narrowing should happen together from config.

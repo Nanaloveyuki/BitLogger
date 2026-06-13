@@ -3,7 +3,7 @@ name: library-async-logger-new
 group: api
 category: facade
 update-time: 20260613
-description: Create a narrower library-facing async logger facade from any sink implementation.
+description: Create a narrower library-facing async logger facade by building a regular async logger and wrapping the same underlying state.
 key-word:
     - async
     - library
@@ -29,11 +29,11 @@ pub fn[S] LibraryAsyncLogger::new(
 
 #### input
 
-- `sink : S` - Any sink value implementing `@bitlogger.Sink`, such as `@bitlogger.console_sink()` or a composed sink.
+- `sink : S` - Underlying sink value that should receive drained records, such as `@bitlogger.console_sink()` or a composed sink.
 - `config : AsyncLoggerConfig` - Queue size, overflow behavior, batching, linger, and flush policy.
 - `min_level : Level` - Minimum enabled level. Messages below this threshold are ignored before enqueue.
 - `target : String` - Default target attached to emitted records unless later overridden.
-- `flush : (S) -> Int raise` - Flush callback used when async batch or shutdown policy needs explicit flushing.
+- `flush : (S) -> Int raise` - Flush callback used when async batch or shutdown policy needs explicit flushing, and allowed to raise if flushing fails.
 
 #### output
 
@@ -43,10 +43,12 @@ pub fn[S] LibraryAsyncLogger::new(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API builds a regular `async_logger(...)` internally and then wraps it as `LibraryAsyncLogger`.
+- This API builds a regular `async_logger(...)` internally and then wraps that same value as `LibraryAsyncLogger`.
 - The returned facade intentionally exposes a smaller method set than the full `AsyncLogger[S]` type.
-- Queue settings, flush policy, and runtime state are preserved inside the wrapped async logger.
-- Call `to_async_logger()` if later code must recover the full async logger surface.
+- Queue settings, flush policy, target, minimum level, and runtime state are preserved inside the wrapped async logger.
+- This constructor does not start background draining by itself; `run()` is still the step that activates queue processing.
+- If the supplied flush callback later raises during async drain or shutdown, failure state is still recorded on the wrapped async logger.
+- Call `to_async_logger()` if later code must recover the broader async logger surface for state inspection or additional composition helpers.
 
 ### How to Use
 
@@ -77,6 +79,17 @@ let logger = LibraryAsyncLogger::new(
 
 In this example, the facade still keeps the queue-backed async behavior while hiding the full async logger type.
 
+#### When Need Full Async State Helpers Later
+
+When library-facing construction should still allow later access to the broader async helper set:
+```moonbit
+let logger = LibraryAsyncLogger::new(@bitlogger.console_sink(), target="lib.async")
+let full = logger.to_async_logger()
+ignore(full.pending_count())
+```
+
+In this example, construction starts from the narrower facade, but the same underlying async logger can still be recovered later.
+
 ### Error Case
 
 e.g.:
@@ -84,8 +97,12 @@ e.g.:
 
 - If later code needs methods outside the facade, it must unwrap with `to_async_logger()`.
 
+- Constructing the facade alone does not drain queued records; callers still need `run()` for active background processing.
+
 ### Notes
 
 1. This is the direct constructor counterpart to `async_logger(...)` for library-oriented async APIs.
 
 2. Prefer this when public package boundaries should stay narrower than `AsyncLogger[S]`.
+
+3. Use `async_logger(...)` directly when the full async lifecycle, state, and composition surface should stay public from the start.
