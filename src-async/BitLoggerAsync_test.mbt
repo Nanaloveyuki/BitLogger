@@ -91,6 +91,29 @@ async test "shutdown clear closes without worker startup" {
   inspect(logger.dropped_count(), content="1")
 }
 
+async test "closed blocking logger does not add pending count on later log attempts" {
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::Blocking,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.closed.blocking",
+  )
+
+  logger.info("one")
+  logger.close(clear=true)
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+
+  logger.info("late")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+}
+
 test "async logger config stringify roundtrips stable fields" {
   let text = stringify_async_logger_config(
     AsyncLoggerConfig::new(

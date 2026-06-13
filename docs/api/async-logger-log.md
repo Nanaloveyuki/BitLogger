@@ -47,6 +47,7 @@ Detailed rules explaining key parameters and behaviors
 - Context fields, patch logic, and filter logic are applied before enqueue.
 - If timestamping is enabled, `@env.now()` is captured before the record enters the queue.
 - Overflow behavior depends on the configured `AsyncOverflowPolicy`.
+- Closed-on-log behavior is runtime-dependent: compatibility runtimes short-circuit before enqueue work, while native-worker runtimes may still reach the queue operations and then treat a closed queue as a non-accepted write.
 
 ### How to Use
 
@@ -81,6 +82,8 @@ e.g.:
 - If the level is below the current minimum threshold, the record is skipped before queue insertion.
 
 - If the logger is closed or overflow policy rejects the record, enqueue may not proceed as a normal accepted write.
+
+- A closed queue does not count as a newly accepted pending record.
 
 ### Notes
 

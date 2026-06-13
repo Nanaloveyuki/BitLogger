@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The count increases when records are accepted into the queue.
 - The count decreases as the worker drains records.
 - The count is also reset to `0` when queued records are abandoned through clear-close paths such as `close(clear=true)`.
+- Log attempts against a closed queue do not create new pending backlog.
 - This is a point-in-time metric and may change immediately after it is read.
 - Use this helper when a single backlog number is enough and a full `state()` snapshot is unnecessary.
 

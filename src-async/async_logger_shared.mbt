@@ -254,11 +254,16 @@ pub async fn[S] AsyncLogger::log(
   } else {
     match self.overflow {
       AsyncOverflowPolicy::Blocking => {
-        self.queue.put(rec) catch {
-          err if err is AsyncLoggerClosed => ()
+        let accepted = (async fn() -> Bool raise {
+          self.queue.put(rec)
+          true
+        })() catch {
+          err if err is AsyncLoggerClosed => false
           err => raise err
         }
-        self.pending_count.val += 1
+        if accepted {
+          self.pending_count.val += 1
+        }
       }
       AsyncOverflowPolicy::DropOldest | AsyncOverflowPolicy::DropNewest => {
         self.dropped_count.val += 1
