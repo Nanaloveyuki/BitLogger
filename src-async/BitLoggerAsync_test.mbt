@@ -1056,6 +1056,30 @@ async test "library async shutdown preserves wrapped failure cleanup semantics" 
   )
 }
 
+async test "library async shutdown clear abandons pending records through facade" {
+  let logger = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(_) {
+
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::Blocking,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.lib.clear",
+  )
+  let full = logger.to_async_logger()
+
+  logger.info("one")
+  inspect(full.pending_count(), content="1")
+  inspect(full.dropped_count(), content="0")
+  logger.shutdown(clear=true)
+  inspect(full.is_closed(), content="true")
+  inspect(full.is_running(), content="false")
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="1")
+}
+
 async test "library async logger can be built from config" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
