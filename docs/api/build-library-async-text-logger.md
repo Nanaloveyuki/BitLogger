@@ -40,7 +40,9 @@ Detailed rules explaining key parameters and behaviors
 - Unlike `build_library_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - A sync queue configured on `LoggerConfig.queue` is therefore ignored by this builder instead of being preserved behind the wrapped text-console async logger.
-- The returned facade wraps the same underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value that `build_async_text_logger(...)` would return directly, so `run()`, `shutdown()`, failure/reset handling, and runtime-dependent close behavior are unchanged under the narrower public type.
+- The returned facade wraps the same underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value that `build_async_text_logger(...)` would return directly, so `run()`, `shutdown()`, and queue or failure-state behavior are unchanged under the narrower public type.
+- The configured `flush_policy` is still carried by that underlying async logger, but this text-specific builder path does not provide the explicit sink flush callback used by `build_library_async_logger(...)` through `build_async_logger(...)`.
+- As a result, `Batch` and `Shutdown` only invoke the default no-op async flush callback on this text-console path unless downstream code unwraps and adds different behavior elsewhere.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying full async logger if needed.
 - Use this builder when the boundary should preserve the concrete text-console sink type while still hiding broader async inspection and helper APIs from downstream callers.
