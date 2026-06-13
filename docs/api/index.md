@@ -81,6 +81,9 @@ BitLogger API navigation.
 
 - [record.md](./record.md)
 - [record-new.md](./record-new.md)
+- [record-with-target.md](./record-with-target.md)
+- [record-with-message.md](./record-with-message.md)
+- [record-with-fields.md](./record-with-fields.md)
 - [level.md](./level.md)
 - [level-priority.md](./level-priority.md)
 - [level-label.md](./level-label.md)
