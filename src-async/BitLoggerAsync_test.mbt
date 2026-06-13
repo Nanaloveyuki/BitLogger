@@ -571,6 +571,32 @@ test "application async logger aliases runtime async entry" {
   inspect(logger.target, content="async.app")
 }
 
+test "application async logger builder preserves sync queue-backed runtime sink" {
+  let logger = build_application_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.app.queued",
+        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      ),
+      async_config=AsyncLoggerConfig::new(max_pending=2),
+    ),
+  )
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(logger.target, content="async.app.queued")
+  inspect(logger.sink.pending_count(), content="0")
+  inspect(logger.sink.dropped_count(), content="0")
+  inspect(match logger.sink {
+    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+    _ => "Other"
+  }, content="QueuedConsole")
+}
+
 test "application text async logger uses text facade build path" {
   let logger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
