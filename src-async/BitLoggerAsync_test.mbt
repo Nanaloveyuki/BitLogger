@@ -476,6 +476,62 @@ async test "library async logger keeps a smaller async facade" {
   inspect(written_field_counts.val[0], content="2")
 }
 
+async test "library async new preserves config and flush failure contract" {
+  let writes : Ref[Int] = Ref(0)
+  let flushes : Ref[Int] = Ref(0)
+  let logger = LibraryAsyncLogger::new(
+    @bitlogger.callback_sink(fn(_) {
+      writes.val += 1
+    }),
+    config=AsyncLoggerConfig::new(
+      max_pending=4,
+      overflow=AsyncOverflowPolicy::Blocking,
+      max_batch=3,
+      linger_ms=7,
+      flush=AsyncFlushPolicy::Batch,
+    ),
+    min_level=@bitlogger.Level::Warn,
+    target="async.lib.new",
+    flush=fn(_) -> Int raise {
+      flushes.val += 1
+      raise TestFlushError("library new flush exploded")
+    },
+  )
+  let full = logger.to_async_logger()
+
+  inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
+  inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
+  inspect(full.target, content="async.lib.new")
+  inspect(match full.flush_policy() {
+    AsyncFlushPolicy::Never => "Never"
+    AsyncFlushPolicy::Batch => "Batch"
+    AsyncFlushPolicy::Shutdown => "Shutdown"
+  }, content="Batch")
+  inspect(full.pending_count(), content="0")
+  inspect(full.has_failed(), content="false")
+  inspect(full.last_error(), content="")
+
+  logger.info("skip")
+  inspect(full.pending_count(), content="0")
+  logger.error("one")
+  logger.error("two")
+  inspect(full.pending_count(), content="2")
+
+  @async.with_task_group(group => {
+    group.spawn_bg(allow_failure=true, () => logger.run())
+    full.wait_idle()
+    inspect(full.has_failed(), content="true")
+    inspect(full.last_error().contains("TestFlushError"), content="true")
+    inspect(full.is_running(), content="false")
+    inspect(full.pending_count(), content="1")
+    logger.shutdown(clear=true)
+  })
+
+  inspect(writes.val, content="1")
+  inspect(flushes.val, content="1")
+  inspect(full.is_closed(), content="true")
+}
+
 async test "library async context binding replaces stored field set" {
   let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger = LibraryAsyncLogger::new(
