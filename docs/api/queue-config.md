@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This config is used by `build_logger(...)` and `parse_and_build_logger(...)` when `queue` is present in `LoggerConfig`.
 - It configures the synchronous `QueuedSink`, not the async adapter package.
+- The runtime builder applies this config after the base `RuntimeSink` is chosen, so the queue wrapper can sit around console, JSON console, text console, or file output.
 - The queue remains explicit and drain-based.
 - Overflow behavior is limited to the supported queue policies.
 
@@ -77,3 +78,5 @@ e.g.:
 1. This API is for config-driven queue wrapping, not `bitlogger_async`.
 
 2. Use `Logger::with_queue(...)` when you want code-side queue composition instead of config.
+
+3. Parsing defaults to `DropNewest` when queue overflow text is omitted, while omitting `queue` from `LoggerConfig` means no synchronous queue wrapper is added at all.

@@ -47,6 +47,8 @@ Detailed rules explaining key parameters and behaviors
 - `sink` describes the final sink shape before optional queue wrapping.
 - `queue=None` means no configured synchronous queue layer.
 - This same type is embedded into async build config as the synchronous sink/runtime portion.
+- `build_logger(...)` consumes this value directly by building the base runtime sink from `sink`, optionally wrapping it with `queue`, and then applying `min_level`, `target`, and `timestamp` onto the resulting `Logger[RuntimeSink]`.
+- `build_async_logger(...)` reuses this same synchronous config path before adding the outer async layer, while `build_async_text_logger(...)` only uses the selected text-oriented fields instead of the full sync runtime-sink build path.
 
 ### How to Use
 
@@ -88,3 +90,5 @@ e.g.:
 1. This is the core typed config object for sync logger assembly.
 
 2. Prefer this API when config is generated in code rather than parsed from text.
+
+3. Use `default_logger_config()` when callers want the same field defaults as the parser and runtime helpers without spelling them out manually.

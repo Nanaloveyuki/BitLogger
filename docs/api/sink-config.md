@@ -49,6 +49,9 @@ Detailed rules explaining key parameters and behaviors
 - File-only options are stored even though only `kind=File` actually consumes them.
 - Text formatter config is always present, making text-driven sink configuration simpler and stable.
 - This type is consumed by `build_logger(...)` and `parse_and_build_logger(...)`.
+- `build_logger(...)` maps `kind` to the concrete base runtime sink: `Console`, `JsonConsole`, and `TextConsole` build their matching console sink variants, while `File` builds a file sink using `path`, `append`, `auto_flush`, `rotation`, and text formatting derived from `text_formatter`.
+- The constructor itself does not reject an empty file path, but JSON parsing does: `parse_logger_config_text(...)` raises `ConfigError` when `kind=File` and `path` is empty.
+- The same `text_formatter` field is also reused by the direct async text-builder path when `build_async_text_logger(...)` or its facade variants create `FormattedConsoleSink` values.
 
 ### How to Use
 
@@ -91,3 +94,5 @@ e.g.:
 1. This type is sink-shape configuration, not the runtime sink itself.
 
 2. Use `sink_config_to_json(...)` and `stringify_sink_config(...)` for export.
+
+3. Use `default_sink_config()` when callers want the standard console default without spelling out every sink field.
