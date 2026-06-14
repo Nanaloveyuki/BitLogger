@@ -46,6 +46,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_logger(...)` only builds the logger. Actual background draining is started by `run()`.
 - `async_logger(...)` returns the full `AsyncLogger[S]` surface directly. It is therefore the underlying constructor used by both application-facing async aliases and the narrower `LibraryAsyncLogger[S]` wrapper line.
 - The constructed logger starts with `is_closed=false`, `is_running=false`, `has_failed=false`, `last_error=""`, and zeroed pending/dropped counters.
+- The constructed logger also keeps the core async target contract unchanged: `log(..., target=...)` can override the target for one call, while fixed-level helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - `ApplicationAsyncLogger` and `ApplicationTextAsyncLogger` are only alias names over concrete `AsyncLogger[...]` shapes, so they keep the same lifecycle, queue, failure, and state helpers without adding a wrapper layer.
 - `LibraryAsyncLogger[S]` wraps an `AsyncLogger[S]` value instead of aliasing it. That library facade preserves queue-backed logging behavior, but it narrows the directly exposed helper surface until callers recover the full logger with `to_async_logger()`.
 - In non-native targets, the implementation uses compatibility behavior while keeping the same public surface.
@@ -75,6 +76,17 @@ let logger = async_logger(callback_sink(fn(rec) { println(rec.message) }))
 In this example, the worker drains queued records in the background and `shutdown()` waits for completion.
 
 And the logging call path stays queue-oriented rather than direct-sink oriented.
+
+#### When Need A One-call Target Override On The Root Async Logger
+
+When async code should keep one logger value but emit a single record under a different target:
+```moonbit
+logger.log(@bitlogger.Level::Error, "boom", target="app.async.audit")
+```
+
+In this example, the emitted record uses `app.async.audit` only for that one call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 #### When Need Configurable Overflow And Flush Behavior
 
