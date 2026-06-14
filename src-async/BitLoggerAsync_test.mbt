@@ -1713,6 +1713,79 @@ async test "parsed library async logger shutdown clear abandons pending records 
   inspect(full.dropped_count(), content="1")
 }
 
+async test "parsed library async logger log supports per-call target override through facade" {
+  let written_target : Ref[String] = Ref("")
+
+  let logger = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      written_target.val = rec.target
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      target="async.lib.json.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.lib.json.override")
+
+  let second_target : Ref[String] = Ref("")
+
+  let second = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      second_target.val = rec.target
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.error("default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.lib.json.default")
+}
+
+async test "parsed library async severity helpers use stored target without override" {
+  let written_targets : Ref[Array[String]] = Ref([])
+
+  let logger = parse_and_build_library_async_logger(
+    "{\"logger\":{\"min_level\":\"trace\",\"target\":\"async.lib.json.helpers.target\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":4,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      written_targets.val.push(rec.target)
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("first")
+    logger.warn("second")
+    logger.error("third")
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.lib.json.helpers.target")
+  inspect(written_targets.val[1], content="async.lib.json.helpers.target")
+  inspect(written_targets.val[2], content="async.lib.json.helpers.target")
+}
+
 async test "library async parse-build unwrap matches parsed direct async builder behavior" {
   let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let logger = parse_and_build_library_async_logger(raw)
