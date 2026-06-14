@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "gray-matter": "^4.0.3",
-    "moonbit-syntax-highlighter": "file:../moonbit-syntax-highlighter-npm",
+    "moonbit-syntax-highlighter": "^0.1.1",
     "vitepress": "^1.6.4"
   }
 }
