@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - This helper is useful when generated setup should preserve both sink/logger behavior and async runtime behavior together.
 - The exported `logger` section keeps the full `LoggerConfig` shape, including fields that only matter on the full sync-first builder path such as the optional sync queue layer.
 - That means the JSON shape is broader than the consumption pattern of `build_async_text_logger(...)`, which only uses selected text-oriented logger fields when building the sink.
+- In particular, the exported `logger.sink.kind` remains whatever the config currently says, but a later `build_async_text_logger(...)` call still ignores that sink-kind branch and constructs `FormattedConsoleSink` from `logger.sink.text_formatter`.
 
 ### How to Use
 
@@ -63,6 +64,8 @@ In this example, both layers of configuration are exported together.
 
 And later consumers can still choose whether to rebuild through `build_async_logger(...)` or the narrower `build_async_text_logger(...)` path.
 
+And that later text-specific builder choice still matters more than the serialized `logger.sink.kind` value, because only the formatter-backed text path is consumed there.
+
 #### When Need Roundtrip-friendly Build Config Data
 
 When generated build config should later be parsed again:
@@ -80,6 +83,8 @@ e.g.:
 - If callers want direct text output, they should use `stringify_async_logger_build_config(...)` instead.
 
 - Exporting the full `logger` section does not imply that every async builder will later consume every logger field equally.
+
+- Exporting `logger.sink.kind="file"` or `"console"` also does not force the later text-specific builder path to branch that way; only `build_async_logger(...)` follows sink kind when constructing the runtime sink.
 
 ### Notes
 

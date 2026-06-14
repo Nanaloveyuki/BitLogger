@@ -43,6 +43,7 @@ Detailed rules explaining key parameters and behaviors
 - Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured async build-config export helper.
 - The output keeps `logger` and `async_config` as separate sections, matching supported parser input.
 - The serialized `logger` section preserves the full `LoggerConfig` shape, even though `build_async_text_logger(...)` later consumes only the selected text-oriented subset of that logger config.
+- That includes preserving whatever `logger.sink.kind` text is present in the config, even though the later text-specific builder path still ignores that sink-kind branch and constructs `FormattedConsoleSink` from `logger.sink.text_formatter`.
 
 ### How to Use
 
@@ -58,6 +59,8 @@ println(stringify_async_logger_build_config(AsyncLoggerBuildConfig::new(), prett
 In this example, the full build configuration is rendered as readable JSON.
 
 And the resulting text still describes a shared config object that can feed either async builder path later.
+
+And if later code chooses `build_async_text_logger(...)`, that choice still matters more than the serialized `logger.sink.kind` text because only the formatter-backed text path is consumed there.
 
 #### When Need Compact Generated Build Config
 
@@ -85,5 +88,7 @@ e.g.:
 
 3. The serialized shape round-trips through `parse_async_logger_build_config_text(...)`, but the later builder choice still controls whether the full sync config path or only the text-oriented subset is consumed during construction.
 
-4. Use `async_logger_build_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
+4. In particular, serialized `logger.sink.kind` text is descriptive config data, not a guarantee that the text-specific builder path will branch on that sink kind later.
+
+5. Use `async_logger_build_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
 
