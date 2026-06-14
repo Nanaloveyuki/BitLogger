@@ -2,8 +2,8 @@
 name: library-async-logger-to-async-logger
 group: api
 category: facade
-update-time: 20260613
-description: Recover the underlying full async logger from the library-facing async facade without rebuilding queue or lifecycle state.
+update-time: 20260614
+description: Recover the underlying full async logger from the library-facing async facade without rebuilding, copying, or detaching the wrapped async state.
 key-word:
     - async
     - library
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - This conversion unwraps the existing async logger instead of rebuilding it.
 - Queue state, sink wiring, target, min level, flush policy, and current failure/lifecycle state remain the same.
 - The returned `AsyncLogger[S]` is still that same live wrapped value, so later facade writes or lifecycle calls continue mutating the very logger instance that was unwrapped earlier.
+- Repeated `to_async_logger()` calls therefore do not create independent snapshots. They keep exposing the same underlying logger state that the facade already wraps.
 - Use this when code needs wider async logger APIs outside the library facade.
 - This is the step required for helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, `last_error()`, or broader composition methods that are intentionally hidden by `LibraryAsyncLogger[S]`.
 - It is also the step that exposes the real post-run or post-shutdown state after facade-level lifecycle calls, because those calls delegated to this same wrapped logger all along.
@@ -44,6 +45,7 @@ Detailed rules explaining key parameters and behaviors
 - That also means the unwrapped logger can already be both `is_closed=true` and `has_failed=true`, with the same retained `last_error()` string and the same runtime-dependent pending-versus-dropped cleanup outcome that delegated shutdown left behind.
 - If the wrapped sink type has richer helper APIs, unwrapping also restores access to that same sink helper surface through the original `AsyncLogger[S]` value.
 - When the wrapped sink is `RuntimeSink`, that same unwrap also preserves queued runtime state and file-backed helper behavior exactly as they existed behind the facade, including runtime file state snapshots and file control methods.
+- Runtime sink helper mutations are still live too. Changing file append mode, auto-flush, rotation, reopen state, or related helper-managed file state through the unwrapped logger changes the same wrapped runtime sink that later facade writes and shutdown behavior continue using.
 
 ### How to Use
 
@@ -70,6 +72,8 @@ ignore(full.state())
 
 In this example, unwrapping exposes the broader async inspection helpers on the same underlying logger state.
 
+The same handle keeps reflecting later facade writes instead of becoming a detached snapshot.
+
 ### Error Case
 
 e.g.:
@@ -86,6 +90,8 @@ e.g.:
 - If facade-level `run()` or `shutdown()` already ended in a failure-retaining state, unwrapping can therefore expose combinations such as `is_closed=true` together with `has_failed=true`, the same `last_error()`, and runtime-dependent leftover backlog or dropped-count cleanup.
 
 - Recovering the full async logger also does not translate runtime sink helper state into a simpler snapshot; queue counters, file availability, file failure counters, and runtime file controls stay exactly as they were on the wrapped logger.
+
+- Recovering the full async logger also does not isolate later runtime sink helper mutations. If unwrapped code changes file helper state, later facade writes and shutdown still run against that same updated wrapped sink.
 
 ### Notes
 
