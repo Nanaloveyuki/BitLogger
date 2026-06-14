@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
 - The broader async helper surface is preserved rather than rebuilt, but it is intentionally not directly exposed on the returned facade. Queue counters, lifecycle state, idle-wait helpers, and file-backed runtime helpers stay behind `to_async_logger()` instead of disappearing.
 - The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
+- Because this facade starts from `build_async_logger(...)`, the wrapped async logger also keeps the runtime-sink flush wiring: `Batch` and `Shutdown` use the built sink's real `flush()` path instead of the default no-op callback used by the text-specific builder line.
 - The facade still preserves the underlying async target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - In the current direct builder coverage, unwrapping this facade produces the same async state snapshot, runtime-sink variant, queue counters, lifecycle flags, and failure fields as calling `build_async_logger(config)` directly.
 - That same unwrap also preserves file-backed runtime helpers on `RuntimeSink` values rather than replacing them with facade-specific behavior.
@@ -99,6 +100,8 @@ e.g.:
 - If callers need async state, failure-status, or idle-wait helpers outside the library facade, they must unwrap with `to_async_logger()`.
 
 - If callers need file-backed runtime helpers such as file-state or queued runtime inspection, they must unwrap first, but the helper behavior itself stays aligned with the direct `build_async_logger(config)` result.
+
+- If callers instead want the text-console builder path where `Batch` and `Shutdown` keep the default no-op flush callback, they should use `build_library_async_text_logger(...)`; this runtime-sink facade preserves the real sink `flush()` behavior from `build_async_logger(...)`.
 
 ### Notes
 

@@ -44,6 +44,7 @@ Detailed rules explaining key parameters and behaviors
 - The returned alias also keeps inherited async logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
 - It also keeps the same queue counters, failure state, sink shape, and runtime-dependent post-close behavior as the underlying runtime-sink async logger.
+- Because this facade delegates to `build_async_logger(...)`, `Batch` and `Shutdown` also keep the underlying runtime-sink flush wiring: the returned alias uses the built sink's real `flush()` path instead of the default no-op callback used by the text-specific builder line.
 - In the current direct builder coverage, this alias matches `build_async_logger(config)` all the way through serialized state snapshots, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after `run()` or `shutdown()`.
 - File-backed runtime helpers on the returned `RuntimeSink` also stay aligned with the direct builder result instead of being hidden behind a separate application-layer wrapper.
 - Use this alias-oriented builder when application code wants the standard runtime-sink async shape without narrowing the public surface.
@@ -91,6 +92,8 @@ e.g.:
 - If the logger is never `run()`, enqueue behavior and lifecycle state still follow the normal async logger rules.
 
 - If callers rely on file-backed runtime helpers, they should treat this builder as the same runtime-sink result as `build_async_logger(config)`, not as a reduced alias with different helper behavior.
+
+- If callers specifically want the text-console async path where `Batch` and `Shutdown` keep the default no-op flush callback, `build_application_text_async_logger(...)` is the different contract; this runtime-sink alias preserves the real sink `flush()` behavior from `build_async_logger(...)`.
 
 ### Notes
 

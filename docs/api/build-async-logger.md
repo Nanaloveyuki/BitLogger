@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - This builder returns the underlying `AsyncLogger[@bitlogger.RuntimeSink]` value directly. `build_application_async_logger(...)` only re-exports the same result under the `ApplicationAsyncLogger` alias, while `build_library_async_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.RuntimeSink]`.
 - The returned async logger also keeps ordinary target rules unchanged: `log(..., target=...)` can override the target for one call, while severity helpers such as `debug(...)`, `info(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Because this path starts from `build_logger(config.logger)`, it preserves the broader runtime-sink build path, including sync-side queue decoration when `LoggerConfig.queue` is present.
+- This runtime-sink path also wires the explicit async flush callback as `flush=fn(sink) { sink.flush() }`, so `Batch` and `Shutdown` policies invoke the built runtime sink's real flush behavior instead of the default no-op callback.
 - In the current direct builder coverage, the returned logger exposes the expected serialized async state snapshot, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after `run()` or `shutdown()`.
 - File-backed runtime helpers also stay directly available on the returned `RuntimeSink` with the same behavior later observed through the application and library facade equivalence tests.
 - Use `build_async_text_logger(...)` instead when you want the direct text-console async builder path with `FormattedConsoleSink` and without the sync runtime-sink construction layer.
@@ -91,6 +92,8 @@ In this example, the built async logger remains introspectable even though const
 
 And any configured synchronous runtime sink controls are preserved inside the returned `RuntimeSink`.
 
+And if `AsyncFlushPolicy::Batch` or `Shutdown` is configured, this builder uses the runtime sink's real `flush()` path rather than the default no-op callback used by the text-specific builder line.
+
 ### Error Case
 
 e.g.:
@@ -99,6 +102,8 @@ e.g.:
 - If the configured sink shape is unsupported for a specific capability, the resulting runtime behavior follows the existing sink/runtime rules rather than inventing a separate builder-only failure model.
 
 - If callers depend on queued runtime-sink helpers or file-backed runtime helpers, this builder is the direct API that preserves them rather than a reduced facade path.
+
+- If callers need the text-console path where `Batch` and `Shutdown` keep the default no-op flush callback, `build_async_text_logger(...)` is the different builder contract; this runtime-sink path intentionally wires the sink's real `flush()` behavior.
 
 ### Notes
 
