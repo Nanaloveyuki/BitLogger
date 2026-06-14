@@ -37,7 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `log(Level::Info, ...)`.
 - `Info` is the default minimum logger threshold unless changed explicitly.
-- Per-call target override is not exposed here; use `log(...)` if needed.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Context fields, filters, patches, and queue wrappers behave exactly as they do for other write methods.
 
 ### How to Use
@@ -61,6 +61,10 @@ logger.info("request completed", fields=[field("status", "200")])
 ```
 
 In this example, the event remains concise while still carrying useful fields.
+
+And any shared context already carried by the logger still participates through the sink pipeline.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
