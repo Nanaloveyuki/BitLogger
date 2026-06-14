@@ -40,7 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - This method delegates directly to the wrapped async logger's `shutdown(...)` behavior.
 - `clear=false` first waits for idle, then closes the logger.
 - If the active async runtime uses shutdown clearing after idle and backlog still remains, the wrapped logger falls back to `close(clear=true)`.
-- `clear=true` immediately closes and abandons pending records.
+- `clear=true` immediately closes and abandons pending records, even if the facade never started a drain worker for the wrapped logger.
 - In runtimes where shutdown waits for workers, the method then waits until the worker is no longer running before returning.
 - After a worker-failure short-circuit, native-worker backends can still convert remaining backlog into dropped records, while compatibility backends skip that extra forced-clear step.
 - In the current direct facade coverage, the wrapped logger ends that path with `pending_count() == 0` and one more dropped item on native-worker runtimes, versus a still-nonzero pending count and no extra dropped cleanup on compatibility runtimes.
@@ -76,6 +76,8 @@ And the decision still applies to the same wrapped async logger state rather tha
 
 e.g.:
 - If `clear=true`, pending records are intentionally dropped rather than drained.
+
+- `clear=true` can therefore be used as the facade-level no-worker cleanup path when queued records were accepted but no `run()` task was ever started.
 
 - In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
 
