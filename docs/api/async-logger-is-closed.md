@@ -38,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - A closed logger should no longer be treated as a normal active enqueue target.
 - This helper is only a direct read of the current `is_closed` ref; it does not wait for drain completion or clear any other state.
 - This helper reflects lifecycle state only and does not indicate whether the worker is still draining.
+- `is_closed()` becoming `true` does not imply the logger reached a clean success state. Failure flags, retained `last_error()`, and remaining backlog-related counters can still reflect the earlier worker outcome.
+- After shutdown on a worker-failure path, `is_closed()` can therefore be `true` while backlog cleanup remains runtime-dependent: native-worker runtimes can convert leftover pending records into dropped ones, while compatibility runtimes can still report the remaining queue entries as pending.
 - Exact post-close logging behavior is runtime-dependent: compatibility runtimes can short-circuit before patch and enqueue work, while native-worker runtimes may still build and patch a record before the closed queue rejects it, so `is_closed()` should be read as a lifecycle signal rather than a full enqueue-policy contract.
 
 ### How to Use
@@ -75,6 +77,8 @@ e.g.:
 - If callers need to know whether closure also prevented later log attempts on the current backend, they must interpret this together with the active runtime behavior rather than this flag alone.
 
 - Closing a logger does not by itself reset `has_failed()` or `last_error()`.
+
+- A closed logger can still report leftover `pending_count()` or `dropped_count()` values from the shutdown path, so `is_closed()` alone is not enough to infer whether backlog was fully drained or explicitly abandoned.
 
 ### Notes
 
