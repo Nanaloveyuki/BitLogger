@@ -16,9 +16,15 @@ desktop.ini
 *.log
 *.tmp
 *.bak
+node_modules/
 
 # Dev Documentations
 docs/dev/*
+
+# Docs site build artifacts
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+docs/.vitepress/generated/
 
 # vibecoding
 AGENTS/

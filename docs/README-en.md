@@ -3,7 +3,7 @@
 BitLogger is a structured logging library for MoonBit projects.
 
 - [Mooncake package page](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
-- [Chinese README](../README.md)
+- [Chinese README](https://github.com/Nanaloveyuki/BitLogger/blob/main/README.md)
 
 ## Overview
 
@@ -58,8 +58,8 @@ Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
 ## Documentation
 
 - [API index](./api/index.md): canonical API reference, organized as one public API per file
-- [src package README](../src/README.mbt.md): package-level usage notes and target reminders
+- [src package README](https://github.com/Nanaloveyuki/BitLogger/blob/main/src/README.mbt.md): package-level usage notes and target reminders
 - [`docs/changes/`](./changes/): versioned release notes and publish-facing change summaries
-- [`docs/dev/`](./dev/): developer reference material, investigations, and temporary implementation notes
+- `docs/dev/`: developer reference material kept in the repository, intentionally excluded from the public static docs site
 
 Common entry points: `text_console(...)`, `file(...)`, `with_queue(...)`, `build_logger(...)`, `build_async_logger(...)`

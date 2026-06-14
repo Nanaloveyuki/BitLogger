@@ -1,0 +1,19 @@
+{
+  "name": "bitlogger-docs-site",
+  "private": true,
+  "scripts": {
+    "prepare": "node ./scripts/generate-docs-data.mjs",
+    "dev": "node ./scripts/generate-docs-data.mjs && node ./node_modules/vitepress/dist/node/cli.js dev docs",
+    "build": "node ./scripts/generate-docs-data.mjs && node ./node_modules/vitepress/dist/node/cli.js build docs",
+    "preview": "node ./node_modules/vitepress/dist/node/cli.js preview docs",
+    "docs:prepare": "node ./scripts/generate-docs-data.mjs",
+    "docs:dev": "node ./scripts/generate-docs-data.mjs && node ./node_modules/vitepress/dist/node/cli.js dev docs",
+    "docs:build": "node ./scripts/generate-docs-data.mjs && node ./node_modules/vitepress/dist/node/cli.js build docs",
+    "docs:preview": "node ./node_modules/vitepress/dist/node/cli.js preview docs"
+  },
+  "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "moonbit-syntax-highlighter": "file:../moonbit-syntax-highlighter-npm",
+    "vitepress": "^1.6.4"
+  }
+}
