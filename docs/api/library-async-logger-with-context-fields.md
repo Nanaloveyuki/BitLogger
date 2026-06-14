@@ -41,8 +41,10 @@ Detailed rules explaining key parameters and behaviors
 - The provided `fields` array replaces the previously stored shared context field set on the wrapped async logger.
 - During later `log(...)` calls, those stored shared fields are prepended ahead of per-call fields before enqueue.
 - Sink type, queue state, async config, and failure/lifecycle state remain the same because only the stored shared field set changes.
+- Repeated `with_context_fields(...)` calls on derived facades therefore replace the stored shared field set on the next returned facade instead of stacking multiple shared field layers together.
 - Unlike synchronous `LibraryLogger::with_context_fields(...)`, this async variant preserves the visible `LibraryAsyncLogger[S]` type instead of changing the visible sink type.
 - Async state helpers remain hidden behind the narrower facade after rewrapping; use `to_async_logger()` if later code needs them.
+- The original facade value is not mutated; rewrapping returns a new facade over the updated async logger value.
 - `bind(...)` is an ergonomic alias for this same behavior.
 
 ### How to Use
@@ -80,6 +82,8 @@ And the returned facade keeps the same underlying async runtime state while carr
 
 e.g.:
 - If `fields` is empty, the returned facade remains valid and simply stores an empty shared field set.
+
+- If a derived library async facade already carried shared context fields, calling `with_context_fields(...)` again replaces that stored shared field set on the new returned facade rather than appending another shared layer.
 
 - If duplicate field keys are provided, all fields are still emitted for downstream formatting or inspection.
 
