@@ -70,6 +70,10 @@ logger.info(
 
 In this example, the record remains concise while still carrying useful metadata.
 
+And any shared context already carried by the logger still participates ahead of these per-call fields when the record is built.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
+
 ### Error Case
 
 e.g.:
