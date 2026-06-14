@@ -35,7 +35,8 @@ pub fn error(message : String, fields~ : Array[Field] = []) -> Unit {}
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `default_logger().error(...)`.
-- It uses the shared console sink, default target, and current threshold configuration.
+- Each call therefore reads the current shared default threshold and target at write time instead of holding one long-lived logger value internally.
+- It uses the shared console sink and current default target.
 - `Error` is the highest built-in severity in the global sync helper set.
 - This helper is useful when a small app wants a direct shared failure-reporting path.
 
@@ -47,10 +48,13 @@ Here are some specific examples provided.
 
 When a small application should emit an explicit failure log:
 ```moonbit
+set_default_target("worker")
 error("worker execution failed")
 ```
 
-In this example, the shared default logger emits a high-severity error record.
+In this example, the shared default logger emits a high-severity error record under the `worker` target.
+
+If `set_default_target(...)` or `set_default_min_level(...)` changes later, future `error(...)` calls will observe those updated shared defaults automatically.
 
 #### When Attach Structured Error Context
 
@@ -72,5 +76,7 @@ e.g.:
 
 1. Use this helper for simple shared error reporting.
 
-2. Explicit `Logger` values are usually better once the application needs richer routing or ownership boundaries.
+2. Future calls pick up later shared-default changes because the helper forwards through a fresh `default_logger()` each time.
+
+3. Explicit `Logger` values are usually better once the application needs richer routing or ownership boundaries.
 
