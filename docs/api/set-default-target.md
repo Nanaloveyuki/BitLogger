@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The function updates the internal `Ref[String]` used by `default_logger()`.
 - It does not mutate any custom `Logger` values created earlier.
 - Later global writes inherit the new target unless a different explicit logger path is used.
+- Any explicit logger value that was already created earlier keeps the target it captured at creation time.
 - This is useful when one application wants the convenience of global helpers while still labeling records consistently.
 
 ### How to Use
@@ -62,6 +63,8 @@ warn("running fallback path")
 
 In this example, later global writes stay grouped under the migration target.
 
+Earlier explicit logger values still keep whatever default target they captured before this change.
+
 ### Error Case
 
 e.g.:
@@ -73,5 +76,7 @@ e.g.:
 
 1. This API is best suited for small apps, scripts, or a single shared logging entry path.
 
-2. Prefer explicit child or per-component loggers when target structure needs to vary across subsystems.
+2. Call `default_logger()` again after changing the default if a fresh explicit logger value should reflect the new target.
+
+3. Prefer explicit child or per-component loggers when target structure needs to vary across subsystems.
 
