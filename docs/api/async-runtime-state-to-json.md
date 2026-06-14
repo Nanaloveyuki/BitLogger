@@ -38,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - The compact serialized shape is `{"mode":"native_worker|compatibility","background_worker":true|false}`.
 - This helper focuses on runtime capabilities rather than queue counters or logger lifecycle flags.
 - The exported JSON is suitable for diagnostics endpoints and startup environment checks.
+- This helper serializes the provided `AsyncRuntimeState` exactly as given; it does not call `async_runtime_state()` or recheck backend capability by itself.
+- That means manually constructed runtime snapshots are exported unchanged, with `mode` relabeled through `async_runtime_mode_label(...)` and `background_worker` kept exactly as supplied.
 
 ### How to Use
 
@@ -67,6 +69,8 @@ e.g.:
 - If callers expect logger queue counters or failure status, this API is too narrow and `async_logger_state_to_json(...)` should be used instead.
 
 - If the runtime is in compatibility mode, the helper still serializes normally using the matching mode label.
+
+- If callers need the current backend-derived runtime rather than an older or synthetic snapshot, they must capture a fresh `async_runtime_state()` first.
 
 ### Notes
 
