@@ -41,7 +41,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `error(...)` on the wrapped logger, which in turn uses `log(Level::Error, ...)`.
 - `Error` is the highest built-in severity in this sync facade API.
-- Per-call target override is not exposed here; use `log(...)` when explicit target control is required.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - Sink composition, filtering, patching, and queue wrappers still apply normally.
 - Broader composition helpers remain on the underlying `Logger[S]` and require `to_logger()` first.
 
@@ -68,6 +68,8 @@ logger.error("dispatch failed", fields=[field("job_id", "42")])
 In this example, the record carries machine-readable context without dropping to the generic `log(...)` form.
 
 And any shared context already carried by the facade still participates through the wrapped logger pipeline.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
