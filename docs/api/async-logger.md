@@ -55,6 +55,8 @@ Detailed rules explaining key parameters and behaviors
 - `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
 - `flush` is used only when batch or shutdown policy wants explicit flushing.
 - If the supplied flush callback raises, worker failure state is recorded through `has_failed()` and `last_error()`.
+- `wait_idle()` is failure-aware rather than a pure backlog-to-zero guarantee. If a worker failure sets `has_failed=true`, waiting stops early and the logger can still report `pending_count() > 0` until later cleanup or restart work happens.
+- A later `run()` attempt starts by clearing stale failure state back to `has_failed=false` and `last_error=""` before it resumes draining any backlog still left in the queue.
 - The exact behavior of late log attempts after closure is runtime-dependent, so callers should use lifecycle helpers like `is_closed()` and `shutdown()` instead of assuming identical post-close enqueue semantics everywhere.
 - Queue overflow behavior depends on `AsyncOverflowPolicy`.
 
