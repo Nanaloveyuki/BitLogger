@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - File, formatter, and any configured synchronous queue choices all come from config rather than direct code-side sink wiring.
 - The returned sink type is `RuntimeSink`, which keeps configured control helpers available where relevant.
 - This builder returns the underlying `AsyncLogger[@bitlogger.RuntimeSink]` value directly. `build_application_async_logger(...)` only re-exports the same result under the `ApplicationAsyncLogger` alias, while `build_library_async_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.RuntimeSink]`.
+- The returned async logger also keeps ordinary target rules unchanged: `log(..., target=...)` can override the target for one call, while severity helpers such as `debug(...)`, `info(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Because this path starts from `build_logger(config.logger)`, it preserves the broader runtime-sink build path, including sync-side queue decoration when `LoggerConfig.queue` is present.
 - In the current direct builder coverage, the returned logger exposes the expected serialized async state snapshot, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after `run()` or `shutdown()`.
 - File-backed runtime helpers also stay directly available on the returned `RuntimeSink` with the same behavior later observed through the application and library facade equivalence tests.
@@ -65,6 +66,18 @@ let logger = build_async_logger(config)
 In this example, parsing and async runtime wiring are separated cleanly.
 
 And the returned logger can immediately be started with `run()`.
+
+#### When Need A Per-call Target Override After Typed Async Build
+
+When typed async config should still build a logger that supports a one-call target override:
+```moonbit
+let logger = build_async_logger(config)
+logger.log(@bitlogger.Level::Error, "boom", target="svc.audit")
+```
+
+In this example, the emitted record uses `svc.audit` for that call.
+
+And later `debug(...)`, `info(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 #### When Need Runtime Sink Features After Async Build
 

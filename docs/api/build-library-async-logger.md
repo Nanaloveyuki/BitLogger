@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `build_async_logger(...)` would produce directly.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
 - The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
+- The facade still preserves the underlying async target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - In the current direct builder coverage, unwrapping this facade produces the same async state snapshot, runtime-sink variant, queue counters, lifecycle flags, and failure fields as calling `build_async_logger(config)` directly.
 - That same unwrap also preserves file-backed runtime helpers on `RuntimeSink` values rather than replacing them with facade-specific behavior.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger`, not on the returned facade itself.
@@ -74,6 +75,18 @@ ignore(full.pending_count())
 ```
 
 In this example, the library async facade is unwrapped before using async state helpers.
+
+#### When Need A Per-call Target Override Through The Library Async Builder Facade
+
+When typed library async config should still build a facade that allows a one-call target override without unwrapping first:
+```moonbit
+let logger = build_library_async_logger(config)
+logger.log(@bitlogger.Level::Error, "boom", target="lib.audit")
+```
+
+In this example, the emitted record uses `lib.audit` for that call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
