@@ -1,0 +1,37 @@
+:root {
+  --vp-c-brand-1: #b34a24;
+  --vp-c-brand-2: #92381a;
+  --vp-c-brand-3: #d06d39;
+  --vp-c-brand-soft: rgba(176, 74, 36, 0.14);
+  --vp-home-hero-name-color: #6b2f17;
+  --vp-home-hero-text-color: #27170f;
+  --vp-home-hero-tagline-color: #5f5249;
+  --vp-font-family-base: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --vp-font-family-mono: "Cascadia Mono", "JetBrains Mono", monospace;
+}
+
+.VPContent {
+  background:
+    radial-gradient(circle at top right, rgba(208, 109, 57, 0.08), transparent 28%),
+    radial-gradient(circle at left 20%, rgba(179, 74, 36, 0.06), transparent 22%);
+}
+
+.VPHomeHero .name,
+.VPDoc h1,
+.VPDoc h2,
+.VPDoc h3 {
+  letter-spacing: -0.02em;
+}
+
+.VPHomeHero .image-container {
+  display: none;
+}
+
+.vp-doc a {
+  text-underline-offset: 0.18em;
+}
+
+.vp-doc .custom-block,
+.vp-doc div[class*='language-'] {
+  border-radius: 18px;
+}
