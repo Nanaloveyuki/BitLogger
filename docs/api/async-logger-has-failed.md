@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `run()` also clears the stored `last_error()` string at startup before drain work begins.
 - If the worker loop raises an error, the logger records that failure and exposes it through this flag.
 - Once set by a failed run, the flag stays `true` until a later `run()` invocation actually starts and resets it.
+- Failure-driven shutdown does not clear this flag by itself, so `has_failed()` can remain `true` even after the logger is already closed.
 - This helper is intentionally compact and should usually be paired with `last_error()` for details.
 - Failure state is about runtime drain execution, not whether records were dropped due to overflow policy.
 
@@ -71,6 +72,8 @@ e.g.:
 
 - If `has_failed()` becomes `true`, `wait_idle()` may stop early while pending records still remain until a later close or clear path handles them.
 - In the current regression coverage, that later handling can be an explicit `close(clear=true)` that resets pending backlog immediately or a runtime-dependent `shutdown(...)` path that either clears pending into dropped records or leaves the closed-queue remainder visible.
+
+- If `has_failed()` is still `true` after shutdown, that does not by itself mean cleanup failed; the logger may already be `is_closed=true` while the remaining pending-versus-dropped outcome still reflects the active runtime's shutdown path.
 
 - If `has_failed()` is `true`, callers should inspect `last_error()` or `state()` for more context.
 
