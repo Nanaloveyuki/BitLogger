@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `warn(...)` on the wrapped async logger, which in turn uses `log(Level::Warn, ...)`.
 - The record is still subject to min-level gating, stored shared context fields, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - Warning records are useful for degraded but non-fatal runtime conditions.
 - Use this helper when a named warning call is clearer than a raw `log(...)` call.
 - Async state helpers remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
@@ -71,6 +72,8 @@ logger.warn(
 In this example, the warning carries structured operational detail.
 
 And any shared context fields already stored on the facade are still prepended before these per-call fields.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
