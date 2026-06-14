@@ -35,10 +35,12 @@ Detailed rules explaining key parameters and behaviors
 
 - This conversion unwraps the existing async logger instead of rebuilding it.
 - Queue state, sink wiring, target, min level, flush policy, and current failure/lifecycle state remain the same.
+- The returned `AsyncLogger[S]` is still that same live wrapped value, so later facade writes or lifecycle calls continue mutating the very logger instance that was unwrapped earlier.
 - Use this when code needs wider async logger APIs outside the library facade.
 - This is the step required for helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, `last_error()`, or broader composition methods that are intentionally hidden by `LibraryAsyncLogger[S]`.
 - It is also the step that exposes the real post-run or post-shutdown state after facade-level lifecycle calls, because those calls delegated to this same wrapped logger all along.
 - That includes failure/backlog combinations and runtime-dependent shutdown results exactly as they accumulated behind the facade.
+- Because the same live value is shared, code can unwrap once, keep that `AsyncLogger[S]` handle, and then observe `pending_count()`, `state()`, `is_closed()`, or failure fields changing as later facade-level `info(...)`, `log(...)`, `run()`, or `shutdown(...)` calls execute.
 - That also means the unwrapped logger can already be both `is_closed=true` and `has_failed=true`, with the same retained `last_error()` string and the same runtime-dependent pending-versus-dropped cleanup outcome that delegated shutdown left behind.
 - If the wrapped sink type has richer helper APIs, unwrapping also restores access to that same sink helper surface through the original `AsyncLogger[S]` value.
 - When the wrapped sink is `RuntimeSink`, that same unwrap also preserves queued runtime state and file-backed helper behavior exactly as they existed behind the facade, including runtime file state snapshots and file control methods.
@@ -76,6 +78,8 @@ e.g.:
 - Unwrapping does not start or stop the background runtime by itself.
 
 - Recovering the full async logger does not clear queue contents or reset failure state.
+
+- Unwrapping does not create an isolated snapshot. If later facade calls enqueue more records or change lifecycle state, the previously unwrapped logger handle reflects those same live mutations.
 
 - Unwrapping does not convert facade lifecycle history into a simplified snapshot; any retained `last_error()`, pending backlog, dropped counts, or sink runtime details stay exactly as they were on the wrapped logger.
 
