@@ -33,6 +33,8 @@ jobs:
         run: npm ci
 
       - name: Build docs site
+        env:
+          DOCS_BASE: /
         run: npm run docs:build
 
       - name: Configure Pages

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
+import { withBase } from 'vitepress'
 
 import { docsData } from '../../generated/docs-data.mjs'
 
@@ -77,10 +78,10 @@ const resultCount = computed(() =>
             <p>{{ category.entries.length }} entries</p>
             <ul>
               <li v-for="entry in category.entries.slice(0, 8)" :key="entry.slug">
-                <a :href="entry.link">{{ entry.title }}</a>
+                <a :href="withBase(entry.link)">{{ entry.title }}</a>
               </li>
             </ul>
-            <a v-if="category.entries.length > 8" class="api-more" href="/api/">
+            <a v-if="category.entries.length > 8" class="api-more" :href="withBase('/api/')">
               Browse {{ category.entries.length - 8 }} more in sidebar
             </a>
           </section>

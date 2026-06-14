@@ -12,7 +12,7 @@ type ApiDocEntry = {
 }
 
 const repoSlug = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'BitLogger'
-const docsBase = process.env.GITHUB_ACTIONS ? `/${repoSlug}/` : '/'
+const docsBase = process.env.DOCS_BASE ?? (process.env.GITHUB_ACTIONS ? `/${repoSlug}/` : '/')
 const repository = 'https://github.com/Nanaloveyuki/BitLogger'
 
 function splitWords(input: string): string[] {

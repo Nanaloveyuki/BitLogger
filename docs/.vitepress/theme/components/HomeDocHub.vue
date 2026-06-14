@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { withBase } from 'vitepress'
 
 import { docsData } from '../../generated/docs-data.mjs'
 
@@ -37,7 +38,7 @@ const groupCount = computed(() => docsData.api.groups.length)
       <p class="hub-eyebrow">Popular Areas</p>
       <ul class="hub-chip-list">
         <li v-for="category in topCategories" :key="category.id">
-          <a class="hub-chip" href="/api/">
+          <a class="hub-chip" :href="withBase('/api/')">
             <span>{{ category.label }}</span>
             <small>{{ category.entryCount }}</small>
           </a>
@@ -49,7 +50,7 @@ const groupCount = computed(() => docsData.api.groups.length)
       <p class="hub-eyebrow">Release Trail</p>
       <ul class="hub-link-list">
         <li v-for="item in recentChanges" :key="item.version">
-          <a :href="item.link">Version {{ item.version }}</a>
+          <a :href="withBase(item.link)">Version {{ item.version }}</a>
         </li>
       </ul>
     </article>
