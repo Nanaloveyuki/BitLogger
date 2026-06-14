@@ -2133,6 +2133,112 @@ async test "library async text builder unwrap matches direct text builder behavi
   inspect(full.last_error() == direct.last_error(), content="true")
 }
 
+async test "library async text builder log supports per-call target override through facade" {
+  let written_target : Ref[String] = Ref("")
+
+  let logger = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.text.builder.default",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      written_target.val = rec.target
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      target="async.lib.text.builder.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.lib.text.builder.override")
+
+  let second_target : Ref[String] = Ref("")
+
+  let second = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.text.builder.default",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      second_target.val = rec.target
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.error("default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.lib.text.builder.default")
+}
+
+async test "library async text builder severity helpers use stored target without override" {
+  let written_targets : Ref[Array[String]] = Ref([])
+
+  let logger = build_library_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.text_console(
+        min_level=@bitlogger.Level::Info,
+        target="async.lib.text.builder.helpers",
+        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=4,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      written_targets.val.push(rec.target)
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("first")
+    logger.warn("second")
+    logger.error("third")
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.lib.text.builder.helpers")
+  inspect(written_targets.val[1], content="async.lib.text.builder.helpers")
+  inspect(written_targets.val[2], content="async.lib.text.builder.helpers")
+}
+
 async test "library async text logger unwrap keeps async helper surface" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
@@ -3521,6 +3627,115 @@ async test "build async text logger keeps direct helper surface" {
   inspect(logger.dropped_count(), content="1")
   inspect(logger.has_failed(), content="false")
   inspect(logger.last_error(), content="")
+}
+
+async test "build async text logger log supports per-call target override" {
+  let written_target : Ref[String] = Ref("")
+
+  let logger = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.text.builder.default",
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .with_patch(fn(rec) {
+      written_target.val = rec.target
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      target="async.text.builder.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.text.builder.override")
+
+  let second_target : Ref[String] = Ref("")
+
+  let second = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.text.builder.default",
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .with_patch(fn(rec) {
+      second_target.val = rec.target
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.error("default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.text.builder.default")
+}
+
+async test "build async text logger severity helpers use stored target without override" {
+  let written_targets : Ref[Array[String]] = Ref([])
+
+  let logger = build_async_text_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Info,
+        target="async.text.builder.helpers",
+        sink=@bitlogger.SinkConfig::new(
+          kind=@bitlogger.SinkKind::TextConsole,
+          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        ),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=4,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .with_patch(fn(rec) {
+      written_targets.val.push(rec.target)
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("first")
+    logger.warn("second")
+    logger.error("third")
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.text.builder.helpers")
+  inspect(written_targets.val[1], content="async.text.builder.helpers")
+  inspect(written_targets.val[2], content="async.text.builder.helpers")
 }
 
 async test "build async text logger batch flush policy keeps default no-op flush callback" {
