@@ -1628,6 +1628,112 @@ async test "library async builder unwrap matches direct async builder behavior" 
   inspect(full.last_error() == direct.last_error(), content="true")
 }
 
+async test "library async builder log supports per-call target override through facade" {
+  let written_target : Ref[String] = Ref("")
+
+  let logger = build_library_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.builder.default",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      written_target.val = rec.target
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      target="async.lib.builder.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.lib.builder.override")
+
+  let second_target : Ref[String] = Ref("")
+
+  let second = build_library_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.lib.builder.default",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      second_target.val = rec.target
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.error("default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.lib.builder.default")
+}
+
+async test "library async builder severity helpers use stored target without override" {
+  let written_targets : Ref[Array[String]] = Ref([])
+
+  let logger = build_library_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Trace,
+        target="async.lib.builder.helpers",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=4,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .to_async_logger()
+    .with_patch(fn(rec) {
+      written_targets.val.push(rec.target)
+      rec
+    })
+    .to_library_async_logger()
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("first")
+    logger.warn("second")
+    logger.error("third")
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.lib.builder.helpers")
+  inspect(written_targets.val[1], content="async.lib.builder.helpers")
+  inspect(written_targets.val[2], content="async.lib.builder.helpers")
+}
+
 async test "library async builder shutdown clear abandons pending records through facade" {
   let logger = build_library_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -2234,6 +2340,106 @@ async test "build async logger keeps direct helper surface and runtime sink path
   inspect(logger.dropped_count(), content="1")
   inspect(logger.has_failed(), content="false")
   inspect(logger.last_error(), content="")
+}
+
+async test "build async logger log supports per-call target override" {
+  let written_target : Ref[String] = Ref("")
+
+  let logger = build_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.builder.default",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .with_patch(fn(rec) {
+      written_target.val = rec.target
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.log(
+      @bitlogger.Level::Error,
+      "override",
+      target="async.builder.override",
+    )
+    logger.shutdown()
+  })
+
+  inspect(written_target.val, content="async.builder.override")
+
+  let second_target : Ref[String] = Ref("")
+
+  let second = build_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Warn,
+        target="async.builder.default",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=2,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .with_patch(fn(rec) {
+      second_target.val = rec.target
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => second.run())
+    second.error("default")
+    second.shutdown()
+  })
+
+  inspect(second_target.val, content="async.builder.default")
+}
+
+async test "build async logger severity helpers use stored target without override" {
+  let written_targets : Ref[Array[String]] = Ref([])
+
+  let logger = build_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Trace,
+        target="async.builder.helpers",
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=4,
+        overflow=AsyncOverflowPolicy::Blocking,
+        flush=AsyncFlushPolicy::Never,
+      ),
+    ),
+  )
+    .with_patch(fn(rec) {
+      written_targets.val.push(rec.target)
+      rec
+    })
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.debug("first")
+    logger.info("second")
+    logger.error("third")
+    logger.shutdown()
+  })
+
+  inspect(written_targets.val.length(), content="3")
+  inspect(written_targets.val[0], content="async.builder.helpers")
+  inspect(written_targets.val[1], content="async.builder.helpers")
+  inspect(written_targets.val[2], content="async.builder.helpers")
 }
 
 async test "async logger projection preserves async queue and failure state" {
