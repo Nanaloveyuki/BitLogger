@@ -37,7 +37,8 @@ Detailed rules explaining key parameters and behaviors
 - `state()` returns a value snapshot rather than a live handle.
 - This helper is equivalent to `AsyncLoggerState::new(async_runtime_state(), self.pending_count(), self.dropped_count(), self.is_closed(), self.is_running(), self.has_failed(), self.last_error(), self.flush_policy())`.
 - `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` convert the snapshot to stable diagnostic output.
-- `runtime` embeds the result of `async_runtime_state()` so callers do not need to join separate helpers manually.
+- `runtime` embeds the result of `async_runtime_state()` from the moment `state()` is called, so callers do not need to join separate helpers manually.
+- The runtime portion is therefore recomputed from the active backend helper on each call, while the remaining fields come from the logger's current counters, flags, and flush policy at that same general moment.
 - Because the snapshot is assembled field by field when `state()` is called, later logger changes require calling `state()` again rather than reusing an older `AsyncLoggerState` value as if it refreshed itself.
 - That field-by-field assembly also means this helper is not an atomic freeze across all refs; under concurrent logger activity, neighboring fields can reflect slightly different instants.
 - After a worker failure, `has_failed=true`, a non-empty `last_error`, and `pending_count>0` can legitimately appear together in one snapshot until later cleanup or a later started `run()` changes them.
@@ -82,6 +83,8 @@ e.g.:
 - If the queue is empty, `pending_count` is `0`; this is normal and not a special error condition.
 
 - `flush_policy` reports the logger's configured async flush mode, not whether a flush has already happened.
+
+- The embedded `runtime` object is also just a snapshot of the current backend helper result at read time; `state()` does not cache it onto the logger for later reuse.
 
 - If concurrent logger activity is still changing counters or flags while `state()` runs, the returned value is still useful for diagnostics but should not be treated as a transactional snapshot.
 
