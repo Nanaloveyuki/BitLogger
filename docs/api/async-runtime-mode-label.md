@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_runtime_state_to_json(...)` serializes the `mode` field through this helper, so runtime snapshots and direct label rendering share the same canonical text.
 - Labels are more stable for telemetry and docs than ad hoc manual matching at call sites.
 - The current canonical labels are exactly `native_worker` for `NativeWorker` and `compatibility` for `Compatibility`.
+- This helper is only a pure enum-to-string mapping. It does not inspect the active backend or verify that the supplied enum still matches the current runtime environment.
 
 ### How to Use
 
@@ -66,6 +67,8 @@ In this example, code gets a stable string without duplicating enum matching log
 
 e.g.:
 - This API assumes a valid `AsyncRuntimeMode` input and does not expose a normal runtime error path.
+
+- If callers need the current backend-derived mode rather than a previously stored enum value, they must call `async_runtime_mode()` first and then label that result.
 
 - If callers need the whole runtime object rather than a string label, use `async_runtime_state()`.
 
