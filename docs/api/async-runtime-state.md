@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `mode` is derived from the active backend implementation.
 - `background_worker` tells callers whether native worker semantics are available.
 - This helper is equivalent to `AsyncRuntimeState::new(async_runtime_mode(), async_runtime_supports_background_worker())`.
+- The returned pair is rebuilt from those two lower-level helpers on each call rather than read from a cached runtime object.
 - In the current backend implementations, the resulting pair is `NativeWorker + true` or `Compatibility + false`.
 - `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` serialize this state.
 - This API is environment-scoped and does not depend on a particular `AsyncLogger` instance.
@@ -70,6 +71,8 @@ In this example, branch decisions are based on actual runtime capability instead
 
 e.g.:
 - This API does not normally expose a dynamic error path; it reports the currently compiled backend behavior.
+
+- The returned `AsyncRuntimeState` value is not cached onto the helper. If callers need a newer backend read, they must call `async_runtime_state()` again instead of expecting an older value to refresh itself.
 
 - If callers need richer runtime state, they should use `AsyncLogger::state()` on a logger instance instead.
 
