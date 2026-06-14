@@ -43,6 +43,8 @@ Detailed rules explaining key parameters and behaviors
 - The exported `logger` section keeps the full `LoggerConfig` shape, including fields that only matter on the full sync-first builder path such as the optional sync queue layer.
 - That means the JSON shape is broader than the consumption pattern of `build_async_text_logger(...)`, which only uses selected text-oriented logger fields when building the sink.
 - In particular, the exported `logger.sink.kind` remains whatever the config currently says, but a later `build_async_text_logger(...)` call still ignores that sink-kind branch and constructs `FormattedConsoleSink` from `logger.sink.text_formatter`.
+- The same exported object is also the shared handoff shape for the application and library facade routes after parse. `parse_async_logger_build_config_text(...)` can read this JSON back into `AsyncLoggerBuildConfig`, and that parsed value can then flow unchanged into `build_application_async_logger(...)`, `build_application_text_async_logger(...)`, `build_library_async_logger(...)`, or `build_library_async_text_logger(...)`.
+- Because of that, the exported structure is descriptive config data rather than a commitment to one public async type. The later builder or facade API still decides whether the runtime-sink line or the text-console line is taken.
 
 ### How to Use
 
@@ -66,6 +68,8 @@ And later consumers can still choose whether to rebuild through `build_async_log
 
 And that later text-specific builder choice still matters more than the serialized `logger.sink.kind` value, because only the formatter-backed text path is consumed there.
 
+And the same exported object can just as well be parsed and then routed into the application or library facade builders when the next consumer wants a narrower public async type.
+
 #### When Need Roundtrip-friendly Build Config Data
 
 When generated build config should later be parsed again:
@@ -86,6 +90,8 @@ e.g.:
 
 - Exporting `logger.sink.kind="file"` or `"console"` also does not force the later text-specific builder path to branch that way; only `build_async_logger(...)` follows sink kind when constructing the runtime sink.
 
+- Choosing an application or library facade builder later does not change the meaning of the exported config by itself; those facade APIs inherit the same runtime-sink-versus-text-console split from the direct builder they delegate to.
+
 ### Notes
 
 1. Use this helper when tools or tests need a structured JSON object instead of text.
@@ -93,4 +99,6 @@ e.g.:
 2. Use `stringify_async_logger_build_config(...)` when the same build shape should be emitted as JSON text directly.
 
 3. The resulting object round-trips through `parse_async_logger_build_config_text(...)`, even though different async builders later consume different parts of the embedded `LoggerConfig`.
+
+4. After parsing, that same object can also feed the application or library facade builders; export preserves one shared build-config shape, not a direct-builder-only route.
 
