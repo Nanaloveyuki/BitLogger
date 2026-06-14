@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 - `async_runtime_state()` currently builds that snapshot from `async_runtime_mode()` and `async_runtime_supports_background_worker()`.
 - `async_runtime_state_to_json(...)` and `stringify_async_runtime_state(...)` serialize the same snapshot shape for diagnostics.
 - `AsyncRuntimeState::new(...)` can also construct this type manually, but manual construction is synthetic data and does not probe the current backend by itself.
+- The type itself does not distinguish live backend snapshots from hand-built ones; callers must track whether a given `AsyncRuntimeState` value came from `async_runtime_state()` or from manual construction.
 
 ### How to Use
 
@@ -69,6 +70,8 @@ e.g.:
 - The snapshot is point-in-time diagnostic data; it should not be treated as proof that every target was re-verified in the current release cycle.
 
 - Because this is just a data shape, manual construction can represent combinations that do not come from the current backend probe.
+
+- Receiving an `AsyncRuntimeState` value alone does not prove it came from the current backend rather than from a synthetic constructor path.
 
 ### Notes
 
