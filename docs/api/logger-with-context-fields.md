@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - Context fields are merged at write time, not by mutating previously created records.
 - When a log call also passes per-record fields, the context fields are placed before those per-call fields.
 - This API returns a new typed logger wrapper; it does not mutate the original logger variable.
+- The returned logger keeps the same stored target, min level, and timestamp behavior while extending the sink pipeline with context-field merging.
 - `bind(...)` is an ergonomic alias for this same behavior.
 
 ### How to Use
@@ -56,6 +57,8 @@ logger.info("started")
 In this example, both `service` and `region` are automatically included on every record.
 
 And callers only need to provide fields that actually vary per event.
+
+The original base logger value is still unchanged if later code keeps using it directly.
 
 #### When Build Child Loggers For Subsystems
 
@@ -80,4 +83,6 @@ e.g.:
 1. Use this for stable metadata, not highly dynamic event-specific values.
 
 2. Prefer `fields([("k", "v")])` when you want a more ergonomic call site.
+
+3. Use `bind(...)` when you want the same behavior with a shorter, library-style call name.
 
