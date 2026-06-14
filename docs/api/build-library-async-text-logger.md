@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This API delegates to `build_async_text_logger(...)` and then narrows the result to `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]`.
 - It always produces a concrete `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of branching on sink kinds.
+- That means even if `config.logger.sink.kind` says `Console`, `JsonConsole`, or `File`, this facade still follows the text-console path and uses only the configured `text_formatter` details.
 - Unlike `build_library_async_logger(...)`, this facade does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - A sync queue configured on `LoggerConfig.queue` is therefore ignored by this builder instead of being preserved behind the wrapped text-console async logger.
@@ -67,6 +68,8 @@ let logger = build_library_async_text_logger(
 
 In this example, the async text sink shape is preserved under the library facade.
 
+And the chosen builder path matters more than `config.logger.sink.kind`: this facade still uses the text formatter directly because it always builds a `FormattedConsoleSink` before narrowing to `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]`.
+
 #### When Need Async State Helpers After Library Text Construction
 
 When library-facing text-console construction should still allow internal async inspection later:
@@ -94,6 +97,8 @@ And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's
 
 e.g.:
 - If callers need sink-kind-driven branching such as JSON console or file-backed async output, they should use `build_library_async_logger(...)` instead.
+
+- If the config carries file-oriented fields such as `path` only because `sink.kind` was set to `File`, this facade still ignores that sink-kind choice and does not create a file-backed async logger.
 
 - If callers expect async state or idle-wait helpers directly on the returned facade, they must unwrap first with `to_async_logger()`.
 

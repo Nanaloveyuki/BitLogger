@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This API delegates to `build_async_text_logger(...)` directly.
 - It is intended for config-driven async text console output where callers want the concrete text sink shape rather than the broader runtime sink enum wrapper.
 - The builder always creates a `FormattedConsoleSink` from `config.logger.sink.text_formatter` instead of selecting among sink kinds.
+- That means even if `config.logger.sink.kind` says `Console`, `JsonConsole`, or `File`, this facade still follows the text-console path and uses only the configured `text_formatter` details.
 - Unlike `build_application_async_logger(...)`, this alias-oriented builder does not go through the full synchronous configured-logger build path first.
 - It uses the selected text-oriented `LoggerConfig` fields directly and therefore does not apply `LoggerConfig.queue` or preserve sync runtime sink controls.
 - A sync queue configured on `LoggerConfig.queue` is therefore ignored by this builder instead of being preserved under the returned async logger.
@@ -69,6 +70,8 @@ let logger = build_application_text_async_logger(
 
 In this example, the async logger is built for text-console output specifically.
 
+And the chosen builder path matters more than `config.logger.sink.kind`: this facade still uses the text formatter directly because it always builds a `FormattedConsoleSink`.
+
 And the returned value keeps the ordinary async logger target semantics because this facade does not wrap or narrow the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
 
 #### When Need A Per-call Target Override After App Text Construction
@@ -98,6 +101,8 @@ In this example, the application text alias exposes async state helpers directly
 
 e.g.:
 - If callers need sink-kind-driven branching such as JSON console or file-backed async output, they should use `build_application_async_logger(...)` instead.
+
+- If the config carries file-oriented fields such as `path` only because `sink.kind` was set to `File`, this facade still ignores that sink-kind choice and does not create a file-backed async logger.
 
 - If runtime draining is never started, records still follow the normal async queue lifecycle rules.
 
