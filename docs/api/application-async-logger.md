@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - The alias therefore keeps the same runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
 - In the current direct alias coverage, values built through `build_application_async_logger(...)` keep the same serialized state snapshot shape, queue counters, lifecycle flags, failure fields, and runtime-sink helper surface that the underlying runtime-sink async logger exposes directly.
 - That includes queued runtime-sink behavior and file-backed runtime helpers when the configured sink path supports them.
+- Those helpers remain directly callable on `ApplicationAsyncLogger` itself; callers do not need an unwrap step to reach queue counters, lifecycle state, or `RuntimeSink` file helpers.
 - The alias exists to give application boot code a clearer public type name for the standard runtime-sink async logger.
 - Builders such as `build_application_async_logger(...)` and `parse_and_build_application_async_logger(...)` return this alias.
 
@@ -68,6 +69,18 @@ async fn start_async(logger : ApplicationAsyncLogger) -> Unit {
 In this example, callers see the app-facing alias instead of the more explicit generic async logger spelling, while `run()` keeps its async calling contract.
 
 And the inherited async logger target rules stay the same: `log(..., target=...)` can override the target per call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+#### When Need Direct Async Runtime Helpers On The Application Alias
+
+When app code should inspect queue or file-backed runtime state without leaving the alias surface:
+```moonbit
+ignore(logger.pending_count())
+ignore(logger.state())
+```
+
+In this example, lifecycle and queue helpers are called directly on `ApplicationAsyncLogger`.
+
+And unlike `LibraryAsyncLogger[@bitlogger.RuntimeSink]`, no `to_async_logger()` unwrap is required first.
 
 #### When Need A One-call Target Override Without Rebuilding The Alias
 

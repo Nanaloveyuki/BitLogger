@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 - In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - Like the underlying synchronous logger line, `with_context_fields(...)` and `bind(...)` do not preserve the alias spelling. They return a `Logger[ContextSink[RuntimeSink]]` shape because sync shared-field binding extends the sink pipeline instead of storing extra alias-level context metadata.
 - Because this is only an alias, the application-facing type does not hide any configured-runtime helpers or broader logger surface.
+- That means queue, drain, flush, and file runtime helpers remain directly callable on `ApplicationLogger` itself; callers do not need an unwrap step to reach the underlying configured runtime logger behavior.
 - The alias exists to give application boot code a clearer public entry name.
 - Builders such as `build_application_logger(...)` and `parse_and_build_application_logger(...)` return this alias.
 
@@ -63,6 +64,18 @@ fn start(logger : ApplicationLogger) -> Unit {
 In this example, callers see the app-facing alias instead of the lower-level `ConfiguredLogger` name.
 
 And the same queue/file/runtime helpers remain directly callable because no narrowing wrapper is added.
+
+#### When Need Direct Runtime Helpers On The Application Alias
+
+When app code should inspect queue state or file controls without leaving the alias surface:
+```moonbit
+ignore(logger.pending_count())
+ignore(logger.flush())
+```
+
+In this example, the runtime helpers are called directly on `ApplicationLogger`.
+
+And unlike `LibraryLogger[RuntimeSink]`, no `to_logger()` unwrap is required first.
 
 And the inherited logger target rules stay the same: `log(..., target=...)` can override the target per call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
