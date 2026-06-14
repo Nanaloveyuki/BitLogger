@@ -28,13 +28,16 @@ pub fn[S] Logger::with_patch(self : Logger[S], patch : RecordPatch) -> Logger[Pa
 
 #### output
 
-- `Logger[PatchSink[S]]` - A new logger that rewrites emitted records.
+- `Logger[PatchSink[S]]` - A new logger value whose visible sink type becomes `PatchSink[S]` and rewrites emitted records.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - Patches can rewrite `target`, `message`, and `fields` because they receive the full `Record`.
+- The original logger is not mutated; a derived wrapped logger is returned.
+- The returned logger changes visible type from `Logger[S]` to `Logger[PatchSink[S]]` because the sink pipeline is extended with record transformation.
+- Stored target, minimum level, and timestamp behavior are preserved while the sink pipeline changes.
 - This API does not change logging level gating; level checks still happen at the logger level.
 - `compose_patches(...)` can be used to build ordered patch pipelines.
 - This is the correct place for redaction, enrichment, and message prefixing.
@@ -54,6 +57,8 @@ let logger = Logger::new(console_sink(), target="auth")
 In this example, matching field values are replaced before the sink sees them.
 
 And caller code does not need custom redaction logic per log call.
+
+The returned logger still uses the same ordinary synchronous logging calls; only the sink path now includes patching.
 
 #### When Need Combined Enrichment And Message Rewrite
 
@@ -80,4 +85,6 @@ e.g.:
 1. Use patches for transformation, not filtering decisions.
 
 2. Prefer helper patches such as `prefix_message(...)`, `append_fields(...)`, and `redact_fields(...)` for common cases.
+
+3. Use a derived logger value when one path should rewrite records and another should keep the original sink behavior unchanged.
 
