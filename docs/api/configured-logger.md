@@ -34,6 +34,8 @@ Detailed rules explaining key parameters and behaviors
 - Because it is `Logger[RuntimeSink]`, it also keeps ordinary logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - It also exposes configured runtime helpers such as `flush()`, `drain()`, `pending_count()`, `dropped_count()`, and file-specific controls when the runtime sink supports them.
+- Because `ConfiguredLogger` is only an alias over `Logger[RuntimeSink]`, ordinary sync composition helpers such as `with_target(...)`, `child(...)`, `with_timestamp(...)`, `with_filter(...)`, and `with_patch(...)` keep the same visible runtime-sink logger line rather than stripping away the configured helper surface.
+- In current direct builder coverage, derived configured loggers still preserve queue counters, drain or flush behavior, runtime sink variant choice, and file helper access instead of collapsing back to a narrower non-runtime shape.
 - Builders such as `build_logger(...)` and `parse_and_build_logger(...)` return this alias as the main sync config-to-runtime result.
 - `ApplicationLogger` is another direct alias-oriented name for this same configured runtime surface, while `LibraryLogger[RuntimeSink]` is the narrowing facade variant that intentionally hides these runtime helpers until `to_logger()` is used.
 
@@ -61,6 +63,8 @@ ignore(logger.pending_count())
 In this example, the alias keeps ordinary logging calls while still exposing runtime diagnostics.
 
 And the inherited logger target rules stay unchanged: `log(..., target=...)` can override the target per call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+And later derived values such as `logger.child("worker")` or `logger.with_patch(...)` still keep the runtime helper surface because the configured logger line is only being recomposed, not narrowed or rebuilt into a different facade.
 
 #### When Need A One-call Target Override On The Configured Runtime Logger
 
