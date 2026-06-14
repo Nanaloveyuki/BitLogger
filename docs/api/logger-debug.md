@@ -37,7 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `log(Level::Debug, ...)`.
 - Debug logging is useful for development diagnostics that are usually too verbose for normal production visibility.
-- Per-call target override is not exposed here; use `log(...)` for that level of control.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - All logger wrappers remain active exactly as they would for the base `log(...)` path.
 
 ### How to Use
@@ -61,6 +61,10 @@ logger.debug("session loaded", fields=[field("user_id", "42")])
 ```
 
 In this example, the logger emits structured state without using the fully explicit `log(...)` form.
+
+And any shared context already carried by the logger still participates through the sink pipeline.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
