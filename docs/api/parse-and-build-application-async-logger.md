@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - The embedded `LoggerConfig` is then built through the normal synchronous config path before the outer async layer is applied.
 - Any optional synchronous queue layer and runtime-sink controls from the parsed `logger` section remain active under the returned async logger.
 - That includes preserving a parsed sync queue configuration inside the resulting `RuntimeSink` variant rather than collapsing it away during application-alias construction.
+- It also means the parsed `logger.sink.kind` had already selected the concrete `RuntimeSink` variant before the application alias reused that built async logger value.
 - Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path returns the same underlying async logger value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce, without narrowing the helper surface.
 - That preserved async helper surface also remains directly exposed on the returned alias rather than being rebuilt or hidden behind an unwrap step.
 - The returned logger keeps the full async lifecycle and state helpers directly.
@@ -102,6 +103,8 @@ e.g.:
 - If the embedded config is invalid, parsing raises before the async facade is returned.
 
 - If callers depend on file-backed runtime helpers, they can use them directly on the returned logger because this parse/build alias does not replace the underlying runtime-sink helper surface.
+
+- If callers depend on queued or file-backed runtime behavior, they should read this facade as preserving the already-built `RuntimeSink` result from the parsed sync-first builder path, not as recomputing sink selection at the alias layer.
 
 ### Notes
 
