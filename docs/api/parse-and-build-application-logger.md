@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - JSON parsing and config validation happen before the logger is built.
 - The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this parse-and-build path returns the same underlying configured runtime logger value that `parse_and_build_logger(...)` would produce directly, without hiding any queue, drain, flush, or file runtime helper methods.
+- That preserved configured runtime helper surface also remains directly exposed on the returned alias rather than being rebuilt or hidden behind an unwrap step.
 - The returned alias also keeps inherited `Logger` behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Use `parse_and_build_library_logger(...)` instead when the same parsed configured logger result should be wrapped and narrowed for a library boundary.
@@ -59,6 +60,8 @@ let logger = parse_and_build_application_logger(
 In this example, parsing and runtime construction are combined into one facade call.
 
 And any queue/file/runtime helpers selected by the parsed config remain directly available on the returned alias value.
+
+And unlike `parse_and_build_library_logger(...)`, no `to_logger()` unwrap is required to reach that helper surface.
 
 The returned value also keeps the ordinary logger target semantics because this facade does not wrap or narrow the configured runtime logger result.
 

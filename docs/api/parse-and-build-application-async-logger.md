@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - Any optional synchronous queue layer and runtime-sink controls from the parsed `logger` section remain active under the returned async logger.
 - That includes preserving a parsed sync queue configuration inside the resulting `RuntimeSink` variant rather than collapsing it away during application-alias construction.
 - Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path returns the same underlying async logger value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce, without narrowing the helper surface.
+- That preserved async helper surface also remains directly exposed on the returned alias rather than being rebuilt or hidden behind an unwrap step.
 - The returned logger keeps the full async lifecycle and state helpers directly.
 - The returned logger also keeps the ordinary async logger target rules unchanged: `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - In the current parsed-builder coverage, that direct equivalence also holds for serialized async state snapshots, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after worker execution.
@@ -63,6 +64,8 @@ let logger = parse_and_build_application_async_logger(
 In this example, text parsing and async logger construction happen in one facade call.
 
 And any configured synchronous runtime sink controls remain available through the returned `RuntimeSink`-backed async logger.
+
+And unlike `parse_and_build_library_async_logger(...)`, no `to_async_logger()` unwrap is required to reach queue, lifecycle, or file-backed runtime helpers.
 
 #### When Need Async State Helpers After JSON-driven App Construction
 

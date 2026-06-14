@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - Any optional synchronous queue layer and runtime-sink controls chosen by `build_logger(config.logger)` remain active under the returned logger.
 - In particular, a sync queue configured on `LoggerConfig.queue` is preserved inside the wrapped `RuntimeSink` variant instead of being stripped away by the application alias.
 - Because the result is only the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this builder does not hide any async helpers or introduce a wrapper layer.
+- The broader async helper surface is therefore preserved and directly exposed on the returned alias rather than being rebuilt or hidden behind an unwrap step.
 - The returned alias also keeps inherited async logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
 - It also keeps the same queue counters, failure state, sink shape, and runtime-dependent post-close behavior as the underlying runtime-sink async logger.
@@ -66,6 +67,8 @@ let logger = build_application_async_logger(
 In this example, the app-facing async facade is built directly from typed config.
 
 And any configured synchronous runtime sink controls remain available through the returned `RuntimeSink`-backed async logger.
+
+And unlike `build_library_async_logger(...)`, no `to_async_logger()` unwrap is required to reach queue, lifecycle, or file-backed runtime helpers.
 
 The returned value also keeps the ordinary async logger target semantics because the facade does not wrap or narrow the underlying `AsyncLogger[@bitlogger.RuntimeSink]`.
 
