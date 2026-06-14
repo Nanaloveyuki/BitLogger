@@ -27,7 +27,7 @@ pub fn parse_async_logger_build_config_text(input : String) -> AsyncLoggerBuildC
 
 #### output
 
-- `AsyncLoggerBuildConfig` - Typed build config ready for `build_async_logger(...)` or `build_async_text_logger(...)`, with the same parsed shape feeding two distinct builder paths.
+- `AsyncLoggerBuildConfig` - Typed build config ready for the direct async builders or the application/library facade builders, with the same parsed shape feeding distinct runtime-sink and text-console build paths.
 
 ### Explanation
 
@@ -43,6 +43,8 @@ Detailed rules explaining key parameters and behaviors
 - When the parsed config is later passed to `build_async_logger(...)`, the embedded `logger` section goes through the normal sync builder path first, including optional `LoggerConfig.queue` handling.
 - When the same parsed config is passed to `build_async_text_logger(...)`, only `logger.sink.text_formatter` plus the top-level `min_level`, `target`, and `timestamp` fields are consumed directly, so the sync queue layer is not applied.
 - On that text-specific path, the parsed `logger.sink.kind` value also does not decide the runtime sink shape. `build_async_text_logger(...)` still constructs a `FormattedConsoleSink` from `logger.sink.text_formatter` even if the parsed kind said `Console`, `JsonConsole`, or `File`.
+- The same parsed object can also be handed unchanged to `build_application_async_logger(...)`, `build_application_text_async_logger(...)`, `build_library_async_logger(...)`, or `build_library_async_text_logger(...)`.
+- The higher-level parse/build facade helpers are simple compositions over this parser. `parse_and_build_application_async_logger(...)` parses with this API and then forwards into `build_application_async_logger(...)`, while `parse_and_build_library_async_logger(...)` parses with this API and then forwards into `build_library_async_logger(...)`.
 
 ### How to Use
 
@@ -61,6 +63,8 @@ let logger = build_async_logger(config)
 In this example, parsing and runtime construction remain separate and testable.
 
 And the later builder choice determines whether the parsed sync queue settings participate in construction.
+
+And that same parsed value can also flow into the application or library facade builders when code wants a narrower public async type instead of the direct builder result.
 
 #### When Need Parsed Async Text Console Setup
 
@@ -99,6 +103,8 @@ e.g.:
 
 - In particular, parsing `sink.kind="File"` does not force the later text-specific builder path to create a file sink; only the full `build_async_logger(...)` path branches on sink kind.
 
+- Choosing an application or library facade builder later does not change these parsed config semantics by itself; those facade APIs inherit the same runtime-sink-versus-text-console split from the direct builder they delegate to.
+
 ### Notes
 
 1. Use this API when async build config is stored as JSON.
@@ -108,4 +114,6 @@ e.g.:
 3. Use `build_async_logger(...)` after parsing when the full sync config path should be preserved before async wrapping.
 
 4. Use `build_async_text_logger(...)` after parsing when callers specifically want config-driven text console output with a concrete `FormattedConsoleSink`.
+
+5. Use the application or library facade builders after parsing when the same validated config should feed a narrower public async type without changing which direct builder semantics are applied underneath.
 
