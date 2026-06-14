@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The facade keeps common library-safe async operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, `run()`, `shutdown()`, and the main async write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
 - `LibraryAsyncLogger::new(...)` delegates to `async_logger(...)`, so the same async queue, raising flush callback, and runtime-dependent lifecycle behavior still exist behind the narrower facade.
 - The facade also preserves the wrapped async logger's target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derives another logger with `with_target(...)` or `child(...)`.
+- Most facade reshaping helpers keep the same visible sink type, and unlike synchronous `LibraryLogger`, async `with_context_fields(...)` and `bind(...)` also preserve the visible `LibraryAsyncLogger[S]` type because they update stored async context metadata instead of changing the exposed sink wrapper.
 - It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
 - That recovered logger is the same live async value, so queue counters, retained failure state, runtime-dependent shutdown outcomes, and sink helper access are preserved rather than recomputed.
@@ -66,6 +67,17 @@ logger.log(@bitlogger.Level::Error, "boom", target="lib.async.audit")
 In this example, the emitted record uses `lib.async.audit` only for that one call.
 
 And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
+
+#### When Need Shared Async Context Without Changing The Visible Facade Type
+
+When package code should attach stable metadata but still keep the same visible `LibraryAsyncLogger[S]` shape:
+```moonbit
+let request_logger = logger.bind([@bitlogger.field("request_id", "req-42")])
+```
+
+In this example, later writes automatically prepend `request_id`.
+
+And unlike synchronous `LibraryLogger`, the returned async facade still has the visible type `LibraryAsyncLogger[S]` rather than a different sink wrapper spelling.
 
 #### When Need To Recover The Full Async Logger Later
 
