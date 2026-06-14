@@ -39,6 +39,8 @@ Detailed rules explaining key parameters and behaviors
 - Async inspection helpers and broader composition APIs remain on the underlying `AsyncLogger[S]` and are intentionally hidden until `to_async_logger()` is used again.
 - If later facade-level `run()` or `shutdown()` calls record worker failure, leave backlog behind, or follow runtime-dependent shutdown cleanup rules, unwrapping later still exposes that same post-call state instead of a translated facade copy.
 - When `S` itself exposes richer runtime helpers, projecting to the library facade does not strip those capabilities from the wrapped logger; they are still reachable after `to_async_logger()`.
+- When `S` is `RuntimeSink`, projection also preserves queued runtime state and file-backed runtime helper behavior behind the facade instead of replacing them with a library-specific copy.
+- Unwrapping later with `to_async_logger()` therefore exposes the same queue counters, failure snapshots, file state, and runtime file controls that the original async logger already carried.
 
 ### How to Use
 
@@ -75,6 +77,8 @@ e.g.:
 - If callers later need state helpers such as `pending_count()` or `state()`, they must unwrap again with `to_async_logger()`.
 
 - Projection does not normalize failure snapshots; a later unwrap can still show combinations such as retained `last_error()` with remaining `pending_count()` when the wrapped async logger really ended up in that state.
+
+- Projection also does not normalize richer runtime sink state; if the original async logger already carried queued runtime data or file-backed helper state, a later unwrap still exposes that same live state.
 
 ### Notes
 

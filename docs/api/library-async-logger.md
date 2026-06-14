@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
 - That recovered logger is the same live async value, so queue counters, retained failure state, runtime-dependent shutdown outcomes, and sink helper access are preserved rather than recomputed.
+- If `S` is `RuntimeSink`, queued runtime state and file-backed helper behavior also stay on that same wrapped logger value; the facade only hides direct access until `to_async_logger()` is used.
 
 ### How to Use
 
