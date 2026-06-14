@@ -126,25 +126,40 @@ const groupCount = computed(() => docsData.api.groups.length)
 }
 
 .hub-chip-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 0.7rem;
 }
 
 .hub-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.65rem;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 56px;
+  gap: 0.8rem;
   padding: 0.7rem 0.9rem;
   border-radius: 999px;
   text-decoration: none;
   color: inherit;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(155, 77, 40, 0.14);
+  box-sizing: border-box;
+}
+
+.hub-chip span {
+  min-width: 0;
 }
 
 .hub-chip small {
+  flex: 0 0 auto;
   color: var(--vp-c-text-2);
+}
+
+@media (max-width: 640px) {
+  .hub-chip-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .hub-link-list {
