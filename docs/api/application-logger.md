@@ -33,6 +33,7 @@ Detailed rules explaining key parameters and behaviors
 - It preserves the same logging, queue, and file helper APIs exposed by `ConfiguredLogger`.
 - Because `ConfiguredLogger` is itself `Logger[RuntimeSink]`, the alias also keeps ordinary logger composition and write behavior such as `with_target(...)`, `child(...)`, and `log(..., target=...)`.
 - In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
+- Like the underlying synchronous logger line, `with_context_fields(...)` and `bind(...)` do not preserve the alias spelling. They return a `Logger[ContextSink[RuntimeSink]]` shape because sync shared-field binding extends the sink pipeline instead of storing extra alias-level context metadata.
 - Because this is only an alias, the application-facing type does not hide any configured-runtime helpers or broader logger surface.
 - The alias exists to give application boot code a clearer public entry name.
 - Builders such as `build_application_logger(...)` and `parse_and_build_application_logger(...)` return this alias.
@@ -75,6 +76,17 @@ logger.log(Level::Error, "boom", target="app.audit")
 In this example, the emitted record uses `app.audit` only for that one call.
 
 And later `info(...)`, `warn(...)`, or `error(...)` calls still use the alias value's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+#### When Need Shared Context On The Sync Application Alias
+
+When app-level sync code should attach stable metadata to later records:
+```moonbit
+let contextual = logger.with_context_fields([field("service", "billing")])
+```
+
+In this example, the returned value has the visible type `Logger[ContextSink[RuntimeSink]]` rather than the alias name `ApplicationLogger`.
+
+And that type-shape change is expected because sync context binding extends the sink pipeline.
 
 ### Error Case
 

@@ -33,6 +33,7 @@ Detailed rules explaining key parameters and behaviors
 - It preserves the same async lifecycle helpers such as `run()`, `shutdown()`, `pending_count()`, and `state()`.
 - Because it is `AsyncLogger[@bitlogger.RuntimeSink]`, the alias also keeps ordinary async logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
+- Unlike the synchronous application alias, async `with_context_fields(...)` and `bind(...)` preserve the visible `ApplicationAsyncLogger` shape because shared fields are stored directly on the async logger value instead of being modeled as a separate sink wrapper.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.RuntimeSink]` remain async here as well.
 - The alias therefore keeps the same runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
 - In the current direct alias coverage, values built through `build_application_async_logger(...)` keep the same serialized state snapshot shape, queue counters, lifecycle flags, failure fields, and runtime-sink helper surface that the underlying runtime-sink async logger exposes directly.
@@ -78,6 +79,17 @@ logger.log(@bitlogger.Level::Error, "boom", target="app.async.audit")
 In this example, the emitted record uses `app.async.audit` only for that one call.
 
 And later `info(...)`, `warn(...)`, or `error(...)` calls still use the alias value's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+#### When Need Shared Context On The Async Application Alias
+
+When app-level async code should attach stable metadata to later queued records:
+```moonbit
+let contextual = logger.with_context_fields([@bitlogger.field("service", "billing")])
+```
+
+In this example, the returned value still has the visible type `ApplicationAsyncLogger`.
+
+And that shape preservation is intentional because async context binding updates stored logger metadata instead of changing the exposed sink type.
 
 ### Error Case
 
