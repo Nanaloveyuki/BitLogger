@@ -39,8 +39,9 @@ Detailed rules explaining key parameters and behaviors
 
 - `log(...)` checks `is_enabled(level)` before creating a record or touching the queue.
 - Lower-severity records below `min_level` are skipped before enqueue.
-- This API replaces the logger threshold and does not alter queue configuration.
-- The returned logger keeps the same sink, target, and timestamp settings.
+- The returned logger is derived from `self`; the original async logger value is not mutated.
+- This API replaces the stored threshold and does not alter queue configuration.
+- Only `min_level` changes. Sink, target, timestamp flag, and lifecycle/failure state stay on the same `AsyncLogger[S]` surface.
 - In the current direct async coverage, the derived logger reports the new threshold through `is_enabled(...)`, while the original logger keeps its previous minimum level and still accepts records that remain enabled there.
 
 ### How to Use
@@ -56,6 +57,8 @@ let logger = async_logger(console_sink())
 ```
 
 In this example, lower-severity records are skipped before queue pressure increases.
+
+And the returned async logger still keeps the same queue-facing API surface as the source logger.
 
 #### When Derive A More Verbose Async Branch
 
@@ -80,4 +83,6 @@ e.g.:
 
 2. Use it before adding more complex async filtering rules.
 
-3. Use a derived logger value when one branch should tighten the threshold and the base async logger should keep its broader level gate.
+3. State helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, and `has_failed()` remain available on the returned logger because the visible async logger surface is preserved.
+
+4. Use a derived logger value when one branch should tighten the threshold and the base async logger should keep its broader level gate.
