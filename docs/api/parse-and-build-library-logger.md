@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - The returned facade wraps the same underlying `ConfiguredLogger` value that `parse_and_build_logger(...)` would produce directly.
 - The returned facade keeps a narrower surface than the underlying configured logger.
+- The facade still preserves the underlying logger target rules on its exposed write methods: `log(..., target=...)` can override the target for one write, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - Queue metrics, flush and drain helpers, and file runtime controls stay on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - `to_logger()` can be used to recover the underlying full logger object when necessary.
 - Use this parse/build facade when text-driven construction should preserve the configured runtime logger path but still hide broader runtime helper methods at the package boundary.
@@ -72,6 +73,20 @@ ignore(full.sink.pending_count())
 In this example, the caller unwraps the library facade before using runtime-specific helpers through the preserved `RuntimeSink` value.
 
 And the unwrapped value still reflects the same `RuntimeSink` pipeline built from the parsed config text.
+
+#### When Need A Per-call Target Override Through The Library Facade
+
+When parsed library configuration should still allow a one-write target override without unwrapping first:
+```moonbit
+let logger = parse_and_build_library_logger(raw) catch {
+  err => return
+}
+logger.log(Level::Error, "boom", target="lib.audit")
+```
+
+In this example, the emitted record uses `lib.audit` for that write.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 

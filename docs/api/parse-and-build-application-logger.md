@@ -40,6 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - Because the result is only the `ApplicationLogger` alias over `ConfiguredLogger`, this parse-and-build path returns the same underlying configured runtime logger value that `parse_and_build_logger(...)` would produce directly, without hiding any queue, drain, flush, or file runtime helper methods.
 - The returned alias also keeps inherited `Logger` behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
+- That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Use `parse_and_build_library_logger(...)` instead when the same parsed configured logger result should be wrapped and narrowed for a library boundary.
 
 ### How to Use
@@ -60,6 +61,20 @@ In this example, parsing and runtime construction are combined into one facade c
 And any queue/file/runtime helpers selected by the parsed config remain directly available on the returned alias value.
 
 The returned value also keeps the ordinary logger target semantics because this facade does not wrap or narrow the configured runtime logger result.
+
+#### When Need A Per-call Target Override After JSON Boot
+
+When parsed app configuration should keep the same direct target override behavior as the ordinary configured logger:
+```moonbit
+let logger = parse_and_build_application_logger(raw) catch {
+  err => return
+}
+logger.log(Level::Error, "boom", target="app.audit")
+```
+
+In this example, the emitted record uses `app.audit` for that call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
