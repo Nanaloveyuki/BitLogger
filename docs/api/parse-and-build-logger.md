@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - Parsing and building are done in one step by calling `parse_logger_config_text(input)` first and then passing the resulting `LoggerConfig` into `build_logger(...)`.
 - The returned `ConfiguredLogger` is just `Logger[RuntimeSink]`, so it still supports regular logging calls.
 - The returned logger also keeps inherited logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
+- That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Queue wrapping and file control helpers remain available after config assembly.
 - `parse_and_build_application_logger(...)` only re-exports this same configured runtime logger result under the `ApplicationLogger` alias, while `parse_and_build_library_logger(...)` wraps the same result in `LibraryLogger[RuntimeSink]`.
 - Errors are surfaced as `ConfigError` rather than silent fallback.
@@ -61,6 +62,20 @@ let logger = parse_and_build_logger(
 In this example, config parsing and logger construction happen in one place.
 
 And the resulting value can immediately emit logs with the same ordinary logger target semantics as any other `Logger` value.
+
+#### When Need A Per-call Target Override After Config Parsing
+
+When parsed runtime config should still allow a one-write target override:
+```moonbit
+let logger = parse_and_build_logger(raw) catch {
+  err => return
+}
+logger.log(Level::Error, "boom", target="api.audit")
+```
+
+In this example, the emitted record uses `api.audit` for that write.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 #### When Need Config-built File Or Queue Controls
 
