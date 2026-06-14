@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `info(...)` on the wrapped async logger, which in turn uses `log(Level::Info, ...)`.
 - The record is still subject to min-level gating, stored shared context fields, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - `Info` is often the default operational logging level for async application events.
 - Use this helper when explicit info intent is clearer than a raw `log(...)` call.
 - Async state helpers remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
@@ -71,6 +72,8 @@ logger.info(
 In this example, the record remains concise while still carrying useful metadata.
 
 And any shared context fields already stored on the facade are still prepended before these per-call fields.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
