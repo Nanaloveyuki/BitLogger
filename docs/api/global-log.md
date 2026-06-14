@@ -36,6 +36,7 @@ pub fn log(level : Level, message : String, fields~ : Array[Field] = []) -> Unit
 Detailed rules explaining key parameters and behaviors
 
 - The function calls `default_logger().log(level, message, fields=fields)`.
+- Each call therefore reads the current shared default threshold and target at write time instead of holding one long-lived logger value internally.
 - It uses the shared console sink and the current global default threshold and target.
 - Per-call target override is not exposed by this global shortcut.
 - This helper is most useful when convenience matters more than explicit logger ownership.
@@ -52,6 +53,8 @@ log(Level::Info, "service started")
 ```
 
 In this example, the shared default logger handles the record without requiring an explicit logger variable.
+
+If `set_default_min_level(...)` or `set_default_target(...)` changes later, future `log(...)` calls will observe those updated shared defaults automatically.
 
 #### When Attach Structured Metadata Globally
 
@@ -73,5 +76,7 @@ e.g.:
 
 1. This API is convenient but intentionally less configurable than an explicit logger value.
 
-2. Prefer explicit loggers when different subsystems need different sink or target behavior.
+2. Future calls pick up later shared-default changes because the helper forwards through a fresh `default_logger()` each time.
+
+3. Prefer explicit loggers when different subsystems need different sink or target behavior.
 
