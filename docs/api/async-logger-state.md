@@ -41,6 +41,7 @@ Detailed rules explaining key parameters and behaviors
 - Because the snapshot is assembled field by field when `state()` is called, later logger changes require calling `state()` again rather than reusing an older `AsyncLoggerState` value as if it refreshed itself.
 - That field-by-field assembly also means this helper is not an atomic freeze across all refs; under concurrent logger activity, neighboring fields can reflect slightly different instants.
 - After a worker failure, `has_failed=true`, a non-empty `last_error`, and `pending_count>0` can legitimately appear together in one snapshot until later cleanup or a later started `run()` changes them.
+- After shutdown cleanup on an already failed logger, snapshots can also legitimately show `is_closed=true` together with retained `has_failed=true` and the same `last_error()`, while `pending_count` versus `dropped_count` still reflects the active runtime's cleanup path.
 - `state()` only reports the current field values; it does not clear failure state, drain backlog, or synchronize pending work by itself.
 
 ### How to Use
@@ -85,6 +86,8 @@ e.g.:
 - If concurrent logger activity is still changing counters or flags while `state()` runs, the returned value is still useful for diagnostics but should not be treated as a transactional snapshot.
 
 - A snapshot showing `has_failed=true` does not imply `pending_count` is already `0`; remaining queued records may still be visible until later cleanup or restart.
+
+- A snapshot showing `is_closed=true` also does not imply failure state was cleared; after failure-driven shutdown, `has_failed=true` and the recorded `last_error` can still remain visible until a later `run()` actually restarts the logger.
 
 ### Notes
 
