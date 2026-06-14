@@ -2,8 +2,8 @@
 name: library-async-logger-log
 group: api
 category: facade
-update-time: 20260613
-description: Enqueue a record through a LibraryAsyncLogger facade with explicit level, message, fields, and optional target override.
+update-time: 20260614
+description: Enqueue a record through a LibraryAsyncLogger facade with explicit level, message, fields, and optional target override by delegating to the wrapped async logger.
 key-word:
     - async
     - library
@@ -45,8 +45,10 @@ Detailed rules explaining key parameters and behaviors
 
 - This method delegates directly to the wrapped async logger's `log(...)` behavior.
 - The logger checks `is_enabled(level)` before building a record.
-- Context fields, patch logic, and filter logic are applied before enqueue.
-- The narrower library facade does not change enqueue semantics; it only limits the visible API surface.
+- Stored shared context fields are prepended ahead of per-call `fields`, then patch and filter logic are applied before enqueue.
+- If `target` is empty, the logger uses its current default target; otherwise the provided per-call target overrides that default for this one write.
+- The narrower library facade does not change enqueue semantics, overflow handling, or runtime-dependent closed-on-log behavior; in particular, compatibility runtimes can short-circuit before patch and enqueue work, while native-worker runtimes may still reach wrapped record construction and then treat the closed queue as a non-accepted write. The facade only limits the visible API surface.
+- Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `has_failed()`, and `last_error()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 
 ### How to Use
 
@@ -56,7 +58,7 @@ Here are some specific examples provided.
 
 When library code should choose level, fields, and target per event:
 ```moonbit
-await logger.log(
+logger.log(
   @bitlogger.Level::Info,
   "worker started",
   fields=[@bitlogger.field("job", "sync")],
@@ -70,10 +72,24 @@ In this example, the call site controls every major record property while keepin
 
 When package code defines its own logging helpers:
 ```moonbit
-await logger.log(@bitlogger.Level::Warn, "slow request")
+logger.log(@bitlogger.Level::Warn, "slow request")
 ```
 
 In this example, `log(...)` acts as the shared primitive under custom library-facing wrappers.
+
+#### When Need Shared Context Plus Event-specific Fields
+
+When a facade already carries shared metadata but a single write needs additional detail:
+```moonbit
+let logger = base.with_context_fields([@bitlogger.field("service", "cache")])
+logger.log(
+  @bitlogger.Level::Info,
+  "entry refreshed",
+  fields=[@bitlogger.field("key", "user:42")],
+)
+```
+
+In this example, the stored shared fields remain in front of the per-call fields when the record is built.
 
 ### Error Case
 
@@ -82,8 +98,12 @@ e.g.:
 
 - If the logger is closed or overflow policy rejects the record, enqueue may not proceed as a normal accepted write.
 
+- If callers need to inspect queue or failure state after writing, they must unwrap first with `to_async_logger()`.
+
 ### Notes
 
 1. Use this API when the call site needs full control instead of a fixed severity helper.
 
 2. Prefer `info()`, `warn()`, `error()`, and the other shortcuts when only the level differs.
+
+3. Use the optional `target` argument when one write should temporarily override the facade's default target without rebuilding or rewrapping it.

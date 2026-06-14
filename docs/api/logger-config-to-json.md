@@ -35,6 +35,8 @@ Detailed rules explaining key parameters and behaviors
 
 - The output includes `min_level`, `target`, `timestamp`, `sink`, and optional `queue`.
 - Sink export is delegated to `sink_config_to_json(...)`.
+- Queue export is delegated to `queue_config_to_json(...)` only when `config.queue` is present; otherwise the `queue` field is omitted entirely.
+- `min_level` is serialized using `Level::label()`, so the emitted string follows the same stable config vocabulary accepted by the parser.
 - The result is suitable for downstream JSON composition as well as stringification.
 - Exported JSON follows the stable supported config schema rather than raw internal runtime state.
 
@@ -66,4 +68,10 @@ e.g.:
 - If `queue` is `None`, the exported JSON simply omits the queue field.
 
 - If some sink options are unused by the chosen sink kind, they still follow the supported config export shape rather than a runtime-only interpretation.
+
+### Notes
+
+1. Use this helper when you need a reusable JSON value rather than a final JSON string.
+
+2. Use `stringify_logger_config(...)` when the next consumer expects JSON text instead of `JsonValue`.
 

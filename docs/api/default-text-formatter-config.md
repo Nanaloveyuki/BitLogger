@@ -30,6 +30,7 @@ pub fn default_text_formatter_config() -> TextFormatterConfig {
 Detailed rules explaining key parameters and behaviors
 
 - This helper returns the same baseline config value used by `text_console(...)`, `file(...)`, and `SinkConfig::new(...)` defaults.
+- The implementation is exactly `TextFormatterConfig::new()`, so it stays aligned with the constructor defaults rather than duplicating a separate preset object.
 - It is a config object, not a runtime `TextFormatter`.
 - Call `to_formatter()` when a runtime formatter is needed.
 
@@ -58,3 +59,5 @@ e.g.:
 1. Use this helper for explicit config composition.
 
 2. Use `text_formatter(...)` when you want a runtime formatter directly.
+
+3. `parse_logger_config_text(...)` also falls back to this same baseline when a sink omits its nested `text_formatter` object.

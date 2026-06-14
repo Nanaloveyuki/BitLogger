@@ -2,8 +2,8 @@
 name: async-runtime-state-new
 group: api
 category: async
-update-time: 20260613
-description: Construct an AsyncRuntimeState snapshot from explicit runtime mode and worker-support values.
+update-time: 20260614
+description: Construct an AsyncRuntimeState snapshot from explicit runtime mode and worker-support values without probing or validating the live backend.
 key-word:
     - async
     - runtime
@@ -40,7 +40,10 @@ Detailed rules explaining key parameters and behaviors
 - This constructor simply packages `mode` and `background_worker` into one public snapshot value.
 - It does not query the current backend automatically.
 - `async_runtime_state()` is the higher-level API that reads these values from the live runtime environment.
+- It also does not validate whether the supplied pair matches the current backend contract.
+- The supplied `mode` and `background_worker` values are stored exactly as provided; this constructor does not recompute, normalize, or cross-check either field.
 - The constructed value matches the same public shape used by async runtime serializers.
+- Because `AsyncRuntimeState` is only a data snapshot type, this constructor is mainly useful for tests, adapters, and synthetic diagnostics rather than ordinary runtime probing.
 
 ### How to Use
 
@@ -73,8 +76,14 @@ e.g.:
 
 - If callers want the current backend snapshot directly, `async_runtime_state()` is the simpler API.
 
+- If callers manually pair `NativeWorker` with `false` or `Compatibility` with `true`, the constructor still accepts that snapshot because it does not enforce backend consistency.
+
+- If callers want the currently probed runtime pair instead of a synthetic one, they must pass `async_runtime_mode()` plus `async_runtime_supports_background_worker()` explicitly or use `async_runtime_state()`.
+
 ### Notes
 
 1. Use this helper when code should construct an `AsyncRuntimeState` value explicitly.
 
 2. Pair it with `AsyncLoggerState::new(...)` when assembling a full async logger snapshot by hand.
+
+3. Prefer `async_runtime_state()` when the goal is to report the actual current backend pair rather than an arbitrary constructed snapshot.

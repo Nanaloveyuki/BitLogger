@@ -2,8 +2,8 @@
 name: parse-async-logger-build-config-text
 group: api
 category: async
-update-time: 20260512
-description: Parse combined sync logger and async runtime JSON into a typed async build configuration.
+update-time: 20260614
+description: Parse combined sync logger and async runtime JSON into a typed async build configuration that can feed either the full async builder path or the specialized text-console builder path.
 key-word:
     - async
     - parse
@@ -23,11 +23,11 @@ pub fn parse_async_logger_build_config_text(input : String) -> AsyncLoggerBuildC
 
 #### input
 
-- `input : String` - JSON text containing `logger` and `async_config` sections.
+- `input : String` - JSON text that may contain `logger` and `async_config` sections.
 
 #### output
 
-- `AsyncLoggerBuildConfig` - Typed build config ready for `build_async_logger(...)` or `build_async_text_logger(...)`.
+- `AsyncLoggerBuildConfig` - Typed build config ready for the direct async builders or the application/library facade builders, with the same parsed shape feeding distinct runtime-sink and text-console build paths.
 
 ### Explanation
 
@@ -36,7 +36,15 @@ Detailed rules explaining key parameters and behaviors
 - The JSON root is split into `logger` and `async_config`.
 - `logger` reuses the same synchronous config schema parsed by `parse_logger_config_text(...)`.
 - `async_config` is parsed through `parse_async_logger_config_text(...)`.
+- If `logger` is omitted, parsing falls back to `default_logger_config()`.
+- If `async_config` is omitted, parsing falls back to `AsyncLoggerConfig::new()`.
+- When either section is present, that nested JSON value is re-stringified and passed through the existing sync or async parser helper rather than being reparsed by a separate schema implementation here.
 - This API separates validation from actual async runtime construction.
+- When the parsed config is later passed to `build_async_logger(...)`, the embedded `logger` section goes through the normal sync builder path first, including optional `LoggerConfig.queue` handling.
+- When the same parsed config is passed to `build_async_text_logger(...)`, only `logger.sink.text_formatter` plus the top-level `min_level`, `target`, and `timestamp` fields are consumed directly, so the sync queue layer is not applied.
+- On that text-specific path, the parsed `logger.sink.kind` value also does not decide the runtime sink shape. `build_async_text_logger(...)` still constructs a `FormattedConsoleSink` from `logger.sink.text_formatter` even if the parsed kind said `Console`, `JsonConsole`, or `File`.
+- The same parsed object can also be handed unchanged to `build_application_async_logger(...)`, `build_application_text_async_logger(...)`, `build_library_async_logger(...)`, or `build_library_async_text_logger(...)`.
+- The higher-level parse/build facade helpers are simple compositions over this parser. `parse_and_build_application_async_logger(...)` parses with this API and then forwards into `build_application_async_logger(...)`, while `parse_and_build_library_async_logger(...)` parses with this API and then forwards into `build_library_async_logger(...)`.
 
 ### How to Use
 
@@ -53,6 +61,24 @@ let logger = build_async_logger(config)
 ```
 
 In this example, parsing and runtime construction remain separate and testable.
+
+And the later builder choice determines whether the parsed sync queue settings participate in construction.
+
+And that same parsed value can also flow into the application or library facade builders when code wants a narrower public async type instead of the direct builder result.
+
+#### When Need Parsed Async Text Console Setup
+
+When JSON should drive async text-console output without the broader runtime sink wrapper:
+```moonbit
+let config = parse_async_logger_build_config_text(raw) catch {
+  err => return
+}
+let logger = build_async_text_logger(config)
+```
+
+In this example, the same parsed config object is reused, but the text-specific builder only applies the selected text-oriented logger fields.
+
+And that also means the later text-specific build step ignores the parsed sink-kind branch and still builds a text-console async logger from the formatter config.
 
 #### When Need To Inspect Async Build Config Before Use
 
@@ -73,9 +99,21 @@ e.g.:
 
 - If either `logger` or `async_config` contains invalid schema values, parsing fails through the underlying config parsers.
 
+- Successful parsing does not guarantee that every parsed `LoggerConfig` field will matter equally to every async builder; that depends on the chosen builder path.
+
+- In particular, parsing `sink.kind="File"` does not force the later text-specific builder path to create a file sink; only the full `build_async_logger(...)` path branches on sink kind.
+
+- Choosing an application or library facade builder later does not change these parsed config semantics by itself; those facade APIs inherit the same runtime-sink-versus-text-console split from the direct builder they delegate to.
+
 ### Notes
 
 1. Use this API when async build config is stored as JSON.
 
 2. Use `AsyncLoggerBuildConfig::new(...)` when assembling config directly in code.
+
+3. Use `build_async_logger(...)` after parsing when the full sync config path should be preserved before async wrapping.
+
+4. Use `build_async_text_logger(...)` after parsing when callers specifically want config-driven text console output with a concrete `FormattedConsoleSink`.
+
+5. Use the application or library facade builders after parsing when the same validated config should feed a narrower public async type without changing which direct builder semantics are applied underneath.
 

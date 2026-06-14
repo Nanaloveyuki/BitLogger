@@ -31,7 +31,7 @@ pub fn[S] AsyncLogger::with_filter(
 
 #### output
 
-- `AsyncLogger[S]` - A new async logger that only enqueues matching records.
+- `AsyncLogger[S]` - A new async logger value that only enqueues matching records.
 
 ### Explanation
 
@@ -39,8 +39,10 @@ Detailed rules explaining key parameters and behaviors
 
 - Filtering happens after record construction and patch application but before enqueue.
 - Existing filter logic is preserved and combined with the new predicate using logical `and`.
-- The original async logger is not mutated.
+- The returned logger is derived from `self`; the original async logger value is not mutated.
+- Only the stored filter pipeline changes. Target, minimum level, queue configuration, and lifecycle/failure state stay on the same `AsyncLogger[S]` surface.
 - Filtering avoids unnecessary queue pressure for records that should never be delivered.
+- In the current direct async coverage, derived filters can compose target, level, and message predicates together while the original logger still accepts writes according to its previous filter state.
 
 ### How to Use
 
@@ -55,6 +57,8 @@ let logger = async_logger(console_sink(), target="service")
 ```
 
 In this example, non-matching records are dropped before they reach the async queue.
+
+And the returned async logger still keeps the same queue-facing API surface as the source logger.
 
 #### When Combine Several Async Filter Rules
 
@@ -80,3 +84,7 @@ e.g.:
 1. Use this API for selection logic, not record mutation.
 
 2. Async filtering is especially useful when queue capacity should be reserved for high-value records.
+
+3. State helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, and `has_failed()` remain available on the returned logger because the visible async logger surface is preserved.
+
+4. Use a derived logger value when one branch should enforce extra filter rules and the base async logger should stay unchanged.

@@ -2,8 +2,8 @@
 name: stringify-async-logger-build-config
 group: api
 category: async
-update-time: 20260512
-description: Serialize AsyncLoggerBuildConfig into compact or pretty JSON text for export and diagnostics.
+update-time: 20260614
+description: Serialize AsyncLoggerBuildConfig into compact or pretty JSON text for export and diagnostics across both async builder paths.
 key-word:
     - async
     - build
@@ -40,7 +40,12 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human inspection.
 - This helper is built on top of `async_logger_build_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured async build-config export helper.
 - The output keeps `logger` and `async_config` as separate sections, matching supported parser input.
+- The serialized `logger` section preserves the full `LoggerConfig` shape, even though `build_async_text_logger(...)` later consumes only the selected text-oriented subset of that logger config.
+- That includes preserving whatever `logger.sink.kind` text is present in the config, even though the later text-specific builder path still ignores that sink-kind branch and constructs `FormattedConsoleSink` from `logger.sink.text_formatter`.
+- The serialized text is also the shared handoff format for the application and library facade routes after parse. `parse_async_logger_build_config_text(...)` can read this text back into `AsyncLoggerBuildConfig`, and that parsed value can then flow unchanged into `build_application_async_logger(...)`, `build_application_text_async_logger(...)`, `build_library_async_logger(...)`, or `build_library_async_text_logger(...)`.
+- Because of that, the text describes one shared build-config shape rather than committing the next consumer to one public async type. The later builder or facade API still decides whether the runtime-sink line or the text-console line is taken.
 
 ### How to Use
 
@@ -54,6 +59,12 @@ println(stringify_async_logger_build_config(AsyncLoggerBuildConfig::new(), prett
 ```
 
 In this example, the full build configuration is rendered as readable JSON.
+
+And the resulting text still describes a shared config object that can feed either async builder path later.
+
+And if later code chooses `build_async_text_logger(...)`, that choice still matters more than the serialized `logger.sink.kind` text because only the formatter-backed text path is consumed there.
+
+And the same serialized text can just as well be parsed and then routed into the application or library facade builders when the next consumer wants a narrower public async type.
 
 #### When Need Compact Generated Build Config
 
@@ -72,4 +83,20 @@ e.g.:
 - If callers need a `JsonValue` for further composition, they should use `async_logger_build_config_to_json(...)` instead.
 
 - If only one layer of config is required, this helper may be broader than necessary.
+
+- Choosing an application or library facade builder after parsing this text does not change the meaning of the serialized config by itself; those facade APIs inherit the same runtime-sink-versus-text-console split from the direct builder they delegate to.
+
+### Notes
+
+1. Use this helper when the async build shape should be logged or stored as text directly.
+
+2. Use `pretty=true` for review and diagnostics, or the default compact form for snapshots and transport.
+
+3. The serialized shape round-trips through `parse_async_logger_build_config_text(...)`, but the later builder choice still controls whether the full sync config path or only the text-oriented subset is consumed during construction.
+
+4. In particular, serialized `logger.sink.kind` text is descriptive config data, not a guarantee that the text-specific builder path will branch on that sink kind later.
+
+5. Use `async_logger_build_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
+
+6. After parsing, the same text can also feed the application or library facade builders; string export preserves one shared build-config shape, not a direct-builder-only route.
 

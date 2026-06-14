@@ -35,6 +35,8 @@ Detailed rules explaining key parameters and behaviors
 
 - The output includes `kind`, `path`, `append`, `auto_flush`, and `text_formatter`.
 - `rotation` is only included when present.
+- `kind` is serialized using the stable parser-facing sink labels such as `console`, `json_console`, `text_console`, and `file`.
+- `text_formatter` export is delegated to `text_formatter_config_to_json(...)`, so nested formatter settings follow the same config schema used elsewhere.
 - The exported shape is schema-oriented and shared by larger config export helpers.
 - This helper is especially useful when building larger config payloads manually.
 
@@ -66,4 +68,10 @@ e.g.:
 - If `rotation` is absent, it is simply omitted from the exported sink config.
 
 - If file-related fields are unused by the sink kind, they are still exported according to the stable config shape.
+
+### Notes
+
+1. Use this helper when you need a reusable JSON value rather than a final JSON string.
+
+2. `logger_config_to_json(...)` reuses this helper for the nested `sink` field.
 

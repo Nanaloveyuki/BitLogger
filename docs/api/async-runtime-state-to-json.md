@@ -2,8 +2,8 @@
 name: async-runtime-state-to-json
 group: api
 category: async
-update-time: 20260512
-description: Convert AsyncRuntimeState into a JSON value for runtime capability and mode diagnostics.
+update-time: 20260614
+description: Convert AsyncRuntimeState into a JSON value for runtime capability and mode diagnostics using the canonical mode labels and snapshot field names.
 key-word:
     - async
     - state
@@ -35,8 +35,11 @@ Detailed rules explaining key parameters and behaviors
 
 - The output includes `mode` and `background_worker`.
 - `mode` is serialized through `async_runtime_mode_label(...)`.
+- The compact serialized shape is `{"mode":"native_worker|compatibility","background_worker":true|false}`.
 - This helper focuses on runtime capabilities rather than queue counters or logger lifecycle flags.
 - The exported JSON is suitable for diagnostics endpoints and startup environment checks.
+- This helper serializes the provided `AsyncRuntimeState` exactly as given; it does not call `async_runtime_state()` or recheck backend capability by itself.
+- That means manually constructed runtime snapshots are exported unchanged, with `mode` relabeled through `async_runtime_mode_label(...)` and `background_worker` kept exactly as supplied.
 
 ### How to Use
 
@@ -66,4 +69,12 @@ e.g.:
 - If callers expect logger queue counters or failure status, this API is too narrow and `async_logger_state_to_json(...)` should be used instead.
 
 - If the runtime is in compatibility mode, the helper still serializes normally using the matching mode label.
+
+- If callers need the current backend-derived runtime rather than an older or synthetic snapshot, they must capture a fresh `async_runtime_state()` first.
+
+### Notes
+
+1. The output field names are fixed as `mode` and `background_worker`.
+
+2. The `mode` field always uses the canonical labels from `async_runtime_mode_label(...)`, not enum names like `NativeWorker` or `Compatibility`.
 

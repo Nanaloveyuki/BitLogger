@@ -2,8 +2,8 @@
 name: async-logger-state-to-json
 group: api
 category: async
-update-time: 20260512
-description: Convert an AsyncLoggerState snapshot into a JSON value for diagnostics and transport.
+update-time: 20260614
+description: Convert an AsyncLoggerState snapshot into a JSON value for diagnostics and transport using the canonical nested runtime shape and flush-policy labels.
 key-word:
     - async
     - state
@@ -13,7 +13,7 @@ key-word:
 
 ## Async-logger-state-to-json
 
-Convert `AsyncLoggerState` into a `JsonValue`. This helper is the structured export path for async logger runtime snapshots when callers want machine-readable diagnostics instead of a plain string.
+Convert `AsyncLoggerState` into a `JsonValue`. This helper is the structured export path for async logger runtime snapshots or manually constructed state values when callers want machine-readable diagnostics instead of a plain string.
 
 ### Interface
 
@@ -23,7 +23,7 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 
 #### input
 
-- `state : AsyncLoggerState` - Snapshot produced by `AsyncLogger::state()`.
+- `state : AsyncLoggerState` - Snapshot produced by `AsyncLogger::state()` or any manually constructed `AsyncLoggerState` value.
 
 #### output
 
@@ -34,9 +34,15 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 Detailed rules explaining key parameters and behaviors
 
 - The JSON includes runtime mode, worker support, queue counters, lifecycle flags, last error, and flush policy.
+- The top-level fields are `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
+- The nested `runtime` field reuses `async_runtime_state_to_json(...)`, and `flush_policy` is serialized with the canonical labels `Never`, `Batch`, or `Shutdown`.
+- The public helper returns the same internal JSON snapshot shape used by `stringify_async_logger_state(...)`, so both export paths stay aligned without duplicate field assembly logic.
 - This helper is suitable for health endpoints, diagnostics payloads, and custom serialization flows.
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
-- The state must already have been captured before serialization.
+- The state must already have been captured or constructed before serialization.
+- Serialization preserves whatever snapshot combination it receives, including failure flags together with remaining backlog counts.
+- This helper never rereads a logger instance by itself. If callers pass an older or manually constructed `AsyncLoggerState`, the JSON reflects that provided value exactly rather than refreshing fields from live runtime state.
+- It also does not normalize mixed diagnostic combinations. If the provided snapshot says `is_closed=true` together with retained `has_failed=true`, `last_error`, or non-zero backlog counters, those exact combinations are emitted unchanged.
 
 ### How to Use
 
@@ -68,9 +74,17 @@ e.g.:
 
 - If the queue is empty, `pending_count` and `dropped_count` are still serialized normally as numeric values.
 
+- If `has_failed` is `true`, serialization does not force `pending_count` to `0` or clear `last_error`; it reports the snapshot exactly as provided.
+
+- If callers need newer logger data, they must capture a fresh `AsyncLogger::state()` first instead of expecting JSON conversion itself to refresh stale fields.
+
 ### Notes
 
-1. Use this API when downstream code wants a JSON value rather than a ready-made string.
+1. This helper preserves the nested runtime snapshot instead of flattening `mode` and `background_worker` onto the top level.
 
-2. Pair it with `AsyncLogger::state()` to capture the snapshot first.
+2. The resulting object matches the compact string form produced by `stringify_async_logger_state(...)` after JSON stringification.
+
+3. Use this API when downstream code wants a JSON value rather than a ready-made string.
+
+4. Pair it with `AsyncLogger::state()` when you want current logger data, or with `AsyncLoggerState::new(...)` when tests or adapters are exporting a synthetic snapshot.
 

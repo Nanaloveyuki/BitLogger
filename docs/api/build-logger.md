@@ -33,9 +33,12 @@ pub fn build_logger(config : LoggerConfig) -> ConfiguredLogger {}
 
 Detailed rules explaining key parameters and behaviors
 
-- `build_logger(...)` constructs the runtime sink shape based on `SinkConfig` and optional queue wrapper.
+- `build_logger(...)` first constructs a base `RuntimeSink` from `config.sink`, then applies `config.queue` when present, and finally builds `Logger::new(...)` with `config.min_level`, `config.target`, and `config.timestamp`.
 - The returned logger still supports normal logging methods because `ConfiguredLogger` is `Logger[RuntimeSink]`.
+- The returned logger also keeps inherited logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
+- That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Queue metrics and file controls remain available through forwarding helpers on the configured logger.
+- `build_application_logger(...)` only re-exports this same configured runtime logger result under the `ApplicationLogger` alias, while `build_library_logger(...)` wraps the same result in `LibraryLogger[RuntimeSink]`.
 - This API is deterministic and data-driven, making it suitable for bootstrapping from parsed config.
 
 ### How to Use
@@ -57,7 +60,19 @@ let logger = build_logger(
 
 In this example, no JSON parsing is required because config objects were built directly.
 
-And the runtime logger is ready immediately.
+And the runtime logger is ready immediately, with the same ordinary logger target semantics as any other `Logger` value.
+
+#### When Need A Per-call Target Override After Typed Config Build
+
+When typed config should still build a logger that supports a one-write target override:
+```moonbit
+let logger = build_logger(config)
+logger.log(Level::Error, "boom", target="svc.audit")
+```
+
+In this example, the emitted record uses `svc.audit` for that write.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 #### When Need Config-built Queue Or File Runtime Helpers
 
@@ -82,4 +97,6 @@ e.g.:
 1. Use this API when config is already typed as `LoggerConfig`.
 
 2. Use `parse_and_build_logger(...)` when the starting point is raw JSON text.
+
+3. Use the application or library facade builders only when the boundary name or exposed surface should differ; they do not change the underlying configured runtime logger pipeline built here.
 

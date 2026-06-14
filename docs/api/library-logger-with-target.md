@@ -3,7 +3,7 @@ name: library-logger-with-target
 group: api
 category: facade
 update-time: 20260613
-description: Replace the default target carried by a LibraryLogger facade.
+description: Replace the default target carried by a LibraryLogger facade while rewrapping the same underlying logger state.
 key-word:
     - library
     - facade
@@ -35,8 +35,9 @@ pub fn[S] LibraryLogger::with_target(self : LibraryLogger[S], target : String) -
 Detailed rules explaining key parameters and behaviors
 
 - This API delegates to the wrapped logger's `with_target(...)` behavior and then re-wraps the result.
-- The returned value keeps the same sink type and minimum level settings.
+- The returned value keeps the same sink type, minimum level, timestamp behavior, and any existing sink wrappers because only the default target field changes.
 - This replaces the default target instead of composing it.
+- Broader composition helpers remain hidden behind the narrower facade after rewrapping; use `to_logger()` if later code needs them.
 - The original facade value is not mutated.
 
 ### How to Use
@@ -64,6 +65,8 @@ let io = base.with_target("io")
 
 In this example, one base facade becomes several target-specific facades.
 
+And each derived facade still wraps the same logger pipeline, differing only in the default target it carries.
+
 ### Error Case
 
 e.g.:
@@ -76,3 +79,5 @@ e.g.:
 1. Use this API for replacement, not target-path composition.
 
 2. It keeps the narrower `LibraryLogger` boundary intact.
+
+3. Use `child(...)` when the new target should be combined with the current one instead of replacing it.

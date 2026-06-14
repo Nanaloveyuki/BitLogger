@@ -2,8 +2,8 @@
 name: async-logger-is-running
 group: api
 category: async
-update-time: 20260512
-description: Read whether the async logger worker is currently running and draining the queue.
+update-time: 20260614
+description: Read whether the async logger worker loop is currently running, regardless of queue backlog or recorded failure state.
 key-word:
     - async
     - logger
@@ -36,7 +36,11 @@ Detailed rules explaining key parameters and behaviors
 - `run()` sets the running state while the worker loop is active.
 - The flag is cleared when the worker exits normally or after failure handling finishes.
 - A logger may be closed while still running briefly during final drain or shutdown processing.
+- After a worker failure, the logger can already be `is_running=false` while still retaining `has_failed=true`, the recorded `last_error()`, and runtime-dependent leftover backlog or dropped-count cleanup.
+- This helper is only a direct read of the current `is_running` ref; it does not wait, synchronize, or infer why the value is what it is.
 - This helper focuses on worker activity rather than queue size or failure details.
+- `is_running()` can be `false` even when `pending_count()` is still nonzero, for example if the worker was never started or if it exited after a recorded failure.
+- A later `run()` attempt can flip `is_running()` back to `true` before that retained failure/backlog state has been fully drained, because the restarted worker clears stale failure state only once the new run has actually started.
 
 ### How to Use
 
@@ -67,10 +71,18 @@ In this example, callers watch the worker lifecycle directly.
 e.g.:
 - If `is_running()` is `false`, pending records may still exist if the worker was never started or has already failed.
 
+- If `is_running()` is `false`, the logger may also already be closed while still retaining the previous failure record and a runtime-dependent pending-versus-dropped cleanup result from shutdown.
+
 - If callers need a one-shot lifecycle flow, `shutdown()` is usually better than manual polling.
+
+- If `is_running()` is `true`, that still does not guarantee healthy drain progress; callers may need `has_failed()` or `state()` for failure context.
+
+- Under concurrent activity, the returned value may change immediately after it is read.
 
 ### Notes
 
 1. Use this helper for worker activity checks, not as a complete health signal.
 
 2. Pair it with `has_failed()` or `state()` when diagnosing stalled pipelines.
+
+3. Pair it with `pending_count()` when you need to distinguish an idle worker from a stopped logger that still has backlog.

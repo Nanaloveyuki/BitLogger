@@ -44,9 +44,11 @@ pub fn[S : Sink] Logger::log(
 Detailed rules explaining key parameters and behaviors
 
 - The logger checks `is_enabled(level)` before building and writing the record.
+- If the level is disabled, the call returns without constructing a record or touching the sink pipeline.
 - If `target` is empty, the logger's stored default target is used.
+- If `target` is non-empty, it overrides the stored default target for that call only.
 - If timestamping is enabled, `@env.now()` is captured and stored in the emitted record.
-- Context, filter, patch, and queue wrappers act through the sink pipeline after the record is constructed.
+- The `fields` argument is attached to the constructed record first; context, filter, patch, and queue wrappers then act through the current sink pipeline after record construction.
 
 ### How to Use
 
@@ -65,6 +67,8 @@ logger.log(
 ```
 
 In this example, the call site controls every major record property.
+
+And a per-call `target=` override affects only that write; later calls still fall back to the logger's stored target when no override is passed.
 
 #### When Build Higher-level Wrappers
 
@@ -89,4 +93,6 @@ e.g.:
 1. Use this API when the call site needs full control instead of a fixed severity helper.
 
 2. This method is synchronous; any buffering behavior only comes from the wrapped sink type.
+
+3. If repeated call sites always use the same explicit target override, deriving a logger with `with_target(...)` or `child(...)` is usually clearer.
 

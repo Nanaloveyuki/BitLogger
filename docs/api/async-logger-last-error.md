@@ -2,8 +2,8 @@
 name: async-logger-last-error
 group: api
 category: async
-update-time: 20260512
-description: Read the last error recorded by the async logger worker during runtime failure handling.
+update-time: 20260614
+description: Read the last error string recorded by the async logger worker after run() resets and runtime failure capture.
 key-word:
     - async
     - logger
@@ -33,10 +33,13 @@ pub fn[S] AsyncLogger::last_error(self : AsyncLogger[S]) -> String {}
 
 Detailed rules explaining key parameters and behaviors
 
-- `run()` resets the stored error string when the worker starts.
+- A later `run()` clears the stored error string only after that run has actually started.
 - If the worker loop fails, the error text is captured from the raised exception.
 - An empty string normally means no failure has been recorded.
+- Once a failure string is recorded, it stays in place until a later `run()` invocation actually starts and clears it.
+- Failure-driven shutdown does not clear the stored error string by itself, so the same `last_error()` text can remain visible even after the logger is already closed.
 - This helper reports worker execution errors, not ordinary overflow or backpressure conditions.
+- That reset happens before the restarted worker resumes drain work.
 
 ### How to Use
 
@@ -67,10 +70,18 @@ In this example, the helper provides the textual failure detail without building
 e.g.:
 - If no runtime failure has occurred, the method returns an empty string.
 
+- An empty string does not prove the queue is empty or the worker is idle; it only means no failure string is currently recorded.
+
 - If callers need broader context than just the error text, they should use `state()`.
+
+- `close()` or `shutdown()` do not clear a previously recorded error string by themselves; the reset happens only after a later `run()` has already started.
+
+- If the same error string is still present after shutdown, that does not by itself mean cleanup was skipped; the logger may already be `is_closed=true` while the remaining pending-versus-dropped outcome still reflects the active runtime's shutdown path.
 
 ### Notes
 
 1. Read this helper together with `has_failed()` when interpreting worker health.
 
 2. The stored value is a diagnostic string, not a typed error object.
+
+3. Pair it with `is_running()` or `pending_count()` when you need to know whether failure left the logger with unfinished backlog, because the previous error string can coexist with remaining pending records until later cleanup or restart.

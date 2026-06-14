@@ -33,9 +33,12 @@ pub fn parse_and_build_logger(input : String) -> ConfiguredLogger raise ConfigEr
 
 Detailed rules explaining key parameters and behaviors
 
-- Parsing and building are done in one step, which is useful when you do not need to inspect the intermediate `LoggerConfig`.
+- Parsing and building are done in one step by calling `parse_logger_config_text(input)` first and then passing the resulting `LoggerConfig` into `build_logger(...)`.
 - The returned `ConfiguredLogger` is just `Logger[RuntimeSink]`, so it still supports regular logging calls.
+- The returned logger also keeps inherited logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
+- That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - Queue wrapping and file control helpers remain available after config assembly.
+- `parse_and_build_application_logger(...)` only re-exports this same configured runtime logger result under the `ApplicationLogger` alias, while `parse_and_build_library_logger(...)` wraps the same result in `LibraryLogger[RuntimeSink]`.
 - Errors are surfaced as `ConfigError` rather than silent fallback.
 
 ### How to Use
@@ -58,7 +61,21 @@ let logger = parse_and_build_logger(
 
 In this example, config parsing and logger construction happen in one place.
 
-And the resulting value can immediately emit logs.
+And the resulting value can immediately emit logs with the same ordinary logger target semantics as any other `Logger` value.
+
+#### When Need A Per-call Target Override After Config Parsing
+
+When parsed runtime config should still allow a one-write target override:
+```moonbit
+let logger = parse_and_build_logger(raw) catch {
+  err => return
+}
+logger.log(Level::Error, "boom", target="api.audit")
+```
+
+In this example, the emitted record uses `api.audit` for that write.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 #### When Need Config-built File Or Queue Controls
 
@@ -85,4 +102,6 @@ e.g.:
 1. Use `parse_logger_config_text(...)` first if you want to validate and inspect config separately.
 
 2. Prefer this API for app bootstrapping paths that read config once and then construct the runtime logger.
+
+3. Use the application or library parse/build facades only when the public name or exposed surface should differ; they do not change the configured runtime logger pipeline produced here.
 

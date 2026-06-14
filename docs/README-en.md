@@ -3,7 +3,7 @@
 BitLogger is a structured logging library for MoonBit projects.
 
 - [Mooncake package page](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
-- [Chinese README](../README.md)
+- [Chinese README](https://github.com/Nanaloveyuki/BitLogger/blob/main/README.md)
 
 ## Overview
 
@@ -30,8 +30,9 @@ Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
 
 ## Support Status
 
-- Currently verified targets: `native`, `js`, `wasm`, `wasm-gc`
-- `llvm` is still treated as experimental in the current release context
+- Current local verification covers `native`, `js`, `wasm`, and `wasm-gc` for the main `src` package and `src-async`
+- `llvm` is still treated as experimental in the current release context and was not locally re-verified in the current environment
+- The source packages still declare `wasm` support alongside `native`, `llvm`, `js`, and `wasm-gc`; see [`target-verification.md`](./api/target-verification.md) for the current release-facing verification boundary
 - File output is a native capability; check `native_files_supported()` in cross-target code
 - `src-async` is available, while `examples/async_basic` is still shipped as a native entry example
 
@@ -56,7 +57,9 @@ Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
 
 ## Documentation
 
-- [API index](./api/index.md)
-- [src package README](../src/README.mbt.md)
+- [API index](./api/index.md): canonical API reference, organized as one public API per file
+- [src package README](https://github.com/Nanaloveyuki/BitLogger/blob/main/src/README.mbt.md): package-level usage notes and target reminders
+- [`docs/changes/`](./changes/): versioned release notes and publish-facing change summaries
+- `docs/dev/`: developer reference material kept in the repository, intentionally excluded from the public static docs site
 
 Common entry points: `text_console(...)`, `file(...)`, `with_queue(...)`, `build_logger(...)`, `build_async_logger(...)`

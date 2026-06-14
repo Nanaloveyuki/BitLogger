@@ -37,7 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `log(Level::Error, ...)`.
 - `Error` is the highest built-in severity in this sync logger API.
-- Per-call target override is not exposed here; use `log(...)` when explicit target control is required.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Sink composition, filtering, patching, and queue wrappers still apply normally.
 
 ### How to Use
@@ -61,6 +61,10 @@ logger.error("dispatch failed", fields=[field("job_id", "42")])
 ```
 
 In this example, the record carries machine-readable context without dropping to the generic `log(...)` form.
+
+And any shared context already carried by the logger still participates through the sink pipeline.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 

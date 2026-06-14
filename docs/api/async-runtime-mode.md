@@ -2,8 +2,8 @@
 name: async-runtime-mode
 group: api
 category: async
-update-time: 20260512
-description: Read the current async runtime mode and distinguish native worker behavior from compatibility behavior.
+update-time: 20260614
+description: Read the current async runtime mode and distinguish native-worker behavior from compatibility behavior using the same mode contract exposed through async runtime snapshots.
 key-word:
     - async
     - runtime
@@ -37,6 +37,10 @@ Detailed rules explaining key parameters and behaviors
 - `NativeWorker` is the expected mode on native-style backends, while `Compatibility` is the expected mode on targets without native background-worker semantics.
 - `async_runtime_mode_label(...)` converts the enum into a stable string value.
 - `async_runtime_supports_background_worker()` is a narrower boolean probe built on the same idea.
+- `async_runtime_state()` packages this mode together with the current background-worker capability into one `AsyncRuntimeState` snapshot.
+- In the current backend implementations, `NativeWorker` pairs with `background_worker=true` and `Compatibility` pairs with `background_worker=false`.
+- Concretely, the native runtime entrypoint returns `native_worker_async_runtime_mode()`, while the compatibility stub returns `compatibility_async_runtime_mode()`.
+- The enum is therefore selected directly by the active backend helper on each call rather than read back out of a cached runtime snapshot object.
 - This API is intentionally small and useful for lightweight branching.
 - The mode result describes runtime behavior only; it should not be read as proof that every backend has been equally re-verified in the current release cycle.
 
@@ -70,6 +74,8 @@ In this example, the output becomes a stable string instead of an enum pattern-m
 e.g.:
 - This API does not have a normal runtime failure mode; it reflects the compiled backend behavior.
 
+- If callers need the current mode paired with the matching worker-support flag, prefer a fresh `async_runtime_state()` call instead of combining `async_runtime_mode()` with an older saved runtime snapshot.
+
 - If you need worker support as a direct boolean, use `async_runtime_supports_background_worker()` instead.
 
 ### Notes
@@ -78,6 +84,8 @@ e.g.:
 
 2. Use `async_runtime_state()` when you also want worker support packaged into one object.
 
-3. This mode distinction is about runtime behavior, not whether `src-async` itself is expected to compile for the target.
+3. Use `async_runtime_mode_label(...)` when the result should leave enum space and become stable text such as `native_worker` or `compatibility`.
 
-4. See [target-verification.md](./target-verification.md) for the current verification status of individual targets.
+4. This mode distinction is about runtime behavior, not whether `src-async` itself is expected to compile for the target.
+
+5. See [target-verification.md](./target-verification.md) for the current verification status of individual targets.

@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - Queued file sinks flush queue work before closing the wrapped inner file sink.
 - Non-file sinks return `false`.
 - This helper is narrower than generic `close()` because it specifically targets file sink shutdown.
+- After a file-backed configured logger has already cleared its file handle, later `file_close()` calls return `false`.
 
 ### How to Use
 
@@ -65,10 +66,14 @@ In this example, the result describes file close behavior rather than generic si
 e.g.:
 - If the configured sink is not file-backed, the method returns `false`.
 
+- If the file handle was already closed earlier through this logger or another facade sharing the same wrapped runtime sink state, the method returns `false`.
+
 - If callers only need generic sink teardown, `close()` is the broader API.
 
 ### Notes
 
 1. Prefer this helper when file-backed runtime behavior matters specifically.
 
-2. Queued file sinks may flush pending records before closing the file.
+2. Queued file sinks flush pending records before closing the file, unlike generic `close()`.
+
+3. Library or application facades derived from the same configured runtime logger still observe the same underlying file-close state.

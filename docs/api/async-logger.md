@@ -2,8 +2,8 @@
 name: async-logger
 group: api
 category: async
-update-time: 20260512
-description: Create an async logger with bounded queueing, overflow policy, lifecycle helpers, and background run control.
+update-time: 20260614
+description: Create an async logger with bounded queueing, overflow policy, lifecycle helpers, background run control, and a raising flush callback.
 key-word:
     - async
     - logger
@@ -23,7 +23,7 @@ pub fn[S] async_logger(
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
   target~ : String = "",
-  flush~ : (S) -> Int = fn(_) { 0 },
+  flush~ : (S) -> Int raise = fn(_) { 0 },
 ) -> AsyncLogger[S] {}
 ```
 
@@ -33,7 +33,7 @@ pub fn[S] async_logger(
 - `config : AsyncLoggerConfig` - Queue size, overflow behavior, batching, linger, and flush policy.
 - `min_level : Level` - Level gate applied before enqueue.
 - `target : String` - Default target for emitted records.
-- `flush : (S) -> Int` - Flush callback used by batch/shutdown flush policies.
+- `flush : (S) -> Int raise` - Flush callback used by batch/shutdown flush policies and allowed to raise if sink flushing fails.
 
 #### output
 
@@ -44,10 +44,20 @@ pub fn[S] async_logger(
 Detailed rules explaining key parameters and behaviors
 
 - `async_logger(...)` only builds the logger. Actual background draining is started by `run()`.
+- `async_logger(...)` returns the full `AsyncLogger[S]` surface directly. It is therefore the underlying constructor used by both application-facing async aliases and the narrower `LibraryAsyncLogger[S]` wrapper line.
+- The constructed logger starts with `is_closed=false`, `is_running=false`, `has_failed=false`, `last_error=""`, and zeroed pending/dropped counters.
+- The constructed logger also keeps the core async target contract unchanged: `log(..., target=...)` can override the target for one call, while fixed-level helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
+- Unlike synchronous `Logger`, async `with_context_fields(...)` and `bind(...)` preserve the visible `AsyncLogger[S]` type because shared fields are stored directly on the async logger value instead of being modeled as a separate sink wrapper.
+- `ApplicationAsyncLogger` and `ApplicationTextAsyncLogger` are only alias names over concrete `AsyncLogger[...]` shapes, so they keep the same lifecycle, queue, failure, and state helpers without adding a wrapper layer.
+- `LibraryAsyncLogger[S]` wraps an `AsyncLogger[S]` value instead of aliasing it. That library facade preserves queue-backed logging behavior, but it narrows the directly exposed helper surface until callers recover the full logger with `to_async_logger()`.
 - In non-native targets, the implementation uses compatibility behavior while keeping the same public surface.
 - `src-async` is designed for `native / llvm / js / wasm / wasm-gc`, but current release-facing local verification is stronger for `native / js / wasm / wasm-gc` than for `llvm`.
 - `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
 - `flush` is used only when batch or shutdown policy wants explicit flushing.
+- If the supplied flush callback raises, worker failure state is recorded through `has_failed()` and `last_error()`.
+- `wait_idle()` is failure-aware rather than a pure backlog-to-zero guarantee. If a worker failure sets `has_failed=true`, waiting stops early and the logger can still report `pending_count() > 0` until later cleanup or restart work happens.
+- A later `run()` attempt starts by clearing stale failure state back to `has_failed=false` and `last_error=""` before it resumes draining any backlog still left in the queue.
+- The exact behavior of late log attempts after closure is runtime-dependent, so callers should use lifecycle helpers like `is_closed()` and `shutdown()` instead of assuming identical post-close enqueue semantics everywhere.
 - Queue overflow behavior depends on `AsyncOverflowPolicy`.
 
 ### How to Use
@@ -69,6 +79,28 @@ let logger = async_logger(callback_sink(fn(rec) { println(rec.message) }))
 In this example, the worker drains queued records in the background and `shutdown()` waits for completion.
 
 And the logging call path stays queue-oriented rather than direct-sink oriented.
+
+#### When Need A One-call Target Override On The Root Async Logger
+
+When async code should keep one logger value but emit a single record under a different target:
+```moonbit
+logger.log(@bitlogger.Level::Error, "boom", target="app.async.audit")
+```
+
+In this example, the emitted record uses `app.async.audit` only for that one call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+#### When Need Shared Context On A Root Async Logger
+
+When async code should attach stable metadata to later queued records:
+```moonbit
+let contextual = logger.with_context_fields([@bitlogger.field("service", "billing")])
+```
+
+In this example, the returned value still has the visible type `AsyncLogger[S]`.
+
+And that shape preservation is intentional because async context binding updates stored logger metadata instead of changing the exposed sink type.
 
 #### When Need Configurable Overflow And Flush Behavior
 
@@ -103,3 +135,7 @@ e.g.:
 3. Example entrypoint limitations such as `async fn main` support are separate from the library-level portability of this API.
 
 4. See [target-verification.md](./target-verification.md) for the current local verification matrix.
+
+5. Pair this constructor with `run()` and `shutdown()` when you need the full worker lifecycle rather than just a configured async logger value.
+
+6. Choose the facade name based on boundary intent: use `AsyncLogger[S]` for the full surface, `ApplicationAsyncLogger` or `ApplicationTextAsyncLogger` for application-facing alias names, and `LibraryAsyncLogger[S]` when a package boundary should intentionally narrow what downstream code can call directly.

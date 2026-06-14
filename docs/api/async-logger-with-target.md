@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This API replaces the default target instead of composing it.
 - Per-call `target?` arguments on `log(...)` can still override the default target.
 - The original logger value is not mutated.
+- In the current direct async coverage, derived loggers keep existing flags such as `timestamp`, while the original logger still retains its previous target.
 
 ### How to Use
 
@@ -76,3 +77,5 @@ e.g.:
 1. Use this API for replacement, not parent-child target composition.
 
 2. It is useful when several subsystems should share one async queue policy.
+
+3. Use it when you want a derived logger value; the original async logger keeps its earlier default target.

@@ -35,8 +35,9 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper forwards the stored visibility flags, separators, template, color settings, and markup settings into `text_formatter(...)`.
 - When `style_tags` is empty, the runtime formatter is built without a local style-tag registry.
-- When `style_tags` is non-empty, the config map is converted into a fresh `StyleTagRegistry` before formatter construction.
+- When `style_tags` is non-empty, the config map is converted into a fresh `StyleTagRegistry` and each stored tag is registered on that new registry before formatter construction.
 - This conversion does not mutate the source config object.
+- Sync and async config-driven builder paths both rely on this helper when a text formatter config must become a concrete runtime formatter.
 
 ### How to Use
 

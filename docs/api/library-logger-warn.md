@@ -3,7 +3,7 @@ name: library-logger-warn
 group: api
 category: facade
 update-time: 20260613
-description: Emit a warn-level record through a LibraryLogger facade using the warning severity shortcut.
+description: Emit a warn-level record through a LibraryLogger facade by delegating to the wrapped logger's warn shortcut.
 key-word:
     - library
     - facade
@@ -39,10 +39,11 @@ pub fn[S : Sink] LibraryLogger::warn(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Warn, ...)` on the wrapped logger.
+- This helper delegates to `warn(...)` on the wrapped logger, which in turn uses `log(Level::Warn, ...)`.
 - Warning records are useful for abnormal but non-fatal conditions.
-- Per-call target override is not exposed here; use `log(...)` when that is required.
-- All logger wrappers still participate normally in the write path.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
+- All sink-side wrappers still participate normally in the write path.
+- Broader composition helpers remain on the underlying `Logger[S]` and require `to_logger()` first.
 
 ### How to Use
 
@@ -66,6 +67,10 @@ logger.warn("retry scheduled", fields=[field("attempt", "3")])
 
 In this example, the warning remains easy to filter and inspect later.
 
+And any shared context already carried by the facade still participates through the wrapped logger pipeline.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
+
 ### Error Case
 
 e.g.:
@@ -73,8 +78,12 @@ e.g.:
 
 - If a target override is needed at this call site, use `log(...)` instead of this shortcut.
 
+- If callers need broader composition helpers after logging, they must unwrap first with `to_logger()`.
+
 ### Notes
 
 1. Use this helper for degraded or suspicious states that do not stop execution.
 
 2. Warning logs are often a practical signal threshold for alerting or separate routing.
+
+3. Use `log(...)` instead when the call site needs a per-call target override or a dynamic level.

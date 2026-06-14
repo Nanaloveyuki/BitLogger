@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks report their recorded write-failure count through the wrapped `RuntimeSink`.
 - Queued file sinks forward the metric from the wrapped inner file sink.
+- For queued file sinks, enqueueing a record does not increment this counter by itself. The counter changes only when queued records are drained into the inner file sink, such as through `file_flush()`.
 - Non-file sinks return `0`.
 - The counter is cumulative until reset.
 
@@ -71,4 +72,4 @@ e.g.:
 
 1. Use this helper for focused write-failure visibility.
 
-2. Pair it with `file_flush_failures()` when diagnosing output-path instability.
+2. Pair it with `file_flush()` and `file_flush_failures()` when diagnosing queued output-path instability.

@@ -35,6 +35,7 @@ pub fn info(message : String, fields~ : Array[Field] = []) -> Unit {}
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `default_logger().info(...)`.
+- Each call therefore reads the current shared default threshold and target at write time instead of holding one long-lived logger value internally.
 - It uses the shared console sink and current default target.
 - `Info` is the default global threshold unless changed through `set_default_min_level(...)`.
 - This is the simplest entry point for normal app-level informational events.
@@ -52,6 +53,8 @@ info("service started")
 ```
 
 In this example, the shared default logger emits an informational record under the `app` target.
+
+If `set_default_target(...)` or `set_default_min_level(...)` changes later, future `info(...)` calls will observe those updated shared defaults automatically.
 
 #### When Attach Structured Informational Data
 
@@ -73,5 +76,7 @@ e.g.:
 
 1. This is the most common global write helper for small applications or scripts.
 
-2. Prefer explicit loggers when the codebase grows beyond one shared logging path.
+2. Future calls pick up later shared-default changes because the helper forwards through a fresh `default_logger()` each time.
+
+3. Prefer explicit loggers when the codebase grows beyond one shared logging path.
 

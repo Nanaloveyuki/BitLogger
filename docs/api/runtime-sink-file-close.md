@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `QueuedFile` runtime variants first attempt `sink.flush()` on the queue wrapper, then call `sink.sink.close()` on the wrapped file sink.
 - For `QueuedFile`, the queue flush result is ignored and the returned `Bool` comes from the inner file close.
 - Non-file runtime variants return `false`.
+- After a file-backed runtime sink has already cleared its handle, later `file_close()` calls return `false`.
 
 ### How to Use
 
@@ -65,10 +66,12 @@ In this example, the result describes file close behavior rather than generic si
 e.g.:
 - If the runtime sink is not file-backed, the method returns `false`.
 
+- If the file handle was already closed earlier through this runtime sink or another facade sharing the same underlying file-backed state, the method returns `false`.
+
 - If callers only need generic sink teardown, `close()` is the broader API.
 
 ### Notes
 
 1. Prefer this helper when direct runtime code specifically cares about file-backed shutdown.
 
-2. Queued file sinks may flush pending records before closing the file.
+2. Queued file sinks flush pending records before closing the file, unlike generic `close()`.

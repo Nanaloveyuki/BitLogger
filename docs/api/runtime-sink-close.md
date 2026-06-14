@@ -36,8 +36,10 @@ Detailed rules explaining key parameters and behaviors
 - Plain console-style runtime sinks return `true` because they do not have a meaningful close step here.
 - Plain file runtime sinks forward directly to `FileSink::close()`.
 - Queued file runtime sinks close the wrapped file sink rather than only the queue wrapper.
+- Generic `close()` on `QueuedFile` does not drain or flush queued records first; it closes the inner file sink directly.
 - Queue-wrapped console-style runtime sinks return `true` as a no-op success.
 - This method is the direct sink-level API used by `ConfiguredLogger::close(...)`.
+- For file-backed runtime sinks, later `close()` calls return `false` after the handle has already been cleared.
 
 ### How to Use
 
@@ -66,10 +68,14 @@ In this example, callers can branch on the reported close result.
 e.g.:
 - If the runtime sink shape has no real close action, the method may still return `true` as a no-op success.
 
+- If a file-backed runtime sink was already closed earlier through this sink or another facade sharing the same underlying state, a later close attempt returns `false`.
+
 - If callers know they are working with a direct `FileSink`, `FileSink::close()` is the narrower API.
 
 ### Notes
 
 1. Use this helper when code is managing a `RuntimeSink` value directly.
 
-2. `ConfiguredLogger::close(...)` is the higher-level wrapper for config-built loggers.
+2. Use `file_close()` instead of generic `close()` when queued file sinks should flush pending records before file teardown.
+
+3. `ConfiguredLogger::close(...)` is the higher-level wrapper for config-built loggers.

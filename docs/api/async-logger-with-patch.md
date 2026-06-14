@@ -31,7 +31,7 @@ pub fn[S] AsyncLogger::with_patch(
 
 #### output
 
-- `AsyncLogger[S]` - A new async logger that rewrites each record before filtering and queue insertion.
+- `AsyncLogger[S]` - A new async logger value that rewrites each record before filtering and queue insertion.
 
 ### Explanation
 
@@ -39,8 +39,10 @@ Detailed rules explaining key parameters and behaviors
 
 - Patch logic runs after record creation and field merging but before filtering and enqueue.
 - Existing patch logic is preserved and composed so the new patch wraps the current one.
-- The original async logger is not mutated.
+- The returned logger is derived from `self`; the original async logger value is not mutated.
+- Only the stored patch pipeline changes. Target, minimum level, queue configuration, and lifecycle/failure state stay on the same `AsyncLogger[S]` surface.
 - Patching can normalize, redact, or enrich records before they consume queue capacity.
+- In the current direct async coverage, patched target/message/field changes are visible to later filter logic, and the original async logger still emits unpatched records when used separately.
 
 ### How to Use
 
@@ -57,6 +59,8 @@ let logger = async_logger(console_sink())
 ```
 
 In this example, the added fields are part of the record before filtering and queue insertion.
+
+And the returned async logger still keeps the same queue-facing API surface as the source logger.
 
 #### When Need Redaction Before Queueing
 
@@ -80,3 +84,7 @@ e.g.:
 1. Use patches for transformation, not filtering decisions.
 
 2. Redaction before enqueue helps keep sensitive data out of the queued pipeline.
+
+3. State helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, and `has_failed()` remain available on the returned logger because the visible async logger surface is preserved.
+
+4. Derive a patched logger when one path needs rewritten records and another should keep the original async record shape.

@@ -2,8 +2,8 @@
 name: async-logger-debug
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a debug-level record through the async logger using the built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a debug-level record through the async logger using the built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::debug(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Debug, ...)`.
+- This helper delegates to `log(Level::Debug, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Debug records are useful for development and targeted diagnostics.
 - Use this helper when a named debug call is clearer than a raw `log(...)` call.
 
@@ -52,7 +53,7 @@ Here are some specific examples provided.
 
 When intermediate async flow details should be visible during debugging:
 ```moonbit
-await logger.debug("loaded worker config")
+logger.debug("loaded worker config")
 ```
 
 In this example, the call site communicates its intended diagnostic level directly.
@@ -61,7 +62,7 @@ In this example, the call site communicates its intended diagnostic level direct
 
 When a debug event should include extra fields:
 ```moonbit
-await logger.debug(
+logger.debug(
   "dispatch start",
   fields=[@bitlogger.field("job_id", "42")],
 )
@@ -80,4 +81,4 @@ e.g.:
 
 1. Prefer this helper when the event is semantically debug-level.
 
-2. Use `log(...)` when the level must be chosen dynamically.
+2. Use `log(...)` when the level must be chosen dynamically or one call needs a target override.

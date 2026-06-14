@@ -31,6 +31,8 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper returns the same baseline sink config used by `LoggerConfig::new(...)` defaults.
 - The default sink config is console-oriented unless later replaced by explicit config composition.
+- The implementation is exactly `SinkConfig::new()`, so the returned value uses the standard constructor defaults: `kind=Console`, empty `path`, `append=true`, `auto_flush=true`, no rotation, and the default text formatter config.
+- `parse_logger_config_text(...)` also falls back to this same helper when the `sink` object is omitted from JSON input.
 - It is a typed config object, not a runtime sink instance.
 
 ### How to Use
@@ -58,3 +60,5 @@ e.g.:
 1. This helper is for config-driven assembly, not runtime sink wiring.
 
 2. It is most useful in explicit config composition code.
+
+3. Use `default_logger_config()` when callers want the full top-level config default instead of only the sink portion.

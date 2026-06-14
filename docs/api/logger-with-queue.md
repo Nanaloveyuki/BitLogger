@@ -33,14 +33,17 @@ pub fn[S] Logger::with_queue(
 
 #### output
 
-- `Logger[QueuedSink[S]]` - A logger using an explicit synchronous queue wrapper.
+- `Logger[QueuedSink[S]]` - A new logger value whose visible sink type becomes `QueuedSink[S]`.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - This queue wrapper is synchronous and explicit. It is not the same as `bitlogger_async` runtime scheduling.
-- Callers can inspect `pending_count()` and `dropped_count()` through the wrapped sink.
+- The original logger value is not mutated; a derived logger wrapping `QueuedSink[S]` is returned.
+- The returned logger changes visible type from `Logger[S]` to `Logger[QueuedSink[S]]` because the sink pipeline is extended with queueing behavior.
+- Stored target, minimum level, and timestamp behavior are preserved while the sink pipeline changes.
+- Queue helpers such as `pending_count()`, `dropped_count()`, `flush()`, and `drain(...)` forward to the wrapped queue state.
 - `flush()` or `drain(...)` is required to move queued data to the underlying sink.
 - Overflow policy determines whether new or old records are discarded when the queue is full.
 
@@ -64,6 +67,8 @@ In this example, records stay queued until explicitly flushed.
 
 And backlog size stays bounded.
 
+The returned logger still emits through normal synchronous logging calls while exposing queue-aware sink helpers.
+
 #### When Need Bounded Overload Behavior
 
 When you need defined behavior under burst load:
@@ -86,4 +91,6 @@ e.g.:
 1. Use this API when you want explicit bounded buffering without `bitlogger_async`.
 
 2. `with_queue(...)` preserves the normal synchronous logger call style.
+
+3. Use a derived logger value when one path needs queue-aware buffering and another should keep writing directly through the original sink.
 

@@ -36,6 +36,8 @@ Detailed rules explaining key parameters and behaviors
 - The output includes visibility flags, separators, template, color settings, and markup settings.
 - `style_tags` is exported only when the map is not empty.
 - Enum-like formatter options are serialized using their stable label strings.
+- `color_mode`, `color_support`, and the markup-mode fields are emitted through their label helpers, so the exported strings stay aligned with the parser-facing formatter config vocabulary.
+- Nested `style_tags` entries are exported as plain JSON objects keyed by tag name, with each `TextStyle` rendered as structured config data rather than runtime registry state.
 - The JSON shape matches the formatter section accepted by config parsing.
 
 ### How to Use
@@ -68,4 +70,10 @@ e.g.:
 - If `style_tags` is empty, the field is omitted instead of being emitted as an empty object.
 
 - If callers need immediate text output rather than a JSON value, they should use `stringify_text_formatter_config(...)` instead.
+
+### Notes
+
+1. Use this helper when you need a reusable JSON value rather than a final JSON string.
+
+2. `sink_config_to_json(...)` reuses this helper for the nested `text_formatter` field.
 

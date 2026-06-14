@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - On flush failure, `flush_failures` is incremented.
 - On success, failure counters are left unchanged.
 - This helper does not reopen the sink automatically.
+- If another alias already closed the same underlying sink handle, this method also returns `false`.
 
 ### How to Use
 

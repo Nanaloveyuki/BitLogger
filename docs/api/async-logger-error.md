@@ -2,8 +2,8 @@
 name: async-logger-error
 group: api
 category: async
-update-time: 20260512
-description: Enqueue an error-level record through the async logger using the highest built-in severity shortcut.
+update-time: 20260614
+description: Enqueue an error-level record through the async logger using the highest built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::error(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Error, ...)`.
-- The record is still subject to patching, filtering, and overflow policy.
+- This helper delegates to `log(Level::Error, ..., fields=fields)`.
+- The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Error records represent the highest built-in severity in this logger API.
 - Use this helper when a named error call is clearer than a raw `log(...)` call.
 
@@ -52,7 +53,7 @@ Here are some specific examples provided.
 
 When an operation should emit a high-severity failure event:
 ```moonbit
-await logger.error("worker execution failed")
+logger.error("worker execution failed")
 ```
 
 In this example, failure intent is explicit at the call site.
@@ -61,13 +62,17 @@ In this example, failure intent is explicit at the call site.
 
 When an error event should include diagnostic fields:
 ```moonbit
-await logger.error(
+logger.error(
   "dispatch failed",
   fields=[@bitlogger.field("job_id", "42")],
 )
 ```
 
 In this example, the error record carries structured context without falling back to the generic `log(...)` form.
+
+And any shared context already carried by the logger still participates ahead of these per-call fields when the record is built.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
@@ -80,4 +85,6 @@ e.g.:
 
 1. Use this helper for high-severity async application failures.
 
-2. Emitting an error record is separate from the logger worker itself entering failure state.
+2. Use `log(...)` instead when an error call needs a one-off target override.
+
+3. Emitting an error record is separate from the logger worker itself entering failure state.

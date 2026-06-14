@@ -2,8 +2,8 @@
 name: async-logger-type
 group: api
 category: async
-update-time: 20260613
-description: Public asynchronous logger root type used for queue-backed sink-preserving logging pipelines.
+update-time: 20260614
+description: Public asynchronous logger root type used for queue-backed sink-preserving logging pipelines with explicit lifecycle, failure, and flush-callback state.
 key-word:
     - async
     - logger
@@ -51,8 +51,11 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a public root struct, not a type alias.
 - The current fields cover targeting, overflow policy, batching, linger timing, flush policy, the wrapped sink, context/filter/patch behavior, queue state, and worker lifecycle flags.
+- `flush_sink : (S) -> Int raise` stores the raising flush callback used by batch and shutdown flush policies.
+- `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, and `last_error` are mutable runtime refs that power the higher-level lifecycle and diagnostics helpers.
 - The sink type parameter is preserved across async composition, which is why helpers such as `with_target(...)`, `with_context_fields(...)`, `with_filter(...)`, and `with_patch(...)` keep returning `AsyncLogger[S]`.
 - `async_logger(...)` constructs this type as the main asynchronous entry point.
+- This root type is also what sits underneath both async facade families: `ApplicationAsyncLogger` is a direct alias over the runtime-sink line, while `LibraryAsyncLogger[S]` is a narrowing wrapper around an `AsyncLogger[S]` value.
 
 ### How to Use
 
@@ -85,8 +88,14 @@ e.g.:
 
 - Actual enqueue, worker, and flush behavior still depends on the wrapped sink `S`, async runtime support, and the configured queue policy.
 
+- Post-close logging behavior is not a property of the struct shape alone; it also depends on the active runtime implementation.
+
 ### Notes
 
 1. Use `async_logger(...)`, `build_async_logger(...)`, or `build_async_text_logger(...)` when you need a value of this type.
 
-2. Use `ApplicationAsyncLogger` or `LibraryAsyncLogger[S]` when a more intention-specific async wrapper or alias fits the calling boundary better.
+2. Use `ApplicationAsyncLogger` when application code wants the same full async lifecycle and state helper surface under an app-facing alias.
+
+3. Use `LibraryAsyncLogger[S]` when a library boundary should intentionally narrow the public async surface and expose broader lifecycle/state helpers only through `to_async_logger()`.
+
+4. Prefer the method helpers such as `state()`, `has_failed()`, `last_error()`, `is_running()`, and `shutdown()` instead of reading these public fields conceptually as if they were a stable manual mutation surface.

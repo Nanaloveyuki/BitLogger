@@ -28,16 +28,18 @@ pub fn[S] Logger::child(self : Logger[S], target : String) -> Logger[S] {}
 
 #### output
 
-- `Logger[S]` - A new logger whose default target is the composed child path.
+- `Logger[S]` - A new logger value whose default target is the composed child path.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
+- The returned logger is derived from `self`; the original logger value is not mutated.
 - If the parent target is empty, the child target becomes the full target.
 - If the child target is empty, the parent target is preserved.
 - If both are non-empty, they are joined with `.`.
-- Sink, min level, and timestamp settings are preserved in the returned logger.
+- Only the stored target changes. Sink, min level, and timestamp settings are preserved in the returned logger.
+- The wider composition surface stays available on the derived logger, so follow-up calls such as `with_timestamp()` or log writes continue to work with the composed target.
 
 ### How to Use
 
@@ -52,6 +54,8 @@ let worker = logger.child("worker")
 ```
 
 In this example, `worker` emits records under `service.worker`.
+
+And `logger` still keeps its original stored target, because `child(...)` returns a derived logger value instead of mutating the parent.
 
 #### When Build Deeply Scoped Loggers Step By Step
 
@@ -76,4 +80,6 @@ e.g.:
 1. This is the preferred API for hierarchical logger naming.
 
 2. Composition uses `.` as the separator between parent and child segments.
+
+3. The same compose-and-preserve contract is exercised through the library, configured, and application logger surfaces, not only on the base `Logger[S]` value.
 

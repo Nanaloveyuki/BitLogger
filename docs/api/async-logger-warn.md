@@ -2,8 +2,8 @@
 name: async-logger-warn
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a warning-level record through the async logger using the built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a warning-level record through the async logger using the built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::warn(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Warn, ...)`.
+- This helper delegates to `log(Level::Warn, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Warning records are useful for degraded but non-fatal runtime conditions.
 - Use this helper when a named warning call is clearer than a raw `log(...)` call.
 
@@ -52,7 +53,7 @@ Here are some specific examples provided.
 
 When the system should report a non-fatal problem:
 ```moonbit
-await logger.warn("retry budget running low")
+logger.warn("retry budget running low")
 ```
 
 In this example, the event is surfaced at warning severity without using the generic `log(...)` form.
@@ -61,13 +62,17 @@ In this example, the event is surfaced at warning severity without using the gen
 
 When a warning event should include context:
 ```moonbit
-await logger.warn(
+logger.warn(
   "queue near capacity",
   fields=[@bitlogger.field("pending", logger.pending_count().to_string())],
 )
 ```
 
 In this example, the warning carries structured operational detail.
+
+And any shared context already carried by the logger still participates ahead of these per-call fields when the record is built.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
@@ -80,4 +85,4 @@ e.g.:
 
 1. Use this helper for notable but non-fatal async runtime conditions.
 
-2. Pair warnings with structured fields when operators need quick context.
+2. Use `log(...)` instead when one warning call must override the target without deriving a new logger value.

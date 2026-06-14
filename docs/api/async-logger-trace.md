@@ -2,8 +2,8 @@
 name: async-logger-trace
 group: api
 category: async
-update-time: 20260512
-description: Enqueue a trace-level record through the async logger using the lowest built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a trace-level record through the async logger using the lowest built-in severity shortcut and the repo's direct async call style.
 key-word:
     - async
     - logger
@@ -39,8 +39,9 @@ pub async fn[S] AsyncLogger::trace(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Trace, ...)`.
+- This helper delegates to `log(Level::Trace, ..., fields=fields)`.
 - The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Trace records are often skipped in production because they are the lowest built-in severity.
 - Use this helper when explicit trace intent is clearer than a raw `log(...)` call.
 
@@ -52,7 +53,7 @@ Here are some specific examples provided.
 
 When low-level execution flow should be observable during debugging:
 ```moonbit
-await logger.trace("entered reconciliation step")
+logger.trace("entered reconciliation step")
 ```
 
 In this example, the call site makes trace intent explicit.
@@ -61,7 +62,7 @@ In this example, the call site makes trace intent explicit.
 
 When a trace event should carry extra fields:
 ```moonbit
-await logger.trace(
+logger.trace(
   "cache probe",
   fields=[@bitlogger.field("key", "user:42")],
 )
@@ -80,4 +81,6 @@ e.g.:
 
 1. Prefer this helper when trace intent is more readable than `log(Level::Trace, ...)`.
 
-2. Trace-level async logging can increase queue pressure quickly under verbose workloads.
+2. Use `log(...)` instead when one trace call needs a one-off target override.
+
+3. Trace-level async logging can increase queue pressure quickly under verbose workloads.

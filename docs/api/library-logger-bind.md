@@ -3,7 +3,7 @@ name: library-logger-bind
 group: api
 category: facade
 update-time: 20260613
-description: Attach reusable structured fields to a LibraryLogger facade through the bind alias.
+description: Attach reusable structured fields to a LibraryLogger facade through the bind alias while extending the visible sink type to ContextSink.
 key-word:
     - library
     - facade
@@ -38,8 +38,11 @@ pub fn[S] LibraryLogger::bind(
 Detailed rules explaining key parameters and behaviors
 
 - `bind(...)` delegates directly to `with_context_fields(...)`.
-- The original facade value is not mutated; a wrapped facade is returned.
 - Shared fields are applied to every later log call emitted through the returned facade.
+- The returned facade changes visible type from `LibraryLogger[S]` to `LibraryLogger[ContextSink[S]]` because the sink pipeline is extended with context-field merging behavior.
+- Minimum level, target, and timestamp behavior are preserved while the sink pipeline changes.
+- Broader composition helpers remain hidden behind the narrower facade after rewrapping; use `to_logger()` if later code needs them.
+- The original facade value is not mutated; a wrapped facade is returned.
 - This alias is useful when you prefer shorter chaining syntax in library code.
 
 ### How to Use
@@ -68,15 +71,21 @@ let worker = LibraryLogger::new(console_sink(), target="app")
 
 In this example, `bind(...)` communicates intent without changing underlying behavior.
 
+And because it is only an alias, the resulting facade behaves the same as calling `with_context_fields(...)` directly.
+
 ### Error Case
 
 e.g.:
-- If `fields` is empty, the returned facade remains valid and simply adds no extra metadata.
+- If `fields` is empty, the returned facade remains valid and simply stores an empty shared field set in `ContextSink[S]`.
 
 - If duplicate field keys are bound, all copies are preserved for downstream formatting or inspection.
+
+- If callers want event-specific fields without changing the shared bound set, they should pass those through `log(..., fields=...)` on the returned facade.
 
 ### Notes
 
 1. Use `bind(...)` and `with_context_fields(...)` interchangeably; choose the one that reads better in context.
 
 2. This alias exists for ergonomics, not for different semantics.
+
+3. Use `with_context_fields(...)` when the longer name makes the shared-field sink-type change clearer at the call site.

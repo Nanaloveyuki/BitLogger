@@ -3,7 +3,7 @@ name: library-async-logger-bind
 group: api
 category: facade
 update-time: 20260613
-description: Attach reusable structured fields to a LibraryAsyncLogger facade through the bind alias.
+description: Attach reusable structured fields to a LibraryAsyncLogger facade through the bind alias while preserving the same underlying async logger state.
 key-word:
     - async
     - library
@@ -38,8 +38,11 @@ pub fn[S] LibraryAsyncLogger::bind(
 Detailed rules explaining key parameters and behaviors
 
 - `bind(...)` delegates directly to `with_context_fields(...)`.
+- That means the provided `fields` array replaces the previously stored shared field set on the wrapped async logger.
+- Shared fields are then prepended to every later log call emitted through the returned facade.
+- Sink type, queue state, async config, and failure/lifecycle state remain the same because the method only rewraps the updated async logger value.
+- Async state helpers remain hidden behind the narrower facade after rewrapping; use `to_async_logger()` if later code needs them.
 - The original facade value is not mutated; a wrapped facade is returned.
-- Shared fields are applied to every later log call emitted through the returned facade.
 - This alias is useful when you prefer shorter chaining syntax in library async code.
 
 ### How to Use
@@ -68,15 +71,21 @@ let worker = LibraryAsyncLogger::new(@bitlogger.console_sink(), target="app")
 
 In this example, `bind(...)` communicates intent without changing underlying behavior.
 
+And because it is only an alias, the resulting facade behaves the same as calling `with_context_fields(...)` directly.
+
 ### Error Case
 
 e.g.:
-- If `fields` is empty, the returned facade remains valid and simply adds no extra metadata.
+- If `fields` is empty, the returned facade remains valid and simply stores an empty shared field set.
 
 - If duplicate field keys are bound, all copies are preserved for downstream formatting or inspection.
+
+- If callers want event-specific fields without replacing the shared bound set, they should pass those through `log(..., fields=...)` on the returned facade.
 
 ### Notes
 
 1. Use `bind(...)` and `with_context_fields(...)` interchangeably; choose the one that reads better in context.
 
 2. This alias exists for ergonomics, not for different semantics.
+
+3. Use `with_context_fields(...)` when the longer name makes the shared-field replacement behavior clearer at the call site.

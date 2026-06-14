@@ -21,7 +21,8 @@ This note records the current release-facing local verification boundary for Bit
 | --- | --- | --- | --- | --- | --- |
 | `src` compile check | verified | verified | verified | verified | not locally verified |
 | `src-async` compile check | verified | verified | verified | verified | not locally verified |
-| `moon test` | verified in current local environment | not separately re-run | not separately re-run | not separately re-run | not run |
+| `moon test` | verified in current local environment | verified | verified | verified | not run |
+| `moon test src-async` | verified | verified | verified | verified | not run |
 
 ### Explanation
 
@@ -29,8 +30,10 @@ Detailed rules explaining key parameters and behaviors
 
 - `verified` here means a local verification command was re-run successfully in the current environment.
 - `not locally verified` means the release should not imply fresh local confirmation even if the package is still designed for that target.
+- The root `moon test` line now has fresh local evidence on `native`, `js`, `wasm`, and `wasm-gc` in this environment.
 - `llvm` is currently experimental in practice for this release context and did not complete local verification in this environment.
-- `wasm` has been re-checked and should be distinguished from the earlier state where only `wasm-gc` and `js` had been explicitly re-confirmed.
+- `src-async` now has fresh local test evidence on `native`, `js`, `wasm`, and `wasm-gc`, so async target notes may rely on more than compile-only confirmation for those targets.
+- `wasm` now has fresh local async test evidence as well as compile confirmation, and should be distinguished from the earlier state where only `wasm-gc` and `js` had been explicitly re-confirmed.
 - Example-level limitations, such as `async fn main` entry support, are separate from the library-level compile matrix above.
 
 ### Commands Used
@@ -39,6 +42,9 @@ The current local verification evidence for this note is based on commands such 
 
 ```text
 moon test
+moon test --target js
+moon test --target wasm
+moon test --target wasm-gc
 moon check --target native
 moon check --target js
 moon check --target wasm
@@ -47,6 +53,10 @@ moon check src-async --target native
 moon check src-async --target js
 moon check src-async --target wasm
 moon check src-async --target wasm-gc
+moon test src-async --target native
+moon test src-async --target js
+moon test src-async --target wasm
+moon test src-async --target wasm-gc
 ```
 
 ### Error Case

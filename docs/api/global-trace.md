@@ -35,8 +35,9 @@ pub fn trace(message : String, fields~ : Array[Field] = []) -> Unit {}
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `default_logger().trace(...)`.
+- Each call therefore reads the current shared default threshold and target at write time instead of holding one long-lived logger value internally.
 - Trace is the lowest built-in severity and is commonly disabled unless the shared minimum level is lowered.
-- The shared default target and console sink are used.
+- It uses the shared console sink and current default target.
 - This helper favors convenience over explicit per-component logger ownership.
 
 ### How to Use
@@ -48,10 +49,13 @@ Here are some specific examples provided.
 When a script or small app wants temporary low-level diagnostics:
 ```moonbit
 set_default_min_level(Level::Trace)
+set_default_target("loop")
 trace("entered sync loop")
 ```
 
-In this example, the shared global path begins accepting trace records.
+In this example, the shared global path begins accepting trace records under the `loop` target.
+
+If `set_default_target(...)` or `set_default_min_level(...)` changes later, future `trace(...)` calls will observe those updated shared defaults automatically.
 
 #### When Attach Structured Trace Context
 
@@ -73,5 +77,7 @@ e.g.:
 
 1. Global trace logging is convenient for scripts but easy to overuse in larger systems.
 
-2. This helper always goes through the shared default logger path.
+2. Future calls pick up later shared-default changes because the helper forwards through a fresh `default_logger()` each time.
+
+3. This helper always goes through the shared default logger path.
 

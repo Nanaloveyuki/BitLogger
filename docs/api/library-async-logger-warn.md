@@ -2,8 +2,8 @@
 name: library-async-logger-warn
 group: api
 category: facade
-update-time: 20260613
-description: Enqueue a warning-level record through a LibraryAsyncLogger facade using the built-in severity shortcut.
+update-time: 20260614
+description: Enqueue a warning-level record through a LibraryAsyncLogger facade by delegating to the wrapped async logger's warn shortcut.
 key-word:
     - async
     - library
@@ -39,10 +39,12 @@ pub async fn[S] LibraryAsyncLogger::warn(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Warn, ...)` on the wrapped async logger.
-- The record is still subject to min-level gating, patching, filtering, and overflow policy.
+- This helper delegates to `warn(...)` on the wrapped async logger, which in turn uses `log(Level::Warn, ...)`.
+- The record is still subject to min-level gating, stored shared context fields, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - Warning records are useful for degraded but non-fatal runtime conditions.
 - Use this helper when a named warning call is clearer than a raw `log(...)` call.
+- Async state helpers remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 
 ### How to Use
 
@@ -52,7 +54,7 @@ Here are some specific examples provided.
 
 When the system should report a non-fatal problem:
 ```moonbit
-await logger.warn("retry budget running low")
+logger.warn("retry budget running low")
 ```
 
 In this example, the event is surfaced at warning severity without using the generic `log(...)` form.
@@ -61,13 +63,17 @@ In this example, the event is surfaced at warning severity without using the gen
 
 When a warning event should include context:
 ```moonbit
-await logger.warn(
+logger.warn(
   "queue near capacity",
   fields=[@bitlogger.field("pending", "64")],
 )
 ```
 
 In this example, the warning carries structured operational detail.
+
+And any shared context fields already stored on the facade are still prepended before these per-call fields.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
@@ -76,8 +82,12 @@ e.g.:
 
 - If the logger is closed or overflow policy prevents acceptance, the write may not become a normal queued record.
 
+- If callers need a per-call target override, they should use `log(...)` instead of this fixed-level shortcut.
+
 ### Notes
 
 1. Use this helper for notable but non-fatal async runtime conditions.
 
 2. Pair warnings with structured fields when operators need quick context.
+
+3. Use `to_async_logger()` first when later code needs queue or failure inspection rather than another write shortcut.

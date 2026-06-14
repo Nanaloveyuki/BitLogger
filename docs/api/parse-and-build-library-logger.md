@@ -2,8 +2,8 @@
 name: parse-and-build-library-logger
 group: api
 category: facade
-update-time: 20260520
-description: Parse JSON logger config text and build the library-facing sync logger facade.
+update-time: 20260613
+description: Parse JSON logger config text and build the library-facing sync logger facade by delegating to the configured runtime logger parse-and-build path and then wrapping the result.
 key-word:
     - library
     - facade
@@ -13,7 +13,7 @@ key-word:
 
 ## Parse-and-build-library-logger
 
-Parse raw JSON config text and build a `LibraryLogger[RuntimeSink]` in one step. This facade is the text-driven library counterpart to `parse_and_build_logger(...)`.
+Parse raw JSON config text and build a `LibraryLogger[RuntimeSink]` in one step. This facade is the text-driven library counterpart to `parse_and_build_logger(...)` plus library-surface narrowing.
 
 ### Interface
 
@@ -35,9 +35,15 @@ pub fn parse_and_build_library_logger(
 
 Detailed rules explaining key parameters and behaviors
 
-- This API parses config text, validates it, builds the configured logger, and wraps it as a library facade.
+- This API parses config text, validates it, builds the configured logger through `parse_and_build_logger(...)`, and wraps that same value as a library facade.
+- The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
+- The returned facade wraps the same underlying `ConfiguredLogger` value that `parse_and_build_logger(...)` would produce directly.
 - The returned facade keeps a narrower surface than the underlying configured logger.
+- The configured runtime helper surface is still preserved rather than rebuilt, but it is intentionally not directly exposed on the returned facade. Queue metrics, flush or drain helpers, and file controls stay behind `to_logger()` instead of disappearing.
+- The facade still preserves the underlying logger target rules on its exposed write methods: `log(..., target=...)` can override the target for one write, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
+- Queue metrics, flush and drain helpers, and file runtime controls stay on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - `to_logger()` can be used to recover the underlying full logger object when necessary.
+- Use this parse/build facade when text-driven construction should preserve the configured runtime logger path but still hide broader runtime helper methods at the package boundary.
 
 ### How to Use
 
@@ -54,6 +60,37 @@ let logger = parse_and_build_library_logger(
 
 In this example, parsing and library-facade construction happen in one call.
 
+#### When Need Runtime Helpers After Text-driven Library Bootstrapping
+
+When JSON-driven construction should still allow internal runtime inspection later:
+```moonbit
+let logger = parse_and_build_library_logger(raw) catch {
+  err => return
+}
+let full = logger.to_logger()
+ignore(full.sink.pending_count())
+```
+
+In this example, the caller unwraps the library facade before using runtime-specific helpers through the preserved `RuntimeSink` value.
+
+And the unwrapped value still reflects the same `RuntimeSink` pipeline built from the parsed config text.
+
+And unlike `ApplicationLogger`, the narrower parse/build result does not expose those runtime helpers directly on the facade surface.
+
+#### When Need A Per-call Target Override Through The Library Facade
+
+When parsed library configuration should still allow a one-write target override without unwrapping first:
+```moonbit
+let logger = parse_and_build_library_logger(raw) catch {
+  err => return
+}
+logger.log(Level::Error, "boom", target="lib.audit")
+```
+
+In this example, the emitted record uses `lib.audit` for that write.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
+
 ### Error Case
 
 e.g.:
@@ -61,8 +98,12 @@ e.g.:
 
 - If the parsed config is invalid, a `ConfigError` is raised before the library facade is returned.
 
+- If callers assume configured runtime helper methods are available directly on the returned facade, they must unwrap first with `to_logger()`.
+
 ### Notes
 
 1. This is the narrow library-oriented parse-and-build sync entry point.
 
 2. Use `build_library_logger(...)` when the config is already typed.
+
+3. Use `to_logger()` when internal code later needs broader logger composition or direct access to the preserved `RuntimeSink` value without changing the public facade type.

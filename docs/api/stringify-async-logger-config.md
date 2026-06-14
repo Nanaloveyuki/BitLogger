@@ -2,8 +2,8 @@
 name: stringify-async-logger-config
 group: api
 category: async
-update-time: 20260512
-description: Serialize AsyncLoggerConfig into compact or pretty JSON text for export and diagnostics.
+update-time: 20260614
+description: Serialize AsyncLoggerConfig into compact or pretty JSON text for export and diagnostics using the canonical async policy labels.
 key-word:
     - async
     - config
@@ -37,7 +37,9 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON suitable for transport and snapshots.
 - `pretty=true` returns indented JSON for humans.
 - This helper is built on top of `async_logger_config_to_json(...)`.
+- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured async-config export helper.
 - The exported text follows the supported async config schema rather than internal queue implementation details.
+- Canonical policy labels such as `DropNewest` and `Never` are emitted even though the parser also accepts aliases like `DropLatest` and `None`.
 
 ### How to Use
 
@@ -69,4 +71,12 @@ e.g.:
 - If callers need a `JsonValue` for composition, they should use `async_logger_config_to_json(...)` instead.
 
 - If invalid constructor inputs were normalized earlier, the resulting text contains the normalized config values.
+
+### Notes
+
+1. Use this helper when async policy should be copied or logged as text directly.
+
+2. If negative `max_pending` semantics matter, remember that the serialized text preserves the config value while runtime queue creation later clamps the queue limit to `0`.
+
+3. Use `async_logger_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
 

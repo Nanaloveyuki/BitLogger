@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - The output includes `max_pending` and `overflow`.
 - Overflow is serialized using the supported config labels such as `DropNewest` and `DropOldest`.
+- `max_pending` is emitted as a JSON number and `overflow` is emitted as the stable parser-facing text label, so the result stays aligned with `parse_logger_config_text(...)` roundtrips.
 - This helper is intended for config export rather than runtime queue inspection.
 - The JSON shape matches the queue section accepted by `parse_logger_config_text(...)`.
 
@@ -68,4 +69,10 @@ e.g.:
 - If `max_pending` is very small, the config still serializes successfully even though runtime drops may happen more often.
 
 - If callers need direct text output instead of a JSON value, they should use `stringify_queue_config(...)` instead.
+
+### Notes
+
+1. Use this helper when you need a reusable JSON value rather than a final JSON string.
+
+2. Use `stringify_queue_config(...)` when the next consumer expects text instead of `JsonValue`.
 

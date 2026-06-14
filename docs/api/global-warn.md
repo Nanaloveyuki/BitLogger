@@ -35,7 +35,8 @@ pub fn warn(message : String, fields~ : Array[Field] = []) -> Unit {}
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `default_logger().warn(...)`.
-- The shared current threshold and target determine whether and how the record is emitted.
+- Each call therefore reads the current shared default threshold and target at write time instead of holding one long-lived logger value internally.
+- It uses the shared console sink and current default target.
 - Warning logs are suited to degraded or suspicious states that do not necessarily stop execution.
 - This helper offers convenience for a single shared logging path.
 
@@ -47,10 +48,13 @@ Here are some specific examples provided.
 
 When a recoverable issue should be surfaced without creating a logger variable:
 ```moonbit
+set_default_target("cache")
 warn("cache miss ratio increased")
 ```
 
-In this example, the shared default logger emits a warning-severity record.
+In this example, the shared default logger emits a warning-severity record under the `cache` target.
+
+If `set_default_target(...)` or `set_default_min_level(...)` changes later, future `warn(...)` calls will observe those updated shared defaults automatically.
 
 #### When Attach Structured Warning Context
 
@@ -72,5 +76,7 @@ e.g.:
 
 1. Global warnings are convenient for simple apps and scripts.
 
-2. Warning-level global events are often the first candidate for separate monitoring or routing later.
+2. Future calls pick up later shared-default changes because the helper forwards through a fresh `default_logger()` each time.
+
+3. Warning-level global events are often the first candidate for separate monitoring or routing later.
 

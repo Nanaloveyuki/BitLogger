@@ -3,7 +3,7 @@ name: library-async-logger-with-context-fields
 group: api
 category: facade
 update-time: 20260613
-description: Attach reusable structured fields to a LibraryAsyncLogger facade.
+description: Attach reusable structured fields to a LibraryAsyncLogger facade while rewrapping the same underlying async logger state.
 key-word:
     - async
     - library
@@ -27,7 +27,7 @@ pub fn[S] LibraryAsyncLogger::with_context_fields(
 #### input
 
 - `self : LibraryAsyncLogger[S]` - Base facade that should gain shared fields.
-- `fields : Array[@bitlogger.Field]` - Structured fields that will be prepended to each emitted record.
+- `fields : Array[@bitlogger.Field]` - Structured fields stored on the facade and prepended to each emitted record.
 
 #### output
 
@@ -38,8 +38,13 @@ pub fn[S] LibraryAsyncLogger::with_context_fields(
 Detailed rules explaining key parameters and behaviors
 
 - This API delegates to the wrapped async logger's `with_context_fields(...)` behavior and then narrows the result back to `LibraryAsyncLogger`.
-- Context fields are merged during `log(...)` before enqueue.
+- The provided `fields` array replaces the previously stored shared context field set on the wrapped async logger.
+- During later `log(...)` calls, those stored shared fields are prepended ahead of per-call fields before enqueue.
+- Sink type, queue state, async config, and failure/lifecycle state remain the same because only the stored shared field set changes.
+- Repeated `with_context_fields(...)` calls on derived facades therefore replace the stored shared field set on the next returned facade instead of stacking multiple shared field layers together.
 - Unlike synchronous `LibraryLogger::with_context_fields(...)`, this async variant preserves the visible `LibraryAsyncLogger[S]` type instead of changing the visible sink type.
+- Async state helpers remain hidden behind the narrower facade after rewrapping; use `to_async_logger()` if later code needs them.
+- The original facade value is not mutated; rewrapping returns a new facade over the updated async logger value.
 - `bind(...)` is an ergonomic alias for this same behavior.
 
 ### How to Use
@@ -71,15 +76,23 @@ let worker = LibraryAsyncLogger::new(@bitlogger.console_sink(), target="sdk")
 
 In this example, target composition and field binding stay separate but compose cleanly.
 
+And the returned facade keeps the same underlying async runtime state while carrying a different shared field set.
+
 ### Error Case
 
 e.g.:
-- If `fields` is empty, the returned facade remains valid and simply adds no extra metadata.
+- If `fields` is empty, the returned facade remains valid and simply stores an empty shared field set.
+
+- If a derived library async facade already carried shared context fields, calling `with_context_fields(...)` again replaces that stored shared field set on the new returned facade rather than appending another shared layer.
 
 - If duplicate field keys are provided, all fields are still emitted for downstream formatting or inspection.
+
+- If callers want to add event-specific fields without replacing the shared set, they should pass those through `log(..., fields=...)` on the returned facade.
 
 ### Notes
 
 1. Use this for stable shared metadata, not highly dynamic event-specific values.
 
 2. The narrower `LibraryAsyncLogger` surface is preserved after field binding.
+
+3. Use `bind(...)` when the shorter alias reads better in chained library code.

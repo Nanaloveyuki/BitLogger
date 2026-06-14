@@ -2,8 +2,8 @@
 name: async-logger-config
 group: api
 category: async
-update-time: 20260512
-description: Create the queue, batching, linger, and flush policy config used by async loggers.
+update-time: 20260614
+description: Create the async queue, batching, linger, and flush policy config used by async loggers.
 key-word:
     - async
     - config
@@ -29,7 +29,7 @@ pub fn AsyncLoggerConfig::new(
 
 #### input
 
-- `max_pending : Int` - Maximum queued records.
+- `max_pending : Int` - Requested maximum queued records before overflow policy matters; negative values are preserved in the config object and later treated as `0` by runtime queue creation.
 - `overflow : AsyncOverflowPolicy` - Queue overflow strategy.
 - `max_batch : Int` - Maximum records drained per batch.
 - `linger_ms : Int` - Optional wait window for batch accumulation.
@@ -45,6 +45,8 @@ Detailed rules explaining key parameters and behaviors
 
 - `max_batch <= 1` is normalized to `1`.
 - `linger_ms < 0` is normalized to `0`.
+- `max_pending` is stored as provided by the constructor.
+- When the async logger runtime later builds its internal queue, negative `max_pending` is interpreted as `0`.
 - `overflow` and `flush` define the most important queue/runtime behavior tradeoffs.
 - This type is used directly by `async_logger(...)` and embedded in `AsyncLoggerBuildConfig`.
 
@@ -79,12 +81,14 @@ In this example, the config becomes a stable JSON payload.
 ### Error Case
 
 e.g.:
-- If `max_batch` is set to `0` or below, runtime config normalizes it to `1`.
+- If `max_batch` is set to `0` or below, constructor normalization changes it to `1`.
 
-- If `linger_ms` is negative, it is normalized to `0`.
+- If `linger_ms` is negative, constructor normalization changes it to `0`.
 
 ### Notes
 
 1. This type controls async runtime behavior, not synchronous queue wrapping.
 
 2. Prefer explicit values for production services so overflow and flush semantics are visible.
+
+3. If queue limit semantics for negative values matter, document that behavior explicitly in calling code because the config object preserves the negative value while the runtime queue later clamps it to `0`.

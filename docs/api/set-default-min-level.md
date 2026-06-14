@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The function updates the internal `Ref[Level]` used by `default_logger()`.
 - It does not mutate any separately stored `Logger` values that were created earlier.
 - Later calls to `default_logger()` and the global logging shortcuts observe the new threshold.
+- Any explicit logger value that was already created earlier keeps the threshold it captured at creation time.
 - This is the main API for adjusting process-wide default severity without building a custom logger variable.
 
 ### How to Use
@@ -61,6 +62,8 @@ debug("cache probe enabled")
 
 In this example, the shared global path starts accepting debug records.
 
+Earlier explicit logger values still keep whatever default threshold they captured before this change.
+
 ### Error Case
 
 e.g.:
@@ -72,5 +75,7 @@ e.g.:
 
 1. This API only affects the shared default logger workflow.
 
-2. Prefer explicit logger instances when different subsystems need different thresholds at the same time.
+2. Call `default_logger()` again after changing the default if a fresh explicit logger value should reflect the new threshold.
+
+3. Prefer explicit logger instances when different subsystems need different thresholds at the same time.
 

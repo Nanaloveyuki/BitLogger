@@ -3,7 +3,7 @@ name: library-logger-error
 group: api
 category: facade
 update-time: 20260613
-description: Emit an error-level record through a LibraryLogger facade using the highest built-in severity shortcut.
+description: Emit an error-level record through a LibraryLogger facade by delegating to the wrapped logger's error shortcut.
 key-word:
     - library
     - facade
@@ -39,10 +39,11 @@ pub fn[S : Sink] LibraryLogger::error(
 
 Detailed rules explaining key parameters and behaviors
 
-- This helper delegates to `log(Level::Error, ...)` on the wrapped logger.
+- This helper delegates to `error(...)` on the wrapped logger, which in turn uses `log(Level::Error, ...)`.
 - `Error` is the highest built-in severity in this sync facade API.
-- Per-call target override is not exposed here; use `log(...)` when explicit target control is required.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - Sink composition, filtering, patching, and queue wrappers still apply normally.
+- Broader composition helpers remain on the underlying `Logger[S]` and require `to_logger()` first.
 
 ### How to Use
 
@@ -66,6 +67,10 @@ logger.error("dispatch failed", fields=[field("job_id", "42")])
 
 In this example, the record carries machine-readable context without dropping to the generic `log(...)` form.
 
+And any shared context already carried by the facade still participates through the wrapped logger pipeline.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
+
 ### Error Case
 
 e.g.:
@@ -73,8 +78,12 @@ e.g.:
 
 - If a target override is required, use `log(...)` instead of this severity shortcut.
 
+- If callers need broader composition helpers after logging, they must unwrap first with `to_logger()`.
+
 ### Notes
 
 1. Use this helper for high-severity library failures.
 
 2. Emitting an error record is separate from throwing or handling program exceptions.
+
+3. Use `log(...)` instead when the call site needs a per-call target override or a dynamic level.
