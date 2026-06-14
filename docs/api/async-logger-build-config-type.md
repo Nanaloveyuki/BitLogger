@@ -34,9 +34,12 @@ Detailed rules explaining key parameters and behaviors
 - The public `src-async` surface forwards this alias directly from `@utils.AsyncLoggerBuildConfig`, so constructor, parser, export, and stringify helpers all operate on one shared underlying build-config model.
 - `AsyncLoggerBuildConfig::new(...)` constructs this type as the main handoff object for async build flows.
 - `build_async_logger(...)`, `build_async_text_logger(...)`, `parse_async_logger_build_config_text(...)`, `async_logger_build_config_to_json(...)`, and `stringify_async_logger_build_config(...)` all consume or produce this same public shape.
+- The same typed object also feeds the application and library facade builders. `build_application_async_logger(...)`, `build_application_text_async_logger(...)`, `build_library_async_logger(...)`, and `build_library_async_text_logger(...)` all accept this exact config type and then delegate to one of the two direct builder lines.
+- The parse-and-build facade helpers use the same model as well. `parse_and_build_application_async_logger(...)` and `parse_and_build_library_async_logger(...)` first parse JSON into this build-config shape and then forward into their respective facade builders.
 - `build_async_logger(...)` consumes the full sync build path by calling `build_logger(config.logger)` first, so `LoggerConfig.sink`, `LoggerConfig.queue`, and the resulting runtime sink behavior all participate before the async layer is added.
 - `build_async_text_logger(...)` is narrower: it builds a text console sink directly from `config.logger.sink.text_formatter` and the top-level `min_level`, `target`, and `timestamp` fields, without applying `LoggerConfig.queue`.
 - On that text-specific path, `config.logger.sink.kind` also does not decide the runtime sink shape. `build_async_text_logger(...)` still constructs `FormattedConsoleSink` from `config.logger.sink.text_formatter` even if the config says `Console`, `JsonConsole`, or `File`.
+- In practice, the builder function you choose is what decides how the embedded `LoggerConfig` is interpreted. The runtime-sink line (`build_async_logger(...)` and the application/library facades layered on it) preserves the full sync build path, while the text-console line (`build_async_text_logger(...)` and the facades layered on it) ignores the optional sync queue and does not branch on `logger.sink.kind`.
 
 ### How to Use
 
@@ -57,6 +60,8 @@ In this example, both layers of logger setup are kept in one typed value.
 And downstream code can still choose between the full sync-first builder path and the narrower text-console builder path.
 
 And if downstream code chooses `build_async_text_logger(...)`, that builder choice still matters more than `logger.sink.kind` because only the formatter-backed text path is consumed there.
+
+And the same typed object can be handed unchanged to `build_application_async_logger(...)`, `build_application_text_async_logger(...)`, `build_library_async_logger(...)`, or `build_library_async_text_logger(...)` when the caller wants a different public facade over the same underlying build decision.
 
 #### When Need To Export Or Inspect The Full Build Shape
 
@@ -79,6 +84,8 @@ e.g.:
 
 - In particular, carrying `logger.sink.kind=File` inside this config type does not force the later text-specific builder path to create a file-backed async logger; only `build_async_logger(...)` branches on sink kind.
 
+- Likewise, choosing an application or library facade builder does not change these config semantics by itself. Those facade APIs inherit the same runtime-sink-versus-text-console split from the direct builder they delegate to.
+
 ### Notes
 
 1. Use `AsyncLoggerBuildConfig::new(...)` when one object should carry both sync and async logger setup.
@@ -88,3 +95,5 @@ e.g.:
 3. Pick `build_async_logger(...)` when the full synchronous config path, including `LoggerConfig.queue`, should be preserved before async wrapping.
 
 4. Pick `build_async_text_logger(...)` when the goal is specifically a concrete text console sink and only the selected text-oriented `LoggerConfig` fields should apply.
+
+5. Pick the application or library facade builders when the same config should drive one of those narrower public surfaces; the chosen facade changes the exposed type, but the direct builder line underneath still determines whether queue and sink-kind settings are preserved or ignored.
