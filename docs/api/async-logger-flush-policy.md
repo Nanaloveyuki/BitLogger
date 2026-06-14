@@ -34,9 +34,11 @@ pub fn[S] AsyncLogger::flush_policy(self : AsyncLogger[S]) -> AsyncFlushPolicy {
 Detailed rules explaining key parameters and behaviors
 
 - The returned value reflects the policy captured when the async logger was created.
-- `Batch` causes explicit flush calls after each completed drained batch, not after every individual record write.
-- `Shutdown` causes one explicit flush call after the worker loop exits.
-- `Never` leaves flushing entirely to sink behavior or external control.
+- `Batch` means the worker invokes the stored async flush callback after each completed drained batch, not after every individual record write.
+- `Shutdown` means the worker invokes the stored async flush callback once after the worker loop exits.
+- `Never` leaves that explicit callback path unused and relies entirely on sink behavior or external control.
+- This helper reports callback timing policy, not a guarantee that a particular sink type has a meaningful built-in flush effect on every constructor path.
+- In particular, text-specific async builder paths keep the default no-op flush callback even when the visible policy is `Batch` or `Shutdown`, so the reported policy can describe when the callback would run without implying extra sink work actually happens on that path.
 
 ### How to Use
 
