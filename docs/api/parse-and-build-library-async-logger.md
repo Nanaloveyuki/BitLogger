@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This API parses async build config text, validates it, builds the async runtime logger through `build_library_async_logger(...)`, and narrows it to the library facade.
 - Both the embedded sync logger config and async queue/runtime config are validated by the parser layer before any facade value is returned.
 - The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
+- That also means the parsed `logger.sink.kind` had already selected the concrete `RuntimeSink` variant before the library facade narrowed the helper surface.
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce directly.
 - The resulting facade keeps library-facing async operations such as `run()` and `shutdown()` while exposing a smaller public surface.
 - The broader async helper surface is still preserved rather than rebuilt, but it is intentionally not directly exposed on the returned facade. Queue counters, lifecycle state, idle-wait helpers, and file-backed runtime helpers stay behind `to_async_logger()` instead of disappearing.
@@ -105,6 +106,8 @@ e.g.:
 - If callers assume async state or idle-wait helpers are available directly on the returned facade, they must unwrap first with `to_async_logger()`.
 
 - If callers need file-backed runtime helpers after parse/build, they must unwrap first, but the resulting helper surface still matches the parsed direct builder path.
+
+- If callers depend on queued or file-backed runtime behavior, they should read this facade as preserving the already-built `RuntimeSink` result from the parsed sync-first builder path, not as recomputing sink selection after narrowing.
 
 ### Notes
 
