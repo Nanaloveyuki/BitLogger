@@ -2,8 +2,8 @@
 name: logger-to-library-logger
 group: api
 category: facade
-update-time: 20260613
-description: Convert a full sync logger into the narrower library-facing sync facade without rebuilding the underlying logger state.
+update-time: 20260614
+description: Convert a full sync logger into the narrower library-facing sync facade without rebuilding or detaching the underlying logger state.
 key-word:
     - logger
     - library
@@ -35,10 +35,12 @@ Detailed rules explaining key parameters and behaviors
 
 - This conversion does not rebuild the sink or change the logger configuration.
 - Target, min level, timestamp behavior, and sink wiring are preserved because the same underlying logger value is wrapped.
+- The original `Logger[S]` handle remains the same live logger. If caller code keeps that original value, later facade calls and later unwraps still observe the same shared target, context wrappers, timestamp behavior, and sink or runtime-helper mutations.
 - The returned facade keeps library-oriented write APIs such as `info(...)`, `warn(...)`, and `error(...)`.
 - Broader sync composition helpers remain on the underlying `Logger[S]` and are intentionally hidden until `to_logger()` is used again.
 - When `S` is `RuntimeSink`, projection also preserves queued runtime state and file-backed runtime helper behavior behind the facade instead of replacing them with a library-specific copy.
 - Unwrapping later with `to_logger()` therefore exposes the same pending counts, drain or flush results, file state, and runtime file controls that the original logger already carried.
+- That also means runtime or file helper mutations still alias in both directions: draining queued runtime records, flushing, or changing file helper state through a later unwrapped logger changes the same live runtime-backed logger that the original `Logger[S]` already held.
 
 ### How to Use
 
@@ -64,6 +66,8 @@ let public_logger = full.to_library_logger()
 
 In this example, the projection changes the exposed type only; it does not remove the existing timestamp behavior or other logger state.
 
+If `full` is still kept elsewhere, it continues sharing that same live logger state with `public_logger`.
+
 ### Error Case
 
 e.g.:
@@ -74,6 +78,8 @@ e.g.:
 - If callers later need composition helpers such as `with_timestamp(...)`, `with_filter(...)`, or `with_patch(...)`, they must unwrap again with `to_logger()`.
 
 - Projection does not normalize configured runtime state; if the original logger already carried queued runtime data or file-backed helper state, a later unwrap still exposes that same live state.
+
+- Projection does not create an isolated wrapper copy. If callers keep the original `Logger[S]`, then later facade-level writes or later runtime-helper mutations through an unwrapped logger still affect that original handle too.
 
 ### Notes
 
