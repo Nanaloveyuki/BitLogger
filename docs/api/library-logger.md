@@ -34,6 +34,7 @@ Detailed rules explaining key parameters and behaviors
 - This is a public facade struct, not a type alias.
 - The wrapped sink type `S` is preserved, so sink-specific typing remains available through the facade type parameter.
 - The facade keeps common library-safe operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, and the main write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
+- The facade also preserves the wrapped logger's target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derives another logger with `with_target(...)` or `child(...)`.
 - The facade wraps the same underlying `Logger[S]` value rather than copying or rebuilding it.
 - It does not expose the wider `Logger[S]` composition surface or `ConfiguredLogger` runtime helper methods directly.
 - Most facade reshaping helpers keep the same visible sink type, but `with_context_fields(...)` and `bind(...)` intentionally return `LibraryLogger[ContextSink[S]]` because they extend the sink pipeline.
@@ -51,6 +52,17 @@ let logger : LibraryLogger[ConsoleSink] = LibraryLogger::new(console_sink(), tar
 ```
 
 In this example, the package boundary exposes the library facade instead of the full logger type.
+
+#### When Need A One-call Target Override Through The Library Facade
+
+When package code should keep the same library-facing sync value but emit one record under a different target:
+```moonbit
+logger.log(Level::Error, "boom", target="lib.audit")
+```
+
+In this example, the emitted record uses `lib.audit` only for that one call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
 
 #### When Need To Recover The Full Logger Later
 

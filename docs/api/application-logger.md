@@ -32,6 +32,7 @@ Detailed rules explaining key parameters and behaviors
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same logging, queue, and file helper APIs exposed by `ConfiguredLogger`.
 - Because `ConfiguredLogger` is itself `Logger[RuntimeSink]`, the alias also keeps ordinary logger composition and write behavior such as `with_target(...)`, `child(...)`, and `log(..., target=...)`.
+- In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - Because this is only an alias, the application-facing type does not hide any configured-runtime helpers or broader logger surface.
 - The alias exists to give application boot code a clearer public entry name.
 - Builders such as `build_application_logger(...)` and `parse_and_build_application_logger(...)` return this alias.
@@ -62,7 +63,18 @@ In this example, callers see the app-facing alias instead of the lower-level `Co
 
 And the same queue/file/runtime helpers remain directly callable because no narrowing wrapper is added.
 
-And the inherited logger target rules stay the same: `log(..., target=...)` can override the target per call, while `with_target(...)` and `child(...)` derive new logger values with changed default targets.
+And the inherited logger target rules stay the same: `log(..., target=...)` can override the target per call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+#### When Need A One-call Target Override Without Rebuilding The Alias
+
+When app-level sync code should keep the same alias value but emit one record under a different target:
+```moonbit
+logger.log(Level::Error, "boom", target="app.audit")
+```
+
+In this example, the emitted record uses `app.audit` only for that one call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the alias value's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
