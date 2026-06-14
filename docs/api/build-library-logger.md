@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - The embedded config still goes through the normal runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - The returned facade wraps the same underlying `ConfiguredLogger` value that `build_logger(...)` would produce directly.
 - The facade intentionally exposes a smaller logging surface than the full configured runtime logger.
+- The facade still preserves the underlying logger target rules on its exposed write methods: `log(..., target=...)` can override the target for one write, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - Queue metrics, flush and drain helpers, and file runtime controls remain on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - Call `to_logger()` if a caller must recover the underlying full logger object.
 - Use this builder when the boundary should preserve the configured runtime logger path but still hide broader runtime helper methods from downstream callers.
@@ -68,6 +69,18 @@ ignore(full.sink.pending_count())
 In this example, the library facade is unwrapped before using runtime-specific helpers through the preserved `RuntimeSink` value.
 
 And the unwrapped value still carries the same `RuntimeSink` pipeline built from the original config.
+
+#### When Need A Per-call Target Override Through The Library Builder Facade
+
+When typed library config should still build a facade that allows a one-write target override without unwrapping first:
+```moonbit
+let logger = build_library_logger(config)
+logger.log(Level::Error, "boom", target="lib.audit")
+```
+
+In this example, the emitted record uses `lib.audit` for that write.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
