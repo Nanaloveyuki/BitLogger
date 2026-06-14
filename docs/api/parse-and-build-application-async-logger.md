@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - That includes preserving a parsed sync queue configuration inside the resulting `RuntimeSink` variant rather than collapsing it away during application-alias construction.
 - Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path returns the same underlying async logger value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce, without narrowing the helper surface.
 - The returned logger keeps the full async lifecycle and state helpers directly.
+- The returned logger also keeps the ordinary async logger target rules unchanged: `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - In the current parsed-builder coverage, that direct equivalence also holds for serialized async state snapshots, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after worker execution.
 - Parsed file-backed runtime helpers remain available on the returned logger with the same behavior as the direct `build_async_logger(parse_async_logger_build_config_text(input))` path.
 - Use `parse_and_build_library_async_logger(...)` instead when the same parsed runtime-sink result should be wrapped and narrowed for a library boundary.
@@ -75,6 +76,20 @@ ignore(logger.state())
 ```
 
 In this example, no unwrap step is needed because the application result is an alias, not a narrowing facade.
+
+#### When Need A Per-call Target Override After JSON Boot
+
+When parsed app configuration should keep the same direct target override behavior as the ordinary async logger:
+```moonbit
+let logger = parse_and_build_application_async_logger(raw) catch {
+  err => return
+}
+logger.log(@bitlogger.Level::Error, "boom", target="app.audit")
+```
+
+In this example, the emitted record uses `app.audit` for that call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
