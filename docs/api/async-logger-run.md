@@ -38,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - The method then keeps draining records until `queue.get()` stops with `AsyncLoggerClosed` or a worker error escapes.
 - On a normal queue-close exit, `run()` clears `is_running` and returns normally.
 - On failure, the logger records `has_failed=true`, stores the error text in `last_error`, clears `is_running`, and then raises the error back out of `run()`.
+- A worker failure does not guarantee the async backlog was fully drained first. If the failure happens after some records were already written, later queued records can remain pending when `run()` exits.
+- A later `run()` invocation can resume draining that retained backlog, but the stale failure flag and stale `last_error()` value are only cleared after the new worker call actually begins running.
 - This helper does not enforce a single-worker guard by itself, so the public contract should be treated as application-controlled worker startup rather than an API that deduplicates repeated `run()` calls.
 
 ### How to Use
@@ -72,9 +74,11 @@ In this example, the application decides when the worker begins instead of hidin
 e.g.:
 - If the worker loop fails, `has_failed()` becomes `true`, `last_error()` stores the error text, and `run()` raises that failure to the caller.
 
+- After a failed run, `pending_count()` can still be greater than zero until later shutdown or restart logic finishes handling the retained backlog.
+
 - If `run()` is never started, accepted records may remain queued and not reach the sink.
 
-- A later `run()` attempt starts from a fresh failure flag and empty `last_error()` string, even if an earlier run failed.
+- A later `run()` attempt starts from a fresh failure flag and empty `last_error()` string once that retrying worker has actually started, even if an earlier run failed.
 
 - Starting more than one `run()` task for the same logger is not prevented by this method and can produce application-level worker coordination bugs.
 
