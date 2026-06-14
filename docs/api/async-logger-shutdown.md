@@ -36,11 +36,12 @@ Detailed rules explaining key parameters and behaviors
 
 - `clear=false` first waits for idle, then closes the logger.
 - In runtimes where shutdown clearing after idle is enabled, remaining backlog after `wait_idle()` triggers a fallback `close(clear=true)`.
-- `clear=true` immediately closes and abandons pending records.
+- `clear=true` immediately closes and abandons pending records, even if no worker was ever started for that logger.
 - In runtimes where shutdown waits for workers, the method then waits until `is_running()` becomes `false` before returning.
 - In the current backend split, native-worker runtimes enable both the post-`wait_idle()` clear fallback and the final wait-for-worker phase, while compatibility runtimes skip both extra steps.
 - That means a failure-short-circuited `wait_idle()` can still be followed by forced pending-to-dropped cleanup on native-worker runtimes, while compatibility runtimes close without that extra forced clear step.
 - In the current tested failure path, native-worker shutdown turns the leftover pending item into one more dropped record, while compatibility shutdown leaves that leftover closed-queue count in `pending_count()` instead.
+- Shutdown itself does not clear retained worker failure state. If a previous `run()` already recorded `has_failed=true` and a non-empty `last_error()`, those diagnostics can remain visible after shutdown completes.
 - Because `clear=false` delegates to `wait_idle()` first, shutdown can also wait indefinitely when pending records exist but no worker is making progress and no failure flag is raised.
 
 ### How to Use
@@ -74,6 +75,8 @@ e.g.:
 
 - After a worker failure, native-worker shutdown may convert the remaining backlog into dropped records, while compatibility shutdown can leave the pending counter reflecting that leftover closed queue state.
 - In the current direct regression coverage, that split appears as `pending_count() == 0` and `dropped_count()` increasing on native-worker runtimes, versus `pending_count() > 0` and no extra dropped cleanup on compatibility runtimes.
+
+- Even after shutdown finishes with `is_closed=true`, callers can still observe retained `has_failed()` and `last_error()` from an earlier worker failure.
 
 - In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
 
