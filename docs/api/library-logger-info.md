@@ -41,7 +41,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `info(...)` on the wrapped logger, which in turn uses `log(Level::Info, ...)`.
 - `Info` is the default minimum logger threshold unless changed explicitly.
-- Per-call target override is not exposed here; use `log(...)` if needed.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - Any existing sink wrappers inside the logger pipeline still participate normally in the write path.
 - The library facade keeps the same write semantics while exposing a smaller public surface.
 - Broader composition helpers remain on the underlying `Logger[S]` and require `to_logger()` first.
@@ -69,6 +69,8 @@ logger.info("request completed", fields=[field("status", "200")])
 In this example, the event remains concise while still carrying useful fields.
 
 And any shared context already carried by the facade still participates through the wrapped logger pipeline.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
