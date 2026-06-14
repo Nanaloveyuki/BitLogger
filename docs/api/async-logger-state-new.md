@@ -53,10 +53,11 @@ Detailed rules explaining key parameters and behaviors
 - It does not inspect a live logger instance by itself.
 - `AsyncLogger::state()` is the higher-level API that reads these values from a concrete logger.
 - It also does not validate whether the supplied fields represent a combination that could come from one real logger instant.
+- The supplied `runtime : AsyncRuntimeState` is stored exactly as provided; this constructor does not recompute `mode` or `background_worker` from the active backend.
 - The constructed value matches the same public shape used by async logger serializers.
 - Because `AsyncLoggerState` is only a data snapshot type, this constructor is mainly useful for tests, adapters, and synthetic diagnostics rather than ordinary logger inspection.
 - Serialization helpers accept any `AsyncLoggerState` value, including hand-built ones from this constructor.
-- That includes combinations such as `has_failed=true` together with non-zero `pending_count` or a retained `last_error`, which are valid for diagnostic snapshots and test fixtures.
+- That includes combinations such as `has_failed=true` together with non-zero `pending_count` or a retained `last_error`, and even a manually chosen runtime snapshot that does not match the current backend, all of which are valid for diagnostic snapshots and test fixtures.
 
 ### How to Use
 
@@ -106,6 +107,8 @@ e.g.:
 - If callers want a snapshot directly from one live logger instance, `AsyncLogger::state()` is the simpler API.
 
 - If callers manually combine a runtime snapshot, counters, or flush policy that do not actually belong together, the constructor still accepts that synthetic snapshot.
+
+- If callers want the current backend-derived runtime pair instead of a synthetic one, they must pass `async_runtime_state()` explicitly or use `AsyncLogger::state()`.
 
 - This constructor does not apply cleanup semantics such as clearing `last_error` on restart or draining pending records; callers must provide those fields exactly as they want them represented.
 
