@@ -41,6 +41,8 @@ Detailed rules explaining key parameters and behaviors
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
 - The state must already have been captured or constructed before serialization.
 - Serialization preserves whatever snapshot combination it receives, including failure flags together with remaining backlog counts.
+- This helper never rereads a logger instance by itself. If callers pass an older or manually constructed `AsyncLoggerState`, the JSON reflects that provided value exactly rather than refreshing fields from live runtime state.
+- It also does not normalize mixed diagnostic combinations. If the provided snapshot says `is_closed=true` together with retained `has_failed=true`, `last_error`, or non-zero backlog counters, those exact combinations are emitted unchanged.
 
 ### How to Use
 
@@ -73,6 +75,8 @@ e.g.:
 - If the queue is empty, `pending_count` and `dropped_count` are still serialized normally as numeric values.
 
 - If `has_failed` is `true`, serialization does not force `pending_count` to `0` or clear `last_error`; it reports the snapshot exactly as provided.
+
+- If callers need newer logger data, they must capture a fresh `AsyncLogger::state()` first instead of expecting JSON conversion itself to refresh stale fields.
 
 ### Notes
 
