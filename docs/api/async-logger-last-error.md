@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - If the worker loop fails, the error text is captured from the raised exception.
 - An empty string normally means no failure has been recorded.
 - Once a failure string is recorded, it stays in place until a later `run()` invocation actually starts and clears it.
+- Failure-driven shutdown does not clear the stored error string by itself, so the same `last_error()` text can remain visible even after the logger is already closed.
 - This helper reports worker execution errors, not ordinary overflow or backpressure conditions.
 - That reset happens before the restarted worker resumes drain work.
 
@@ -74,6 +75,8 @@ e.g.:
 - If callers need broader context than just the error text, they should use `state()`.
 
 - `close()` or `shutdown()` do not clear a previously recorded error string by themselves; the reset happens only after a later `run()` has already started.
+
+- If the same error string is still present after shutdown, that does not by itself mean cleanup was skipped; the logger may already be `is_closed=true` while the remaining pending-versus-dropped outcome still reflects the active runtime's shutdown path.
 
 ### Notes
 
