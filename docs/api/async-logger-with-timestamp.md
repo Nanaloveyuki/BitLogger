@@ -37,7 +37,8 @@ Detailed rules explaining key parameters and behaviors
 - When enabled, `log(...)` captures `@env.now()` before placing the record into the queue.
 - When disabled, emitted records use `0UL` as the timestamp value.
 - This setting affects later emitted records only.
-- Queue, batching, and flush behavior are unchanged.
+- The returned logger is derived from `self`; the original async logger value is not mutated.
+- Only the stored `timestamp` flag changes. Target, minimum level, queue configuration, and lifecycle/failure state stay on the same `AsyncLogger[S]` surface.
 - In the current direct async coverage, a derived timestamp-enabled logger records non-zero timestamps while the original logger continues emitting `0UL` timestamps when it was left disabled.
 
 ### How to Use
@@ -53,6 +54,8 @@ let logger = async_logger(console_sink())
 ```
 
 In this example, each record captures its timestamp before entering the async queue.
+
+And the returned async logger still keeps the same queue-facing API surface as the source logger.
 
 #### When Need Deterministic Async Records
 
@@ -77,4 +80,6 @@ e.g.:
 
 2. It is useful for tests, deterministic snapshots, and production timing.
 
-3. Use a derived logger value when only one branch should capture timestamps and the base logger should remain deterministic.
+3. State helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, and `has_failed()` remain available on the returned logger because the visible async logger surface is preserved.
+
+4. Use a derived logger value when only one branch should capture timestamps and the base logger should remain deterministic.
