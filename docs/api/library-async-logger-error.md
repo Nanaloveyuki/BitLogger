@@ -40,7 +40,8 @@ pub async fn[S] LibraryAsyncLogger::error(
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `error(...)` on the wrapped async logger, which in turn uses `log(Level::Error, ...)`.
-- The record is still subject to stored shared context fields, patching, filtering, and overflow policy.
+- The record is still subject to min-level gating, stored shared context fields, patching, filtering, and overflow policy.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - Error records represent the highest built-in severity in this async facade API.
 - Use this helper when a named error call is clearer than a raw `log(...)` call.
 - Async state helpers remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
@@ -72,10 +73,14 @@ In this example, the error record carries structured context without falling bac
 
 And any shared context fields already stored on the facade are still prepended before these per-call fields.
 
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
+
 ### Error Case
 
 e.g.:
 - If the logger is closed or overflow policy prevents acceptance, even an error-level record may not become a normal queued record.
+
+- If the logger minimum level is above `Error`, the helper still follows the same level gate, although that usually requires a custom higher threshold outside the common built-in levels.
 
 - If callers need to inspect worker failure rather than emit an error record, `has_failed()` and `last_error()` are the relevant APIs on the full async logger.
 
