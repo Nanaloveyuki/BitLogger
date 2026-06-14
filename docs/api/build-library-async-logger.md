@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
 - The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `build_async_logger(...)` would produce directly.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
+- The broader async helper surface is preserved rather than rebuilt, but it is intentionally not directly exposed on the returned facade. Queue counters, lifecycle state, idle-wait helpers, and file-backed runtime helpers stay behind `to_async_logger()` instead of disappearing.
 - The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
 - The facade still preserves the underlying async target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - In the current direct builder coverage, unwrapping this facade produces the same async state snapshot, runtime-sink variant, queue counters, lifecycle flags, and failure fields as calling `build_async_logger(config)` directly.
@@ -75,6 +76,8 @@ ignore(full.pending_count())
 ```
 
 In this example, the library async facade is unwrapped before using async state helpers.
+
+And unlike `ApplicationAsyncLogger`, the narrower builder result does not expose those broader async helpers directly on the facade surface.
 
 #### When Need A Per-call Target Override Through The Library Async Builder Facade
 

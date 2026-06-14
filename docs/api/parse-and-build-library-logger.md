@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - The parsed config still goes through the normal configured runtime logger build path, including runtime sink selection, optional queue wrapping, and timestamp application.
 - The returned facade wraps the same underlying `ConfiguredLogger` value that `parse_and_build_logger(...)` would produce directly.
 - The returned facade keeps a narrower surface than the underlying configured logger.
+- The configured runtime helper surface is still preserved rather than rebuilt, but it is intentionally not directly exposed on the returned facade. Queue metrics, flush or drain helpers, and file controls stay behind `to_logger()` instead of disappearing.
 - The facade still preserves the underlying logger target rules on its exposed write methods: `log(..., target=...)` can override the target for one write, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - Queue metrics, flush and drain helpers, and file runtime controls stay on the underlying `ConfiguredLogger`, not on the returned facade itself.
 - `to_logger()` can be used to recover the underlying full logger object when necessary.
@@ -73,6 +74,8 @@ ignore(full.sink.pending_count())
 In this example, the caller unwraps the library facade before using runtime-specific helpers through the preserved `RuntimeSink` value.
 
 And the unwrapped value still reflects the same `RuntimeSink` pipeline built from the parsed config text.
+
+And unlike `ApplicationLogger`, the narrower parse/build result does not expose those runtime helpers directly on the facade surface.
 
 #### When Need A Per-call Target Override Through The Library Facade
 
