@@ -642,24 +642,22 @@ test "configured logger queue helpers stay aligned with runtime sink helpers" {
 }
 
 test "configured logger close stays aligned with runtime sink close" {
-  let console_logger = build_logger(
-    LoggerConfig::new(
-      min_level=Level::Info,
-      target="config.close.console",
-      sink=SinkConfig::new(kind=SinkKind::Console),
-      queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
-    ),
+  let console_config = LoggerConfig::new(
+    min_level=Level::Info,
+    target="config.close.console",
+    sink=SinkConfig::new(kind=SinkKind::Console),
+    queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
   )
-  let console_sink = console_logger.sink
+  let console_logger = build_logger(console_config)
+  let console_sink = build_logger(console_config).sink
   inspect(console_logger.close() == console_sink.close(), content="true")
 
-  let file_logger = build_logger(
-    LoggerConfig::new(
-      target="config.close.file",
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-close.log"),
-    ),
+  let file_config = LoggerConfig::new(
+    target="config.close.file",
+    sink=SinkConfig::new(kind=SinkKind::File, path="config-close.log"),
   )
-  let file_sink = file_logger.sink
+  let file_logger = build_logger(file_config)
+  let file_sink = build_logger(file_config).sink
   inspect(file_logger.close() == file_sink.close(), content="true")
 }
 
@@ -1628,20 +1626,18 @@ test "configured logger exposes file flush and close helpers" {
 }
 
 test "configured logger file flush and close stay aligned with runtime sink helpers" {
-  let file_logger = build_logger(
-    LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-file-helper-delegate.log"),
-    ),
+  let file_config = LoggerConfig::new(
+    sink=SinkConfig::new(kind=SinkKind::File, path="config-file-helper-delegate.log"),
   )
-  let file_sink = file_logger.sink
+  let file_logger = build_logger(file_config)
+  let file_sink = build_logger(file_config).sink
 
   inspect(file_logger.file_flush() == file_sink.file_flush(), content="true")
   inspect(file_logger.file_close() == file_sink.file_close(), content="true")
 
-  let console_logger = build_logger(
-    LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)),
-  )
-  let console_sink = console_logger.sink
+  let console_config = LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console))
+  let console_logger = build_logger(console_config)
+  let console_sink = build_logger(console_config).sink
 
   inspect(console_logger.file_flush() == console_sink.file_flush(), content="true")
   inspect(console_logger.file_close() == console_sink.file_close(), content="true")
@@ -2715,7 +2711,12 @@ test "configured logger projection preserves file runtime helpers through unwrap
   inspect(full.file_reset_failure_counters() == configured.file_reset_failure_counters(), content="true")
   inspect(full.file_flush() == configured.file_flush(), content="true")
   inspect(full.pending_count() == configured.pending_count(), content="true")
-  inspect(full.file_close() == configured.file_close(), content="true")
+
+  let was_available = configured.file_available()
+  inspect(configured.file_close() == was_available, content="true")
+  inspect(full.file_available(), content="false")
+  inspect(configured.file_available(), content="false")
+  inspect(full.file_close(), content="false")
 }
 
 test "default library logger mirrors shared sync defaults" {

@@ -57,7 +57,9 @@ Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
 
 ## Documentation
 
-- [API index](./api/index.md)
-- [src package README](../src/README.mbt.md)
+- [API index](./api/index.md): canonical API reference, organized as one public API per file
+- [src package README](../src/README.mbt.md): package-level usage notes and target reminders
+- [`docs/changes/`](./changes/): versioned release notes and publish-facing change summaries
+- [`docs/dev/`](./dev/): developer reference material, investigations, and temporary implementation notes
 
 Common entry points: `text_console(...)`, `file(...)`, `with_queue(...)`, `build_logger(...)`, `build_async_logger(...)`

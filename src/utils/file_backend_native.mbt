@@ -37,7 +37,7 @@ type NativeFileHandle
 #borrow(path, mode)
 extern "C" fn file_open_ffi(path : Bytes, mode : Bytes) -> NativeFileHandle = "fopen"
 
-extern "C" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "moonbitlang_async_pointer_is_null"
+extern "C" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "bitlogger_pointer_is_null"
 
 #borrow(buffer)
 extern "C" fn file_write_ffi(

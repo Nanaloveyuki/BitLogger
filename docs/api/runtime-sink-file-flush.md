@@ -2,7 +2,7 @@
 name: runtime-sink-file-flush
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260614
 description: Flush the file sink behind a RuntimeSink when one is present.
 key-word:
     - runtime
@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - For `QueuedFile`, the queue flush result is ignored and the returned `Bool` comes from the inner file flush.
 - For `QueuedFile`, this step may also be the point where queued records finally reach the inner file sink, so write-failure counters can change here even if earlier `log(...)` calls only enqueued records.
 - Non-file runtime variants return `false`.
+- After a file-backed runtime sink has already cleared its handle, later `file_flush()` calls return `false`.
 
 ### How to Use
 
@@ -66,6 +67,8 @@ In this example, callers can distinguish file flush success from a non-file sink
 e.g.:
 - If the runtime sink is not file-backed, the method returns `false`.
 
+- If the file handle was already closed earlier through this runtime sink or another facade sharing the same underlying file-backed state, the method returns `false`.
+
 - If callers want generic queue or sink advancement instead of file-specific behavior, `flush()` is the broader API.
 
 ### Notes
@@ -73,3 +76,5 @@ e.g.:
 1. Prefer this helper when direct runtime code specifically cares about file flush behavior.
 
 2. Queued file sinks may perform both queue flush work and file flush work here, including surfacing delayed write failures from previously queued records.
+
+3. Library or application facades that share the same wrapped file-backed runtime sink still observe the same flush availability state.

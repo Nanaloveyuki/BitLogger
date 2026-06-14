@@ -6,6 +6,24 @@ test "default logger can be reconfigured" {
   inspect(logger.target, content="global")
 }
 
+test "default logger snapshots shared defaults at creation time" {
+  set_default_min_level(Level::Warn)
+  set_default_target("before")
+  let before = default_logger()
+
+  set_default_min_level(Level::Debug)
+  set_default_target("after")
+  let after = default_logger()
+
+  inspect(before.is_enabled(Level::Error), content="true")
+  inspect(before.is_enabled(Level::Info), content="false")
+  inspect(before.target, content="before")
+
+  inspect(after.is_enabled(Level::Error), content="true")
+  inspect(after.is_enabled(Level::Info), content="true")
+  inspect(after.target, content="after")
+}
+
 test "logger can enable timestamps" {
   let logger = Logger::new(console_sink(), min_level=Level::Info, target="time")
     .with_timestamp()

@@ -35,7 +35,8 @@ pub fn debug(message : String, fields~ : Array[Field] = []) -> Unit {}
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `default_logger().debug(...)`.
-- The record uses the current shared minimum level and target configuration.
+- Each call therefore reads the current shared default threshold and target at write time instead of holding one long-lived logger value internally.
+- It uses the shared console sink and current default target.
 - Debug output is typically intended for development and troubleshooting.
 - This helper is best suited to small apps or code paths that intentionally rely on the shared logger.
 
@@ -48,10 +49,13 @@ Here are some specific examples provided.
 When code wants quick diagnostics without wiring a logger variable:
 ```moonbit
 set_default_min_level(Level::Debug)
+set_default_target("cache")
 debug("cache refreshed")
 ```
 
-In this example, the shared global path starts accepting debug records.
+In this example, the shared global path starts accepting debug records under the `cache` target.
+
+If `set_default_target(...)` or `set_default_min_level(...)` changes later, future `debug(...)` calls will observe those updated shared defaults automatically.
 
 #### When Attach Structured Debug Context
 
@@ -73,5 +77,7 @@ e.g.:
 
 1. Prefer explicit loggers once application logging becomes subsystem-specific.
 
-2. Use `set_default_min_level(...)` before expecting global debug output to appear.
+2. Future calls pick up later shared-default changes because the helper forwards through a fresh `default_logger()` each time.
+
+3. Use `set_default_min_level(...)` before expecting global debug output to appear.
 
