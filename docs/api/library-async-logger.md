@@ -43,6 +43,8 @@ Detailed rules explaining key parameters and behaviors
 - That recovered logger is the same live async value, so queue counters, retained failure state, runtime-dependent shutdown outcomes, and sink helper access are preserved rather than recomputed.
 - If the delegated async flush callback fails, the facade preserves the same `has_failed()`, `last_error()`, `is_running()`, pending-backlog, and shutdown-cleanup semantics that the underlying `AsyncLogger[S]` would have exposed directly.
 - If `S` is `RuntimeSink`, queued runtime state and file-backed helper behavior also stay on that same wrapped logger value; the facade only hides direct access until `to_async_logger()` is used.
+- If `S` is `FormattedConsoleSink` and the value came from `build_library_async_text_logger(...)`, the wrapped logger keeps that builder's formatter-driven text-console semantics as well: the optional sync queue layer was not applied before wrapping, and `logger.sink.kind` did not decide the sink shape.
+- In that text-builder route, unwrapping therefore exposes the same concrete formatter behavior and outer async queue counters that `build_async_text_logger(...)` would have returned directly, even if the original config carried `sink.kind=File` or another non-text kind.
 
 ### How to Use
 
@@ -98,6 +100,8 @@ e.g.:
 - `LibraryAsyncLogger[S]` itself does not have a runtime failure mode.
 
 - Runtime behavior still depends on the wrapped sink `S` and async runtime support, so sink-specific or target-specific limitations remain unchanged behind the facade.
+
+- If `S` is `FormattedConsoleSink` because the value came from `build_library_async_text_logger(...)`, config fields like `logger.sink.kind=File` still do not make the wrapped logger file-backed; that builder preserved the text-console formatter route before the facade was applied.
 
 - Post-close logging behavior, queue state, and failure-state behavior remain those of the wrapped `AsyncLogger[S]`; the facade only narrows what is directly exposed.
 
