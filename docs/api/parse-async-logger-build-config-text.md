@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - This API separates validation from actual async runtime construction.
 - When the parsed config is later passed to `build_async_logger(...)`, the embedded `logger` section goes through the normal sync builder path first, including optional `LoggerConfig.queue` handling.
 - When the same parsed config is passed to `build_async_text_logger(...)`, only `logger.sink.text_formatter` plus the top-level `min_level`, `target`, and `timestamp` fields are consumed directly, so the sync queue layer is not applied.
+- On that text-specific path, the parsed `logger.sink.kind` value also does not decide the runtime sink shape. `build_async_text_logger(...)` still constructs a `FormattedConsoleSink` from `logger.sink.text_formatter` even if the parsed kind said `Console`, `JsonConsole`, or `File`.
 
 ### How to Use
 
@@ -73,6 +74,8 @@ let logger = build_async_text_logger(config)
 
 In this example, the same parsed config object is reused, but the text-specific builder only applies the selected text-oriented logger fields.
 
+And that also means the later text-specific build step ignores the parsed sink-kind branch and still builds a text-console async logger from the formatter config.
+
 #### When Need To Inspect Async Build Config Before Use
 
 When config should be validated or reviewed before build:
@@ -93,6 +96,8 @@ e.g.:
 - If either `logger` or `async_config` contains invalid schema values, parsing fails through the underlying config parsers.
 
 - Successful parsing does not guarantee that every parsed `LoggerConfig` field will matter equally to every async builder; that depends on the chosen builder path.
+
+- In particular, parsing `sink.kind="File"` does not force the later text-specific builder path to create a file sink; only the full `build_async_logger(...)` path branches on sink kind.
 
 ### Notes
 

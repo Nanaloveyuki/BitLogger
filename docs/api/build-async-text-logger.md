@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This builder converts `config.logger.sink.text_formatter` into a runtime `TextFormatter` and wires it into `text_console_sink(...)`.
 - It always constructs a `FormattedConsoleSink` directly instead of branching on `config.logger.sink.kind`.
+- That means even if `config.logger.sink.kind` says `Console`, `JsonConsole`, or `File`, this builder still follows the text-console path and uses only the configured `text_formatter` details.
 - The returned logger inherits `min_level`, `target`, and timestamp behavior from `config.logger`.
 - Unlike `build_async_logger(...)`, this helper does not run the full synchronous `build_logger(config.logger)` path first.
 - That means it uses `config.logger.sink.text_formatter`, `min_level`, `target`, and `timestamp` directly, but it does not apply `LoggerConfig.queue` or preserve other sync runtime sink controls.
@@ -64,6 +65,8 @@ let logger = build_async_text_logger(
 
 In this example, the async logger is built around a text console sink rather than the generic runtime sink enum.
 
+And the chosen builder path matters more than `config.logger.sink.kind`: this helper still uses the text formatter directly because it always builds a `FormattedConsoleSink`.
+
 #### When Need A Per-call Target Override After Built Async Text Construction
 
 When typed async text config should still build a logger that supports a one-call target override:
@@ -80,6 +83,8 @@ And later `debug(...)`, `info(...)`, `warn(...)`, or `error(...)` calls still us
 
 e.g.:
 - If callers need sink-kind-driven branching across console, JSON, text, or file output, `build_async_logger(...)` is the better fit.
+
+- If the config carries file-oriented fields such as `path` only because `sink.kind` was set to `File`, this builder still ignores that sink-kind choice and does not create a file-backed async logger.
 
 - If the logger is never `run()`, pending records still follow the normal async queue lifecycle rules.
 
