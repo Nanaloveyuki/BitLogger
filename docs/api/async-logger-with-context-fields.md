@@ -31,7 +31,7 @@ pub fn[S] AsyncLogger::with_context_fields(
 
 #### output
 
-- `AsyncLogger[S]` - A new async logger carrying the shared field set.
+- `AsyncLogger[S]` - A new async logger value carrying the shared field set.
 
 ### Explanation
 
@@ -42,6 +42,7 @@ Detailed rules explaining key parameters and behaviors
 - This API returns a new logger value; it does not mutate the original async logger.
 - The provided `fields` array replaces the previously stored shared field set on the returned async logger; it does not append onto whatever `context_fields` the source logger already had.
 - Unlike synchronous `Logger::with_context_fields(...)`, this async variant stores fields directly on `AsyncLogger` instead of changing the visible sink type.
+- Only the stored `context_fields` value changes. Target, minimum level, timestamp flag, queue configuration, and lifecycle/failure state stay on the same `AsyncLogger[S]` surface.
 - In the current direct async coverage, the original logger keeps its previous `context_fields`, while the derived logger prepends the stored shared fields ahead of per-call fields exactly once when records are built.
 
 ### How to Use
@@ -60,6 +61,8 @@ let logger = async_logger(console_sink(), target="billing")
 ```
 
 In this example, both fields are attached before each record enters the queue.
+
+And the returned async logger still keeps the same queue-facing API surface as the source logger.
 
 #### When Build Child Async Loggers For Subsystems
 
@@ -87,6 +90,8 @@ e.g.:
 
 2. This async variant preserves the visible `AsyncLogger[S]` type while still injecting shared fields.
 
-3. Use a fresh derived logger when one code path needs shared metadata and another should stay unchanged.
+3. State helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, and `has_failed()` remain available on the returned logger because the visible async logger surface is preserved.
 
-4. If you need to combine two shared field sets, combine them in the `fields` argument yourself instead of expecting repeated `with_context_fields(...)` calls to accumulate them.
+4. Use a fresh derived logger when one code path needs shared metadata and another should stay unchanged.
+
+5. If you need to combine two shared field sets, combine them in the `fields` argument yourself instead of expecting repeated `with_context_fields(...)` calls to accumulate them.
