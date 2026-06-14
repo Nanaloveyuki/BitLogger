@@ -2109,6 +2109,92 @@ test "library logger can be built from configured runtime path" {
   inspect(full.target, content="lib.config")
 }
 
+test "library logger builder log supports per-call target override through facade" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let logger = build_library_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="lib.config.default",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+    .to_logger()
+    .with_patch(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+      rec
+    })
+    .to_library_logger()
+    .bind([field("service", "bitlogger")])
+
+  logger.log(
+    Level::Error,
+    "override",
+    fields=[field("mode", "test")],
+    target="lib.config.override",
+  )
+  inspect(captured_target.val, content="lib.config.override")
+  inspect(captured_message.val, content="override")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="mode")
+  inspect(captured_fields.val[1].value, content="test")
+
+  logger.log(Level::Error, "default")
+  inspect(captured_target.val, content="lib.config.default")
+  inspect(captured_message.val, content="default")
+  inspect(captured_fields.val.length(), content="1")
+  inspect(captured_fields.val[0].key, content="service")
+}
+
+test "library logger builder severity helpers use stored target without override" {
+  let captured_levels : Ref[Array[String]] = Ref([])
+  let captured_targets : Ref[Array[String]] = Ref([])
+  let captured_fields : Ref[Array[Array[Field]]] = Ref([])
+  let logger = build_library_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="lib.config.helpers",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+    .to_logger()
+    .with_patch(fn(rec) {
+      captured_levels.val.push(rec.level.label())
+      captured_targets.val.push(rec.target)
+      captured_fields.val.push(rec.fields)
+      rec
+    })
+    .to_library_logger()
+    .bind([field("service", "bitlogger")])
+
+  logger.info("info", fields=[field("mode", "info")])
+  logger.warn("warn", fields=[field("mode", "warn")])
+  logger.error("error", fields=[field("mode", "error")])
+
+  inspect(captured_levels.val.length(), content="3")
+  inspect(captured_levels.val[0], content="INFO")
+  inspect(captured_levels.val[1], content="WARN")
+  inspect(captured_levels.val[2], content="ERROR")
+  inspect(captured_targets.val.length(), content="3")
+  inspect(captured_targets.val[0], content="lib.config.helpers")
+  inspect(captured_targets.val[1], content="lib.config.helpers")
+  inspect(captured_targets.val[2], content="lib.config.helpers")
+  inspect(captured_fields.val[0].length(), content="2")
+  inspect(captured_fields.val[1].length(), content="2")
+  inspect(captured_fields.val[2].length(), content="2")
+  inspect(captured_fields.val[0][0].key, content="service")
+  inspect(captured_fields.val[0][1].value, content="info")
+  inspect(captured_fields.val[1][0].key, content="service")
+  inspect(captured_fields.val[1][1].value, content="warn")
+  inspect(captured_fields.val[2][0].key, content="service")
+  inspect(captured_fields.val[2][1].value, content="error")
+}
+
 test "library logger builder unwrap matches direct configured builder behavior" {
   let config = LoggerConfig::new(
     min_level=Level::Warn,
@@ -2749,6 +2835,88 @@ test "configured logger keeps broader logger composition surface" {
   inspect(derived.flush(), content="2")
 }
 
+test "configured logger build supports per-call target override" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let logger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="configured.default",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+    .with_patch(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+      rec
+    })
+    .with_context_fields([field("service", "bitlogger")])
+
+  logger.log(
+    Level::Error,
+    "override",
+    fields=[field("mode", "test")],
+    target="configured.override",
+  )
+  inspect(captured_target.val, content="configured.override")
+  inspect(captured_message.val, content="override")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="mode")
+  inspect(captured_fields.val[1].value, content="test")
+
+  logger.log(Level::Error, "default")
+  inspect(captured_target.val, content="configured.default")
+  inspect(captured_message.val, content="default")
+  inspect(captured_fields.val.length(), content="1")
+  inspect(captured_fields.val[0].key, content="service")
+}
+
+test "configured logger build severity helpers use stored target without override" {
+  let captured_levels : Ref[Array[String]] = Ref([])
+  let captured_targets : Ref[Array[String]] = Ref([])
+  let captured_fields : Ref[Array[Array[Field]]] = Ref([])
+  let logger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="configured.helpers",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+    .with_patch(fn(rec) {
+      captured_levels.val.push(rec.level.label())
+      captured_targets.val.push(rec.target)
+      captured_fields.val.push(rec.fields)
+      rec
+    })
+    .with_context_fields([field("service", "bitlogger")])
+
+  logger.info("info", fields=[field("mode", "info")])
+  logger.warn("warn", fields=[field("mode", "warn")])
+  logger.error("error", fields=[field("mode", "error")])
+
+  inspect(captured_levels.val.length(), content="3")
+  inspect(captured_levels.val[0], content="INFO")
+  inspect(captured_levels.val[1], content="WARN")
+  inspect(captured_levels.val[2], content="ERROR")
+  inspect(captured_targets.val.length(), content="3")
+  inspect(captured_targets.val[0], content="configured.helpers")
+  inspect(captured_targets.val[1], content="configured.helpers")
+  inspect(captured_targets.val[2], content="configured.helpers")
+  inspect(captured_fields.val[0].length(), content="2")
+  inspect(captured_fields.val[1].length(), content="2")
+  inspect(captured_fields.val[2].length(), content="2")
+  inspect(captured_fields.val[0][0].key, content="service")
+  inspect(captured_fields.val[0][1].value, content="info")
+  inspect(captured_fields.val[1][0].key, content="service")
+  inspect(captured_fields.val[1][1].value, content="warn")
+  inspect(captured_fields.val[2][0].key, content="service")
+  inspect(captured_fields.val[2][1].value, content="error")
+}
+
 test "application logger keeps configured runtime helper surface" {
   let logger : ApplicationLogger = build_application_logger(
     LoggerConfig::new(
@@ -2776,6 +2944,88 @@ test "application logger keeps configured runtime helper surface" {
     inspect(logger.file_flush(), content="false")
     inspect(logger.file_close(), content="false")
   }
+}
+
+test "application logger build supports per-call target override" {
+  let captured_target : Ref[String] = Ref("")
+  let captured_message : Ref[String] = Ref("")
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let logger = build_application_logger(
+    LoggerConfig::new(
+      min_level=Level::Warn,
+      target="app.config.default",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+    .with_patch(fn(rec) {
+      captured_target.val = rec.target
+      captured_message.val = rec.message
+      captured_fields.val = rec.fields
+      rec
+    })
+    .with_context_fields([field("service", "bitlogger")])
+
+  logger.log(
+    Level::Error,
+    "override",
+    fields=[field("mode", "test")],
+    target="app.config.override",
+  )
+  inspect(captured_target.val, content="app.config.override")
+  inspect(captured_message.val, content="override")
+  inspect(captured_fields.val.length(), content="2")
+  inspect(captured_fields.val[0].key, content="service")
+  inspect(captured_fields.val[0].value, content="bitlogger")
+  inspect(captured_fields.val[1].key, content="mode")
+  inspect(captured_fields.val[1].value, content="test")
+
+  logger.log(Level::Error, "default")
+  inspect(captured_target.val, content="app.config.default")
+  inspect(captured_message.val, content="default")
+  inspect(captured_fields.val.length(), content="1")
+  inspect(captured_fields.val[0].key, content="service")
+}
+
+test "application logger build severity helpers use stored target without override" {
+  let captured_levels : Ref[Array[String]] = Ref([])
+  let captured_targets : Ref[Array[String]] = Ref([])
+  let captured_fields : Ref[Array[Array[Field]]] = Ref([])
+  let logger = build_application_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="app.config.helpers",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+    ),
+  )
+    .with_patch(fn(rec) {
+      captured_levels.val.push(rec.level.label())
+      captured_targets.val.push(rec.target)
+      captured_fields.val.push(rec.fields)
+      rec
+    })
+    .with_context_fields([field("service", "bitlogger")])
+
+  logger.info("info", fields=[field("mode", "info")])
+  logger.warn("warn", fields=[field("mode", "warn")])
+  logger.error("error", fields=[field("mode", "error")])
+
+  inspect(captured_levels.val.length(), content="3")
+  inspect(captured_levels.val[0], content="INFO")
+  inspect(captured_levels.val[1], content="WARN")
+  inspect(captured_levels.val[2], content="ERROR")
+  inspect(captured_targets.val.length(), content="3")
+  inspect(captured_targets.val[0], content="app.config.helpers")
+  inspect(captured_targets.val[1], content="app.config.helpers")
+  inspect(captured_targets.val[2], content="app.config.helpers")
+  inspect(captured_fields.val[0].length(), content="2")
+  inspect(captured_fields.val[1].length(), content="2")
+  inspect(captured_fields.val[2].length(), content="2")
+  inspect(captured_fields.val[0][0].key, content="service")
+  inspect(captured_fields.val[0][1].value, content="info")
+  inspect(captured_fields.val[1][0].key, content="service")
+  inspect(captured_fields.val[1][1].value, content="warn")
+  inspect(captured_fields.val[2][0].key, content="service")
+  inspect(captured_fields.val[2][1].value, content="error")
 }
 
 test "application logger keeps broader logger composition surface" {
