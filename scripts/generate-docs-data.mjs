@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, extname, resolve } from 'node:path'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename, dirname, extname, resolve } from 'node:path'
 
 import matter from 'gray-matter'
 
@@ -116,4 +116,5 @@ const api = readApiDocs()
 const changes = readChanges()
 
 const output = `export const docsData = ${JSON.stringify({ api, changes }, null, 2)}\n`
+mkdirSync(dirname(outFile), { recursive: true })
 writeFileSync(outFile, output)
