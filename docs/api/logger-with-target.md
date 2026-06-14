@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This API replaces the default target instead of composing it.
 - Per-call `target?` arguments can still override the default target on individual log calls.
 - The original logger value is not mutated.
+- In the current direct sync coverage, a derived retargeted logger keeps existing flags such as `timestamp`, while the original logger still retains its previous target.
 
 ### How to Use
 
@@ -66,6 +67,8 @@ let api = base.with_target("api")
 
 In this example, target routing stays explicit without duplicating sink construction.
 
+And the derived loggers keep the same underlying logger behavior apart from the replaced stored target.
+
 ### Error Case
 
 e.g.:
@@ -78,4 +81,6 @@ e.g.:
 1. Use this API for replacement, not hierarchical composition.
 
 2. It is useful when one sink serves several target namespaces.
+
+3. Use it when you want a derived logger value; the original logger keeps its earlier default target.
 
