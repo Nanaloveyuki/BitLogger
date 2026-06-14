@@ -37,6 +37,8 @@ Detailed rules explaining key parameters and behaviors
 - When enabled, `log(...)` captures `@env.now()` and stores it in the record.
 - When disabled, emitted records use `0UL` as the timestamp value.
 - This setting affects later emitted records only.
+- The returned logger is derived from `self`; the original logger value is not mutated.
+- Only the stored `timestamp` flag changes. Target, minimum level, and sink behavior stay on the same `Logger[S]` surface.
 - Formatter or sink behavior stays unchanged; they just receive records with or without real timestamps.
 
 ### How to Use
@@ -52,6 +54,8 @@ let logger = Logger::new(console_sink())
 ```
 
 In this example, each emitted record captures current time automatically.
+
+The returned logger still uses the same ordinary synchronous logging calls; only record timestamp capture changes.
 
 #### When Need Deterministic Or Minimal Records
 
@@ -75,4 +79,6 @@ e.g.:
 1. This API controls record creation, not formatter display policy.
 
 2. It works well together with text formatters that optionally show timestamps.
+
+3. Use a derived logger value when one path should capture timestamps and another should keep the original deterministic record shape.
 
