@@ -43,6 +43,7 @@ Detailed rules explaining key parameters and behaviors
 - A sync queue configured on `LoggerConfig.queue` is therefore ignored by this builder instead of being preserved under the returned async logger.
 - Because the result is only the `ApplicationTextAsyncLogger` alias over `AsyncLogger[@bitlogger.FormattedConsoleSink]`, this builder returns the same underlying async logger value as `build_async_text_logger(...)` and does not hide any async helpers or introduce a wrapper layer.
 - The returned alias also keeps inherited async logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
+- In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `debug(...)`, `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - The returned logger keeps the full async lifecycle and state helper surface directly, including helpers such as `run()`, `shutdown()`, `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, `has_failed()`, and `last_error()`.
 - It also keeps the same close, queue, and failure-state semantics as the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
 - In the current direct text-builder coverage, this alias matches `build_async_text_logger(config)` through serialized state snapshots, formatter behavior, queue counters, lifecycle flags, and later failure fields after worker execution.
@@ -69,6 +70,18 @@ let logger = build_application_text_async_logger(
 In this example, the async logger is built for text-console output specifically.
 
 And the returned value keeps the ordinary async logger target semantics because this facade does not wrap or narrow the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
+
+#### When Need A Per-call Target Override After App Text Construction
+
+When typed app async text config should still build a logger that supports a one-call target override:
+```moonbit
+let logger = build_application_text_async_logger(config)
+logger.log(@bitlogger.Level::Error, "boom", target="app.text.audit")
+```
+
+In this example, the emitted record uses `app.text.audit` for that call.
+
+And later `debug(...)`, `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 #### When Need Async State Helpers Immediately After Text App Construction
 

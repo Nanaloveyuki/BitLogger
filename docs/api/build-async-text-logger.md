@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - Unlike `build_async_logger(...)`, this helper does not run the full synchronous `build_logger(config.logger)` path first.
 - That means it uses `config.logger.sink.text_formatter`, `min_level`, `target`, and `timestamp` directly, but it does not apply `LoggerConfig.queue` or preserve other sync runtime sink controls.
 - This builder returns the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]` value directly. `build_application_text_async_logger(...)` only re-exports that same result under the `ApplicationTextAsyncLogger` alias, while `build_library_async_text_logger(...)` wraps the same result in `LibraryAsyncLogger[@bitlogger.FormattedConsoleSink]`.
+- The returned async logger also keeps ordinary target rules unchanged: `log(..., target=...)` can override the target for one call, while severity helpers such as `debug(...)`, `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
 - In the current direct text-builder coverage, the returned logger exposes the expected serialized async state snapshot, formatter behavior, queue counters, lifecycle flags, and later failure fields after worker execution.
 - The async `flush_policy` still comes from `config.async_config`, but this text-specific builder does not supply the explicit `flush=fn(sink) { sink.flush() }` callback used by `build_async_logger(...)`.
 - In practice, `Batch` and `Shutdown` therefore only trigger the default no-op async flush callback on this path, while each record write still follows whatever immediate behavior `FormattedConsoleSink` already has on its own.
@@ -62,6 +63,18 @@ let logger = build_async_text_logger(
 ```
 
 In this example, the async logger is built around a text console sink rather than the generic runtime sink enum.
+
+#### When Need A Per-call Target Override After Built Async Text Construction
+
+When typed async text config should still build a logger that supports a one-call target override:
+```moonbit
+let logger = build_async_text_logger(config)
+logger.log(@bitlogger.Level::Error, "boom", target="async.text.audit")
+```
+
+In this example, the emitted record uses `async.text.audit` for that call.
+
+And later `debug(...)`, `info(...)`, `warn(...)`, or `error(...)` calls still use the logger's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 

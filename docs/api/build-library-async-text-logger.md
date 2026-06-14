@@ -44,6 +44,7 @@ Detailed rules explaining key parameters and behaviors
 - In the current direct text-builder coverage, unwrapping this facade yields the same async state snapshot, formatter behavior, queue counters, lifecycle flags, and later failure fields as calling `build_async_text_logger(config)` directly.
 - The configured `flush_policy` is still carried by that underlying async logger, but this text-specific builder path does not provide the explicit sink flush callback used by `build_library_async_logger(...)` through `build_async_logger(...)`.
 - As a result, `Batch` and `Shutdown` only invoke the default no-op async flush callback on this text-console path unless downstream code unwraps and adds different behavior elsewhere.
+- The facade still preserves the underlying async target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`, not on the returned facade itself.
 - `to_async_logger()` can recover the underlying full async logger if needed.
 - Use this builder when the boundary should preserve the concrete text-console sink type while still hiding broader async inspection and helper APIs from downstream callers.
@@ -76,6 +77,18 @@ ignore(full.pending_count())
 ```
 
 In this example, the facade is unwrapped before using async state helpers.
+
+#### When Need A Per-call Target Override Through The Library Async Text Builder Facade
+
+When typed library async text config should still build a facade that allows a one-call target override without unwrapping first:
+```moonbit
+let logger = build_library_async_text_logger(config)
+logger.log(@bitlogger.Level::Error, "boom", target="lib.text.audit")
+```
+
+In this example, the emitted record uses `lib.text.audit` for that call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
