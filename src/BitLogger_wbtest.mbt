@@ -6,6 +6,24 @@ test "default logger can be reconfigured" {
   inspect(logger.target, content="global")
 }
 
+test "default logger snapshots shared defaults at creation time" {
+  set_default_min_level(Level::Warn)
+  set_default_target("before")
+  let before = default_logger()
+
+  set_default_min_level(Level::Debug)
+  set_default_target("after")
+  let after = default_logger()
+
+  inspect(before.is_enabled(Level::Error), content="true")
+  inspect(before.is_enabled(Level::Info), content="false")
+  inspect(before.target, content="before")
+
+  inspect(after.is_enabled(Level::Error), content="true")
+  inspect(after.is_enabled(Level::Info), content="true")
+  inspect(after.target, content="after")
+}
+
 test "logger can enable timestamps" {
   let logger = Logger::new(console_sink(), min_level=Level::Info, target="time")
     .with_timestamp()
@@ -544,12 +562,17 @@ test "file sink set policy applies bundled runtime policy" {
 }
 
 test "file sink tracks rotation failures on unavailable backend" {
-  let sink = file_sink("bitlogger-rotate.log", rotation=Some(file_rotation(1, max_backups=1)))
+  let path = "bitlogger-rotate.log"
+  ignore(remove_file_internal(path))
+  ignore(remove_file_internal(path + ".1"))
+  let sink = file_sink(path, rotation=Some(file_rotation(1, max_backups=1)))
   sink.write(record(Level::Info, "a"))
   if sink.is_available() {
     inspect(sink.rotation_failures(), content="0")
     inspect(sink.write_failures(), content="0")
     ignore(sink.close())
+    ignore(remove_file_internal(path))
+    ignore(remove_file_internal(path + ".1"))
   } else {
     inspect(sink.rotation_failures(), content="0")
     inspect(sink.write_failures(), content="1")
