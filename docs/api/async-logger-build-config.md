@@ -43,6 +43,7 @@ Detailed rules explaining key parameters and behaviors
 - The constructor does not normalize or reinterpret either embedded config beyond those defaults; any normalization has already happened inside the `LoggerConfig` or `AsyncLoggerConfig` values passed in.
 - When passed to `build_async_logger(...)`, the `logger` portion is built first through the normal synchronous config path before the outer async queue layer is applied.
 - When passed to `build_async_text_logger(...)`, the same `logger` portion is consumed more narrowly: `text_formatter`, `min_level`, `target`, and `timestamp` are used directly to build a text console sink, while `LoggerConfig.queue` is not applied.
+- On that text-specific path, `logger.sink.kind` also does not decide the runtime sink shape. `build_async_text_logger(...)` still constructs `FormattedConsoleSink` from `logger.sink.text_formatter` even if the config says `Console`, `JsonConsole`, or `File`.
 - This helper is the main code-side counterpart to `parse_async_logger_build_config_text(...)`.
 
 ### How to Use
@@ -63,6 +64,8 @@ In this example, the builder input keeps both configuration layers in one typed 
 
 And later code can still decide whether that shared config should flow into the full sync-first builder or the narrower text-console builder.
 
+And if later code chooses `build_async_text_logger(...)`, that builder choice still matters more than `logger.sink.kind` because only the formatter-backed text path is consumed there.
+
 #### When Need Defaulted Async Build Settings
 
 When code only wants the standard combined config shape with few overrides:
@@ -80,6 +83,8 @@ e.g.:
 - If callers only need async runtime policy and not the full builder input shape, `AsyncLoggerConfig::new(...)` is the smaller API.
 
 - If callers expect every field inside `LoggerConfig` to affect every async builder equally, that assumption is too broad: `build_async_text_logger(...)` intentionally skips the optional sync queue layer.
+
+- In particular, carrying `logger.sink.kind=File` inside this config does not force the later text-specific builder path to create a file-backed async logger; only `build_async_logger(...)` branches on sink kind.
 
 ### Notes
 

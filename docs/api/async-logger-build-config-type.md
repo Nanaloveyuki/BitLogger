@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - `build_async_logger(...)`, `build_async_text_logger(...)`, `parse_async_logger_build_config_text(...)`, `async_logger_build_config_to_json(...)`, and `stringify_async_logger_build_config(...)` all consume or produce this same public shape.
 - `build_async_logger(...)` consumes the full sync build path by calling `build_logger(config.logger)` first, so `LoggerConfig.sink`, `LoggerConfig.queue`, and the resulting runtime sink behavior all participate before the async layer is added.
 - `build_async_text_logger(...)` is narrower: it builds a text console sink directly from `config.logger.sink.text_formatter` and the top-level `min_level`, `target`, and `timestamp` fields, without applying `LoggerConfig.queue`.
+- On that text-specific path, `config.logger.sink.kind` also does not decide the runtime sink shape. `build_async_text_logger(...)` still constructs `FormattedConsoleSink` from `config.logger.sink.text_formatter` even if the config says `Console`, `JsonConsole`, or `File`.
 
 ### How to Use
 
@@ -55,6 +56,8 @@ In this example, both layers of logger setup are kept in one typed value.
 
 And downstream code can still choose between the full sync-first builder path and the narrower text-console builder path.
 
+And if downstream code chooses `build_async_text_logger(...)`, that builder choice still matters more than `logger.sink.kind` because only the formatter-backed text path is consumed there.
+
 #### When Need To Export Or Inspect The Full Build Shape
 
 When application code should inspect the combined async build configuration before constructing the logger:
@@ -73,6 +76,8 @@ e.g.:
 - If only async runtime policy is needed and the base sync logger config is irrelevant, this type may be broader than necessary and `AsyncLoggerConfig` is the smaller fit.
 
 - If callers expect every `LoggerConfig` field to affect every async builder in the same way, that assumption is too broad: the text-specific builder intentionally ignores the optional sync queue layer.
+
+- In particular, carrying `logger.sink.kind=File` inside this config type does not force the later text-specific builder path to create a file-backed async logger; only `build_async_logger(...)` branches on sink kind.
 
 ### Notes
 
