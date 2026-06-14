@@ -35,9 +35,9 @@ fn string_to_c_bytes(str : String) -> Bytes {
 type NativeFileHandle
 
 #borrow(path, mode)
-extern "C" fn file_open_ffi(path : Bytes, mode : Bytes) -> NativeFileHandle = "fopen"
+extern "C" fn file_open_ffi(path : Bytes, mode : Bytes) -> NativeFileHandle = "bitlogger_file_open"
 
-extern "C" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "moonbitlang_async_pointer_is_null"
+extern "C" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "bitlogger_pointer_is_null"
 
 #borrow(buffer)
 extern "C" fn file_write_ffi(
@@ -45,21 +45,28 @@ extern "C" fn file_write_ffi(
   size : Int,
   count : Int,
   handle : NativeFileHandle,
-) -> Int = "fwrite"
+) -> Int = "bitlogger_file_write"
 
-extern "C" fn file_flush_ffi(handle : NativeFileHandle) -> Int = "fflush"
+extern "C" fn file_flush_ffi(handle : NativeFileHandle) -> Int = "bitlogger_file_flush"
 
-extern "C" fn file_close_ffi(handle : NativeFileHandle) -> Int = "fclose"
+extern "C" fn file_close_ffi(handle : NativeFileHandle) -> Int = "bitlogger_file_close"
 
-extern "C" fn file_seek_ffi(handle : NativeFileHandle, offset : Int, origin : Int) -> Int = "fseek"
+extern "C" fn file_seek_ffi(
+  handle : NativeFileHandle,
+  offset : Int,
+  origin : Int,
+) -> Int = "bitlogger_file_seek"
 
-extern "C" fn file_tell_ffi(handle : NativeFileHandle) -> Int = "ftell"
+extern "C" fn file_tell_ffi(handle : NativeFileHandle) -> Int = "bitlogger_file_tell"
 
 #borrow(from_path, to_path)
-extern "C" fn file_rename_ffi(from_path : Bytes, to_path : Bytes) -> Int = "rename"
+extern "C" fn file_rename_ffi(
+  from_path : Bytes,
+  to_path : Bytes,
+) -> Int = "bitlogger_file_rename"
 
 #borrow(path)
-extern "C" fn file_remove_ffi(path : Bytes) -> Int = "remove"
+extern "C" fn file_remove_ffi(path : Bytes) -> Int = "bitlogger_file_remove"
 
 pub struct FileHandle {
   path : String
