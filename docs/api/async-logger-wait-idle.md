@@ -37,6 +37,8 @@ Detailed rules explaining key parameters and behaviors
 - If `has_failed()` becomes `true`, waiting stops early instead of continuing to spin.
 - This API does not close the logger or stop the worker.
 - A return from `wait_idle()` therefore means either backlog reached `0` or failure interrupted normal drain progress.
+- `wait_idle()` does not clear retained failure state by itself, so if pending records remain after a worker failure, later `wait_idle()` calls also short-circuit until another path changes that state.
+- A later `run()` can make `wait_idle()` meaningful again for the retained backlog, but only after that new worker invocation has actually started and reset the stale failure flag.
 - If no worker is draining the queue and no failure flag is raised, `wait_idle()` can wait indefinitely.
 - It is narrower than `shutdown()` and is useful when the logger should continue to be used later.
 
@@ -72,6 +74,8 @@ e.g.:
 
 - If callers need backlog cleanup after a failure-short-circuit, they still need a later `close(clear=true)` or `shutdown(...)` path.
 - In the current direct coverage, `wait_idle()` can return with `pending_count() > 0` after a worker failure, and the later cleanup path may either clear that backlog explicitly or follow the runtime-dependent shutdown split documented on `shutdown(...)`.
+
+- If callers retry `wait_idle()` immediately after such a failure without restarting the worker or forcing cleanup first, the call can return again with the same retained pending backlog.
 
 ### Notes
 
