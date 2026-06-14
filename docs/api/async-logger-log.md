@@ -43,12 +43,14 @@ pub async fn[S] AsyncLogger::log(
 
 Detailed rules explaining key parameters and behaviors
 
-- The logger checks `is_enabled(level)` before building a record.
+- Compatibility runtimes that guard closed writes first can return immediately when `is_closed()` is already `true`, before level checks, record construction, patch logic, filter logic, or queue work.
+- Otherwise the logger checks `is_enabled(level)` before building a record.
 - If `target` is empty, the logger uses its stored default target. If `target` is non-empty, that value overrides the stored target for this call only.
 - Context fields, patch logic, and filter logic are applied before enqueue.
 - If timestamping is enabled, `@env.now()` is captured before the record enters the queue.
 - Overflow behavior depends on the configured `AsyncOverflowPolicy`.
-- Closed-on-log behavior is runtime-dependent: compatibility runtimes short-circuit before enqueue work, while native-worker runtimes may still reach the queue operations and then treat a closed queue as a non-accepted write.
+- Closed-on-log behavior is runtime-dependent: compatibility runtimes short-circuit before record-building work, while native-worker runtimes may still build, patch, and filter the record before queue operations treat a closed queue as a non-accepted write.
+- In the tested blocking-policy path, a late write against an already closed logger does not become a newly accepted pending record and does not add another dropped record; it simply fails to enter the queue after any runtime-specific pre-queue work finishes.
 
 ### How to Use
 
@@ -94,6 +96,10 @@ e.g.:
 - If the logger is closed or overflow policy rejects the record, enqueue may not proceed as a normal accepted write.
 
 - A closed queue does not count as a newly accepted pending record.
+
+- On compatibility runtimes, a late call after close can be skipped before patch or filter logic runs at all.
+
+- On native-worker runtimes, a late call after close can still execute patch and filter logic before the queue rejects the write.
 
 ### Notes
 
