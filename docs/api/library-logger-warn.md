@@ -41,7 +41,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `warn(...)` on the wrapped logger, which in turn uses `log(Level::Warn, ...)`.
 - Warning records are useful for abnormal but non-fatal conditions.
-- Per-call target override is not exposed here; use `log(...)` when that is required.
+- This helper does not accept a per-call target override. It uses the facade's stored target unless the facade was derived earlier with `with_target(...)` or `child(...)`.
 - All sink-side wrappers still participate normally in the write path.
 - Broader composition helpers remain on the underlying `Logger[S]` and require `to_logger()` first.
 
@@ -68,6 +68,8 @@ logger.warn("retry scheduled", fields=[field("attempt", "3")])
 In this example, the warning remains easy to filter and inspect later.
 
 And any shared context already carried by the facade still participates through the wrapped logger pipeline.
+
+And the write still uses the facade's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
