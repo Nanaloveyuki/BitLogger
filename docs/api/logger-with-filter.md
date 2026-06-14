@@ -28,14 +28,16 @@ pub fn[S] Logger::with_filter(self : Logger[S], predicate : (Record) -> Bool) ->
 
 #### output
 
-- `Logger[FilterSink[S]]` - A new logger that only forwards matching records.
+- `Logger[FilterSink[S]]` - A new logger value whose visible sink type becomes `FilterSink[S]` and only forwards matching records.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - Filtering happens after the record is constructed, so predicates can inspect target, message, level, timestamp, and fields.
-- The original logger is not mutated; a wrapped logger is returned.
+- The original logger is not mutated; a derived wrapped logger is returned.
+- The returned logger changes visible type from `Logger[S]` to `Logger[FilterSink[S]]` because the sink pipeline is extended with predicate filtering.
+- Stored target, minimum level, and timestamp behavior are preserved while the sink pipeline changes.
 - Filter logic composes naturally with helper predicates such as `target_has_prefix(...)`, `message_contains(...)`, and `all_of(...)`.
 - Filtering is a drop/no-drop decision and does not transform the record itself.
 
@@ -54,6 +56,8 @@ let logger = Logger::new(console_sink(), target="service")
 In this example, records outside the `service` target prefix are filtered out.
 
 And target-based rules stay reusable across different loggers.
+
+The returned logger still uses the same ordinary synchronous logging calls; only the sink path now includes filtering.
 
 #### When Combine Several Filter Rules
 
@@ -80,4 +84,6 @@ e.g.:
 1. Use this API for selection logic, not record mutation.
 
 2. Prefer helper predicates for readability and reuse.
+
+3. Use a derived logger value when one path should enforce extra predicate rules and another should keep writing through the original sink unchanged.
 
