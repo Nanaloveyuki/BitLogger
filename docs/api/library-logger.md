@@ -39,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - It does not expose the wider `Logger[S]` composition surface or `ConfiguredLogger` runtime helper methods directly.
 - Most facade reshaping helpers keep the same visible sink type, but `with_context_fields(...)` and `bind(...)` intentionally return `LibraryLogger[ContextSink[S]]` because they extend the sink pipeline.
 - Call `to_logger()` when later code must recover the full underlying `Logger[S]` surface.
+- If `S` is `RuntimeSink`, queued runtime state and file-backed helper behavior also stay on that same wrapped logger value; the facade only hides direct access until `to_logger()` is used.
 
 ### How to Use
 

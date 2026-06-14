@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - Sink wiring, target, min level, timestamp behavior, and attached wrappers remain the same.
 - Use this when code needs full-surface APIs such as `with_timestamp(...)`, `with_filter(...)`, or `with_patch(...)`.
 - When the wrapped sink is `RuntimeSink`, unwrapping preserves that runtime sink value, but the result type is still `Logger[RuntimeSink]` rather than the `ConfiguredLogger` alias. Runtime-specific operations remain available through `full.sink` or by keeping a `ConfiguredLogger` value directly.
+- That same unwrap also preserves queued runtime state and file-backed helper behavior exactly as they existed behind the facade, including drain or flush results, file state snapshots, and file control methods.
 
 ### How to Use
 
@@ -70,6 +71,8 @@ e.g.:
 - Unwrapping does not change the current target or sink behavior by itself.
 
 - Recovering the full logger does not rebuild or reset the existing sink wrappers.
+
+- Recovering the full logger does not translate configured runtime state into a simpler snapshot; queued counts, file availability, file failure counters, and runtime file controls stay exactly as they were on the wrapped logger.
 
 ### Notes
 

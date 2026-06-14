@@ -37,6 +37,8 @@ Detailed rules explaining key parameters and behaviors
 - Target, min level, timestamp behavior, and sink wiring are preserved because the same underlying logger value is wrapped.
 - The returned facade keeps library-oriented write APIs such as `info(...)`, `warn(...)`, and `error(...)`.
 - Broader sync composition helpers remain on the underlying `Logger[S]` and are intentionally hidden until `to_logger()` is used again.
+- When `S` is `RuntimeSink`, projection also preserves queued runtime state and file-backed runtime helper behavior behind the facade instead of replacing them with a library-specific copy.
+- Unwrapping later with `to_logger()` therefore exposes the same pending counts, drain or flush results, file state, and runtime file controls that the original logger already carried.
 
 ### How to Use
 
@@ -70,6 +72,8 @@ e.g.:
 - The conversion does not remove existing target or field bindings from the original logger.
 
 - If callers later need composition helpers such as `with_timestamp(...)`, `with_filter(...)`, or `with_patch(...)`, they must unwrap again with `to_logger()`.
+
+- Projection does not normalize configured runtime state; if the original logger already carried queued runtime data or file-backed helper state, a later unwrap still exposes that same live state.
 
 ### Notes
 
