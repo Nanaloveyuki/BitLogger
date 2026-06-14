@@ -44,6 +44,7 @@ Detailed rules explaining key parameters and behaviors
 - In runtimes where shutdown waits for workers, the method then waits until the worker is no longer running before returning.
 - After a worker-failure short-circuit, native-worker backends can still convert remaining backlog into dropped records, while compatibility backends skip that extra forced-clear step.
 - In the current direct facade coverage, the wrapped logger ends that path with `pending_count() == 0` and one more dropped item on native-worker runtimes, versus a still-nonzero pending count and no extra dropped cleanup on compatibility runtimes.
+- Delegated shutdown also does not clear retained worker failure state by itself. If the wrapped logger had already recorded a worker error, later inspection through `to_async_logger()` can still show `has_failed=true` and the same `last_error()` string after shutdown completes.
 - The narrower library facade does not change any of these runtime-dependent shutdown rules; it only keeps the broader inspection helpers out of the direct public surface.
 - Inspecting the logger later through `to_async_logger()` reveals the same delegated shutdown result rather than a rebuilt or translated lifecycle snapshot.
 
@@ -77,6 +78,8 @@ e.g.:
 - If `clear=true`, pending records are intentionally dropped rather than drained.
 
 - In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
+
+- Even when delegated shutdown finishes with `is_closed=true`, callers can still observe retained `has_failed()` and `last_error()` on the unwrapped logger if the worker had already failed before shutdown cleanup completed.
 
 - If callers skip `shutdown()` and only inspect flags manually, it is easier to leave the worker lifecycle in an unclear state.
 
