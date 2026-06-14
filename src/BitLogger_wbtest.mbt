@@ -562,12 +562,17 @@ test "file sink set policy applies bundled runtime policy" {
 }
 
 test "file sink tracks rotation failures on unavailable backend" {
-  let sink = file_sink("bitlogger-rotate.log", rotation=Some(file_rotation(1, max_backups=1)))
+  let path = "bitlogger-rotate.log"
+  ignore(remove_file_internal(path))
+  ignore(remove_file_internal(path + ".1"))
+  let sink = file_sink(path, rotation=Some(file_rotation(1, max_backups=1)))
   sink.write(record(Level::Info, "a"))
   if sink.is_available() {
     inspect(sink.rotation_failures(), content="0")
     inspect(sink.write_failures(), content="0")
     ignore(sink.close())
+    ignore(remove_file_internal(path))
+    ignore(remove_file_internal(path + ".1"))
   } else {
     inspect(sink.rotation_failures(), content="0")
     inspect(sink.write_failures(), content="1")
