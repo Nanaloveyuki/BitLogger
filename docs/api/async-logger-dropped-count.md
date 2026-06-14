@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - The counter can also increase when `close(clear=true)` or `shutdown(clear=true)` abandons queued records.
 - It can also increase when shutdown fallback logic converts remaining pending records into dropped records during a clear-close path.
 - After a worker failure short-circuits `wait_idle()`, that shutdown-fallback increase is runtime-dependent in the current implementation: native-worker shutdown can convert leftover pending records into additional dropped records, while compatibility shutdown can leave that closed-queue remainder visible in `pending_count()` instead.
+- That also means `dropped_count()` can still stay unchanged even after `is_closed=true` and retained failure state on compatibility-style shutdown paths, because closure there does not necessarily convert the leftover failed backlog into dropped records.
 - Later log attempts against an already closed queue do not add to this counter by themselves.
 - This is a cumulative counter for the lifetime of the logger value.
 - Use this helper when you need a focused loss metric rather than a full `state()` snapshot.
