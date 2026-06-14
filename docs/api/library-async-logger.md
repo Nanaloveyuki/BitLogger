@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 - The wrapped sink type `S` is preserved, so sink-specific typing remains available through the facade type parameter.
 - The facade keeps common library-safe async operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, `run()`, `shutdown()`, and the main async write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
 - `LibraryAsyncLogger::new(...)` delegates to `async_logger(...)`, so the same async queue, raising flush callback, and runtime-dependent lifecycle behavior still exist behind the narrower facade.
+- The facade also preserves the wrapped async logger's target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derives another logger with `with_target(...)` or `child(...)`.
 - It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
 - That recovered logger is the same live async value, so queue counters, retained failure state, runtime-dependent shutdown outcomes, and sink helper access are preserved rather than recomputed.
@@ -54,6 +55,17 @@ let logger : LibraryAsyncLogger[@bitlogger.ConsoleSink] = LibraryAsyncLogger::ne
 ```
 
 In this example, the package boundary exposes the library async facade instead of the full async logger type.
+
+#### When Need A One-call Target Override Through The Library Facade
+
+When package code should keep the same library-facing async value but emit one record under a different target:
+```moonbit
+logger.log(@bitlogger.Level::Error, "boom", target="lib.async.audit")
+```
+
+In this example, the emitted record uses `lib.async.audit` only for that one call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the facade's stored target unless code derives another facade first with `with_target(...)` or `child(...)`.
 
 #### When Need To Recover The Full Async Logger Later
 

@@ -32,6 +32,7 @@ Detailed rules explaining key parameters and behaviors
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers as other async logger aliases.
 - Because it is `AsyncLogger[@bitlogger.FormattedConsoleSink]`, the alias also keeps ordinary async logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
+- In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.FormattedConsoleSink]` remain async here as well.
 - The alias therefore keeps the same text-console-specific builder and lifecycle semantics already documented on `AsyncLogger[@bitlogger.FormattedConsoleSink]`, including the concrete sink shape plus the same close, queue, and failure-state behavior.
 - The application-facing type does not hide any async state or lifecycle helpers; queue/backlog/failure inspection remains directly available on this alias just as it is on the underlying `AsyncLogger[@bitlogger.FormattedConsoleSink]`.
@@ -69,7 +70,18 @@ In this example, the app-facing alias communicates the concrete text-console asy
 
 And the same pending-count, state, and failure helpers remain directly available because no narrowing wrapper is added.
 
-And the inherited async logger target rules stay the same: `log(..., target=...)` can override the target per call, while `with_target(...)` and `child(...)` derive new logger values with changed default targets.
+And the inherited async logger target rules stay the same: `log(..., target=...)` can override the target per call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
+
+#### When Need A One-call Target Override On The Text-console Alias
+
+When app-level text-console async code should keep the same alias value but emit one record under a different target:
+```moonbit
+logger.log(@bitlogger.Level::Error, "boom", target="app.text.async.audit")
+```
+
+In this example, the emitted record uses `app.text.async.audit` only for that one call.
+
+And later `info(...)`, `warn(...)`, or `error(...)` calls still use the alias value's stored target unless code derives another logger first with `with_target(...)` or `child(...)`.
 
 ### Error Case
 
