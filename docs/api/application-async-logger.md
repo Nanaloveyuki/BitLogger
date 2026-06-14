@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.RuntimeSink]` remain async here as well.
 - The alias therefore keeps the same runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
 - In the current direct alias coverage, values built through `build_application_async_logger(...)` keep the same serialized state snapshot shape, queue counters, lifecycle flags, failure fields, and runtime-sink helper surface that the underlying runtime-sink async logger exposes directly.
+- When the value is built through `build_application_async_logger(...)`, the sync-first builder route also stays visible through the alias: any optional `LoggerConfig.queue` was already applied before async wrapping, and `logger.sink.kind` had already selected the concrete `RuntimeSink` variant before the application alias reused that value.
 - That includes queued runtime-sink behavior and file-backed runtime helpers when the configured sink path supports them.
 - Those helpers remain directly callable on `ApplicationAsyncLogger` itself; callers do not need an unwrap step to reach queue counters, lifecycle state, or `RuntimeSink` file helpers.
 - The alias exists to give application boot code a clearer public type name for the standard runtime-sink async logger.
@@ -108,6 +109,8 @@ And that shape preservation is intentional because async context binding updates
 
 e.g.:
 - Because this is only an alias, any runtime-sink limitations or target-specific async behavior still apply unchanged.
+
+- If the value came from `build_application_async_logger(...)` or `parse_and_build_application_async_logger(...)`, the alias also does not undo the underlying sync-first sink selection; queued and file-backed runtime behavior still depend on the already-built `RuntimeSink` variant.
 
 - If code needs a narrower public surface than the full async logger API, `LibraryAsyncLogger` is the better facade.
 
