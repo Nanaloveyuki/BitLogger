@@ -37,7 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This helper delegates to `log(Level::Trace, ...)`.
 - Trace is the lowest built-in severity and is often disabled in production.
-- Per-call target override is not exposed here; use `log(...)` if that is needed.
+- This helper does not accept a per-call target override. It uses the logger's stored target unless the logger was derived earlier with `with_target(...)` or `child(...)`.
 - Context, filtering, patching, and queue wrappers still apply through the logger sink chain.
 
 ### How to Use
@@ -61,6 +61,10 @@ logger.trace("cache probe", fields=[field("key", "user:42")])
 ```
 
 In this example, trace output stays lightweight while still carrying structured detail.
+
+And any shared context already carried by the logger still participates through the sink pipeline.
+
+The write still uses the logger's stored target because this shortcut does not take a one-off `target=` override.
 
 ### Error Case
 
