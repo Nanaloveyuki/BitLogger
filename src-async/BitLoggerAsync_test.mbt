@@ -1,15 +1,19 @@
+///|
 suberror TestFlushError {
   TestFlushError(String)
 }
 
+///|
 async test "shutdown drains pending records" {
-  inspect(async_runtime_mode_label(async_runtime_mode()) == "native_worker" || async_runtime_mode_label(async_runtime_mode()) == "compatibility", content="true")
+  inspect(
+    async_runtime_mode_label(async_runtime_mode()) == "native_worker" ||
+    async_runtime_mode_label(async_runtime_mode()) == "compatibility",
+    content="true",
+  )
   let written : Ref[Array[String]] = Ref([])
   let flushes : Ref[Int] = Ref(0)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written.val.push(rec.message)
-    }),
+    @bitlogger.callback_sink(fn(rec) { written.val.push(rec.message) }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -36,22 +40,24 @@ async test "shutdown drains pending records" {
   inspect(logger.is_running(), content="false")
   inspect(logger.has_failed(), content="false")
   inspect(logger.pending_count(), content="0")
-  inspect(match logger.flush_policy() {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Batch")
+  inspect(
+    match logger.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Batch",
+  )
   inspect(written.val.length(), content="2")
   inspect(written.val[0], content="one")
   inspect(written.val[1], content="two")
   inspect(flushes.val, content="1")
 }
 
+///|
 async test "close clear counts abandoned records as dropped" {
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -70,11 +76,10 @@ async test "close clear counts abandoned records as dropped" {
   inspect(logger.dropped_count(), content="2")
 }
 
+///|
 async test "shutdown clear closes without worker startup" {
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=2,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -91,11 +96,10 @@ async test "shutdown clear closes without worker startup" {
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 async test "closed blocking logger does not add pending count on later log attempts" {
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=2,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -114,12 +118,11 @@ async test "closed blocking logger does not add pending count on later log attem
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 async test "closed logger runtime determines whether later log reaches patch path" {
   let patched : Ref[Int] = Ref(0)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=2,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -146,6 +149,7 @@ async test "closed logger runtime determines whether later log reaches patch pat
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 async test "async logger with_filter composes and leaves base logger unchanged" {
   let written_targets : Ref[Array[String]] = Ref([])
   let written_messages : Ref[Array[String]] = Ref([])
@@ -158,11 +162,13 @@ async test "async logger with_filter composes and leaves base logger unchanged" 
     min_level=@bitlogger.Level::Trace,
     target="service",
   )
-  let filtered = base.with_filter(@bitlogger.all_of([
-    @bitlogger.target_has_prefix("service.api"),
-    @bitlogger.level_at_least(@bitlogger.Level::Info),
-    @bitlogger.message_contains("visible"),
-  ]))
+  let filtered = base.with_filter(
+    @bitlogger.all_of([
+      @bitlogger.target_has_prefix("service.api"),
+      @bitlogger.level_at_least(@bitlogger.Level::Info),
+      @bitlogger.message_contains("visible"),
+    ]),
+  )
 
   @async.with_task_group(group => {
     group.spawn_bg(() => filtered.run())
@@ -178,9 +184,7 @@ async test "async logger with_filter composes and leaves base logger unchanged" 
 
   let base_written : Ref[Array[String]] = Ref([])
   let untouched = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      base_written.val.push(rec.message)
-    }),
+    @bitlogger.callback_sink(fn(rec) { base_written.val.push(rec.message) }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Info,
     target="base",
@@ -197,31 +201,37 @@ async test "async logger with_filter composes and leaves base logger unchanged" 
   inspect(base_written.val[0], content="base still writes")
 }
 
+///|
 async test "async logger with_patch composes before filter and does not mutate base logger" {
   let captured_target : Ref[String] = Ref("")
   let captured_message : Ref[String] = Ref("")
   let captured_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      captured_target.val = rec.target
-      captured_message.val = rec.message
-      captured_fields.val = rec.fields
-    }),
-    config=AsyncLoggerConfig::new(max_pending=4),
-    min_level=@bitlogger.Level::Info,
-    target="auth",
-  )
-    .with_patch(@bitlogger.compose_patches([
-      @bitlogger.set_target("audit.auth"),
-      @bitlogger.prefix_message("[safe] "),
-      @bitlogger.redact_field("token"),
-      @bitlogger.append_fields([@bitlogger.field("service", "bitlogger")]),
-    ]))
+      @bitlogger.callback_sink(fn(rec) {
+        captured_target.val = rec.target
+        captured_message.val = rec.message
+        captured_fields.val = rec.fields
+      }),
+      config=AsyncLoggerConfig::new(max_pending=4),
+      min_level=@bitlogger.Level::Info,
+      target="auth",
+    )
+    .with_patch(
+      @bitlogger.compose_patches([
+        @bitlogger.set_target("audit.auth"),
+        @bitlogger.prefix_message("[safe] "),
+        @bitlogger.redact_field("token"),
+        @bitlogger.append_fields([@bitlogger.field("service", "bitlogger")]),
+      ]),
+    )
     .with_filter(@bitlogger.target_is("audit.auth"))
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
-    logger.info("login", fields=[@bitlogger.field("token", "secret"), @bitlogger.field("user", "alice")])
+    logger.info("login", fields=[
+      @bitlogger.field("token", "secret"),
+      @bitlogger.field("user", "alice"),
+    ])
     logger.shutdown()
   })
 
@@ -262,21 +272,18 @@ async test "async logger with_patch composes before filter and does not mutate b
   inspect(base_fields.val[0].value, content="secret")
 }
 
+///|
 async test "async logger with_min_level only affects derived logger threshold" {
   let base_written : Ref[Array[String]] = Ref([])
   let derived_written : Ref[Array[String]] = Ref([])
   let base = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      base_written.val.push(rec.message)
-    }),
+    @bitlogger.callback_sink(fn(rec) { base_written.val.push(rec.message) }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Info,
     target="level.base",
   )
   let derived = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      derived_written.val.push(rec.message)
-    }),
+    @bitlogger.callback_sink(fn(rec) { derived_written.val.push(rec.message) }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Info,
     target="level.derived",
@@ -302,12 +309,11 @@ async test "async logger with_min_level only affects derived logger threshold" {
   inspect(derived_written.val[0], content="derived error kept")
 }
 
+///|
 async test "async logger with_target replaces default target without mutating base logger" {
   let written_targets : Ref[Array[String]] = Ref([])
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written_targets.val.push(rec.target)
-    }),
+    @bitlogger.callback_sink(fn(rec) { written_targets.val.push(rec.target) }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Warn,
     target="async.base",
@@ -330,9 +336,7 @@ async test "async logger with_target replaces default target without mutating ba
 
   let base_targets : Ref[Array[String]] = Ref([])
   let base = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      base_targets.val.push(rec.target)
-    }),
+    @bitlogger.callback_sink(fn(rec) { base_targets.val.push(rec.target) }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Warn,
     target="async.base",
@@ -349,12 +353,11 @@ async test "async logger with_target replaces default target without mutating ba
   inspect(base_targets.val[0], content="async.base")
 }
 
+///|
 async test "async logger with_context_fields prepends shared fields without mutating base logger" {
   let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written_fields.val = rec.fields
-    }),
+    @bitlogger.callback_sink(fn(rec) { written_fields.val = rec.fields }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Warn,
     target="async.ctx",
@@ -382,6 +385,7 @@ async test "async logger with_context_fields prepends shared fields without muta
   inspect(written_fields.val[2].value, content="test")
 }
 
+///|
 async test "async logger child composes target and preserves other state" {
   let written_target : Ref[String] = Ref("")
   let written_timestamp : Ref[UInt64] = Ref(0UL)
@@ -412,9 +416,7 @@ async test "async logger child composes target and preserves other state" {
   inspect(written_timestamp.val > 0UL, content="true")
 
   let root_child = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Info,
     target="",
@@ -422,9 +424,7 @@ async test "async logger child composes target and preserves other state" {
   inspect(root_child.target, content="worker")
 
   let keep_parent = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Info,
     target="sdk",
@@ -432,13 +432,12 @@ async test "async logger child composes target and preserves other state" {
   inspect(keep_parent.target, content="sdk")
 }
 
+///|
 async test "async logger with_timestamp only affects derived logger timestamp flag" {
   let base_timestamp : Ref[UInt64] = Ref(0UL)
   let derived_timestamp : Ref[UInt64] = Ref(0UL)
   let base = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      base_timestamp.val = rec.timestamp_ms
-    }),
+    @bitlogger.callback_sink(fn(rec) { base_timestamp.val = rec.timestamp_ms }),
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Warn,
     target="async.ts.base",
@@ -468,6 +467,7 @@ async test "async logger with_timestamp only affects derived logger timestamp fl
   inspect(derived_timestamp.val > 0UL, content="true")
 }
 
+///|
 async test "async logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
   let written_message : Ref[String] = Ref("")
@@ -528,6 +528,7 @@ async test "async logger log supports per-call target override" {
   inspect(second_fields.val[0].key, content="service")
 }
 
+///|
 async test "async logger severity helpers use stored target without override" {
   let written_levels : Ref[Array[String]] = Ref([])
   let written_targets : Ref[Array[String]] = Ref([])
@@ -570,6 +571,7 @@ async test "async logger severity helpers use stored target without override" {
   inspect(written_fields.val[2][1].value, content="error")
 }
 
+///|
 test "async logger config stringify roundtrips stable fields" {
   let text = stringify_async_logger_config(
     AsyncLoggerConfig::new(
@@ -584,36 +586,50 @@ test "async logger config stringify roundtrips stable fields" {
   inspect(config.max_pending, content="8")
   inspect(config.max_batch, content="3")
   inspect(config.linger_ms, content="25")
-  inspect(match config.overflow {
-    AsyncOverflowPolicy::Blocking => "Blocking"
-    AsyncOverflowPolicy::DropOldest => "DropOldest"
-    AsyncOverflowPolicy::DropNewest => "DropNewest"
-  }, content="DropOldest")
-  inspect(match config.flush {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Batch")
+  inspect(
+    match config.overflow {
+      AsyncOverflowPolicy::Blocking => "Blocking"
+      AsyncOverflowPolicy::DropOldest => "DropOldest"
+      AsyncOverflowPolicy::DropNewest => "DropNewest"
+    },
+    content="DropOldest",
+  )
+  inspect(
+    match config.flush {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Batch",
+  )
 }
 
+///|
 test "async logger config parser accepts compatibility aliases" {
   let config = parse_async_logger_config_text(
     "{\"overflow\":\"DropLatest\",\"flush\":\"None\",\"max_batch\":0,\"linger_ms\":-2}",
   )
   inspect(config.max_batch, content="1")
   inspect(config.linger_ms, content="0")
-  inspect(match config.overflow {
-    AsyncOverflowPolicy::Blocking => "Blocking"
-    AsyncOverflowPolicy::DropOldest => "DropOldest"
-    AsyncOverflowPolicy::DropNewest => "DropNewest"
-  }, content="DropNewest")
-  inspect(match config.flush {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Never")
+  inspect(
+    match config.overflow {
+      AsyncOverflowPolicy::Blocking => "Blocking"
+      AsyncOverflowPolicy::DropOldest => "DropOldest"
+      AsyncOverflowPolicy::DropNewest => "DropNewest"
+    },
+    content="DropNewest",
+  )
+  inspect(
+    match config.flush {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Never",
+  )
 }
 
+///|
 async test "async logger config constructor normalizes batch and linger but preserves pending input" {
   let config = AsyncLoggerConfig::new(
     max_pending=-3,
@@ -625,22 +641,26 @@ async test "async logger config constructor normalizes batch and linger but pres
   inspect(config.max_pending, content="-3")
   inspect(config.max_batch, content="1")
   inspect(config.linger_ms, content="0")
-  inspect(match config.overflow {
-    AsyncOverflowPolicy::Blocking => "Blocking"
-    AsyncOverflowPolicy::DropOldest => "DropOldest"
-    AsyncOverflowPolicy::DropNewest => "DropNewest"
-  }, content="DropNewest")
-  inspect(match config.flush {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Batch")
+  inspect(
+    match config.overflow {
+      AsyncOverflowPolicy::Blocking => "Blocking"
+      AsyncOverflowPolicy::DropOldest => "DropOldest"
+      AsyncOverflowPolicy::DropNewest => "DropNewest"
+    },
+    content="DropNewest",
+  )
+  inspect(
+    match config.flush {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Batch",
+  )
 
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
-    config=config,
+    @bitlogger.callback_sink(fn(_) {  }),
+    config~,
     min_level=@bitlogger.Level::Info,
     target="async.config.normalized",
   )
@@ -649,6 +669,7 @@ async test "async logger config constructor normalizes batch and linger but pres
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 test "async build config stringify roundtrips nested logger and async fields" {
   let text = stringify_async_logger_build_config(
     AsyncLoggerBuildConfig::new(
@@ -674,45 +695,62 @@ test "async build config stringify roundtrips nested logger and async fields" {
   inspect(config.async_config.max_pending, content="2")
   inspect(config.async_config.max_batch, content="5")
   inspect(config.async_config.linger_ms, content="40")
-  inspect(match config.async_config.overflow {
-    AsyncOverflowPolicy::Blocking => "Blocking"
-    AsyncOverflowPolicy::DropOldest => "DropOldest"
-    AsyncOverflowPolicy::DropNewest => "DropNewest"
-  }, content="DropNewest")
-  inspect(match config.async_config.flush {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match config.async_config.overflow {
+      AsyncOverflowPolicy::Blocking => "Blocking"
+      AsyncOverflowPolicy::DropOldest => "DropOldest"
+      AsyncOverflowPolicy::DropNewest => "DropNewest"
+    },
+    content="DropNewest",
+  )
+  inspect(
+    match config.async_config.flush {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 }
 
+///|
 test "async build config parser fills omitted sections from defaults" {
   let config = parse_async_logger_build_config_text("{}")
   inspect(config.logger.min_level.label(), content="INFO")
   inspect(config.logger.target, content="")
   inspect(config.logger.timestamp, content="false")
-  inspect(match config.logger.sink.kind {
-    @bitlogger.SinkKind::Console => "Console"
-    @bitlogger.SinkKind::JsonConsole => "JsonConsole"
-    @bitlogger.SinkKind::TextConsole => "TextConsole"
-    @bitlogger.SinkKind::File => "File"
-  }, content="Console")
+  inspect(
+    match config.logger.sink.kind {
+      @bitlogger.SinkKind::Console => "Console"
+      @bitlogger.SinkKind::JsonConsole => "JsonConsole"
+      @bitlogger.SinkKind::TextConsole => "TextConsole"
+      @bitlogger.SinkKind::File => "File"
+    },
+    content="Console",
+  )
   inspect(config.logger.queue is None, content="true")
   inspect(config.async_config.max_pending, content="0")
   inspect(config.async_config.max_batch, content="1")
   inspect(config.async_config.linger_ms, content="0")
-  inspect(match config.async_config.overflow {
-    AsyncOverflowPolicy::Blocking => "Blocking"
-    AsyncOverflowPolicy::DropOldest => "DropOldest"
-    AsyncOverflowPolicy::DropNewest => "DropNewest"
-  }, content="Blocking")
-  inspect(match config.async_config.flush {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Never")
+  inspect(
+    match config.async_config.overflow {
+      AsyncOverflowPolicy::Blocking => "Blocking"
+      AsyncOverflowPolicy::DropOldest => "DropOldest"
+      AsyncOverflowPolicy::DropNewest => "DropNewest"
+    },
+    content="Blocking",
+  )
+  inspect(
+    match config.async_config.flush {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Never",
+  )
 }
 
+///|
 test "async json helpers export stable structured shapes" {
   let config_json = async_logger_config_to_json(
     AsyncLoggerConfig::new(
@@ -728,11 +766,26 @@ test "async json helpers export stable structured shapes" {
     @json_parser.stringify(config_json),
     content="{\"max_pending\":8,\"max_batch\":3,\"linger_ms\":25,\"overflow\":\"DropOldest\",\"flush\":\"Batch\"}",
   )
-  inspect(config_obj.get("max_pending").unwrap().as_number().unwrap().to_int(), content="8")
-  inspect(config_obj.get("max_batch").unwrap().as_number().unwrap().to_int(), content="3")
-  inspect(config_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(), content="25")
-  inspect(config_obj.get("overflow").unwrap().as_string().unwrap(), content="DropOldest")
-  inspect(config_obj.get("flush").unwrap().as_string().unwrap(), content="Batch")
+  inspect(
+    config_obj.get("max_pending").unwrap().as_number().unwrap().to_int(),
+    content="8",
+  )
+  inspect(
+    config_obj.get("max_batch").unwrap().as_number().unwrap().to_int(),
+    content="3",
+  )
+  inspect(
+    config_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(),
+    content="25",
+  )
+  inspect(
+    config_obj.get("overflow").unwrap().as_string().unwrap(),
+    content="DropOldest",
+  )
+  inspect(
+    config_obj.get("flush").unwrap().as_string().unwrap(),
+    content="Batch",
+  )
 
   let build_json = async_logger_build_config_to_json(
     AsyncLoggerBuildConfig::new(
@@ -754,72 +807,190 @@ test "async json helpers export stable structured shapes" {
   let build_obj = build_json.as_object().unwrap()
   let logger_obj = build_obj.get("logger").unwrap().as_object().unwrap()
   let sink_obj = logger_obj.get("sink").unwrap().as_object().unwrap()
-  let formatter_obj = sink_obj.get("text_formatter").unwrap().as_object().unwrap()
+  let formatter_obj = sink_obj
+    .get("text_formatter")
+    .unwrap()
+    .as_object()
+    .unwrap()
   let async_obj = build_obj.get("async_config").unwrap().as_object().unwrap()
 
-  inspect(logger_obj.get("min_level").unwrap().as_string().unwrap(), content="WARN")
-  inspect(logger_obj.get("target").unwrap().as_string().unwrap(), content="async.roundtrip")
-  inspect(logger_obj.get("timestamp").unwrap().as_bool().unwrap(), content="true")
+  inspect(
+    logger_obj.get("min_level").unwrap().as_string().unwrap(),
+    content="WARN",
+  )
+  inspect(
+    logger_obj.get("target").unwrap().as_string().unwrap(),
+    content="async.roundtrip",
+  )
+  inspect(
+    logger_obj.get("timestamp").unwrap().as_bool().unwrap(),
+    content="true",
+  )
   inspect(logger_obj.get("queue") is None, content="true")
-  inspect(sink_obj.get("kind").unwrap().as_string().unwrap(), content="text_console")
+  inspect(
+    sink_obj.get("kind").unwrap().as_string().unwrap(),
+    content="text_console",
+  )
   inspect(sink_obj.get("path").unwrap().as_string().unwrap(), content="")
   inspect(sink_obj.get("append").unwrap().as_bool().unwrap(), content="true")
-  inspect(sink_obj.get("auto_flush").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("show_timestamp").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("separator").unwrap().as_string().unwrap(), content=" ")
-  inspect(formatter_obj.get("field_separator").unwrap().as_string().unwrap(), content=" ")
-  inspect(formatter_obj.get("template").unwrap().as_string().unwrap(), content="")
-  inspect(formatter_obj.get("color_mode").unwrap().as_string().unwrap(), content="never")
-  inspect(formatter_obj.get("color_support").unwrap().as_string().unwrap(), content="truecolor")
-  inspect(formatter_obj.get("style_markup").unwrap().as_string().unwrap(), content="full")
-  inspect(async_obj.get("max_pending").unwrap().as_number().unwrap().to_int(), content="2")
-  inspect(async_obj.get("max_batch").unwrap().as_number().unwrap().to_int(), content="5")
-  inspect(async_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(), content="40")
-  inspect(async_obj.get("overflow").unwrap().as_string().unwrap(), content="DropNewest")
-  inspect(async_obj.get("flush").unwrap().as_string().unwrap(), content="Shutdown")
+  inspect(
+    sink_obj.get("auto_flush").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("show_timestamp").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("separator").unwrap().as_string().unwrap(),
+    content=" ",
+  )
+  inspect(
+    formatter_obj.get("field_separator").unwrap().as_string().unwrap(),
+    content=" ",
+  )
+  inspect(
+    formatter_obj.get("template").unwrap().as_string().unwrap(),
+    content="",
+  )
+  inspect(
+    formatter_obj.get("color_mode").unwrap().as_string().unwrap(),
+    content="never",
+  )
+  inspect(
+    formatter_obj.get("color_support").unwrap().as_string().unwrap(),
+    content="truecolor",
+  )
+  inspect(
+    formatter_obj.get("style_markup").unwrap().as_string().unwrap(),
+    content="full",
+  )
+  inspect(
+    async_obj.get("max_pending").unwrap().as_number().unwrap().to_int(),
+    content="2",
+  )
+  inspect(
+    async_obj.get("max_batch").unwrap().as_number().unwrap().to_int(),
+    content="5",
+  )
+  inspect(
+    async_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(),
+    content="40",
+  )
+  inspect(
+    async_obj.get("overflow").unwrap().as_string().unwrap(),
+    content="DropNewest",
+  )
+  inspect(
+    async_obj.get("flush").unwrap().as_string().unwrap(),
+    content="Shutdown",
+  )
 }
 
+///|
 test "async build config json export materializes parsed omitted defaults" {
   let parsed = parse_async_logger_build_config_text("{}")
   let build_json = async_logger_build_config_to_json(parsed)
   let build_obj = build_json.as_object().unwrap()
   let logger_obj = build_obj.get("logger").unwrap().as_object().unwrap()
   let sink_obj = logger_obj.get("sink").unwrap().as_object().unwrap()
-  let formatter_obj = sink_obj.get("text_formatter").unwrap().as_object().unwrap()
+  let formatter_obj = sink_obj
+    .get("text_formatter")
+    .unwrap()
+    .as_object()
+    .unwrap()
   let async_obj = build_obj.get("async_config").unwrap().as_object().unwrap()
 
   inspect(
     @json_parser.stringify(build_json),
     content="{\"logger\":{\"min_level\":\"INFO\",\"target\":\"\",\"timestamp\":false,\"sink\":{\"kind\":\"console\",\"path\":\"\",\"append\":true,\"auto_flush\":true,\"text_formatter\":{\"show_timestamp\":true,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"never\",\"color_support\":\"truecolor\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"}}},\"async_config\":{\"max_pending\":0,\"max_batch\":1,\"linger_ms\":0,\"overflow\":\"Blocking\",\"flush\":\"Never\"}}",
   )
-  inspect(logger_obj.get("min_level").unwrap().as_string().unwrap(), content="INFO")
+  inspect(
+    logger_obj.get("min_level").unwrap().as_string().unwrap(),
+    content="INFO",
+  )
   inspect(logger_obj.get("target").unwrap().as_string().unwrap(), content="")
-  inspect(logger_obj.get("timestamp").unwrap().as_bool().unwrap(), content="false")
+  inspect(
+    logger_obj.get("timestamp").unwrap().as_bool().unwrap(),
+    content="false",
+  )
   inspect(logger_obj.get("queue") is None, content="true")
   inspect(sink_obj.get("kind").unwrap().as_string().unwrap(), content="console")
   inspect(sink_obj.get("path").unwrap().as_string().unwrap(), content="")
   inspect(sink_obj.get("append").unwrap().as_bool().unwrap(), content="true")
-  inspect(sink_obj.get("auto_flush").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("show_timestamp").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("show_level").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("show_target").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("show_fields").unwrap().as_bool().unwrap(), content="true")
-  inspect(formatter_obj.get("separator").unwrap().as_string().unwrap(), content=" ")
-  inspect(formatter_obj.get("field_separator").unwrap().as_string().unwrap(), content=" ")
-  inspect(formatter_obj.get("template").unwrap().as_string().unwrap(), content="")
-  inspect(formatter_obj.get("color_mode").unwrap().as_string().unwrap(), content="never")
-  inspect(formatter_obj.get("color_support").unwrap().as_string().unwrap(), content="truecolor")
-  inspect(formatter_obj.get("style_markup").unwrap().as_string().unwrap(), content="full")
-  inspect(formatter_obj.get("target_style_markup").unwrap().as_string().unwrap(), content="disabled")
-  inspect(formatter_obj.get("fields_style_markup").unwrap().as_string().unwrap(), content="disabled")
+  inspect(
+    sink_obj.get("auto_flush").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("show_timestamp").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("show_level").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("show_target").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("show_fields").unwrap().as_bool().unwrap(),
+    content="true",
+  )
+  inspect(
+    formatter_obj.get("separator").unwrap().as_string().unwrap(),
+    content=" ",
+  )
+  inspect(
+    formatter_obj.get("field_separator").unwrap().as_string().unwrap(),
+    content=" ",
+  )
+  inspect(
+    formatter_obj.get("template").unwrap().as_string().unwrap(),
+    content="",
+  )
+  inspect(
+    formatter_obj.get("color_mode").unwrap().as_string().unwrap(),
+    content="never",
+  )
+  inspect(
+    formatter_obj.get("color_support").unwrap().as_string().unwrap(),
+    content="truecolor",
+  )
+  inspect(
+    formatter_obj.get("style_markup").unwrap().as_string().unwrap(),
+    content="full",
+  )
+  inspect(
+    formatter_obj.get("target_style_markup").unwrap().as_string().unwrap(),
+    content="disabled",
+  )
+  inspect(
+    formatter_obj.get("fields_style_markup").unwrap().as_string().unwrap(),
+    content="disabled",
+  )
   inspect(formatter_obj.get("style_tags") is None, content="true")
-  inspect(async_obj.get("max_pending").unwrap().as_number().unwrap().to_int(), content="0")
-  inspect(async_obj.get("max_batch").unwrap().as_number().unwrap().to_int(), content="1")
-  inspect(async_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(), content="0")
-  inspect(async_obj.get("overflow").unwrap().as_string().unwrap(), content="Blocking")
+  inspect(
+    async_obj.get("max_pending").unwrap().as_number().unwrap().to_int(),
+    content="0",
+  )
+  inspect(
+    async_obj.get("max_batch").unwrap().as_number().unwrap().to_int(),
+    content="1",
+  )
+  inspect(
+    async_obj.get("linger_ms").unwrap().as_number().unwrap().to_int(),
+    content="0",
+  )
+  inspect(
+    async_obj.get("overflow").unwrap().as_string().unwrap(),
+    content="Blocking",
+  )
   inspect(async_obj.get("flush").unwrap().as_string().unwrap(), content="Never")
 }
 
+///|
 test "async config parsers reject malformed input" {
   let invalid_json_error = (fn() -> String raise {
     ignore(parse_async_logger_config_text("{"))
@@ -835,7 +1006,10 @@ test "async config parsers reject malformed input" {
   })() catch {
     err => err.to_string()
   }
-  inspect(wrong_type_error.contains("Expected number at async_config.max_pending"), content="true")
+  inspect(
+    wrong_type_error.contains("Expected number at async_config.max_pending"),
+    content="true",
+  )
 
   let invalid_enum_error = (fn() -> String raise {
     ignore(parse_async_logger_config_text("{\"overflow\":\"Burst\"}"))
@@ -843,7 +1017,10 @@ test "async config parsers reject malformed input" {
   })() catch {
     err => err.to_string()
   }
-  inspect(invalid_enum_error.contains("Unsupported async overflow policy: Burst"), content="true")
+  inspect(
+    invalid_enum_error.contains("Unsupported async overflow policy: Burst"),
+    content="true",
+  )
 
   let invalid_build_root_error = (fn() -> String raise {
     ignore(parse_async_logger_build_config_text("[]"))
@@ -851,17 +1028,30 @@ test "async config parsers reject malformed input" {
   })() catch {
     err => err.to_string()
   }
-  inspect(invalid_build_root_error.contains("Expected object at async logger build config root"), content="true")
+  inspect(
+    invalid_build_root_error.contains(
+      "Expected object at async logger build config root",
+    ),
+    content="true",
+  )
 
   let nested_sync_error = (fn() -> String raise {
-    ignore(parse_async_logger_build_config_text("{\"logger\":{\"timestamp\":\"true\"}}"))
+    ignore(
+      parse_async_logger_build_config_text(
+        "{\"logger\":{\"timestamp\":\"true\"}}",
+      ),
+    )
     "no error"
   })() catch {
     err => err.to_string()
   }
-  inspect(nested_sync_error.contains("ConfigError.InvalidConfig"), content="true")
+  inspect(
+    nested_sync_error.contains("ConfigError.InvalidConfig"),
+    content="true",
+  )
 }
 
+///|
 test "async runtime capability helpers stay consistent" {
   let mode = async_runtime_mode()
   let state = async_runtime_state()
@@ -870,11 +1060,18 @@ test "async runtime capability helpers stay consistent" {
     AsyncRuntimeMode::Compatibility => false
   }
   inspect(
-    async_runtime_mode_label(mode) == "native_worker" || async_runtime_mode_label(mode) == "compatibility",
+    async_runtime_mode_label(mode) == "native_worker" ||
+    async_runtime_mode_label(mode) == "compatibility",
     content="true",
   )
-  inspect(async_runtime_supports_background_worker() == worker_supported, content="true")
-  inspect(async_runtime_mode_label(state.mode) == async_runtime_mode_label(mode), content="true")
+  inspect(
+    async_runtime_supports_background_worker() == worker_supported,
+    content="true",
+  )
+  inspect(
+    async_runtime_mode_label(state.mode) == async_runtime_mode_label(mode),
+    content="true",
+  )
   inspect(state.background_worker == worker_supported, content="true")
   inspect(
     @json_parser.stringify(async_runtime_state_to_json(state)),
@@ -894,19 +1091,22 @@ test "async runtime capability helpers stay consistent" {
   )
 }
 
+///|
 test "async runtime mode and worker flag encode target contract" {
   let mode_label = async_runtime_mode_label(async_runtime_mode())
   let worker = async_runtime_supports_background_worker()
-  inspect(mode_label == "native_worker" || mode_label == "compatibility", content="true")
+  inspect(
+    mode_label == "native_worker" || mode_label == "compatibility",
+    content="true",
+  )
   inspect((mode_label == "native_worker") == worker, content="true")
   inspect((mode_label == "compatibility") == !worker, content="true")
 }
 
+///|
 test "async logger state snapshot reflects current counters and runtime" {
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=3,
       overflow=AsyncOverflowPolicy::DropNewest,
@@ -916,19 +1116,30 @@ test "async logger state snapshot reflects current counters and runtime" {
     target="async.state",
   )
   let state = logger.state()
-  inspect(async_runtime_mode_label(state.runtime.mode) == async_runtime_mode_label(async_runtime_mode()), content="true")
-  inspect(state.runtime.background_worker == async_runtime_supports_background_worker(), content="true")
+  inspect(
+    async_runtime_mode_label(state.runtime.mode) ==
+    async_runtime_mode_label(async_runtime_mode()),
+    content="true",
+  )
+  inspect(
+    state.runtime.background_worker ==
+    async_runtime_supports_background_worker(),
+    content="true",
+  )
   inspect(state.pending_count, content="0")
   inspect(state.dropped_count, content="0")
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
   inspect(state.last_error, content="")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
   inspect(
     @json_parser.stringify(async_logger_state_to_json(state)),
     content=if async_runtime_supports_background_worker() {
@@ -947,12 +1158,11 @@ test "async logger state snapshot reflects current counters and runtime" {
   )
 }
 
+///|
 async test "run drains queued records in compatibility backends too" {
   let written : Ref[Array[String]] = Ref([])
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written.val.push(rec.message)
-    }),
+    @bitlogger.callback_sink(fn(rec) { written.val.push(rec.message) }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::DropNewest,
@@ -979,12 +1189,11 @@ async test "run drains queued records in compatibility backends too" {
   inspect(written.val[1], content="two")
 }
 
+///|
 async test "async logger records worker failures and wait_idle stops early" {
   let writes : Ref[Int] = Ref(0)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-      writes.val += 1
-    }),
+    @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -992,9 +1201,7 @@ async test "async logger records worker failures and wait_idle stops early" {
     ),
     min_level=@bitlogger.Level::Info,
     target="async.failure",
-    flush=fn(_) -> Int raise {
-      raise TestFlushError("flush exploded")
-    },
+    flush=fn(_) -> Int raise { raise TestFlushError("flush exploded") },
   )
 
   @async.with_task_group(group => {
@@ -1014,13 +1221,12 @@ async test "async logger records worker failures and wait_idle stops early" {
   inspect(logger.pending_count(), content="0")
 }
 
+///|
 async test "later started run resets async failure state before draining remaining backlog" {
   let writes : Ref[Int] = Ref(0)
   let flushes : Ref[Int] = Ref(0)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-      writes.val += 1
-    }),
+    @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -1065,12 +1271,11 @@ async test "later started run resets async failure state before draining remaini
   inspect(logger.pending_count(), content="0")
 }
 
+///|
 async test "shutdown after worker failure uses runtime-specific pending cleanup" {
   let writes : Ref[Int] = Ref(0)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-      writes.val += 1
-    }),
+    @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -1108,20 +1313,23 @@ async test "shutdown after worker failure uses runtime-specific pending cleanup"
   )
 }
 
+///|
 async test "library async logger keeps a smaller async facade" {
   let written_targets : Ref[Array[String]] = Ref([])
   let written_messages : Ref[Array[String]] = Ref([])
   let written_field_counts : Ref[Array[Int]] = Ref([])
   let logger = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(rec) {
-      written_targets.val.push(rec.target)
-      written_messages.val.push(rec.message)
-      written_field_counts.val.push(rec.fields.length())
-    }),
-    config=AsyncLoggerConfig::new(max_pending=4),
-    min_level=@bitlogger.Level::Info,
-    target="async.lib",
-  ).with_context_fields([@bitlogger.field("service", "bitlogger")]).child("worker")
+      @bitlogger.callback_sink(fn(rec) {
+        written_targets.val.push(rec.target)
+        written_messages.val.push(rec.message)
+        written_field_counts.val.push(rec.fields.length())
+      }),
+      config=AsyncLoggerConfig::new(max_pending=4),
+      min_level=@bitlogger.Level::Info,
+      target="async.lib",
+    )
+    .with_context_fields([@bitlogger.field("service", "bitlogger")])
+    .child("worker")
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -1135,13 +1343,12 @@ async test "library async logger keeps a smaller async facade" {
   inspect(written_field_counts.val[0], content="2")
 }
 
+///|
 async test "library async new preserves config and flush failure contract" {
   let writes : Ref[Int] = Ref(0)
   let flushes : Ref[Int] = Ref(0)
   let logger = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(_) {
-      writes.val += 1
-    }),
+    @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -1161,11 +1368,14 @@ async test "library async new preserves config and flush failure contract" {
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(full.target, content="async.lib.new")
-  inspect(match full.flush_policy() {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Batch")
+  inspect(
+    match full.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Batch",
+  )
   inspect(full.pending_count(), content="0")
   inspect(full.has_failed(), content="false")
   inspect(full.last_error(), content="")
@@ -1194,16 +1404,15 @@ async test "library async new preserves config and flush failure contract" {
   inspect(full.is_closed(), content="true")
 }
 
+///|
 async test "library async context binding replaces stored field set" {
   let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(rec) {
-      written_fields.val = rec.fields
-    }),
-    config=AsyncLoggerConfig::new(max_pending=4),
-    min_level=@bitlogger.Level::Warn,
-    target="async.lib.ctx",
-  )
+      @bitlogger.callback_sink(fn(rec) { written_fields.val = rec.fields }),
+      config=AsyncLoggerConfig::new(max_pending=4),
+      min_level=@bitlogger.Level::Warn,
+      target="async.lib.ctx",
+    )
     .with_context_fields([@bitlogger.field("old", "gone")])
     .with_context_fields([
       @bitlogger.field("service", "bitlogger"),
@@ -1236,20 +1445,21 @@ async test "library async context binding replaces stored field set" {
   inspect(written_fields.val[2].value, content="test")
 }
 
+///|
 async test "library async bind matches context facade contract" {
   let written_target : Ref[String] = Ref("")
   let written_timestamp : Ref[UInt64] = Ref(0UL)
   let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written_target.val = rec.target
-      written_timestamp.val = rec.timestamp_ms
-      written_fields.val = rec.fields
-    }),
-    config=AsyncLoggerConfig::new(max_pending=4),
-    min_level=@bitlogger.Level::Warn,
-    target="async.lib.bind",
-  )
+      @bitlogger.callback_sink(fn(rec) {
+        written_target.val = rec.target
+        written_timestamp.val = rec.timestamp_ms
+        written_fields.val = rec.fields
+      }),
+      config=AsyncLoggerConfig::new(max_pending=4),
+      min_level=@bitlogger.Level::Warn,
+      target="async.lib.bind",
+    )
     .with_timestamp()
     .to_library_async_logger()
     .bind([@bitlogger.field("service", "bitlogger")])
@@ -1278,18 +1488,19 @@ async test "library async bind matches context facade contract" {
   inspect(written_fields.val[1].value, content="test")
 }
 
+///|
 async test "library async logger with_target preserves facade state while replacing target" {
   let written_target : Ref[String] = Ref("")
   let written_timestamp : Ref[UInt64] = Ref(0UL)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written_target.val = rec.target
-      written_timestamp.val = rec.timestamp_ms
-    }),
-    config=AsyncLoggerConfig::new(max_pending=4),
-    min_level=@bitlogger.Level::Warn,
-    target="async.lib.base",
-  )
+      @bitlogger.callback_sink(fn(rec) {
+        written_target.val = rec.target
+        written_timestamp.val = rec.timestamp_ms
+      }),
+      config=AsyncLoggerConfig::new(max_pending=4),
+      min_level=@bitlogger.Level::Warn,
+      target="async.lib.base",
+    )
     .with_timestamp()
     .to_library_async_logger()
     .with_target("async.lib.retarget")
@@ -1316,18 +1527,19 @@ async test "library async logger with_target preserves facade state while replac
   inspect(written_timestamp.val > 0UL, content="true")
 }
 
+///|
 async test "library async logger child composes target through facade" {
   let written_target : Ref[String] = Ref("")
   let written_timestamp : Ref[UInt64] = Ref(0UL)
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(rec) {
-      written_target.val = rec.target
-      written_timestamp.val = rec.timestamp_ms
-    }),
-    config=AsyncLoggerConfig::new(max_pending=4),
-    min_level=@bitlogger.Level::Warn,
-    target="sdk",
-  )
+      @bitlogger.callback_sink(fn(rec) {
+        written_target.val = rec.target
+        written_timestamp.val = rec.timestamp_ms
+      }),
+      config=AsyncLoggerConfig::new(max_pending=4),
+      min_level=@bitlogger.Level::Warn,
+      target="sdk",
+    )
     .with_timestamp()
     .to_library_async_logger()
     .child("worker")
@@ -1347,22 +1559,19 @@ async test "library async logger child composes target through facade" {
   inspect(written_target.val, content="sdk.worker")
   inspect(written_timestamp.val > 0UL, content="true")
 
-  let root_child = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
-  ).child("worker")
+  let root_child = LibraryAsyncLogger::new(@bitlogger.callback_sink(fn(_) {  })).child(
+    "worker",
+  )
   inspect(root_child.to_async_logger().target, content="worker")
 
   let keep_parent = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     target="sdk",
   ).child("")
   inspect(keep_parent.to_async_logger().target, content="sdk")
 }
 
+///|
 async test "library async logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
   let written_message : Ref[String] = Ref("")
@@ -1376,8 +1585,7 @@ async test "library async logger log supports per-call target override" {
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Warn,
     target="async.lib.default",
-  )
-    .with_context_fields([@bitlogger.field("service", "bitlogger")])
+  ).with_context_fields([@bitlogger.field("service", "bitlogger")])
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -1410,8 +1618,7 @@ async test "library async logger log supports per-call target override" {
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Warn,
     target="async.lib.default",
-  )
-    .with_context_fields([@bitlogger.field("service", "bitlogger")])
+  ).with_context_fields([@bitlogger.field("service", "bitlogger")])
 
   @async.with_task_group(group => {
     group.spawn_bg(() => second.run())
@@ -1425,6 +1632,7 @@ async test "library async logger log supports per-call target override" {
   inspect(second_fields.val[0].key, content="service")
 }
 
+///|
 async test "library async severity helpers use stored target without override" {
   let written_levels : Ref[Array[String]] = Ref([])
   let written_targets : Ref[Array[String]] = Ref([])
@@ -1438,8 +1646,7 @@ async test "library async severity helpers use stored target without override" {
     config=AsyncLoggerConfig::new(max_pending=4),
     min_level=@bitlogger.Level::Info,
     target="async.lib.helpers",
-  )
-    .bind([@bitlogger.field("service", "bitlogger")])
+  ).bind([@bitlogger.field("service", "bitlogger")])
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -1468,12 +1675,11 @@ async test "library async severity helpers use stored target without override" {
   inspect(written_fields.val[2][1].value, content="error")
 }
 
+///|
 async test "library async shutdown preserves wrapped failure cleanup semantics" {
   let writes : Ref[Int] = Ref(0)
   let logger = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(_) {
-      writes.val += 1
-    }),
+    @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -1512,11 +1718,10 @@ async test "library async shutdown preserves wrapped failure cleanup semantics" 
   )
 }
 
+///|
 async test "library async shutdown clear abandons pending records through facade" {
   let logger = LibraryAsyncLogger::new(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=2,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -1536,6 +1741,7 @@ async test "library async shutdown clear abandons pending records through facade
   inspect(full.dropped_count(), content="1")
 }
 
+///|
 async test "library async logger can be built from config" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
@@ -1546,13 +1752,19 @@ async test "library async logger can be built from config" {
   inspect(full.target, content="async.lib.config")
 }
 
+///|
 async test "library async builder unwrap matches direct async builder behavior" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
       min_level=@bitlogger.Level::Warn,
       target="async.lib.same-build",
       timestamp=true,
-      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      queue=Some(
+        @bitlogger.QueueConfig::new(
+          3,
+          overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+        ),
+      ),
       sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
     ),
     async_config=AsyncLoggerConfig::new(
@@ -1569,10 +1781,19 @@ async test "library async builder unwrap matches direct async builder behavior" 
 
   inspect(full.target, content=direct.target)
   inspect(full.timestamp == direct.timestamp, content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
   inspect(
-    stringify_async_logger_state(full_state) == stringify_async_logger_state(direct_state),
+    logger.is_enabled(@bitlogger.Level::Error) ==
+    direct.is_enabled(@bitlogger.Level::Error),
+    content="true",
+  )
+  inspect(
+    logger.is_enabled(@bitlogger.Level::Info) ==
+    direct.is_enabled(@bitlogger.Level::Info),
+    content="true",
+  )
+  inspect(
+    stringify_async_logger_state(full_state) ==
+    stringify_async_logger_state(direct_state),
     content="true",
   )
   let full_sink_kind = match full.sink {
@@ -1610,8 +1831,14 @@ async test "library async builder unwrap matches direct async builder behavior" 
   inspect(full.dropped_count() == direct.dropped_count(), content="true")
   inspect(full.is_closed() == direct.is_closed(), content="true")
   inspect(full.is_running() == direct.is_running(), content="true")
-  inspect(full.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(full.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(
+    full.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    full.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -1628,23 +1855,24 @@ async test "library async builder unwrap matches direct async builder behavior" 
   inspect(full.last_error() == direct.last_error(), content="true")
 }
 
+///|
 async test "library async builder log supports per-call target override through facade" {
   let written_target : Ref[String] = Ref("")
 
   let logger = build_library_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Warn,
-        target="async.lib.builder.default",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Warn,
+          target="async.lib.builder.default",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=2,
+          overflow=AsyncOverflowPolicy::Blocking,
+          flush=AsyncFlushPolicy::Never,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=2,
-        overflow=AsyncOverflowPolicy::Blocking,
-        flush=AsyncFlushPolicy::Never,
-      ),
-    ),
-  )
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       written_target.val = rec.target
@@ -1667,19 +1895,19 @@ async test "library async builder log supports per-call target override through 
   let second_target : Ref[String] = Ref("")
 
   let second = build_library_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Warn,
-        target="async.lib.builder.default",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Warn,
+          target="async.lib.builder.default",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=2,
+          overflow=AsyncOverflowPolicy::Blocking,
+          flush=AsyncFlushPolicy::Never,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=2,
-        overflow=AsyncOverflowPolicy::Blocking,
-        flush=AsyncFlushPolicy::Never,
-      ),
-    ),
-  )
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       second_target.val = rec.target
@@ -1696,23 +1924,24 @@ async test "library async builder log supports per-call target override through 
   inspect(second_target.val, content="async.lib.builder.default")
 }
 
+///|
 async test "library async builder severity helpers use stored target without override" {
   let written_targets : Ref[Array[String]] = Ref([])
 
   let logger = build_library_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Trace,
-        target="async.lib.builder.helpers",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Trace,
+          target="async.lib.builder.helpers",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=4,
+          overflow=AsyncOverflowPolicy::Blocking,
+          flush=AsyncFlushPolicy::Never,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=4,
-        overflow=AsyncOverflowPolicy::Blocking,
-        flush=AsyncFlushPolicy::Never,
-      ),
-    ),
-  )
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       written_targets.val.push(rec.target)
@@ -1734,6 +1963,7 @@ async test "library async builder severity helpers use stored target without ove
   inspect(written_targets.val[2], content="async.lib.builder.helpers")
 }
 
+///|
 async test "library async builder shutdown clear abandons pending records through facade" {
   let logger = build_library_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -1760,6 +1990,7 @@ async test "library async builder shutdown clear abandons pending records throug
   inspect(full.dropped_count(), content="1")
 }
 
+///|
 async test "parsed library async logger unwrap keeps async helper surface" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.helpers\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
@@ -1775,11 +2006,14 @@ async test "parsed library async logger unwrap keeps async helper surface" {
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -1803,6 +2037,7 @@ async test "parsed library async logger unwrap keeps async helper surface" {
   inspect(full.last_error(), content="")
 }
 
+///|
 async test "parsed library async logger shutdown clear abandons pending records through facade" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"info\",\"target\":\"async.lib.json.clear\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
@@ -1819,12 +2054,13 @@ async test "parsed library async logger shutdown clear abandons pending records 
   inspect(full.dropped_count(), content="1")
 }
 
+///|
 async test "parsed library async logger log supports per-call target override through facade" {
   let written_target : Ref[String] = Ref("")
 
   let logger = parse_and_build_library_async_logger(
-    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
-  )
+      "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       written_target.val = rec.target
@@ -1847,8 +2083,8 @@ async test "parsed library async logger log supports per-call target override th
   let second_target : Ref[String] = Ref("")
 
   let second = parse_and_build_library_async_logger(
-    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
-  )
+      "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       second_target.val = rec.target
@@ -1865,12 +2101,13 @@ async test "parsed library async logger log supports per-call target override th
   inspect(second_target.val, content="async.lib.json.default")
 }
 
+///|
 async test "parsed library async severity helpers use stored target without override" {
   let written_targets : Ref[Array[String]] = Ref([])
 
   let logger = parse_and_build_library_async_logger(
-    "{\"logger\":{\"min_level\":\"trace\",\"target\":\"async.lib.json.helpers.target\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":4,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
-  )
+      "{\"logger\":{\"min_level\":\"trace\",\"target\":\"async.lib.json.helpers.target\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":4,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       written_targets.val.push(rec.target)
@@ -1892,6 +2129,7 @@ async test "parsed library async severity helpers use stored target without over
   inspect(written_targets.val[2], content="async.lib.json.helpers.target")
 }
 
+///|
 async test "library async parse-build unwrap matches parsed direct async builder behavior" {
   let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let logger = parse_and_build_library_async_logger(raw)
@@ -1902,10 +2140,19 @@ async test "library async parse-build unwrap matches parsed direct async builder
 
   inspect(full.target, content=direct.target)
   inspect(full.timestamp == direct.timestamp, content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
   inspect(
-    stringify_async_logger_state(full_state) == stringify_async_logger_state(direct_state),
+    logger.is_enabled(@bitlogger.Level::Error) ==
+    direct.is_enabled(@bitlogger.Level::Error),
+    content="true",
+  )
+  inspect(
+    logger.is_enabled(@bitlogger.Level::Info) ==
+    direct.is_enabled(@bitlogger.Level::Info),
+    content="true",
+  )
+  inspect(
+    stringify_async_logger_state(full_state) ==
+    stringify_async_logger_state(direct_state),
     content="true",
   )
   let full_sink_kind = match full.sink {
@@ -1943,8 +2190,14 @@ async test "library async parse-build unwrap matches parsed direct async builder
   inspect(full.dropped_count() == direct.dropped_count(), content="true")
   inspect(full.is_closed() == direct.is_closed(), content="true")
   inspect(full.is_running() == direct.is_running(), content="true")
-  inspect(full.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(full.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(
+    full.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    full.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -1961,6 +2214,7 @@ async test "library async parse-build unwrap matches parsed direct async builder
   inspect(full.last_error() == direct.last_error(), content="true")
 }
 
+///|
 async test "library async parse-build unwrap preserves file-backed runtime helpers" {
   let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"async-lib-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let logger = parse_and_build_library_async_logger(raw)
@@ -1978,11 +2232,26 @@ async test "library async parse-build unwrap preserves file-backed runtime helpe
 
   inspect(full.pending_count() == direct.pending_count(), content="true")
   inspect(full.dropped_count() == direct.dropped_count(), content="true")
-  inspect(full.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(full.sink.dropped_count() == direct.sink.dropped_count(), content="true")
-  inspect(full.sink.file_available() == direct.sink.file_available(), content="true")
-  inspect(full.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(full.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+  inspect(
+    full.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    full.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_available() == direct.sink.file_available(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_auto_flush() == direct.sink.file_auto_flush(),
+    content="true",
+  )
 
   let full_state = full.sink.file_state()
   let direct_state = direct.sink.file_state()
@@ -1990,10 +2259,22 @@ async test "library async parse-build unwrap preserves file-backed runtime helpe
   inspect(full_state.available == direct_state.available, content="true")
   inspect(full_state.append == direct_state.append, content="true")
   inspect(full_state.auto_flush == direct_state.auto_flush, content="true")
-  inspect(full_state.open_failures == direct_state.open_failures, content="true")
-  inspect(full_state.write_failures == direct_state.write_failures, content="true")
-  inspect(full_state.flush_failures == direct_state.flush_failures, content="true")
-  inspect(full_state.rotation_failures == direct_state.rotation_failures, content="true")
+  inspect(
+    full_state.open_failures == direct_state.open_failures,
+    content="true",
+  )
+  inspect(
+    full_state.write_failures == direct_state.write_failures,
+    content="true",
+  )
+  inspect(
+    full_state.flush_failures == direct_state.flush_failures,
+    content="true",
+  )
+  inspect(
+    full_state.rotation_failures == direct_state.rotation_failures,
+    content="true",
+  )
 
   match (full.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
     (Some(snapshot), Some(other)) => {
@@ -2006,23 +2287,61 @@ async test "library async parse-build unwrap preserves file-backed runtime helpe
     _ => inspect(false, content="true")
   }
 
-  inspect(full.sink.file_set_append_mode(false) == direct.sink.file_set_append_mode(false), content="true")
-  inspect(full.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(full.sink.file_set_auto_flush(false) == direct.sink.file_set_auto_flush(false), content="true")
-  inspect(full.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
   inspect(
-    full.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))) ==
-      direct.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))),
+    full.sink.file_set_append_mode(false) ==
+    direct.sink.file_set_append_mode(false),
     content="true",
   )
-  inspect(full.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(), content="true")
-  inspect(full.sink.file_reopen_append() == direct.sink.file_reopen_append(), content="true")
-  inspect(full.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(full.sink.file_clear_rotation() == direct.sink.file_clear_rotation(), content="true")
-  inspect(full.sink.file_reset_policy() == direct.sink.file_reset_policy(), content="true")
-  inspect(full.sink.file_policy_matches_default() == direct.sink.file_policy_matches_default(), content="true")
   inspect(
-    full.sink.file_reset_failure_counters() == direct.sink.file_reset_failure_counters(),
+    full.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_set_auto_flush(false) ==
+    direct.sink.file_set_auto_flush(false),
+    content="true",
+  )
+  inspect(
+    full.sink.file_auto_flush() == direct.sink.file_auto_flush(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ) ==
+    direct.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ),
+    content="true",
+  )
+  inspect(
+    full.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_reopen_append() == direct.sink.file_reopen_append(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_clear_rotation() == direct.sink.file_clear_rotation(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_reset_policy() == direct.sink.file_reset_policy(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_policy_matches_default() ==
+    direct.sink.file_policy_matches_default(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_reset_failure_counters() ==
+    direct.sink.file_reset_failure_counters(),
     content="true",
   )
   inspect(full.sink.file_flush() == direct.sink.file_flush(), content="true")
@@ -2030,6 +2349,7 @@ async test "library async parse-build unwrap preserves file-backed runtime helpe
   inspect(full.sink.file_close() == direct.sink.file_close(), content="true")
 }
 
+///|
 test "library async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_library_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.config.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
@@ -2039,22 +2359,29 @@ test "library async logger parse-and-build preserves parsed sync queue layer" {
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(full.target, content="async.lib.config.queued")
-  inspect(match full.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    _ => "Other"
-  }, content="QueuedConsole")
+  inspect(
+    match full.sink {
+      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+      _ => "Other"
+    },
+    content="QueuedConsole",
+  )
 }
 
+///|
 test "library async text logger can be built from typed config" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.text_console(
         min_level=@bitlogger.Level::Warn,
         target="async.lib.text",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+        ),
       ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
     ),
@@ -2065,13 +2392,19 @@ test "library async text logger can be built from typed config" {
   inspect(full.target, content="async.lib.text")
 }
 
+///|
 async test "library async text builder unwrap matches direct text builder behavior" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
       min_level=@bitlogger.Level::Warn,
       target="async.lib.text.same-build",
       timestamp=true,
-      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      queue=Some(
+        @bitlogger.QueueConfig::new(
+          3,
+          overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+        ),
+      ),
       sink=@bitlogger.SinkConfig::new(
         kind=@bitlogger.SinkKind::TextConsole,
         text_formatter=@bitlogger.TextFormatterConfig::new(
@@ -2095,14 +2428,30 @@ async test "library async text builder unwrap matches direct text builder behavi
 
   inspect(full.target, content=direct.target)
   inspect(full.timestamp == direct.timestamp, content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
   inspect(
-    stringify_async_logger_state(full_state) == stringify_async_logger_state(direct_state),
+    logger.is_enabled(@bitlogger.Level::Error) ==
+    direct.is_enabled(@bitlogger.Level::Error),
     content="true",
   )
-  let record = @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.lib.text.same-build")
-  inspect((full.sink.formatter)(record) == (direct.sink.formatter)(record), content="true")
+  inspect(
+    logger.is_enabled(@bitlogger.Level::Info) ==
+    direct.is_enabled(@bitlogger.Level::Info),
+    content="true",
+  )
+  inspect(
+    stringify_async_logger_state(full_state) ==
+    stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let record = @bitlogger.Record::new(
+    @bitlogger.Level::Error,
+    "boom",
+    target="async.lib.text.same-build",
+  )
+  inspect(
+    (full.sink.formatter)(record) == (direct.sink.formatter)(record),
+    content="true",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -2133,23 +2482,27 @@ async test "library async text builder unwrap matches direct text builder behavi
   inspect(full.last_error() == direct.last_error(), content="true")
 }
 
+///|
 async test "library async text builder log supports per-call target override through facade" {
   let written_target : Ref[String] = Ref("")
 
   let logger = build_library_async_text_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Warn,
-        target="async.lib.text.builder.default",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Warn,
+          target="async.lib.text.builder.default",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=2,
+          overflow=AsyncOverflowPolicy::Blocking,
+          flush=AsyncFlushPolicy::Never,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=2,
-        overflow=AsyncOverflowPolicy::Blocking,
-        flush=AsyncFlushPolicy::Never,
-      ),
-    ),
-  )
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       written_target.val = rec.target
@@ -2172,19 +2525,22 @@ async test "library async text builder log supports per-call target override thr
   let second_target : Ref[String] = Ref("")
 
   let second = build_library_async_text_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Warn,
-        target="async.lib.text.builder.default",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Warn,
+          target="async.lib.text.builder.default",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=2,
+          overflow=AsyncOverflowPolicy::Blocking,
+          flush=AsyncFlushPolicy::Never,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=2,
-        overflow=AsyncOverflowPolicy::Blocking,
-        flush=AsyncFlushPolicy::Never,
-      ),
-    ),
-  )
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       second_target.val = rec.target
@@ -2201,23 +2557,27 @@ async test "library async text builder log supports per-call target override thr
   inspect(second_target.val, content="async.lib.text.builder.default")
 }
 
+///|
 async test "library async text builder severity helpers use stored target without override" {
   let written_targets : Ref[Array[String]] = Ref([])
 
   let logger = build_library_async_text_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Info,
-        target="async.lib.text.builder.helpers",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Info,
+          target="async.lib.text.builder.helpers",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=4,
+          overflow=AsyncOverflowPolicy::Blocking,
+          flush=AsyncFlushPolicy::Never,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=4,
-        overflow=AsyncOverflowPolicy::Blocking,
-        flush=AsyncFlushPolicy::Never,
-      ),
-    ),
-  )
+    )
     .to_async_logger()
     .with_patch(fn(rec) {
       written_targets.val.push(rec.target)
@@ -2239,13 +2599,17 @@ async test "library async text builder severity helpers use stored target withou
   inspect(written_targets.val[2], content="async.lib.text.builder.helpers")
 }
 
+///|
 async test "library async text logger unwrap keeps async helper surface" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.text_console(
         min_level=@bitlogger.Level::Warn,
         target="async.lib.text.helpers",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+        ),
       ),
       async_config=AsyncLoggerConfig::new(
         max_pending=2,
@@ -2265,11 +2629,14 @@ async test "library async text logger unwrap keeps async helper surface" {
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -2293,13 +2660,17 @@ async test "library async text logger unwrap keeps async helper surface" {
   inspect(full.last_error(), content="")
 }
 
+///|
 async test "library async text logger shutdown clear abandons pending records through facade" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.text_console(
         min_level=@bitlogger.Level::Info,
         target="async.lib.text.clear",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+        ),
       ),
       async_config=AsyncLoggerConfig::new(
         max_pending=2,
@@ -2319,16 +2690,25 @@ async test "library async text logger shutdown clear abandons pending records th
   inspect(full.dropped_count(), content="1")
 }
 
+///|
 test "library async text logger builder ignores sync queue layer" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.LoggerConfig::new(
         min_level=@bitlogger.Level::Warn,
         target="async.lib.text.queued",
-        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            3,
+            overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+          ),
+        ),
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
@@ -2343,6 +2723,7 @@ test "library async text logger builder ignores sync queue layer" {
   inspect(full.dropped_count(), content="0")
 }
 
+///|
 test "library async text logger ignores sink kind and still uses text formatter" {
   let logger = build_library_async_text_logger(
     AsyncLoggerBuildConfig::new(
@@ -2368,15 +2749,23 @@ test "library async text logger ignores sink kind and still uses text formatter"
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(full.target, content="async.lib.text.kind")
   let rendered = (full.sink.formatter)(
-    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.lib.text.kind"),
+    @bitlogger.Record::new(
+      @bitlogger.Level::Error,
+      "boom",
+      target="async.lib.text.kind",
+    ),
   )
   inspect(rendered, content="TEXT:async.lib.text.kind:boom")
 }
 
+///|
 async test "async logger can project to library async logger" {
   let logger = build_async_logger(
     AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(target="async.projected", min_level=@bitlogger.Level::Warn),
+      logger=@bitlogger.LoggerConfig::new(
+        target="async.projected",
+        min_level=@bitlogger.Level::Warn,
+      ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
     ),
   ).to_library_async_logger()
@@ -2385,13 +2774,19 @@ async test "async logger can project to library async logger" {
   inspect(logger.to_async_logger().target, content="async.projected")
 }
 
+///|
 async test "build async logger keeps direct helper surface and runtime sink path" {
   let logger = build_async_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.LoggerConfig::new(
         min_level=@bitlogger.Level::Warn,
         target="async.direct.helpers",
-        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            3,
+            overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+          ),
+        ),
         sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
       ),
       async_config=AsyncLoggerConfig::new(
@@ -2411,18 +2806,24 @@ async test "build async logger keeps direct helper surface and runtime sink path
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
-  inspect(match logger.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    _ => "Other"
-  }, content="QueuedConsole")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
+  inspect(
+    match logger.sink {
+      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+      _ => "Other"
+    },
+    content="QueuedConsole",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -2448,6 +2849,7 @@ async test "build async logger keeps direct helper surface and runtime sink path
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "build async logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
 
@@ -2464,11 +2866,10 @@ async test "build async logger log supports per-call target override" {
         flush=AsyncFlushPolicy::Never,
       ),
     ),
-  )
-    .with_patch(fn(rec) {
-      written_target.val = rec.target
-      rec
-    })
+  ).with_patch(fn(rec) {
+    written_target.val = rec.target
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -2497,11 +2898,10 @@ async test "build async logger log supports per-call target override" {
         flush=AsyncFlushPolicy::Never,
       ),
     ),
-  )
-    .with_patch(fn(rec) {
-      second_target.val = rec.target
-      rec
-    })
+  ).with_patch(fn(rec) {
+    second_target.val = rec.target
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => second.run())
@@ -2512,6 +2912,7 @@ async test "build async logger log supports per-call target override" {
   inspect(second_target.val, content="async.builder.default")
 }
 
+///|
 async test "build async logger severity helpers use stored target without override" {
   let written_targets : Ref[Array[String]] = Ref([])
 
@@ -2528,11 +2929,10 @@ async test "build async logger severity helpers use stored target without overri
         flush=AsyncFlushPolicy::Never,
       ),
     ),
-  )
-    .with_patch(fn(rec) {
-      written_targets.val.push(rec.target)
-      rec
-    })
+  ).with_patch(fn(rec) {
+    written_targets.val.push(rec.target)
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -2548,11 +2948,10 @@ async test "build async logger severity helpers use stored target without overri
   inspect(written_targets.val[2], content="async.builder.helpers")
 }
 
+///|
 async test "async logger projection preserves async queue and failure state" {
   let logger = async_logger(
-    @bitlogger.callback_sink(fn(_) {
-
-    }),
+    @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
       max_pending=4,
       overflow=AsyncOverflowPolicy::Blocking,
@@ -2596,6 +2995,7 @@ async test "async logger projection preserves async queue and failure state" {
   inspect(full.last_error().contains("TestFlushError"), content="true")
 }
 
+///|
 async test "async logger projection preserves file-backed runtime helpers through unwrap" {
   let configured = build_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -2606,7 +3006,12 @@ async test "async logger projection preserves file-backed runtime helpers throug
           kind=@bitlogger.SinkKind::File,
           path="async-projected-file.log",
         ),
-        queue=Some(@bitlogger.QueueConfig::new(2, overflow=@bitlogger.QueueOverflowPolicy::DropOldest)),
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            2,
+            overflow=@bitlogger.QueueOverflowPolicy::DropOldest,
+          ),
+        ),
       ),
       async_config=AsyncLoggerConfig::new(
         max_pending=2,
@@ -2627,11 +3032,26 @@ async test "async logger projection preserves file-backed runtime helpers throug
   full.error("three")
   inspect(full.pending_count() == configured.pending_count(), content="true")
   inspect(full.dropped_count() == configured.dropped_count(), content="true")
-  inspect(full.sink.pending_count() == configured.sink.pending_count(), content="true")
-  inspect(full.sink.dropped_count() == configured.sink.dropped_count(), content="true")
-  inspect(full.sink.file_available() == configured.sink.file_available(), content="true")
-  inspect(full.sink.file_append_mode() == configured.sink.file_append_mode(), content="true")
-  inspect(full.sink.file_auto_flush() == configured.sink.file_auto_flush(), content="true")
+  inspect(
+    full.sink.pending_count() == configured.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    full.sink.dropped_count() == configured.sink.dropped_count(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_available() == configured.sink.file_available(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_append_mode() == configured.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_auto_flush() == configured.sink.file_auto_flush(),
+    content="true",
+  )
 
   let full_state = full.sink.file_state()
   let configured_state = configured.sink.file_state()
@@ -2639,10 +3059,22 @@ async test "async logger projection preserves file-backed runtime helpers throug
   inspect(full_state.available == configured_state.available, content="true")
   inspect(full_state.append == configured_state.append, content="true")
   inspect(full_state.auto_flush == configured_state.auto_flush, content="true")
-  inspect(full_state.open_failures == configured_state.open_failures, content="true")
-  inspect(full_state.write_failures == configured_state.write_failures, content="true")
-  inspect(full_state.flush_failures == configured_state.flush_failures, content="true")
-  inspect(full_state.rotation_failures == configured_state.rotation_failures, content="true")
+  inspect(
+    full_state.open_failures == configured_state.open_failures,
+    content="true",
+  )
+  inspect(
+    full_state.write_failures == configured_state.write_failures,
+    content="true",
+  )
+  inspect(
+    full_state.flush_failures == configured_state.flush_failures,
+    content="true",
+  )
+  inspect(
+    full_state.rotation_failures == configured_state.rotation_failures,
+    content="true",
+  )
 
   match (full.sink.file_runtime_state(), configured.sink.file_runtime_state()) {
     (Some(snapshot), Some(other)) => {
@@ -2657,47 +3089,100 @@ async test "async logger projection preserves file-backed runtime helpers throug
 
   inspect(full.sink.file_set_append_mode(false), content="true")
   inspect(configured.sink.file_append_mode(), content="false")
-  inspect(full.sink.file_append_mode() == configured.sink.file_append_mode(), content="true")
+  inspect(
+    full.sink.file_append_mode() == configured.sink.file_append_mode(),
+    content="true",
+  )
 
   inspect(full.sink.file_set_auto_flush(false), content="true")
   inspect(configured.sink.file_auto_flush(), content="false")
-  inspect(full.sink.file_auto_flush() == configured.sink.file_auto_flush(), content="true")
+  inspect(
+    full.sink.file_auto_flush() == configured.sink.file_auto_flush(),
+    content="true",
+  )
 
-  inspect(full.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))), content="true")
+  inspect(
+    full.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ),
+    content="true",
+  )
   inspect(configured.sink.file_rotation_enabled(), content="true")
-  inspect(full.sink.file_rotation_enabled() == configured.sink.file_rotation_enabled(), content="true")
+  inspect(
+    full.sink.file_rotation_enabled() == configured.sink.file_rotation_enabled(),
+    content="true",
+  )
 
   let reopen_append_ok = full.sink.file_reopen_append()
-  inspect(reopen_append_ok == configured.sink.file_reopen_append(), content="true")
-  inspect(full.sink.file_append_mode() == configured.sink.file_append_mode(), content="true")
+  inspect(
+    reopen_append_ok == configured.sink.file_reopen_append(),
+    content="true",
+  )
+  inspect(
+    full.sink.file_append_mode() == configured.sink.file_append_mode(),
+    content="true",
+  )
 
   inspect(full.sink.file_clear_rotation(), content="true")
   inspect(configured.sink.file_rotation_enabled(), content="false")
-  inspect(full.sink.file_rotation_enabled() == configured.sink.file_rotation_enabled(), content="true")
+  inspect(
+    full.sink.file_rotation_enabled() == configured.sink.file_rotation_enabled(),
+    content="true",
+  )
 
   inspect(full.sink.file_reset_policy(), content="true")
-  inspect(full.sink.file_policy_matches_default() == configured.sink.file_policy_matches_default(), content="true")
+  inspect(
+    full.sink.file_policy_matches_default() ==
+    configured.sink.file_policy_matches_default(),
+    content="true",
+  )
 
   inspect(full.sink.file_reset_failure_counters(), content="true")
   let reset_full_state = full.sink.file_state()
   let reset_configured_state = configured.sink.file_state()
-  inspect(reset_full_state.open_failures == reset_configured_state.open_failures, content="true")
-  inspect(reset_full_state.write_failures == reset_configured_state.write_failures, content="true")
-  inspect(reset_full_state.flush_failures == reset_configured_state.flush_failures, content="true")
-  inspect(reset_full_state.rotation_failures == reset_configured_state.rotation_failures, content="true")
+  inspect(
+    reset_full_state.open_failures == reset_configured_state.open_failures,
+    content="true",
+  )
+  inspect(
+    reset_full_state.write_failures == reset_configured_state.write_failures,
+    content="true",
+  )
+  inspect(
+    reset_full_state.flush_failures == reset_configured_state.flush_failures,
+    content="true",
+  )
+  inspect(
+    reset_full_state.rotation_failures ==
+    reset_configured_state.rotation_failures,
+    content="true",
+  )
 
-  inspect(full.sink.file_flush(), content=if configured.sink.file_available() { "true" } else { "false" })
+  inspect(
+    full.sink.file_flush(),
+    content=if configured.sink.file_available() { "true" } else { "false" },
+  )
   inspect(full.pending_count() == configured.pending_count(), content="true")
 
   let close_expected = configured.sink.file_available()
-  inspect(full.sink.file_close(), content=if close_expected { "true" } else { "false" })
-  inspect(full.sink.file_available() == configured.sink.file_available(), content="true")
+  inspect(
+    full.sink.file_close(),
+    content=if close_expected { "true" } else { "false" },
+  )
+  inspect(
+    full.sink.file_available() == configured.sink.file_available(),
+    content="true",
+  )
 }
 
+///|
 test "application async logger aliases runtime async entry" {
   let logger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(target="async.app", min_level=@bitlogger.Level::Warn),
+      logger=@bitlogger.LoggerConfig::new(
+        target="async.app",
+        min_level=@bitlogger.Level::Warn,
+      ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
     ),
   )
@@ -2706,13 +3191,19 @@ test "application async logger aliases runtime async entry" {
   inspect(logger.target, content="async.app")
 }
 
+///|
 async test "application async logger builder matches direct async builder behavior" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
       min_level=@bitlogger.Level::Warn,
       target="async.app.same-build",
       timestamp=true,
-      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      queue=Some(
+        @bitlogger.QueueConfig::new(
+          3,
+          overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+        ),
+      ),
       sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
     ),
     async_config=AsyncLoggerConfig::new(
@@ -2729,15 +3220,18 @@ async test "application async logger builder matches direct async builder behavi
   inspect(application.target, content=direct.target)
   inspect(application.timestamp == direct.timestamp, content="true")
   inspect(
-    application.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error),
+    application.is_enabled(@bitlogger.Level::Error) ==
+    direct.is_enabled(@bitlogger.Level::Error),
     content="true",
   )
   inspect(
-    application.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info),
+    application.is_enabled(@bitlogger.Level::Info) ==
+    direct.is_enabled(@bitlogger.Level::Info),
     content="true",
   )
   inspect(
-    stringify_async_logger_state(application_state) == stringify_async_logger_state(direct_state),
+    stringify_async_logger_state(application_state) ==
+    stringify_async_logger_state(direct_state),
     content="true",
   )
   let application_sink_kind = match application.sink {
@@ -2775,8 +3269,14 @@ async test "application async logger builder matches direct async builder behavi
   inspect(application.dropped_count() == direct.dropped_count(), content="true")
   inspect(application.is_closed() == direct.is_closed(), content="true")
   inspect(application.is_running() == direct.is_running(), content="true")
-  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(
+    application.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    application.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
 
   @async.with_task_group(group => {
     group.spawn_bg(() => application.run())
@@ -2793,13 +3293,22 @@ async test "application async logger builder matches direct async builder behavi
   inspect(application.last_error() == direct.last_error(), content="true")
 }
 
+///|
 async test "application async builder preserves file-backed runtime helpers" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
       min_level=@bitlogger.Level::Warn,
       target="async.app.file.same-build",
-      sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::File, path="async-app-file-same-build.log"),
-      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropOldest)),
+      sink=@bitlogger.SinkConfig::new(
+        kind=@bitlogger.SinkKind::File,
+        path="async-app-file-same-build.log",
+      ),
+      queue=Some(
+        @bitlogger.QueueConfig::new(
+          3,
+          overflow=@bitlogger.QueueOverflowPolicy::DropOldest,
+        ),
+      ),
     ),
     async_config=AsyncLoggerConfig::new(
       max_pending=2,
@@ -2821,24 +3330,55 @@ async test "application async builder preserves file-backed runtime helpers" {
 
   inspect(application.pending_count() == direct.pending_count(), content="true")
   inspect(application.dropped_count() == direct.dropped_count(), content="true")
-  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
-  inspect(application.sink.file_available() == direct.sink.file_available(), content="true")
-  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+  inspect(
+    application.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    application.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_available() == direct.sink.file_available(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_auto_flush() == direct.sink.file_auto_flush(),
+    content="true",
+  )
 
   let application_state = application.sink.file_state()
   let direct_state = direct.sink.file_state()
   inspect(application_state.path == direct_state.path, content="true")
   inspect(application_state.available == direct_state.available, content="true")
   inspect(application_state.append == direct_state.append, content="true")
-  inspect(application_state.auto_flush == direct_state.auto_flush, content="true")
-  inspect(application_state.open_failures == direct_state.open_failures, content="true")
-  inspect(application_state.write_failures == direct_state.write_failures, content="true")
-  inspect(application_state.flush_failures == direct_state.flush_failures, content="true")
-  inspect(application_state.rotation_failures == direct_state.rotation_failures, content="true")
+  inspect(
+    application_state.auto_flush == direct_state.auto_flush,
+    content="true",
+  )
+  inspect(
+    application_state.open_failures == direct_state.open_failures,
+    content="true",
+  )
+  inspect(
+    application_state.write_failures == direct_state.write_failures,
+    content="true",
+  )
+  inspect(
+    application_state.flush_failures == direct_state.flush_failures,
+    content="true",
+  )
+  inspect(
+    application_state.rotation_failures == direct_state.rotation_failures,
+    content="true",
+  )
 
-  match (application.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
+  match
+    (application.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
     (Some(snapshot), Some(other)) => {
       inspect(snapshot.file.path == other.file.path, content="true")
       inspect(snapshot.file.available == other.file.available, content="true")
@@ -2849,30 +3389,76 @@ async test "application async builder preserves file-backed runtime helpers" {
     _ => inspect(false, content="true")
   }
 
-  inspect(application.sink.file_set_append_mode(false) == direct.sink.file_set_append_mode(false), content="true")
-  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(application.sink.file_set_auto_flush(false) == direct.sink.file_set_auto_flush(false), content="true")
-  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
   inspect(
-    application.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))) ==
-      direct.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))),
+    application.sink.file_set_append_mode(false) ==
+    direct.sink.file_set_append_mode(false),
     content="true",
   )
-  inspect(application.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(), content="true")
-  inspect(application.sink.file_reopen_append() == direct.sink.file_reopen_append(), content="true")
-  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(application.sink.file_clear_rotation() == direct.sink.file_clear_rotation(), content="true")
-  inspect(application.sink.file_reset_policy() == direct.sink.file_reset_policy(), content="true")
-  inspect(application.sink.file_policy_matches_default() == direct.sink.file_policy_matches_default(), content="true")
   inspect(
-    application.sink.file_reset_failure_counters() == direct.sink.file_reset_failure_counters(),
+    application.sink.file_append_mode() == direct.sink.file_append_mode(),
     content="true",
   )
-  inspect(application.sink.file_flush() == direct.sink.file_flush(), content="true")
+  inspect(
+    application.sink.file_set_auto_flush(false) ==
+    direct.sink.file_set_auto_flush(false),
+    content="true",
+  )
+  inspect(
+    application.sink.file_auto_flush() == direct.sink.file_auto_flush(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ) ==
+    direct.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ),
+    content="true",
+  )
+  inspect(
+    application.sink.file_rotation_enabled() ==
+    direct.sink.file_rotation_enabled(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_reopen_append() == direct.sink.file_reopen_append(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_clear_rotation() == direct.sink.file_clear_rotation(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_reset_policy() == direct.sink.file_reset_policy(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_policy_matches_default() ==
+    direct.sink.file_policy_matches_default(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_reset_failure_counters() ==
+    direct.sink.file_reset_failure_counters(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_flush() == direct.sink.file_flush(),
+    content="true",
+  )
   inspect(application.pending_count() == direct.pending_count(), content="true")
-  inspect(application.sink.file_close() == direct.sink.file_close(), content="true")
+  inspect(
+    application.sink.file_close() == direct.sink.file_close(),
+    content="true",
+  )
 }
 
+///|
 async test "application async logger keeps async helper surface" {
   let logger : ApplicationAsyncLogger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -2895,11 +3481,14 @@ async test "application async logger keeps async helper surface" {
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -2923,6 +3512,7 @@ async test "application async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "application async logger shutdown clear abandons pending records" {
   let logger : ApplicationAsyncLogger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -2948,21 +3538,22 @@ async test "application async logger shutdown clear abandons pending records" {
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 async test "application async logger keeps broader async composition surface" {
   let logger : ApplicationAsyncLogger = build_application_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Warn,
-        target="async.app.compose",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Warn,
+          target="async.app.compose",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=2,
+          overflow=AsyncOverflowPolicy::DropNewest,
+          flush=AsyncFlushPolicy::Shutdown,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=2,
-        overflow=AsyncOverflowPolicy::DropNewest,
-        flush=AsyncFlushPolicy::Shutdown,
-      ),
-    ),
-  )
+    )
     .with_timestamp()
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .child("worker")
@@ -2989,20 +3580,21 @@ async test "application async logger keeps broader async composition surface" {
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "application async logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
   let written_message : Ref[String] = Ref("")
   let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger : ApplicationAsyncLogger = build_application_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Warn,
-        target="async.app.default",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Warn,
+          target="async.app.default",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(max_pending=4),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=4),
-    ),
-  )
+    )
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .with_patch(fn(rec) {
       written_target.val = rec.target
@@ -3034,15 +3626,15 @@ async test "application async logger log supports per-call target override" {
   let second_message : Ref[String] = Ref("")
   let second_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let second : ApplicationAsyncLogger = build_application_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Warn,
-        target="async.app.default",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Warn,
+          target="async.app.default",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(max_pending=4),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=4),
-    ),
-  )
+    )
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .with_patch(fn(rec) {
       second_target.val = rec.target
@@ -3063,20 +3655,21 @@ async test "application async logger log supports per-call target override" {
   inspect(second_fields.val[0].key, content="service")
 }
 
+///|
 async test "application async logger severity helpers use stored target without override" {
   let written_levels : Ref[Array[String]] = Ref([])
   let written_targets : Ref[Array[String]] = Ref([])
   let written_fields : Ref[Array[Array[@bitlogger.Field]]] = Ref([])
   let logger : ApplicationAsyncLogger = build_application_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.LoggerConfig::new(
-        min_level=@bitlogger.Level::Info,
-        target="async.app.helpers",
-        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.LoggerConfig::new(
+          min_level=@bitlogger.Level::Info,
+          target="async.app.helpers",
+          sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+        ),
+        async_config=AsyncLoggerConfig::new(max_pending=4),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=4),
-    ),
-  )
+    )
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .with_patch(fn(rec) {
       written_levels.val.push(rec.level.label())
@@ -3112,13 +3705,19 @@ async test "application async logger severity helpers use stored target without 
   inspect(written_fields.val[2][1].value, content="error")
 }
 
+///|
 test "application async logger builder preserves sync queue-backed runtime sink" {
   let logger = build_application_async_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.LoggerConfig::new(
         min_level=@bitlogger.Level::Warn,
         target="async.app.queued",
-        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            3,
+            overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+          ),
+        ),
       ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
     ),
@@ -3129,22 +3728,29 @@ test "application async logger builder preserves sync queue-backed runtime sink"
   inspect(logger.target, content="async.app.queued")
   inspect(logger.sink.pending_count(), content="0")
   inspect(logger.sink.dropped_count(), content="0")
-  inspect(match logger.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    _ => "Other"
-  }, content="QueuedConsole")
+  inspect(
+    match logger.sink {
+      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+      _ => "Other"
+    },
+    content="QueuedConsole",
+  )
 }
 
+///|
 test "application text async logger uses text facade build path" {
   let logger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.text_console(
         min_level=@bitlogger.Level::Warn,
         target="async.app.text",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+        ),
       ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
     ),
@@ -3154,13 +3760,19 @@ test "application text async logger uses text facade build path" {
   inspect(logger.target, content="async.app.text")
 }
 
+///|
 async test "application text builder matches direct text builder behavior" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
       min_level=@bitlogger.Level::Warn,
       target="async.app.text.same-build",
       timestamp=true,
-      queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+      queue=Some(
+        @bitlogger.QueueConfig::new(
+          3,
+          overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+        ),
+      ),
       sink=@bitlogger.SinkConfig::new(
         kind=@bitlogger.SinkKind::TextConsole,
         text_formatter=@bitlogger.TextFormatterConfig::new(
@@ -3183,14 +3795,30 @@ async test "application text builder matches direct text builder behavior" {
 
   inspect(logger.target, content=direct.target)
   inspect(logger.timestamp == direct.timestamp, content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error), content="true")
-  inspect(logger.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info), content="true")
   inspect(
-    stringify_async_logger_state(logger_state) == stringify_async_logger_state(direct_state),
+    logger.is_enabled(@bitlogger.Level::Error) ==
+    direct.is_enabled(@bitlogger.Level::Error),
     content="true",
   )
-  let record = @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.app.text.same-build")
-  inspect((logger.sink.formatter)(record) == (direct.sink.formatter)(record), content="true")
+  inspect(
+    logger.is_enabled(@bitlogger.Level::Info) ==
+    direct.is_enabled(@bitlogger.Level::Info),
+    content="true",
+  )
+  inspect(
+    stringify_async_logger_state(logger_state) ==
+    stringify_async_logger_state(direct_state),
+    content="true",
+  )
+  let record = @bitlogger.Record::new(
+    @bitlogger.Level::Error,
+    "boom",
+    target="async.app.text.same-build",
+  )
+  inspect(
+    (logger.sink.formatter)(record) == (direct.sink.formatter)(record),
+    content="true",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -3221,13 +3849,17 @@ async test "application text builder matches direct text builder behavior" {
   inspect(logger.last_error() == direct.last_error(), content="true")
 }
 
+///|
 async test "application text async logger keeps async helper surface" {
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.text_console(
         min_level=@bitlogger.Level::Warn,
         target="async.app.text.alias",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+        ),
       ),
       async_config=AsyncLoggerConfig::new(
         max_pending=2,
@@ -3243,11 +3875,14 @@ async test "application text async logger keeps async helper surface" {
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -3271,13 +3906,17 @@ async test "application text async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "application text async logger shutdown clear abandons pending records" {
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.text_console(
         min_level=@bitlogger.Level::Info,
         target="async.app.text.clear",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+        text_formatter=@bitlogger.TextFormatterConfig::new(
+          show_timestamp=false,
+          separator=" | ",
+        ),
       ),
       async_config=AsyncLoggerConfig::new(
         max_pending=2,
@@ -3296,21 +3935,25 @@ async test "application text async logger shutdown clear abandons pending record
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 async test "application text async logger keeps broader async composition surface" {
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Warn,
-        target="async.app.text.compose",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Warn,
+          target="async.app.text.compose",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(
+          max_pending=2,
+          overflow=AsyncOverflowPolicy::DropNewest,
+          flush=AsyncFlushPolicy::Shutdown,
+        ),
       ),
-      async_config=AsyncLoggerConfig::new(
-        max_pending=2,
-        overflow=AsyncOverflowPolicy::DropNewest,
-        flush=AsyncFlushPolicy::Shutdown,
-      ),
-    ),
-  )
+    )
     .with_timestamp()
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .child("worker")
@@ -3337,27 +3980,31 @@ async test "application text async logger keeps broader async composition surfac
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "application text async logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
   let written_message : Ref[String] = Ref("")
   let written_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Warn,
-        target="async.app.text.default",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Warn,
+          target="async.app.text.default",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(max_pending=4),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=4),
-    ),
-  )
+    )
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .with_patch(fn(rec) {
-    written_target.val = rec.target
-    written_message.val = rec.message
-    written_fields.val = rec.fields
-    rec
-  })
+      written_target.val = rec.target
+      written_message.val = rec.message
+      written_fields.val = rec.fields
+      rec
+    })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -3382,22 +4029,25 @@ async test "application text async logger log supports per-call target override"
   let second_message : Ref[String] = Ref("")
   let second_fields : Ref[Array[@bitlogger.Field]] = Ref([])
   let second : ApplicationTextAsyncLogger = build_application_text_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Warn,
-        target="async.app.text.default",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Warn,
+          target="async.app.text.default",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(max_pending=4),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=4),
-    ),
-  )
+    )
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .with_patch(fn(rec) {
-    second_target.val = rec.target
-    second_message.val = rec.message
-    second_fields.val = rec.fields
-    rec
-  })
+      second_target.val = rec.target
+      second_message.val = rec.message
+      second_fields.val = rec.fields
+      rec
+    })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => second.run())
@@ -3411,27 +4061,31 @@ async test "application text async logger log supports per-call target override"
   inspect(second_fields.val[0].key, content="service")
 }
 
+///|
 async test "application text async logger severity helpers use stored target without override" {
   let written_levels : Ref[Array[String]] = Ref([])
   let written_targets : Ref[Array[String]] = Ref([])
   let written_fields : Ref[Array[Array[@bitlogger.Field]]] = Ref([])
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
-    AsyncLoggerBuildConfig::new(
-      logger=@bitlogger.text_console(
-        min_level=@bitlogger.Level::Info,
-        target="async.app.text.helpers",
-        text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      AsyncLoggerBuildConfig::new(
+        logger=@bitlogger.text_console(
+          min_level=@bitlogger.Level::Info,
+          target="async.app.text.helpers",
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
+        ),
+        async_config=AsyncLoggerConfig::new(max_pending=4),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=4),
-    ),
-  )
+    )
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .with_patch(fn(rec) {
-    written_levels.val.push(rec.level.label())
-    written_targets.val.push(rec.target)
-    written_fields.val.push(rec.fields)
-    rec
-  })
+      written_levels.val.push(rec.level.label())
+      written_targets.val.push(rec.target)
+      written_fields.val.push(rec.fields)
+      rec
+    })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -3460,16 +4114,25 @@ async test "application text async logger severity helpers use stored target wit
   inspect(written_fields.val[2][1].value, content="error")
 }
 
+///|
 test "application text async logger builder ignores sync queue layer" {
   let logger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.LoggerConfig::new(
         min_level=@bitlogger.Level::Warn,
         target="async.app.text.queued",
-        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            3,
+            overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+          ),
+        ),
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
@@ -3483,6 +4146,7 @@ test "application text async logger builder ignores sync queue layer" {
   inspect(logger.dropped_count(), content="0")
 }
 
+///|
 test "application text async logger ignores sink kind and still uses text formatter" {
   let logger : ApplicationTextAsyncLogger = build_application_text_async_logger(
     AsyncLoggerBuildConfig::new(
@@ -3507,11 +4171,16 @@ test "application text async logger ignores sink kind and still uses text format
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.app.text.kind.alias")
   let rendered = (logger.sink.formatter)(
-    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.app.text.kind.alias"),
+    @bitlogger.Record::new(
+      @bitlogger.Level::Error,
+      "boom",
+      target="async.app.text.kind.alias",
+    ),
   )
   inspect(rendered, content="TEXT:async.app.text.kind.alias:boom")
 }
 
+///|
 test "build async text logger keeps text-console config fields" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
@@ -3521,27 +4190,41 @@ test "build async text logger keeps text-console config fields" {
         timestamp=true,
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
-      async_config=AsyncLoggerConfig::new(max_pending=3, overflow=AsyncOverflowPolicy::DropOldest),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=3,
+        overflow=AsyncOverflowPolicy::DropOldest,
+      ),
     ),
   )
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.text.direct")
   inspect(logger.timestamp, content="true")
-  inspect(match logger.flush_policy() {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Never")
+  inspect(
+    match logger.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Never",
+  )
   let rendered = (logger.sink.formatter)(
-    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.text.direct"),
+    @bitlogger.Record::new(
+      @bitlogger.Level::Error,
+      "boom",
+      target="async.text.direct",
+    ),
   )
   inspect(rendered, content="[ERROR] | [async.text.direct] | boom")
 }
 
+///|
 test "build async text logger ignores sink kind and still uses text formatter" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
@@ -3566,11 +4249,16 @@ test "build async text logger ignores sink kind and still uses text formatter" {
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.text.kind")
   let rendered = (logger.sink.formatter)(
-    @bitlogger.Record::new(@bitlogger.Level::Error, "boom", target="async.text.kind"),
+    @bitlogger.Record::new(
+      @bitlogger.Level::Error,
+      "boom",
+      target="async.text.kind",
+    ),
   )
   inspect(rendered, content="TEXT:async.text.kind:boom")
 }
 
+///|
 async test "build async text logger keeps direct helper surface" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
@@ -3580,7 +4268,10 @@ async test "build async text logger keeps direct helper surface" {
         timestamp=true,
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(
@@ -3601,11 +4292,14 @@ async test "build async text logger keeps direct helper surface" {
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -3629,6 +4323,7 @@ async test "build async text logger keeps direct helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "build async text logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
 
@@ -3639,7 +4334,10 @@ async test "build async text logger log supports per-call target override" {
         target="async.text.builder.default",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(
@@ -3648,11 +4346,10 @@ async test "build async text logger log supports per-call target override" {
         flush=AsyncFlushPolicy::Never,
       ),
     ),
-  )
-    .with_patch(fn(rec) {
-      written_target.val = rec.target
-      rec
-    })
+  ).with_patch(fn(rec) {
+    written_target.val = rec.target
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -3675,7 +4372,10 @@ async test "build async text logger log supports per-call target override" {
         target="async.text.builder.default",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(
@@ -3684,11 +4384,10 @@ async test "build async text logger log supports per-call target override" {
         flush=AsyncFlushPolicy::Never,
       ),
     ),
-  )
-    .with_patch(fn(rec) {
-      second_target.val = rec.target
-      rec
-    })
+  ).with_patch(fn(rec) {
+    second_target.val = rec.target
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => second.run())
@@ -3699,6 +4398,7 @@ async test "build async text logger log supports per-call target override" {
   inspect(second_target.val, content="async.text.builder.default")
 }
 
+///|
 async test "build async text logger severity helpers use stored target without override" {
   let written_targets : Ref[Array[String]] = Ref([])
 
@@ -3709,7 +4409,10 @@ async test "build async text logger severity helpers use stored target without o
         target="async.text.builder.helpers",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(
@@ -3718,11 +4421,10 @@ async test "build async text logger severity helpers use stored target without o
         flush=AsyncFlushPolicy::Never,
       ),
     ),
-  )
-    .with_patch(fn(rec) {
-      written_targets.val.push(rec.target)
-      rec
-    })
+  ).with_patch(fn(rec) {
+    written_targets.val.push(rec.target)
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -3738,6 +4440,7 @@ async test "build async text logger severity helpers use stored target without o
   inspect(written_targets.val[2], content="async.text.builder.helpers")
 }
 
+///|
 async test "build async text logger batch flush policy keeps default no-op flush callback" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
@@ -3762,7 +4465,9 @@ async test "build async text logger batch flush policy keeps default no-op flush
   )
   let configured = build_async_text_logger(config)
   let manual = async_logger(
-    @bitlogger.text_console_sink(config.logger.sink.text_formatter.to_formatter()),
+    @bitlogger.text_console_sink(
+      config.logger.sink.text_formatter.to_formatter(),
+    ),
     config=config.async_config,
     min_level=config.logger.min_level,
     target=config.logger.target,
@@ -3783,16 +4488,22 @@ async test "build async text logger batch flush policy keeps default no-op flush
     configured.wait_idle()
     manual.wait_idle()
 
-    inspect(match configured.flush_policy() {
-      AsyncFlushPolicy::Never => "Never"
-      AsyncFlushPolicy::Batch => "Batch"
-      AsyncFlushPolicy::Shutdown => "Shutdown"
-    }, content="Batch")
-    inspect(match manual.flush_policy() {
-      AsyncFlushPolicy::Never => "Never"
-      AsyncFlushPolicy::Batch => "Batch"
-      AsyncFlushPolicy::Shutdown => "Shutdown"
-    }, content="Batch")
+    inspect(
+      match configured.flush_policy() {
+        AsyncFlushPolicy::Never => "Never"
+        AsyncFlushPolicy::Batch => "Batch"
+        AsyncFlushPolicy::Shutdown => "Shutdown"
+      },
+      content="Batch",
+    )
+    inspect(
+      match manual.flush_policy() {
+        AsyncFlushPolicy::Never => "Never"
+        AsyncFlushPolicy::Batch => "Batch"
+        AsyncFlushPolicy::Shutdown => "Shutdown"
+      },
+      content="Batch",
+    )
     inspect(configured.has_failed(), content="false")
     inspect(configured.last_error(), content="")
     inspect(configured.pending_count(), content="0")
@@ -3814,6 +4525,7 @@ async test "build async text logger batch flush policy keeps default no-op flush
   inspect(manual.last_error().contains("TestFlushError"), content="true")
 }
 
+///|
 async test "build async text logger shutdown flush policy keeps default no-op flush callback" {
   let config = AsyncLoggerBuildConfig::new(
     logger=@bitlogger.LoggerConfig::new(
@@ -3838,7 +4550,9 @@ async test "build async text logger shutdown flush policy keeps default no-op fl
   )
   let configured = build_async_text_logger(config)
   let manual = async_logger(
-    @bitlogger.text_console_sink(config.logger.sink.text_formatter.to_formatter()),
+    @bitlogger.text_console_sink(
+      config.logger.sink.text_formatter.to_formatter(),
+    ),
     config=config.async_config,
     min_level=config.logger.min_level,
     target=config.logger.target,
@@ -3860,16 +4574,22 @@ async test "build async text logger shutdown flush policy keeps default no-op fl
     manual.shutdown()
   })
 
-  inspect(match configured.flush_policy() {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
-  inspect(match manual.flush_policy() {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match configured.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
+  inspect(
+    match manual.flush_policy() {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
   inspect(configured.is_closed(), content="true")
   inspect(configured.is_running(), content="false")
   inspect(configured.has_failed(), content="false")
@@ -3882,16 +4602,25 @@ async test "build async text logger shutdown flush policy keeps default no-op fl
   inspect(manual.pending_count(), content="0")
 }
 
+///|
 test "build async text logger ignores sync queue layer" {
   let logger = build_async_text_logger(
     AsyncLoggerBuildConfig::new(
       logger=@bitlogger.LoggerConfig::new(
         min_level=@bitlogger.Level::Warn,
         target="async.text.queued",
-        queue=Some(@bitlogger.QueueConfig::new(3, overflow=@bitlogger.QueueOverflowPolicy::DropNewest)),
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            3,
+            overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+          ),
+        ),
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::TextConsole,
-          text_formatter=@bitlogger.TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+          text_formatter=@bitlogger.TextFormatterConfig::new(
+            show_timestamp=false,
+            separator=" | ",
+          ),
         ),
       ),
       async_config=AsyncLoggerConfig::new(max_pending=2),
@@ -3905,6 +4634,7 @@ test "build async text logger ignores sync queue layer" {
   inspect(logger.dropped_count(), content="0")
 }
 
+///|
 test "application async logger can be built from config text" {
   let logger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
@@ -3914,6 +4644,7 @@ test "application async logger can be built from config text" {
   inspect(logger.target, content="async.app.json")
 }
 
+///|
 async test "application async parse-build matches parsed direct async builder behavior" {
   let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.same-build\",\"timestamp\":true,\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let application = parse_and_build_application_async_logger(raw)
@@ -3924,15 +4655,18 @@ async test "application async parse-build matches parsed direct async builder be
   inspect(application.target, content=direct.target)
   inspect(application.timestamp == direct.timestamp, content="true")
   inspect(
-    application.is_enabled(@bitlogger.Level::Error) == direct.is_enabled(@bitlogger.Level::Error),
+    application.is_enabled(@bitlogger.Level::Error) ==
+    direct.is_enabled(@bitlogger.Level::Error),
     content="true",
   )
   inspect(
-    application.is_enabled(@bitlogger.Level::Info) == direct.is_enabled(@bitlogger.Level::Info),
+    application.is_enabled(@bitlogger.Level::Info) ==
+    direct.is_enabled(@bitlogger.Level::Info),
     content="true",
   )
   inspect(
-    stringify_async_logger_state(application_state) == stringify_async_logger_state(direct_state),
+    stringify_async_logger_state(application_state) ==
+    stringify_async_logger_state(direct_state),
     content="true",
   )
   let application_sink_kind = match application.sink {
@@ -3970,8 +4704,14 @@ async test "application async parse-build matches parsed direct async builder be
   inspect(application.dropped_count() == direct.dropped_count(), content="true")
   inspect(application.is_closed() == direct.is_closed(), content="true")
   inspect(application.is_running() == direct.is_running(), content="true")
-  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
+  inspect(
+    application.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    application.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
 
   @async.with_task_group(group => {
     group.spawn_bg(() => application.run())
@@ -3988,6 +4728,7 @@ async test "application async parse-build matches parsed direct async builder be
   inspect(application.last_error() == direct.last_error(), content="true")
 }
 
+///|
 async test "application async parse-build preserves file-backed runtime helpers" {
   let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"async-app-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let application = parse_and_build_application_async_logger(raw)
@@ -4004,24 +4745,55 @@ async test "application async parse-build preserves file-backed runtime helpers"
 
   inspect(application.pending_count() == direct.pending_count(), content="true")
   inspect(application.dropped_count() == direct.dropped_count(), content="true")
-  inspect(application.sink.pending_count() == direct.sink.pending_count(), content="true")
-  inspect(application.sink.dropped_count() == direct.sink.dropped_count(), content="true")
-  inspect(application.sink.file_available() == direct.sink.file_available(), content="true")
-  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
+  inspect(
+    application.sink.pending_count() == direct.sink.pending_count(),
+    content="true",
+  )
+  inspect(
+    application.sink.dropped_count() == direct.sink.dropped_count(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_available() == direct.sink.file_available(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_auto_flush() == direct.sink.file_auto_flush(),
+    content="true",
+  )
 
   let application_state = application.sink.file_state()
   let direct_state = direct.sink.file_state()
   inspect(application_state.path == direct_state.path, content="true")
   inspect(application_state.available == direct_state.available, content="true")
   inspect(application_state.append == direct_state.append, content="true")
-  inspect(application_state.auto_flush == direct_state.auto_flush, content="true")
-  inspect(application_state.open_failures == direct_state.open_failures, content="true")
-  inspect(application_state.write_failures == direct_state.write_failures, content="true")
-  inspect(application_state.flush_failures == direct_state.flush_failures, content="true")
-  inspect(application_state.rotation_failures == direct_state.rotation_failures, content="true")
+  inspect(
+    application_state.auto_flush == direct_state.auto_flush,
+    content="true",
+  )
+  inspect(
+    application_state.open_failures == direct_state.open_failures,
+    content="true",
+  )
+  inspect(
+    application_state.write_failures == direct_state.write_failures,
+    content="true",
+  )
+  inspect(
+    application_state.flush_failures == direct_state.flush_failures,
+    content="true",
+  )
+  inspect(
+    application_state.rotation_failures == direct_state.rotation_failures,
+    content="true",
+  )
 
-  match (application.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
+  match
+    (application.sink.file_runtime_state(), direct.sink.file_runtime_state()) {
     (Some(snapshot), Some(other)) => {
       inspect(snapshot.file.path == other.file.path, content="true")
       inspect(snapshot.file.available == other.file.available, content="true")
@@ -4032,30 +4804,76 @@ async test "application async parse-build preserves file-backed runtime helpers"
     _ => inspect(false, content="true")
   }
 
-  inspect(application.sink.file_set_append_mode(false) == direct.sink.file_set_append_mode(false), content="true")
-  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(application.sink.file_set_auto_flush(false) == direct.sink.file_set_auto_flush(false), content="true")
-  inspect(application.sink.file_auto_flush() == direct.sink.file_auto_flush(), content="true")
   inspect(
-    application.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))) ==
-      direct.sink.file_set_rotation(Some(@bitlogger.file_rotation(36, max_backups=2))),
+    application.sink.file_set_append_mode(false) ==
+    direct.sink.file_set_append_mode(false),
     content="true",
   )
-  inspect(application.sink.file_rotation_enabled() == direct.sink.file_rotation_enabled(), content="true")
-  inspect(application.sink.file_reopen_append() == direct.sink.file_reopen_append(), content="true")
-  inspect(application.sink.file_append_mode() == direct.sink.file_append_mode(), content="true")
-  inspect(application.sink.file_clear_rotation() == direct.sink.file_clear_rotation(), content="true")
-  inspect(application.sink.file_reset_policy() == direct.sink.file_reset_policy(), content="true")
-  inspect(application.sink.file_policy_matches_default() == direct.sink.file_policy_matches_default(), content="true")
   inspect(
-    application.sink.file_reset_failure_counters() == direct.sink.file_reset_failure_counters(),
+    application.sink.file_append_mode() == direct.sink.file_append_mode(),
     content="true",
   )
-  inspect(application.sink.file_flush() == direct.sink.file_flush(), content="true")
+  inspect(
+    application.sink.file_set_auto_flush(false) ==
+    direct.sink.file_set_auto_flush(false),
+    content="true",
+  )
+  inspect(
+    application.sink.file_auto_flush() == direct.sink.file_auto_flush(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ) ==
+    direct.sink.file_set_rotation(
+      Some(@bitlogger.file_rotation(36, max_backups=2)),
+    ),
+    content="true",
+  )
+  inspect(
+    application.sink.file_rotation_enabled() ==
+    direct.sink.file_rotation_enabled(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_reopen_append() == direct.sink.file_reopen_append(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_append_mode() == direct.sink.file_append_mode(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_clear_rotation() == direct.sink.file_clear_rotation(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_reset_policy() == direct.sink.file_reset_policy(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_policy_matches_default() ==
+    direct.sink.file_policy_matches_default(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_reset_failure_counters() ==
+    direct.sink.file_reset_failure_counters(),
+    content="true",
+  )
+  inspect(
+    application.sink.file_flush() == direct.sink.file_flush(),
+    content="true",
+  )
   inspect(application.pending_count() == direct.pending_count(), content="true")
-  inspect(application.sink.file_close() == direct.sink.file_close(), content="true")
+  inspect(
+    application.sink.file_close() == direct.sink.file_close(),
+    content="true",
+  )
 }
 
+///|
 async test "parsed application async logger keeps async helper surface" {
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.helpers\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
@@ -4067,11 +4885,14 @@ async test "parsed application async logger keeps async helper surface" {
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
-  inspect(match state.flush_policy {
-    AsyncFlushPolicy::Never => "Never"
-    AsyncFlushPolicy::Batch => "Batch"
-    AsyncFlushPolicy::Shutdown => "Shutdown"
-  }, content="Shutdown")
+  inspect(
+    match state.flush_policy {
+      AsyncFlushPolicy::Never => "Never"
+      AsyncFlushPolicy::Batch => "Batch"
+      AsyncFlushPolicy::Shutdown => "Shutdown"
+    },
+    content="Shutdown",
+  )
 
   logger.info("skip")
   logger.error("one")
@@ -4095,6 +4916,7 @@ async test "parsed application async logger keeps async helper surface" {
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "parsed application async logger shutdown clear abandons pending records" {
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"info\",\"target\":\"async.app.json.clear\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
@@ -4110,10 +4932,11 @@ async test "parsed application async logger shutdown clear abandons pending reco
   inspect(logger.dropped_count(), content="1")
 }
 
+///|
 async test "parsed application async logger keeps broader async composition surface" {
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
-    "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.compose\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
-  )
+      "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.compose\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}",
+    )
     .with_timestamp()
     .with_context_fields([@bitlogger.field("service", "bitlogger")])
     .child("worker")
@@ -4140,16 +4963,16 @@ async test "parsed application async logger keeps broader async composition surf
   inspect(logger.last_error(), content="")
 }
 
+///|
 async test "parsed application async logger log supports per-call target override" {
   let written_target : Ref[String] = Ref("")
 
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
-  )
-    .with_patch(fn(rec) {
-      written_target.val = rec.target
-      rec
-    })
+  ).with_patch(fn(rec) {
+    written_target.val = rec.target
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -4167,11 +4990,10 @@ async test "parsed application async logger log supports per-call target overrid
 
   let second : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.default\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
-  )
-    .with_patch(fn(rec) {
-      second_target.val = rec.target
-      rec
-    })
+  ).with_patch(fn(rec) {
+    second_target.val = rec.target
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => second.run())
@@ -4182,16 +5004,16 @@ async test "parsed application async logger log supports per-call target overrid
   inspect(second_target.val, content="async.app.json.default")
 }
 
+///|
 async test "parsed application async logger severity helpers use stored target without override" {
   let written_targets : Ref[Array[String]] = Ref([])
 
   let logger : ApplicationAsyncLogger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"trace\",\"target\":\"async.app.json.helpers.target\",\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":4,\"overflow\":\"Blocking\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
-  )
-    .with_patch(fn(rec) {
-      written_targets.val.push(rec.target)
-      rec
-    })
+  ).with_patch(fn(rec) {
+    written_targets.val.push(rec.target)
+    rec
+  })
 
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.run())
@@ -4207,6 +5029,7 @@ async test "parsed application async logger severity helpers use stored target w
   inspect(written_targets.val[2], content="async.app.json.helpers.target")
 }
 
+///|
 test "application async logger parse-and-build preserves parsed sync queue layer" {
   let logger = parse_and_build_application_async_logger(
     "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.queued\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropNewest\"},\"sink\":{\"kind\":\"console\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropNewest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Never\"}}",
@@ -4215,15 +5038,19 @@ test "application async logger parse-and-build preserves parsed sync queue layer
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.app.json.queued")
-  inspect(match logger.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    _ => "Other"
-  }, content="QueuedConsole")
+  inspect(
+    match logger.sink {
+      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
+      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
+      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
+      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
+      _ => "Other"
+    },
+    content="QueuedConsole",
+  )
 }
 
+///|
 test "async parse-build facades forward parse failures" {
   let raw = "{\"logger\":{\"sink\":{\"kind\":\"file\",\"path\":\"\"}},\"async_config\":{\"max_pending\":2}}"
 

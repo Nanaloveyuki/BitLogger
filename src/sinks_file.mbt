@@ -1,3 +1,4 @@
+///|
 pub struct FileSink {
   path : String
   append : Ref[Bool]
@@ -14,28 +15,32 @@ pub struct FileSink {
   rotation_failures : Ref[Int]
 }
 
+///|
 pub type FileRotation = @utils.FileRotation
 
+///|
 pub type FileSinkState = @utils.FileSinkState
 
+///|
 pub type FileSinkPolicy = @utils.FileSinkPolicy
 
-pub fn file_rotation(max_bytes : Int, max_backups~ : Int = 1) -> FileRotation {
-  @utils.file_rotation(max_bytes, max_backups=max_backups)
+///|
+pub fn file_rotation(max_bytes : Int, max_backups? : Int = 1) -> FileRotation {
+  @utils.file_rotation(max_bytes, max_backups~)
 }
 
+///|
 pub fn native_files_supported() -> Bool {
   native_files_supported_internal()
 }
 
+///|
 pub fn file_sink(
   path : String,
-  append~ : Bool = true,
-  auto_flush~ : Bool = true,
-  rotation~ : FileRotation? = None,
-  formatter~ : RecordFormatter = fn(rec) {
-    format_text(rec)
-  },
+  append? : Bool = true,
+  auto_flush? : Bool = true,
+  rotation? : FileRotation? = None,
+  formatter? : RecordFormatter = fn(rec) { format_text(rec) },
 ) -> FileSink {
   let handle = open_file_handle_internal(path, append)
   {
@@ -55,10 +60,12 @@ pub fn file_sink(
   }
 }
 
+///|
 pub fn FileSink::is_available(self : FileSink) -> Bool {
   self.handle.val is Some(_)
 }
 
+///|
 pub fn FileSink::flush(self : FileSink) -> Bool {
   match self.handle.val {
     None => false
@@ -72,48 +79,62 @@ pub fn FileSink::flush(self : FileSink) -> Bool {
   }
 }
 
+///|
 pub fn FileSink::append_mode(self : FileSink) -> Bool {
   self.append.val
 }
 
+///|
 pub fn FileSink::set_append_mode(self : FileSink, append : Bool) -> Unit {
   self.append.val = append
 }
 
+///|
 pub fn FileSink::path(self : FileSink) -> String {
   self.path
 }
 
+///|
 pub fn FileSink::auto_flush_enabled(self : FileSink) -> Bool {
   self.auto_flush.val
 }
 
+///|
 pub fn FileSink::rotation_enabled(self : FileSink) -> Bool {
   self.rotation.val is Some(_)
 }
 
+///|
 pub fn FileSink::rotation_config(self : FileSink) -> FileRotation? {
   self.rotation.val
 }
 
+///|
 pub fn FileSink::set_auto_flush(self : FileSink, enabled : Bool) -> Unit {
   self.auto_flush.val = enabled
 }
 
+///|
 pub fn FileSink::set_policy(self : FileSink, policy : FileSinkPolicy) -> Unit {
   self.append.val = policy.append
   self.auto_flush.val = policy.auto_flush
   self.rotation.val = policy.rotation
 }
 
-pub fn FileSink::set_rotation(self : FileSink, rotation : FileRotation?) -> Unit {
+///|
+pub fn FileSink::set_rotation(
+  self : FileSink,
+  rotation : FileRotation?,
+) -> Unit {
   self.rotation.val = rotation
 }
 
+///|
 pub fn FileSink::clear_rotation(self : FileSink) -> Unit {
   self.rotation.val = None
 }
 
+///|
 pub fn FileSink::close(self : FileSink) -> Bool {
   match self.handle.val {
     None => false
@@ -125,22 +146,27 @@ pub fn FileSink::close(self : FileSink) -> Bool {
   }
 }
 
+///|
 pub fn FileSink::rotation_failures(self : FileSink) -> Int {
   self.rotation_failures.val
 }
 
+///|
 pub fn FileSink::open_failures(self : FileSink) -> Int {
   self.open_failures.val
 }
 
+///|
 pub fn FileSink::write_failures(self : FileSink) -> Int {
   self.write_failures.val
 }
 
+///|
 pub fn FileSink::flush_failures(self : FileSink) -> Int {
   self.flush_failures.val
 }
 
+///|
 pub fn FileSink::reset_failure_counters(self : FileSink) -> Unit {
   self.open_failures.val = 0
   self.write_failures.val = 0
@@ -148,12 +174,14 @@ pub fn FileSink::reset_failure_counters(self : FileSink) -> Unit {
   self.rotation_failures.val = 0
 }
 
+///|
 pub fn FileSink::reset_policy(self : FileSink) -> Unit {
   self.append.val = self.default_append
   self.auto_flush.val = self.default_auto_flush
   self.rotation.val = self.default_rotation
 }
 
+///|
 pub fn FileSink::policy(self : FileSink) -> FileSinkPolicy {
   FileSinkPolicy::new(
     append=self.append.val,
@@ -162,6 +190,7 @@ pub fn FileSink::policy(self : FileSink) -> FileSinkPolicy {
   )
 }
 
+///|
 pub fn FileSink::default_policy(self : FileSink) -> FileSinkPolicy {
   FileSinkPolicy::new(
     append=self.default_append,
@@ -170,6 +199,7 @@ pub fn FileSink::default_policy(self : FileSink) -> FileSinkPolicy {
   )
 }
 
+///|
 pub fn FileSink::policy_matches_default(self : FileSink) -> Bool {
   let current = self.policy()
   let default = self.default_policy()
@@ -178,14 +208,20 @@ pub fn FileSink::policy_matches_default(self : FileSink) -> Bool {
   policy_rotation_equals_internal(current.rotation, default.rotation)
 }
 
-fn policy_rotation_equals_internal(left : FileRotation?, right : FileRotation?) -> Bool {
+///|
+fn policy_rotation_equals_internal(
+  left : FileRotation?,
+  right : FileRotation?,
+) -> Bool {
   match (left, right) {
     (None, None) => true
-    (Some(a), Some(b)) => a.max_bytes == b.max_bytes && a.max_backups == b.max_backups
+    (Some(a), Some(b)) =>
+      a.max_bytes == b.max_bytes && a.max_backups == b.max_backups
     _ => false
   }
 }
 
+///|
 pub fn FileSink::state(self : FileSink) -> FileSinkState {
   FileSinkState::new(
     self.path,
@@ -200,7 +236,8 @@ pub fn FileSink::state(self : FileSink) -> FileSinkState {
   )
 }
 
-pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
+///|
+pub fn FileSink::reopen(self : FileSink, append? : Bool? = None) -> Bool {
   let append_mode = append.unwrap_or(self.append.val)
   self.append.val = append_mode
   match self.handle.val {
@@ -220,22 +257,27 @@ pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
   }
 }
 
+///|
 pub fn FileSink::reopen_with_current_policy(self : FileSink) -> Bool {
   self.reopen()
 }
 
+///|
 pub fn FileSink::reopen_append(self : FileSink) -> Bool {
   self.reopen(append=Some(true))
 }
 
+///|
 pub fn FileSink::reopen_truncate(self : FileSink) -> Bool {
   self.reopen(append=Some(false))
 }
 
+///|
 fn rotated_file_path(path : String, index : Int) -> String {
   "\{path}.\{index}"
 }
 
+///|
 fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
   let closed = match sink.handle.val {
     None => true
@@ -249,7 +291,9 @@ fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
     return false
   }
   if rotation.max_backups > 0 {
-    ignore(remove_file_internal(rotated_file_path(sink.path, rotation.max_backups)))
+    ignore(
+      remove_file_internal(rotated_file_path(sink.path, rotation.max_backups)),
+    )
     for index = rotation.max_backups - 1; index >= 1; {
       let from_path = rotated_file_path(sink.path, index)
       let to_path = rotated_file_path(sink.path, index + 1)
@@ -264,40 +308,42 @@ fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
   sink.handle.val is Some(_)
 }
 
+///|
 fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
   match sink.rotation.val {
     None => true
-    Some(rotation) => match sink.handle.val {
-      None => false
-      Some(handle) => {
-        let size = file_size_internal(handle)
-        if size + next_line_bytes <= rotation.max_bytes {
-          true
-        } else {
-          let rotated = rotate_file_sink_internal(sink, rotation)
-          if !rotated {
-            sink.rotation_failures.val += 1
+    Some(rotation) =>
+      match sink.handle.val {
+        None => false
+        Some(handle) => {
+          let size = file_size_internal(handle)
+          if size + next_line_bytes <= rotation.max_bytes {
+            true
+          } else {
+            let rotated = rotate_file_sink_internal(sink, rotation)
+            if !rotated {
+              sink.rotation_failures.val += 1
+            }
+            rotated
           }
-          rotated
         }
       }
-    }
   }
 }
 
-pub impl Sink for FileSink with write(self, rec) {
+///|
+pub impl Sink for FileSink with fn write(self, rec) {
   match self.handle.val {
-    None => {
-      self.write_failures.val += 1
-    }
+    None => self.write_failures.val += 1
     Some(_) => {
       let line = "\{(self.formatter)(rec)}\n"
-      let can_write = rotate_if_needed_internal(self, string_byte_length_internal(line))
+      let can_write = rotate_if_needed_internal(
+        self,
+        string_byte_length_internal(line),
+      )
       if can_write {
         match self.handle.val {
-          None => {
-            self.write_failures.val += 1
-          }
+          None => self.write_failures.val += 1
           Some(active) => {
             let wrote = write_file_handle_internal(active, line)
             if wrote {

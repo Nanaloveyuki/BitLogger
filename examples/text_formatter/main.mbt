@@ -1,3 +1,4 @@
+///|
 fn main {
   let logger = @lib.build_logger(
     @lib.text_console(
@@ -11,5 +12,8 @@ fn main {
       ),
     ),
   )
-  logger.info("formatted output", fields=[@lib.field("user", "alice"), @lib.field("request_id", "42")])
+  logger.info("formatted output", fields=[
+    @lib.field("user", "alice"),
+    @lib.field("request_id", "42"),
+  ])
 }

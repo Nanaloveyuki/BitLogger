@@ -1,3 +1,4 @@
+///|
 fn main {
   let config = @lib.with_queue(
     @lib.text_console(
@@ -36,10 +37,14 @@ fn main {
     }
 
     let file_logger = @lib.build_logger(file_config)
-    file_logger.info("file preset ready", fields=[@lib.field("kind", "native-only")])
+    file_logger.info("file preset ready", fields=[
+      @lib.field("kind", "native-only"),
+    ])
     ignore(file_logger.flush())
     ignore(file_logger.file_close())
   } else {
-    println("file presets are skipped on this backend because native file support is unavailable")
+    println(
+      "file presets are skipped on this backend because native file support is unavailable",
+    )
   }
 }

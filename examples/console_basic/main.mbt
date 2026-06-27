@@ -1,3 +1,4 @@
+///|
 fn main {
   let logger = @lib.build_logger(
     @lib.console(min_level=@lib.Level::Info, target="demo.console"),

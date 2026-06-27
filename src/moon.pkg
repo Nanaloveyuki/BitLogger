@@ -1,12 +1,12 @@
 import {
-  "Nanaloveyuki/BitLogger/src/core" @core,
-  "Nanaloveyuki/BitLogger/src/utils" @utils,
-  "maria/json_parser" @json_parser,
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/utils",
+  "maria/json_parser",
   "moonbitlang/core/array",
   "moonbitlang/core/builtin",
-  "moonbitlang/core/env" @env,
+  "moonbitlang/core/env",
   "moonbitlang/core/json",
-  "moonbitlang/core/queue" @queue,
+  "moonbitlang/core/queue",
   "moonbitlang/core/ref",
 }
 

@@ -2,6 +2,7 @@
 
 Versioned BitLogger change summaries.
 
+- [1.0.0](./1.0.0.md)
 - [0.5.3](./0.5.3.md)
 - [0.5.2](./0.5.2.md)
 - [0.5.1](./0.5.1.md)

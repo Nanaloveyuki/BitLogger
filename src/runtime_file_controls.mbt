@@ -1,3 +1,4 @@
+///|
 pub fn RuntimeSink::file_available(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.is_available()
@@ -6,14 +7,19 @@ pub fn RuntimeSink::file_available(self : RuntimeSink) -> Bool {
   }
 }
 
-pub fn RuntimeSink::file_reopen(self : RuntimeSink, append~ : Bool? = None) -> Bool {
+///|
+pub fn RuntimeSink::file_reopen(
+  self : RuntimeSink,
+  append? : Bool? = None,
+) -> Bool {
   match self {
-    File(sink) => sink.reopen(append=append)
-    QueuedFile(sink) => sink.sink.reopen(append=append)
+    File(sink) => sink.reopen(append~)
+    QueuedFile(sink) => sink.sink.reopen(append~)
     _ => false
   }
 }
 
+///|
 pub fn RuntimeSink::file_reopen_with_current_policy(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.reopen_with_current_policy()
@@ -22,6 +28,7 @@ pub fn RuntimeSink::file_reopen_with_current_policy(self : RuntimeSink) -> Bool 
   }
 }
 
+///|
 pub fn RuntimeSink::file_reopen_append(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.reopen_append()
@@ -30,6 +37,7 @@ pub fn RuntimeSink::file_reopen_append(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_reopen_truncate(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.reopen_truncate()
@@ -38,6 +46,7 @@ pub fn RuntimeSink::file_reopen_truncate(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_append_mode(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.append_mode()
@@ -46,7 +55,11 @@ pub fn RuntimeSink::file_append_mode(self : RuntimeSink) -> Bool {
   }
 }
 
-pub fn RuntimeSink::file_set_append_mode(self : RuntimeSink, append : Bool) -> Bool {
+///|
+pub fn RuntimeSink::file_set_append_mode(
+  self : RuntimeSink,
+  append : Bool,
+) -> Bool {
   match self {
     File(sink) => {
       sink.set_append_mode(append)
@@ -60,6 +73,7 @@ pub fn RuntimeSink::file_set_append_mode(self : RuntimeSink, append : Bool) -> B
   }
 }
 
+///|
 pub fn RuntimeSink::file_path(self : RuntimeSink) -> String {
   match self {
     File(sink) => sink.path()
@@ -68,6 +82,7 @@ pub fn RuntimeSink::file_path(self : RuntimeSink) -> String {
   }
 }
 
+///|
 pub fn RuntimeSink::file_auto_flush(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.auto_flush_enabled()
@@ -76,6 +91,7 @@ pub fn RuntimeSink::file_auto_flush(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_rotation_enabled(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.rotation_enabled()
@@ -84,6 +100,7 @@ pub fn RuntimeSink::file_rotation_enabled(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_rotation_config(self : RuntimeSink) -> FileRotation? {
   match self {
     File(sink) => sink.rotation_config()
@@ -92,7 +109,11 @@ pub fn RuntimeSink::file_rotation_config(self : RuntimeSink) -> FileRotation? {
   }
 }
 
-pub fn RuntimeSink::file_set_auto_flush(self : RuntimeSink, enabled : Bool) -> Bool {
+///|
+pub fn RuntimeSink::file_set_auto_flush(
+  self : RuntimeSink,
+  enabled : Bool,
+) -> Bool {
   match self {
     File(sink) => {
       sink.set_auto_flush(enabled)
@@ -106,7 +127,11 @@ pub fn RuntimeSink::file_set_auto_flush(self : RuntimeSink, enabled : Bool) -> B
   }
 }
 
-pub fn RuntimeSink::file_set_policy(self : RuntimeSink, policy : FileSinkPolicy) -> Bool {
+///|
+pub fn RuntimeSink::file_set_policy(
+  self : RuntimeSink,
+  policy : FileSinkPolicy,
+) -> Bool {
   match self {
     File(sink) => {
       sink.set_policy(policy)
@@ -120,7 +145,11 @@ pub fn RuntimeSink::file_set_policy(self : RuntimeSink, policy : FileSinkPolicy)
   }
 }
 
-pub fn RuntimeSink::file_set_rotation(self : RuntimeSink, rotation : FileRotation?) -> Bool {
+///|
+pub fn RuntimeSink::file_set_rotation(
+  self : RuntimeSink,
+  rotation : FileRotation?,
+) -> Bool {
   match self {
     File(sink) => {
       sink.set_rotation(rotation)
@@ -134,6 +163,7 @@ pub fn RuntimeSink::file_set_rotation(self : RuntimeSink, rotation : FileRotatio
   }
 }
 
+///|
 pub fn RuntimeSink::file_clear_rotation(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => {
@@ -148,6 +178,7 @@ pub fn RuntimeSink::file_clear_rotation(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.flush()
@@ -159,6 +190,7 @@ pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_close(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.close()
@@ -170,6 +202,7 @@ pub fn RuntimeSink::file_close(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int {
   match self {
     File(sink) => sink.open_failures()
@@ -178,6 +211,7 @@ pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int {
   }
 }
 
+///|
 pub fn RuntimeSink::file_write_failures(self : RuntimeSink) -> Int {
   match self {
     File(sink) => sink.write_failures()
@@ -186,6 +220,7 @@ pub fn RuntimeSink::file_write_failures(self : RuntimeSink) -> Int {
   }
 }
 
+///|
 pub fn RuntimeSink::file_flush_failures(self : RuntimeSink) -> Int {
   match self {
     File(sink) => sink.flush_failures()
@@ -194,6 +229,7 @@ pub fn RuntimeSink::file_flush_failures(self : RuntimeSink) -> Int {
   }
 }
 
+///|
 pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int {
   match self {
     File(sink) => sink.rotation_failures()
@@ -202,6 +238,7 @@ pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int {
   }
 }
 
+///|
 pub fn RuntimeSink::file_reset_failure_counters(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => {
@@ -216,6 +253,7 @@ pub fn RuntimeSink::file_reset_failure_counters(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_reset_policy(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => {
@@ -230,6 +268,7 @@ pub fn RuntimeSink::file_reset_policy(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_policy(self : RuntimeSink) -> FileSinkPolicy {
   match self {
     File(sink) => sink.policy()
@@ -238,6 +277,7 @@ pub fn RuntimeSink::file_policy(self : RuntimeSink) -> FileSinkPolicy {
   }
 }
 
+///|
 pub fn RuntimeSink::file_default_policy(self : RuntimeSink) -> FileSinkPolicy {
   match self {
     File(sink) => sink.default_policy()
@@ -246,6 +286,7 @@ pub fn RuntimeSink::file_default_policy(self : RuntimeSink) -> FileSinkPolicy {
   }
 }
 
+///|
 pub fn RuntimeSink::file_policy_matches_default(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.policy_matches_default()
@@ -254,91 +295,125 @@ pub fn RuntimeSink::file_policy_matches_default(self : RuntimeSink) -> Bool {
   }
 }
 
+///|
 pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
   match self {
     File(sink) => sink.state()
     QueuedFile(sink) => sink.sink.state()
-    _ => FileSinkState::new(
-      "",
-      available=false,
-      append=false,
-      auto_flush=false,
-      rotation=None,
-      open_failures=0,
-      write_failures=0,
-      flush_failures=0,
-      rotation_failures=0,
-    )
+    _ =>
+      FileSinkState::new(
+        "",
+        available=false,
+        append=false,
+        auto_flush=false,
+        rotation=None,
+        open_failures=0,
+        write_failures=0,
+        flush_failures=0,
+        rotation_failures=0,
+      )
   }
 }
 
+///|
 pub fn RuntimeSink::file_runtime_state(self : RuntimeSink) -> RuntimeFileState? {
   match self {
     File(sink) => Some(RuntimeFileState::new(sink.state()))
-    QueuedFile(sink) => Some(
-      RuntimeFileState::new(
-        sink.sink.state(),
-        queued=true,
-        pending_count=sink.pending_count(),
-        dropped_count=sink.dropped_count(),
-      ),
-    )
+    QueuedFile(sink) =>
+      Some(
+        RuntimeFileState::new(
+          sink.sink.state(),
+          queued=true,
+          pending_count=sink.pending_count(),
+          dropped_count=sink.dropped_count(),
+        ),
+      )
     _ => None
   }
 }
 
+///|
 pub fn ConfiguredLogger::file_available(self : ConfiguredLogger) -> Bool {
   self.sink.file_available()
 }
 
-pub fn ConfiguredLogger::file_reopen(self : ConfiguredLogger, append~ : Bool? = None) -> Bool {
-  self.sink.file_reopen(append=append)
+///|
+pub fn ConfiguredLogger::file_reopen(
+  self : ConfiguredLogger,
+  append? : Bool? = None,
+) -> Bool {
+  self.sink.file_reopen(append~)
 }
 
-pub fn ConfiguredLogger::file_reopen_with_current_policy(self : ConfiguredLogger) -> Bool {
+///|
+pub fn ConfiguredLogger::file_reopen_with_current_policy(
+  self : ConfiguredLogger,
+) -> Bool {
   self.sink.file_reopen_with_current_policy()
 }
 
+///|
 pub fn ConfiguredLogger::file_reopen_append(self : ConfiguredLogger) -> Bool {
   self.sink.file_reopen_append()
 }
 
+///|
 pub fn ConfiguredLogger::file_reopen_truncate(self : ConfiguredLogger) -> Bool {
   self.sink.file_reopen_truncate()
 }
 
+///|
 pub fn ConfiguredLogger::file_append_mode(self : ConfiguredLogger) -> Bool {
   self.sink.file_append_mode()
 }
 
-pub fn ConfiguredLogger::file_set_append_mode(self : ConfiguredLogger, append : Bool) -> Bool {
+///|
+pub fn ConfiguredLogger::file_set_append_mode(
+  self : ConfiguredLogger,
+  append : Bool,
+) -> Bool {
   self.sink.file_set_append_mode(append)
 }
 
+///|
 pub fn ConfiguredLogger::file_path(self : ConfiguredLogger) -> String {
   self.sink.file_path()
 }
 
+///|
 pub fn ConfiguredLogger::file_auto_flush(self : ConfiguredLogger) -> Bool {
   self.sink.file_auto_flush()
 }
 
+///|
 pub fn ConfiguredLogger::file_rotation_enabled(self : ConfiguredLogger) -> Bool {
   self.sink.file_rotation_enabled()
 }
 
-pub fn ConfiguredLogger::file_rotation_config(self : ConfiguredLogger) -> FileRotation? {
+///|
+pub fn ConfiguredLogger::file_rotation_config(
+  self : ConfiguredLogger,
+) -> FileRotation? {
   self.sink.file_rotation_config()
 }
 
-pub fn ConfiguredLogger::file_set_auto_flush(self : ConfiguredLogger, enabled : Bool) -> Bool {
+///|
+pub fn ConfiguredLogger::file_set_auto_flush(
+  self : ConfiguredLogger,
+  enabled : Bool,
+) -> Bool {
   self.sink.file_set_auto_flush(enabled)
 }
 
-pub fn ConfiguredLogger::file_set_policy(self : ConfiguredLogger, policy : FileSinkPolicy) -> Bool {
+///|
+pub fn ConfiguredLogger::file_set_policy(
+  self : ConfiguredLogger,
+  policy : FileSinkPolicy,
+) -> Bool {
   self.sink.file_set_policy(policy)
 }
 
+///|
 pub fn ConfiguredLogger::file_set_rotation(
   self : ConfiguredLogger,
   rotation : FileRotation?,
@@ -346,58 +421,80 @@ pub fn ConfiguredLogger::file_set_rotation(
   self.sink.file_set_rotation(rotation)
 }
 
+///|
 pub fn ConfiguredLogger::file_clear_rotation(self : ConfiguredLogger) -> Bool {
   self.sink.file_clear_rotation()
 }
 
+///|
 pub fn ConfiguredLogger::file_flush(self : ConfiguredLogger) -> Bool {
   self.sink.file_flush()
 }
 
+///|
 pub fn ConfiguredLogger::file_close(self : ConfiguredLogger) -> Bool {
   self.sink.file_close()
 }
 
+///|
 pub fn ConfiguredLogger::file_open_failures(self : ConfiguredLogger) -> Int {
   self.sink.file_open_failures()
 }
 
+///|
 pub fn ConfiguredLogger::file_write_failures(self : ConfiguredLogger) -> Int {
   self.sink.file_write_failures()
 }
 
+///|
 pub fn ConfiguredLogger::file_flush_failures(self : ConfiguredLogger) -> Int {
   self.sink.file_flush_failures()
 }
 
+///|
 pub fn ConfiguredLogger::file_rotation_failures(self : ConfiguredLogger) -> Int {
   self.sink.file_rotation_failures()
 }
 
-pub fn ConfiguredLogger::file_reset_failure_counters(self : ConfiguredLogger) -> Bool {
+///|
+pub fn ConfiguredLogger::file_reset_failure_counters(
+  self : ConfiguredLogger,
+) -> Bool {
   self.sink.file_reset_failure_counters()
 }
 
+///|
 pub fn ConfiguredLogger::file_reset_policy(self : ConfiguredLogger) -> Bool {
   self.sink.file_reset_policy()
 }
 
+///|
 pub fn ConfiguredLogger::file_policy(self : ConfiguredLogger) -> FileSinkPolicy {
   self.sink.file_policy()
 }
 
-pub fn ConfiguredLogger::file_default_policy(self : ConfiguredLogger) -> FileSinkPolicy {
+///|
+pub fn ConfiguredLogger::file_default_policy(
+  self : ConfiguredLogger,
+) -> FileSinkPolicy {
   self.sink.file_default_policy()
 }
 
-pub fn ConfiguredLogger::file_policy_matches_default(self : ConfiguredLogger) -> Bool {
+///|
+pub fn ConfiguredLogger::file_policy_matches_default(
+  self : ConfiguredLogger,
+) -> Bool {
   self.sink.file_policy_matches_default()
 }
 
+///|
 pub fn ConfiguredLogger::file_state(self : ConfiguredLogger) -> FileSinkState {
   self.sink.file_state()
 }
 
-pub fn ConfiguredLogger::file_runtime_state(self : ConfiguredLogger) -> RuntimeFileState? {
+///|
+pub fn ConfiguredLogger::file_runtime_state(
+  self : ConfiguredLogger,
+) -> RuntimeFileState? {
   self.sink.file_runtime_state()
 }
