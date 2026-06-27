@@ -1,7 +1,9 @@
+///|
 pub(all) suberror ConfigError {
   InvalidConfig(String)
 }
 
+///|
 pub(all) enum SinkKind {
   Console
   JsonConsole
@@ -9,6 +11,7 @@ pub(all) enum SinkKind {
   File
 }
 
+///|
 pub struct TextFormatterConfig {
   show_timestamp : Bool
   show_level : Bool
@@ -25,20 +28,21 @@ pub struct TextFormatterConfig {
   style_tags : Map[String, TextStyle]
 }
 
+///|
 pub fn TextFormatterConfig::new(
-  show_timestamp~ : Bool = true,
-  show_level~ : Bool = true,
-  show_target~ : Bool = true,
-  show_fields~ : Bool = true,
-  separator~ : String = " ",
-  field_separator~ : String = " ",
-  template~ : String = "",
-  color_mode~ : ColorMode = ColorMode::Never,
-  color_support~ : ColorSupport = ColorSupport::TrueColor,
-  style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
-  target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
-  fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
-  style_tags~ : Map[String, TextStyle] = {},
+  show_timestamp? : Bool = true,
+  show_level? : Bool = true,
+  show_target? : Bool = true,
+  show_fields? : Bool = true,
+  separator? : String = " ",
+  field_separator? : String = " ",
+  template? : String = "",
+  color_mode? : ColorMode = ColorMode::Never,
+  color_support? : ColorSupport = ColorSupport::TrueColor,
+  style_markup? : StyleMarkupMode = StyleMarkupMode::Full,
+  target_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
+  fields_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
+  style_tags? : Map[String, TextStyle] = {},
 ) -> TextFormatterConfig {
   {
     show_timestamp,
@@ -57,15 +61,21 @@ pub fn TextFormatterConfig::new(
   }
 }
 
-fn style_tag_registry_from_config(style_tags : Map[String, TextStyle]) -> StyleTagRegistry {
+///|
+fn style_tag_registry_from_config(
+  style_tags : Map[String, TextStyle],
+) -> StyleTagRegistry {
   let registry = style_tag_registry()
   for name, style in style_tags {
-    ignore(registry.set_tag(name, style=style))
+    ignore(registry.set_tag(name, style~))
   }
   registry
 }
 
-pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextFormatter {
+///|
+pub fn TextFormatterConfig::to_formatter(
+  self : TextFormatterConfig,
+) -> TextFormatter {
   text_formatter(
     show_timestamp=self.show_timestamp,
     show_level=self.show_level,
@@ -87,18 +97,21 @@ pub fn TextFormatterConfig::to_formatter(self : TextFormatterConfig) -> TextForm
   )
 }
 
+///|
 pub struct QueueConfig {
   max_pending : Int
   overflow : QueueOverflowPolicy
 }
 
+///|
 pub fn QueueConfig::new(
   max_pending : Int,
-  overflow~ : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
+  overflow? : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
 ) -> QueueConfig {
   { max_pending, overflow }
 }
 
+///|
 pub struct SinkConfig {
   kind : SinkKind
   path : String
@@ -108,24 +121,19 @@ pub struct SinkConfig {
   text_formatter : TextFormatterConfig
 }
 
+///|
 pub fn SinkConfig::new(
-  kind~ : SinkKind = SinkKind::Console,
-  path~ : String = "",
-  append~ : Bool = true,
-  auto_flush~ : Bool = true,
-  rotation~ : FileRotation? = None,
-  text_formatter~ : TextFormatterConfig = default_text_formatter_config(),
+  kind? : SinkKind = SinkKind::Console,
+  path? : String = "",
+  append? : Bool = true,
+  auto_flush? : Bool = true,
+  rotation? : FileRotation? = None,
+  text_formatter? : TextFormatterConfig = default_text_formatter_config(),
 ) -> SinkConfig {
-  {
-    kind,
-    path,
-    append,
-    auto_flush,
-    rotation,
-    text_formatter,
-  }
+  { kind, path, append, auto_flush, rotation, text_formatter }
 }
 
+///|
 pub struct LoggerConfig {
   min_level : @core.Level
   target : String
@@ -134,34 +142,33 @@ pub struct LoggerConfig {
   queue : QueueConfig?
 }
 
+///|
 pub fn LoggerConfig::new(
-  min_level~ : @core.Level = @core.Level::Info,
-  target~ : String = "",
-  timestamp~ : Bool = false,
-  sink~ : SinkConfig = default_sink_config(),
-  queue~ : QueueConfig? = None,
+  min_level? : @core.Level = @core.Level::Info,
+  target? : String = "",
+  timestamp? : Bool = false,
+  sink? : SinkConfig = default_sink_config(),
+  queue? : QueueConfig? = None,
 ) -> LoggerConfig {
-  {
-    min_level,
-    target,
-    timestamp,
-    sink,
-    queue,
-  }
+  { min_level, target, timestamp, sink, queue }
 }
 
+///|
 pub fn default_text_formatter_config() -> TextFormatterConfig {
   TextFormatterConfig::new()
 }
 
+///|
 pub fn default_sink_config() -> SinkConfig {
   SinkConfig::new()
 }
 
+///|
 pub fn default_logger_config() -> LoggerConfig {
   LoggerConfig::new()
 }
 
+///|
 fn expect_object(
   value : @json_parser.JsonValue,
   context : String,
@@ -172,33 +179,40 @@ fn expect_object(
   }
 }
 
+///|
 fn get_string(
   obj : Map[String, @json_parser.JsonValue],
   key : String,
-  default~ : String = "",
+  default? : String = "",
 ) -> String raise ConfigError {
   match obj.get(key) {
     None => default
-    Some(value) => match value.as_string() {
-      Some(text) => text
-      None => raise ConfigError::InvalidConfig("Expected string at key " + key)
-    }
+    Some(value) =>
+      match value.as_string() {
+        Some(text) => text
+        None =>
+          raise ConfigError::InvalidConfig("Expected string at key " + key)
+      }
   }
 }
 
+///|
 fn get_optional_string(
   obj : Map[String, @json_parser.JsonValue],
   key : String,
 ) -> String? raise ConfigError {
   match obj.get(key) {
     None => None
-    Some(value) => match value.as_string() {
-      Some(text) => Some(text)
-      None => raise ConfigError::InvalidConfig("Expected string at key " + key)
-    }
+    Some(value) =>
+      match value.as_string() {
+        Some(text) => Some(text)
+        None =>
+          raise ConfigError::InvalidConfig("Expected string at key " + key)
+      }
   }
 }
 
+///|
 fn get_bool(
   obj : Map[String, @json_parser.JsonValue],
   key : String,
@@ -206,13 +220,15 @@ fn get_bool(
 ) -> Bool raise ConfigError {
   match obj.get(key) {
     None => default
-    Some(value) => match value.as_bool() {
-      Some(flag) => flag
-      None => raise ConfigError::InvalidConfig("Expected bool at key " + key)
-    }
+    Some(value) =>
+      match value.as_bool() {
+        Some(flag) => flag
+        None => raise ConfigError::InvalidConfig("Expected bool at key " + key)
+      }
   }
 }
 
+///|
 fn get_int(
   obj : Map[String, @json_parser.JsonValue],
   key : String,
@@ -220,13 +236,16 @@ fn get_int(
 ) -> Int raise ConfigError {
   match obj.get(key) {
     None => default
-    Some(value) => match value.as_number() {
-      Some(number) => number.to_int()
-      None => raise ConfigError::InvalidConfig("Expected number at key " + key)
-    }
+    Some(value) =>
+      match value.as_number() {
+        Some(number) => number.to_int()
+        None =>
+          raise ConfigError::InvalidConfig("Expected number at key " + key)
+      }
   }
 }
 
+///|
 fn parse_level(name : String) -> @core.Level raise ConfigError {
   match name.to_upper() {
     "TRACE" => @core.Level::Trace
@@ -238,15 +257,20 @@ fn parse_level(name : String) -> @core.Level raise ConfigError {
   }
 }
 
+///|
 fn parse_overflow(name : String) -> QueueOverflowPolicy raise ConfigError {
   match name.to_upper() {
     "DROPNEWEST" => QueueOverflowPolicy::DropNewest
     "DROPPOLDEST" => QueueOverflowPolicy::DropOldest
     "DROPOLDEST" => QueueOverflowPolicy::DropOldest
-    _ => raise ConfigError::InvalidConfig("Unsupported queue overflow policy: " + name)
+    _ =>
+      raise ConfigError::InvalidConfig(
+        "Unsupported queue overflow policy: " + name,
+      )
   }
 }
 
+///|
 fn parse_sink_kind(name : String) -> SinkKind raise ConfigError {
   match name.to_upper() {
     "CONSOLE" => SinkKind::Console
@@ -259,6 +283,7 @@ fn parse_sink_kind(name : String) -> SinkKind raise ConfigError {
   }
 }
 
+///|
 fn parse_color_mode(name : String) -> ColorMode raise ConfigError {
   match name.to_upper() {
     "NEVER" => ColorMode::Never
@@ -268,6 +293,7 @@ fn parse_color_mode(name : String) -> ColorMode raise ConfigError {
   }
 }
 
+///|
 fn parse_color_support(name : String) -> ColorSupport raise ConfigError {
   match name.to_upper() {
     "BASIC" => ColorSupport::Basic
@@ -276,15 +302,18 @@ fn parse_color_support(name : String) -> ColorSupport raise ConfigError {
   }
 }
 
+///|
 fn parse_style_markup_mode(name : String) -> StyleMarkupMode raise ConfigError {
   match name.to_upper() {
     "DISABLED" => StyleMarkupMode::Disabled
     "BUILTIN" => StyleMarkupMode::Builtin
     "FULL" => StyleMarkupMode::Full
-    _ => raise ConfigError::InvalidConfig("Unsupported style markup mode: " + name)
+    _ =>
+      raise ConfigError::InvalidConfig("Unsupported style markup mode: " + name)
   }
 }
 
+///|
 fn sink_kind_label(kind : SinkKind) -> String {
   match kind {
     SinkKind::Console => "console"
@@ -294,7 +323,10 @@ fn sink_kind_label(kind : SinkKind) -> String {
   }
 }
 
-fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterConfig raise ConfigError {
+///|
+fn parse_text_formatter_config(
+  value : @json_parser.JsonValue,
+) -> TextFormatterConfig raise ConfigError {
   let obj = expect_object(value, "text_formatter")
   TextFormatterConfig::new(
     show_timestamp=get_bool(obj, "show_timestamp", default=true),
@@ -305,10 +337,18 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
     field_separator=get_string(obj, "field_separator", default=" "),
     template=get_string(obj, "template", default=""),
     color_mode=parse_color_mode(get_string(obj, "color_mode", default="never")),
-    color_support=parse_color_support(get_string(obj, "color_support", default="truecolor")),
-    style_markup=parse_style_markup_mode(get_string(obj, "style_markup", default="full")),
-    target_style_markup=parse_style_markup_mode(get_string(obj, "target_style_markup", default="disabled")),
-    fields_style_markup=parse_style_markup_mode(get_string(obj, "fields_style_markup", default="disabled")),
+    color_support=parse_color_support(
+      get_string(obj, "color_support", default="truecolor"),
+    ),
+    style_markup=parse_style_markup_mode(
+      get_string(obj, "style_markup", default="full"),
+    ),
+    target_style_markup=parse_style_markup_mode(
+      get_string(obj, "target_style_markup", default="disabled"),
+    ),
+    fields_style_markup=parse_style_markup_mode(
+      get_string(obj, "fields_style_markup", default="disabled"),
+    ),
     style_tags=match obj.get("style_tags") {
       None => {}
       Some(inner) => parse_style_tags_config(inner)
@@ -316,6 +356,7 @@ fn parse_text_formatter_config(value : @json_parser.JsonValue) -> TextFormatterC
   )
 }
 
+///|
 fn parse_text_style_config(
   value : @json_parser.JsonValue,
   context : String,
@@ -331,16 +372,25 @@ fn parse_text_style_config(
   )
 }
 
-fn parse_style_tags_config(value : @json_parser.JsonValue) -> Map[String, TextStyle] raise ConfigError {
+///|
+fn parse_style_tags_config(
+  value : @json_parser.JsonValue,
+) -> Map[String, TextStyle] raise ConfigError {
   let obj = expect_object(value, "text_formatter.style_tags")
   let style_tags : Map[String, TextStyle] = {}
   for name, item in obj {
-    style_tags[name] = parse_text_style_config(item, "text_formatter.style_tags." + name)
+    style_tags[name] = parse_text_style_config(
+      item,
+      "text_formatter.style_tags." + name,
+    )
   }
   style_tags
 }
 
-fn parse_queue_config(value : @json_parser.JsonValue) -> QueueConfig raise ConfigError {
+///|
+fn parse_queue_config(
+  value : @json_parser.JsonValue,
+) -> QueueConfig raise ConfigError {
   let obj = expect_object(value, "queue")
   QueueConfig::new(
     get_int(obj, "max_pending", default=0),
@@ -348,7 +398,10 @@ fn parse_queue_config(value : @json_parser.JsonValue) -> QueueConfig raise Confi
   )
 }
 
-fn parse_file_rotation_config(value : @json_parser.JsonValue) -> FileRotation raise ConfigError {
+///|
+fn parse_file_rotation_config(
+  value : @json_parser.JsonValue,
+) -> FileRotation raise ConfigError {
   let obj = expect_object(value, "sink.rotation")
   file_rotation(
     get_int(obj, "max_bytes", default=1),
@@ -356,7 +409,10 @@ fn parse_file_rotation_config(value : @json_parser.JsonValue) -> FileRotation ra
   )
 }
 
-fn parse_sink_config(value : @json_parser.JsonValue) -> SinkConfig raise ConfigError {
+///|
+fn parse_sink_config(
+  value : @json_parser.JsonValue,
+) -> SinkConfig raise ConfigError {
   let obj = expect_object(value, "sink")
   let kind = parse_sink_kind(get_string(obj, "kind", default="console"))
   let formatter = match obj.get("text_formatter") {
@@ -365,14 +421,15 @@ fn parse_sink_config(value : @json_parser.JsonValue) -> SinkConfig raise ConfigE
   }
   let path = get_string(obj, "path", default="")
   match kind {
-    SinkKind::File => if path == "" {
-      raise ConfigError::InvalidConfig("File sink requires non-empty path")
-    }
+    SinkKind::File =>
+      if path == "" {
+        raise ConfigError::InvalidConfig("File sink requires non-empty path")
+      }
     _ => ()
   }
   SinkConfig::new(
-    kind=kind,
-    path=path,
+    kind~,
+    path~,
     append=get_bool(obj, "append", default=true),
     auto_flush=get_bool(obj, "auto_flush", default=true),
     rotation=match obj.get("rotation") {
@@ -383,7 +440,10 @@ fn parse_sink_config(value : @json_parser.JsonValue) -> SinkConfig raise ConfigE
   )
 }
 
-pub fn parse_logger_config_text(input : String) -> LoggerConfig raise ConfigError {
+///|
+pub fn parse_logger_config_text(
+  input : String,
+) -> LoggerConfig raise ConfigError {
   let root = @json_parser.parse(input) catch {
     e => raise ConfigError::InvalidConfig("Invalid JSON: " + e.to_string())
   }
@@ -403,17 +463,24 @@ pub fn parse_logger_config_text(input : String) -> LoggerConfig raise ConfigErro
   )
 }
 
+///|
 pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "max_pending": @json_parser.JsonValue::Number(queue.max_pending.to_double()),
-    "overflow": @json_parser.JsonValue::String(match queue.overflow {
-      QueueOverflowPolicy::DropNewest => "DropNewest"
-      QueueOverflowPolicy::DropOldest => "DropOldest"
-    }),
+    "overflow": @json_parser.JsonValue::String(
+      match queue.overflow {
+        QueueOverflowPolicy::DropNewest => "DropNewest"
+        QueueOverflowPolicy::DropOldest => "DropOldest"
+      },
+    ),
   })
 }
 
-pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> String {
+///|
+pub fn stringify_queue_config(
+  queue : QueueConfig,
+  pretty? : Bool = false,
+) -> String {
   let value = queue_config_to_json(queue)
   if pretty {
     @json_parser.stringify_pretty(value, 2)
@@ -422,7 +489,10 @@ pub fn stringify_queue_config(queue : QueueConfig, pretty~ : Bool = false) -> St
   }
 }
 
-pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.JsonValue {
+///|
+pub fn text_formatter_config_to_json(
+  config : TextFormatterConfig,
+) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "show_timestamp": @json_parser.JsonValue::Bool(config.show_timestamp),
     "show_level": @json_parser.JsonValue::Bool(config.show_level),
@@ -431,11 +501,21 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
     "separator": @json_parser.JsonValue::String(config.separator),
     "field_separator": @json_parser.JsonValue::String(config.field_separator),
     "template": @json_parser.JsonValue::String(config.template),
-    "color_mode": @json_parser.JsonValue::String(color_mode_label(config.color_mode)),
-    "color_support": @json_parser.JsonValue::String(color_support_label(config.color_support)),
-    "style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.style_markup)),
-    "target_style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.target_style_markup)),
-    "fields_style_markup": @json_parser.JsonValue::String(style_markup_mode_label(config.fields_style_markup)),
+    "color_mode": @json_parser.JsonValue::String(
+      color_mode_label(config.color_mode),
+    ),
+    "color_support": @json_parser.JsonValue::String(
+      color_support_label(config.color_support),
+    ),
+    "style_markup": @json_parser.JsonValue::String(
+      style_markup_mode_label(config.style_markup),
+    ),
+    "target_style_markup": @json_parser.JsonValue::String(
+      style_markup_mode_label(config.target_style_markup),
+    ),
+    "fields_style_markup": @json_parser.JsonValue::String(
+      style_markup_mode_label(config.fields_style_markup),
+    ),
   }
   if config.style_tags.length() != 0 {
     obj["style_tags"] = style_tags_config_to_json(config.style_tags)
@@ -443,6 +523,7 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
   @json_parser.JsonValue::Object(obj)
 }
 
+///|
 fn text_style_config_to_json(style : TextStyle) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "bold": @json_parser.JsonValue::Bool(style.bold),
@@ -461,7 +542,10 @@ fn text_style_config_to_json(style : TextStyle) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object(obj)
 }
 
-fn style_tags_config_to_json(style_tags : Map[String, TextStyle]) -> @json_parser.JsonValue {
+///|
+fn style_tags_config_to_json(
+  style_tags : Map[String, TextStyle],
+) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {}
   for name, style in style_tags {
     obj[name] = text_style_config_to_json(style)
@@ -469,9 +553,10 @@ fn style_tags_config_to_json(style_tags : Map[String, TextStyle]) -> @json_parse
   @json_parser.JsonValue::Object(obj)
 }
 
+///|
 pub fn stringify_text_formatter_config(
   config : TextFormatterConfig,
-  pretty~ : Bool = false,
+  pretty? : Bool = false,
 ) -> String {
   let value = text_formatter_config_to_json(config)
   if pretty {
@@ -481,13 +566,19 @@ pub fn stringify_text_formatter_config(
   }
 }
 
-pub fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonValue {
+///|
+pub fn file_rotation_config_to_json(
+  config : FileRotation,
+) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "max_bytes": @json_parser.JsonValue::Number(config.max_bytes.to_double()),
-    "max_backups": @json_parser.JsonValue::Number(config.max_backups.to_double()),
+    "max_backups": @json_parser.JsonValue::Number(
+      config.max_backups.to_double(),
+    ),
   })
 }
 
+///|
 pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "kind": @json_parser.JsonValue::String(sink_kind_label(config.kind)),
@@ -503,7 +594,11 @@ pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object(obj)
 }
 
-pub fn stringify_sink_config(config : SinkConfig, pretty~ : Bool = false) -> String {
+///|
+pub fn stringify_sink_config(
+  config : SinkConfig,
+  pretty? : Bool = false,
+) -> String {
   let value = sink_config_to_json(config)
   if pretty {
     @json_parser.stringify_pretty(value, 2)
@@ -512,6 +607,7 @@ pub fn stringify_sink_config(config : SinkConfig, pretty~ : Bool = false) -> Str
   }
 }
 
+///|
 pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "min_level": @json_parser.JsonValue::String(config.min_level.label()),
@@ -526,7 +622,11 @@ pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object(obj)
 }
 
-pub fn stringify_logger_config(config : LoggerConfig, pretty~ : Bool = false) -> String {
+///|
+pub fn stringify_logger_config(
+  config : LoggerConfig,
+  pretty? : Bool = false,
+) -> String {
   let value = logger_config_to_json(config)
   if pretty {
     @json_parser.stringify_pretty(value, 2)

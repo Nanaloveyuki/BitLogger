@@ -1,17 +1,23 @@
 import {
   "Nanaloveyuki/BitLogger/src" @bitlogger,
-  "Nanaloveyuki/BitLogger/src-async/utils" @utils,
-  "maria/json_parser" @json_parser,
-  "moonbitlang/async" @async,
-  "moonbitlang/async/aqueue" @aqueue,
-  "moonbitlang/core/env" @env,
+  "Nanaloveyuki/BitLogger/src-async/utils",
+  "maria/json_parser",
+  "moonbitlang/async",
+  "moonbitlang/async/aqueue",
+  "moonbitlang/core/env",
   "moonbitlang/core/ref",
 }
 
 options(
   targets: {
     "async_logger_shared.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
-    "application_async_logger.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
+    "application_async_logger.mbt": [
+      "native",
+      "llvm",
+      "js",
+      "wasm",
+      "wasm-gc",
+    ],
     "library_async_logger.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
     "async_logger_native.mbt": [ "native", "llvm" ],
     "async_logger_stub.mbt": [ "js", "wasm", "wasm-gc" ],

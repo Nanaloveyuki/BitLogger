@@ -1,6 +1,9 @@
+///|
 fn main {
   if !@lib.native_files_supported() {
-    println("native file sink is not available on this backend; examples/presets stays portable, while file_rotation remains native-focused")
+    println(
+      "native file sink is not available on this backend; examples/presets stays portable, while file_rotation remains native-focused",
+    )
     return
   }
 

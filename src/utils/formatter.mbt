@@ -1,22 +1,27 @@
+///|
 pub type RecordFormatter = (@core.Record) -> String
 
+///|
 pub(all) enum ColorMode {
   Never
   Auto
   Always
 }
 
+///|
 pub(all) enum ColorSupport {
   Basic
   TrueColor
 }
 
+///|
 pub(all) enum StyleMarkupMode {
   Disabled
   Builtin
   Full
 }
 
+///|
 pub struct TextStyle {
   fg : String?
   bg : String?
@@ -26,29 +31,34 @@ pub struct TextStyle {
   underline : Bool
 }
 
+///|
 pub fn text_style(
-  fg~ : String? = None,
-  bg~ : String? = None,
-  bold~ : Bool = false,
-  dim~ : Bool = false,
-  italic~ : Bool = false,
-  underline~ : Bool = false,
+  fg? : String? = None,
+  bg? : String? = None,
+  bold? : Bool = false,
+  dim? : Bool = false,
+  italic? : Bool = false,
+  underline? : Bool = false,
 ) -> TextStyle {
   { fg, bg, bold, dim, italic, underline }
 }
 
+///|
 pub struct StyleTagRegistry {
   entries : Map[String, TextStyle]
 }
 
+///|
 fn normalize_style_tag_name(name : String) -> String {
   name.trim().to_lower().to_owned()
 }
 
+///|
 pub fn style_tag_registry() -> StyleTagRegistry {
   { entries: {} }
 }
 
+///|
 fn merge_text_style(base : TextStyle, overlay : TextStyle) -> TextStyle {
   {
     fg: match overlay.fg {
@@ -66,91 +76,113 @@ fn merge_text_style(base : TextStyle, overlay : TextStyle) -> TextStyle {
   }
 }
 
+///|
 pub fn StyleTagRegistry::set_tag(
   self : StyleTagRegistry,
   name : String,
-  style~ : TextStyle = text_style(),
-  fg~ : String? = None,
-  bg~ : String? = None,
-  bold~ : Bool = false,
-  dim~ : Bool = false,
-  italic~ : Bool = false,
-  underline~ : Bool = false,
+  style? : TextStyle = text_style(),
+  fg? : String? = None,
+  bg? : String? = None,
+  bold? : Bool = false,
+  dim? : Bool = false,
+  italic? : Bool = false,
+  underline? : Bool = false,
 ) -> StyleTagRegistry {
-  let overlay = text_style(fg=fg, bg=bg, bold=bold, dim=dim, italic=italic, underline=underline)
-  self.entries[normalize_style_tag_name(name)] = merge_text_style(style, overlay)
+  let overlay = text_style(fg~, bg~, bold~, dim~, italic~, underline~)
+  self.entries[normalize_style_tag_name(name)] = merge_text_style(
+    style, overlay,
+  )
   self
 }
 
-pub fn StyleTagRegistry::get(self : StyleTagRegistry, name : String) -> TextStyle? {
+///|
+pub fn StyleTagRegistry::get(
+  self : StyleTagRegistry,
+  name : String,
+) -> TextStyle? {
   self.entries.get(normalize_style_tag_name(name))
 }
 
-pub fn StyleTagRegistry::contains(self : StyleTagRegistry, name : String) -> Bool {
+///|
+pub fn StyleTagRegistry::contains(
+  self : StyleTagRegistry,
+  name : String,
+) -> Bool {
   self.entries.contains(normalize_style_tag_name(name))
 }
 
+///|
 pub fn StyleTagRegistry::define_alias(
   self : StyleTagRegistry,
   name : String,
   target : String,
 ) -> StyleTagRegistry {
   match self.get(target) {
-    Some(style) => self.set_tag(name, style=style)
-    None => match global_style_tag_registry().get(target) {
-      Some(style) => self.set_tag(name, style=style)
-      None => match builtin_text_style_for_tag(normalize_style_tag_name(target)) {
-        Some(style) => self.set_tag(name, style=style)
-        None => self
+    Some(style) => self.set_tag(name, style~)
+    None =>
+      match global_style_tag_registry().get(target) {
+        Some(style) => self.set_tag(name, style~)
+        None =>
+          match builtin_text_style_for_tag(normalize_style_tag_name(target)) {
+            Some(style) => self.set_tag(name, style~)
+            None => self
+          }
       }
-    }
   }
 }
 
+///|
 pub fn default_style_tag_registry() -> StyleTagRegistry {
   style_tag_registry()
-    .set_tag("black", fg=Some("black"))
-    .set_tag("red", fg=Some("red"))
-    .set_tag("green", fg=Some("green"))
-    .set_tag("yellow", fg=Some("yellow"))
-    .set_tag("blue", fg=Some("blue"))
-    .set_tag("magenta", fg=Some("magenta"))
-    .set_tag("cyan", fg=Some("cyan"))
-    .set_tag("white", fg=Some("white"))
-    .set_tag("bright_black", fg=Some("bright_black"))
-    .set_tag("bright_red", fg=Some("bright_red"))
-    .set_tag("bright_green", fg=Some("bright_green"))
-    .set_tag("bright_yellow", fg=Some("bright_yellow"))
-    .set_tag("bright_blue", fg=Some("bright_blue"))
-    .set_tag("bright_magenta", fg=Some("bright_magenta"))
-    .set_tag("bright_cyan", fg=Some("bright_cyan"))
-    .set_tag("bright_white", fg=Some("bright_white"))
-    .set_tag("accent", fg=Some("bright_cyan"), bold=true)
-    .set_tag("info", fg=Some("cyan"))
-    .set_tag("success", fg=Some("green"), bold=true)
-    .set_tag("warning", fg=Some("yellow"), bold=true)
-    .set_tag("danger", fg=Some("red"), bold=true)
-    .set_tag("muted", fg=Some("bright_black"), dim=true)
-    .set_tag("b", bold=true)
-    .set_tag("dim", dim=true)
-    .set_tag("i", italic=true)
-    .set_tag("u", underline=true)
+  .set_tag("black", fg=Some("black"))
+  .set_tag("red", fg=Some("red"))
+  .set_tag("green", fg=Some("green"))
+  .set_tag("yellow", fg=Some("yellow"))
+  .set_tag("blue", fg=Some("blue"))
+  .set_tag("magenta", fg=Some("magenta"))
+  .set_tag("cyan", fg=Some("cyan"))
+  .set_tag("white", fg=Some("white"))
+  .set_tag("bright_black", fg=Some("bright_black"))
+  .set_tag("bright_red", fg=Some("bright_red"))
+  .set_tag("bright_green", fg=Some("bright_green"))
+  .set_tag("bright_yellow", fg=Some("bright_yellow"))
+  .set_tag("bright_blue", fg=Some("bright_blue"))
+  .set_tag("bright_magenta", fg=Some("bright_magenta"))
+  .set_tag("bright_cyan", fg=Some("bright_cyan"))
+  .set_tag("bright_white", fg=Some("bright_white"))
+  .set_tag("accent", fg=Some("bright_cyan"), bold=true)
+  .set_tag("info", fg=Some("cyan"))
+  .set_tag("success", fg=Some("green"), bold=true)
+  .set_tag("warning", fg=Some("yellow"), bold=true)
+  .set_tag("danger", fg=Some("red"), bold=true)
+  .set_tag("muted", fg=Some("bright_black"), dim=true)
+  .set_tag("b", bold=true)
+  .set_tag("dim", dim=true)
+  .set_tag("i", italic=true)
+  .set_tag("u", underline=true)
 }
 
-let global_style_tag_registry_ref : Ref[StyleTagRegistry] = Ref(style_tag_registry())
+///|
+let global_style_tag_registry_ref : Ref[StyleTagRegistry] = Ref(
+  style_tag_registry(),
+)
 
+///|
 pub fn global_style_tag_registry() -> StyleTagRegistry {
   global_style_tag_registry_ref.val
 }
 
+///|
 pub fn set_global_style_tag_registry(registry : StyleTagRegistry) -> Unit {
   global_style_tag_registry_ref.val = registry
 }
 
+///|
 pub fn reset_global_style_tag_registry() -> Unit {
   global_style_tag_registry_ref.val = style_tag_registry()
 }
 
+///|
 priv struct InlineStyle {
   fg_code : String?
   bg_code : String?
@@ -162,24 +194,29 @@ priv struct InlineStyle {
   underline : Bool
 }
 
+///|
 priv struct StyledSegment {
   text : String
   style : InlineStyle
 }
 
+///|
 priv struct StyleFrame {
   tag : String
   style : InlineStyle
 }
 
+///|
 fn code_unit(ch : Char) -> Int {
   ch.to_int()
 }
 
+///|
 fn code_unit16(ch : UInt16) -> Int {
   ch.to_int()
 }
 
+///|
 pub struct TextFormatter {
   show_timestamp : Bool
   show_level : Bool
@@ -196,20 +233,21 @@ pub struct TextFormatter {
   style_tags : StyleTagRegistry?
 }
 
+///|
 pub fn text_formatter(
-  show_timestamp~ : Bool = true,
-  show_level~ : Bool = true,
-  show_target~ : Bool = true,
-  show_fields~ : Bool = true,
-  separator~ : String = " ",
-  field_separator~ : String = " ",
-  template~ : String = "",
-  color_mode~ : ColorMode = ColorMode::Never,
-  color_support~ : ColorSupport = ColorSupport::TrueColor,
-  style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
-  target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
-  fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
-  style_tags~ : StyleTagRegistry? = None,
+  show_timestamp? : Bool = true,
+  show_level? : Bool = true,
+  show_target? : Bool = true,
+  show_fields? : Bool = true,
+  separator? : String = " ",
+  field_separator? : String = " ",
+  template? : String = "",
+  color_mode? : ColorMode = ColorMode::Never,
+  color_support? : ColorSupport = ColorSupport::TrueColor,
+  style_markup? : StyleMarkupMode = StyleMarkupMode::Full,
+  target_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
+  fields_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
+  style_tags? : StyleTagRegistry? = None,
 ) -> TextFormatter {
   {
     show_timestamp,
@@ -228,6 +266,7 @@ pub fn text_formatter(
   }
 }
 
+///|
 pub fn color_support_label(support : ColorSupport) -> String {
   match support {
     ColorSupport::Basic => "basic"
@@ -235,7 +274,11 @@ pub fn color_support_label(support : ColorSupport) -> String {
   }
 }
 
-pub fn TextFormatter::with_color_support(self : TextFormatter, color_support : ColorSupport) -> TextFormatter {
+///|
+pub fn TextFormatter::with_color_support(
+  self : TextFormatter,
+  color_support : ColorSupport,
+) -> TextFormatter {
   text_formatter(
     show_timestamp=self.show_timestamp,
     show_level=self.show_level,
@@ -245,7 +288,7 @@ pub fn TextFormatter::with_color_support(self : TextFormatter, color_support : C
     field_separator=self.field_separator,
     template=self.template,
     color_mode=self.color_mode,
-    color_support=color_support,
+    color_support~,
     style_markup=self.style_markup,
     target_style_markup=self.target_style_markup,
     fields_style_markup=self.fields_style_markup,
@@ -253,6 +296,7 @@ pub fn TextFormatter::with_color_support(self : TextFormatter, color_support : C
   )
 }
 
+///|
 pub fn style_markup_mode_label(mode : StyleMarkupMode) -> String {
   match mode {
     StyleMarkupMode::Disabled => "disabled"
@@ -261,7 +305,11 @@ pub fn style_markup_mode_label(mode : StyleMarkupMode) -> String {
   }
 }
 
-pub fn TextFormatter::with_style_markup(self : TextFormatter, style_markup : StyleMarkupMode) -> TextFormatter {
+///|
+pub fn TextFormatter::with_style_markup(
+  self : TextFormatter,
+  style_markup : StyleMarkupMode,
+) -> TextFormatter {
   text_formatter(
     show_timestamp=self.show_timestamp,
     show_level=self.show_level,
@@ -272,17 +320,21 @@ pub fn TextFormatter::with_style_markup(self : TextFormatter, style_markup : Sty
     template=self.template,
     color_mode=self.color_mode,
     color_support=self.color_support,
-    style_markup=style_markup,
+    style_markup~,
     target_style_markup=self.target_style_markup,
     fields_style_markup=self.fields_style_markup,
     style_tags=self.style_tags,
   )
 }
 
-pub fn TextFormatter::without_style_markup(self : TextFormatter) -> TextFormatter {
+///|
+pub fn TextFormatter::without_style_markup(
+  self : TextFormatter,
+) -> TextFormatter {
   self.with_style_markup(StyleMarkupMode::Disabled)
 }
 
+///|
 pub fn TextFormatter::with_target_style_markup(
   self : TextFormatter,
   style_markup : StyleMarkupMode,
@@ -304,6 +356,7 @@ pub fn TextFormatter::with_target_style_markup(
   )
 }
 
+///|
 pub fn TextFormatter::with_fields_style_markup(
   self : TextFormatter,
   style_markup : StyleMarkupMode,
@@ -325,7 +378,11 @@ pub fn TextFormatter::with_fields_style_markup(
   )
 }
 
-pub fn TextFormatter::with_style_tags(self : TextFormatter, style_tags : StyleTagRegistry) -> TextFormatter {
+///|
+pub fn TextFormatter::with_style_tags(
+  self : TextFormatter,
+  style_tags : StyleTagRegistry,
+) -> TextFormatter {
   text_formatter(
     show_timestamp=self.show_timestamp,
     show_level=self.show_level,
@@ -343,6 +400,7 @@ pub fn TextFormatter::with_style_tags(self : TextFormatter, style_tags : StyleTa
   )
 }
 
+///|
 pub fn color_mode_label(mode : ColorMode) -> String {
   match mode {
     ColorMode::Never => "never"
@@ -351,17 +409,20 @@ pub fn color_mode_label(mode : ColorMode) -> String {
   }
 }
 
+///|
 fn use_ansi_color(mode : ColorMode) -> Bool {
   match mode {
     ColorMode::Never => false
     ColorMode::Always => true
-    ColorMode::Auto => match @env.get_env_var("NO_COLOR") {
-      Some(_) => false
-      None => true
-    }
+    ColorMode::Auto =>
+      match @env.get_env_var("NO_COLOR") {
+        Some(_) => false
+        None => true
+      }
   }
 }
 
+///|
 fn ansi_wrap(text : String, code : String, enabled : Bool) -> String {
   if !enabled || text == "" {
     text
@@ -370,7 +431,12 @@ fn ansi_wrap(text : String, code : String, enabled : Bool) -> String {
   }
 }
 
-fn ansi_wrap_with_style(text : String, style : InlineStyle, enabled : Bool) -> String {
+///|
+fn ansi_wrap_with_style(
+  text : String,
+  style : InlineStyle,
+  enabled : Bool,
+) -> String {
   if !enabled || text == "" {
     text
   } else {
@@ -404,6 +470,7 @@ fn ansi_wrap_with_style(text : String, style : InlineStyle, enabled : Bool) -> S
   }
 }
 
+///|
 fn default_inline_style() -> InlineStyle {
   {
     fg_code: None,
@@ -417,6 +484,7 @@ fn default_inline_style() -> InlineStyle {
   }
 }
 
+///|
 fn named_color_code(tag : String) -> String? {
   match tag {
     "black" => Some("30")
@@ -439,6 +507,7 @@ fn named_color_code(tag : String) -> String? {
   }
 }
 
+///|
 fn named_bg_color_code(tag : String) -> String? {
   match tag {
     "black" => Some("40")
@@ -461,6 +530,7 @@ fn named_bg_color_code(tag : String) -> String? {
   }
 }
 
+///|
 fn basic_name_from_hex(value : String) -> String {
   let r = hex_pair_to_int(value.unsafe_get(1), value.unsafe_get(2))
   let g = hex_pair_to_int(value.unsafe_get(3), value.unsafe_get(4))
@@ -495,18 +565,17 @@ fn basic_name_from_hex(value : String) -> String {
       } else {
         "green"
       }
+    } else if r > 96 && g < 96 {
+      "magenta"
+    } else if g > 96 && r < 96 {
+      "cyan"
     } else {
-      if r > 96 && g < 96 {
-        "magenta"
-      } else if g > 96 && r < 96 {
-        "cyan"
-      } else {
-        "blue"
-      }
+      "blue"
     }
   }
 }
 
+///|
 fn resolve_inline_color_code(
   formatter : TextFormatter,
   basic_name : String?,
@@ -514,21 +583,25 @@ fn resolve_inline_color_code(
 ) -> String {
   match formatter.color_support {
     ColorSupport::TrueColor => truecolor_code
-    ColorSupport::Basic => match basic_name {
-      Some(name) => named_code_from_basic_name(name).unwrap_or(truecolor_code)
-      None => truecolor_code
-    }
+    ColorSupport::Basic =>
+      match basic_name {
+        Some(name) => named_code_from_basic_name(name).unwrap_or(truecolor_code)
+        None => truecolor_code
+      }
   }
 }
 
+///|
 fn named_code_from_basic_name(name : String) -> String? {
   named_color_code(name)
 }
 
+///|
 fn named_bg_code_from_basic_name(name : String) -> String? {
   named_bg_color_code(name)
 }
 
+///|
 fn resolve_inline_bg_code(
   formatter : TextFormatter,
   basic_name : String?,
@@ -536,13 +609,16 @@ fn resolve_inline_bg_code(
 ) -> String {
   match formatter.color_support {
     ColorSupport::TrueColor => truecolor_code
-    ColorSupport::Basic => match basic_name {
-      Some(name) => named_bg_code_from_basic_name(name).unwrap_or(truecolor_code)
-      None => truecolor_code
-    }
+    ColorSupport::Basic =>
+      match basic_name {
+        Some(name) =>
+          named_bg_code_from_basic_name(name).unwrap_or(truecolor_code)
+        None => truecolor_code
+      }
   }
 }
 
+///|
 fn is_hex_color(value : String) -> Bool {
   if value.length() != 7 {
     return false
@@ -562,6 +638,7 @@ fn is_hex_color(value : String) -> Bool {
   true
 }
 
+///|
 fn hex_to_int(ch : UInt16) -> Int {
   let code = code_unit16(ch)
   if code >= code_unit('0') && code <= code_unit('9') {
@@ -573,10 +650,12 @@ fn hex_to_int(ch : UInt16) -> Int {
   }
 }
 
+///|
 fn hex_pair_to_int(high : UInt16, low : UInt16) -> Int {
   hex_to_int(high) * 16 + hex_to_int(low)
 }
 
+///|
 fn rgb_fg_code(value : String) -> String {
   let r = hex_pair_to_int(value.unsafe_get(1), value.unsafe_get(2))
   let g = hex_pair_to_int(value.unsafe_get(3), value.unsafe_get(4))
@@ -584,6 +663,7 @@ fn rgb_fg_code(value : String) -> String {
   "38;2;\{r};\{g};\{b}"
 }
 
+///|
 fn rgb_bg_code(value : String) -> String {
   let r = hex_pair_to_int(value.unsafe_get(4), value.unsafe_get(5))
   let g = hex_pair_to_int(value.unsafe_get(6), value.unsafe_get(7))
@@ -591,6 +671,7 @@ fn rgb_bg_code(value : String) -> String {
   "48;2;\{r};\{g};\{b}"
 }
 
+///|
 fn rgb_bg_code_from_hex(value : String) -> String {
   let r = hex_pair_to_int(value.unsafe_get(1), value.unsafe_get(2))
   let g = hex_pair_to_int(value.unsafe_get(3), value.unsafe_get(4))
@@ -598,6 +679,7 @@ fn rgb_bg_code_from_hex(value : String) -> String {
   "48;2;\{r};\{g};\{b}"
 }
 
+///|
 fn inline_style_from_text_style(
   base : InlineStyle,
   style : TextStyle,
@@ -609,15 +691,24 @@ fn inline_style_from_text_style(
       let normalized = normalize_style_tag_name(value)
       match named_color_code(normalized) {
         Some(code) => Some((Some(code), Some(normalized)))
-        None => if is_hex_color(value) {
-          let basic_name = basic_name_from_hex(value)
-          Some((
-            Some(resolve_inline_color_code(formatter, Some(basic_name), rgb_fg_code(value))),
-            Some(basic_name),
-          ))
-        } else {
-          None
-        }
+        None =>
+          if is_hex_color(value) {
+            let basic_name = basic_name_from_hex(value)
+            Some(
+              (
+                Some(
+                  resolve_inline_color_code(
+                    formatter,
+                    Some(basic_name),
+                    rgb_fg_code(value),
+                  ),
+                ),
+                Some(basic_name),
+              ),
+            )
+          } else {
+            None
+          }
       }
     }
   }
@@ -634,36 +725,48 @@ fn inline_style_from_text_style(
           }
           Some((Some(code), Some(bg_name)))
         }
-        None => if is_hex_color(value) {
-          let basic_name = basic_name_from_hex(value)
-          Some((
-            Some(resolve_inline_bg_code(formatter, Some(basic_name), rgb_bg_code_from_hex(value))),
-            Some(basic_name),
-          ))
-        } else {
-          None
-        }
+        None =>
+          if is_hex_color(value) {
+            let basic_name = basic_name_from_hex(value)
+            Some(
+              (
+                Some(
+                  resolve_inline_bg_code(
+                    formatter,
+                    Some(basic_name),
+                    rgb_bg_code_from_hex(value),
+                  ),
+                ),
+                Some(basic_name),
+              ),
+            )
+          } else {
+            None
+          }
       }
     }
   }
   match fg {
-    Some((next_fg_code, next_fg_name)) => match bg {
-      Some((next_bg_code, next_bg_name)) => Some({
-        fg_code: next_fg_code,
-        bg_code: next_bg_code,
-        fg_basic_name: next_fg_name,
-        bg_basic_name: next_bg_name,
-        bold: base.bold || style.bold,
-        dim: base.dim || style.dim,
-        italic: base.italic || style.italic,
-        underline: base.underline || style.underline,
-      })
-      None => None
-    }
+    Some((next_fg_code, next_fg_name)) =>
+      match bg {
+        Some((next_bg_code, next_bg_name)) =>
+          Some({
+            fg_code: next_fg_code,
+            bg_code: next_bg_code,
+            fg_basic_name: next_fg_name,
+            bg_basic_name: next_bg_name,
+            bold: base.bold || style.bold,
+            dim: base.dim || style.dim,
+            italic: base.italic || style.italic,
+            underline: base.underline || style.underline,
+          })
+        None => None
+      }
     None => None
   }
 }
 
+///|
 fn builtin_text_style_for_tag(tag : String) -> TextStyle? {
   match normalize_style_tag_name(tag) {
     "black" => Some(text_style(fg=Some("black")))
@@ -696,41 +799,63 @@ fn builtin_text_style_for_tag(tag : String) -> TextStyle? {
   }
 }
 
-fn resolve_registered_text_style(tag : String, formatter : TextFormatter) -> TextStyle? {
+///|
+fn resolve_registered_text_style(
+  tag : String,
+  formatter : TextFormatter,
+) -> TextStyle? {
   let normalized = normalize_style_tag_name(tag)
   match formatter.style_markup {
     StyleMarkupMode::Builtin => return builtin_text_style_for_tag(normalized)
     _ => ()
   }
   match formatter.style_tags {
-    Some(registry) => match registry.get(normalized) {
-      Some(style) => Some(style)
-      None => match global_style_tag_registry().get(normalized) {
+    Some(registry) =>
+      match registry.get(normalized) {
+        Some(style) => Some(style)
+        None =>
+          match global_style_tag_registry().get(normalized) {
+            Some(style) => Some(style)
+            None => builtin_text_style_for_tag(normalized)
+          }
+      }
+    None =>
+      match global_style_tag_registry().get(normalized) {
         Some(style) => Some(style)
         None => builtin_text_style_for_tag(normalized)
       }
-    }
-    None => match global_style_tag_registry().get(normalized) {
-      Some(style) => Some(style)
-      None => builtin_text_style_for_tag(normalized)
-    }
   }
 }
 
-fn apply_inline_tag(style : InlineStyle, tag : String, formatter : TextFormatter) -> InlineStyle? {
+///|
+fn apply_inline_tag(
+  style : InlineStyle,
+  tag : String,
+  formatter : TextFormatter,
+) -> InlineStyle? {
   let normalized = normalize_style_tag_name(tag)
   if is_hex_color(tag) {
     let basic_name = basic_name_from_hex(tag)
     Some({
       ..style,
-      fg_code: Some(resolve_inline_color_code(formatter, Some(basic_name), rgb_fg_code(tag))),
+      fg_code: Some(
+        resolve_inline_color_code(formatter, Some(basic_name), rgb_fg_code(tag)),
+      ),
       fg_basic_name: Some(basic_name),
     })
-  } else if normalized.length() == 10 && normalized.has_prefix("bg:") && is_hex_color(normalized[3:].to_owned()) {
+  } else if normalized.length() == 10 &&
+    normalized.has_prefix("bg:") &&
+    is_hex_color(normalized[3:].to_owned()) {
     let basic_name = basic_name_from_hex(normalized[3:].to_owned())
     Some({
       ..style,
-      bg_code: Some(resolve_inline_bg_code(formatter, Some(basic_name), rgb_bg_code(normalized))),
+      bg_code: Some(
+        resolve_inline_bg_code(
+          formatter,
+          Some(basic_name),
+          rgb_bg_code(normalized),
+        ),
+      ),
       bg_basic_name: Some(basic_name),
     })
   } else {
@@ -741,6 +866,7 @@ fn apply_inline_tag(style : InlineStyle, tag : String, formatter : TextFormatter
   }
 }
 
+///|
 fn push_plain_segment(
   segments : Array[StyledSegment],
   buffer : StringBuilder,
@@ -753,6 +879,7 @@ fn push_plain_segment(
   }
 }
 
+///|
 fn pop_named_style_frame(stack : Array[StyleFrame], tag : String) -> Bool {
   let normalized = normalize_style_tag_name(tag)
   if stack.length() <= 1 {
@@ -769,6 +896,7 @@ fn pop_named_style_frame(stack : Array[StyleFrame], tag : String) -> Bool {
   false
 }
 
+///|
 fn has_named_style_frame(stack : Array[StyleFrame], tag : String) -> Bool {
   let normalized = normalize_style_tag_name(tag)
   if stack.length() <= 1 {
@@ -782,7 +910,11 @@ fn has_named_style_frame(stack : Array[StyleFrame], tag : String) -> Bool {
   false
 }
 
-fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[StyledSegment] {
+///|
+fn parse_inline_markup(
+  input : String,
+  formatter : TextFormatter,
+) -> Array[StyledSegment] {
   let segments : Array[StyledSegment] = []
   let buffer = StringBuilder::new()
   let stack : Array[StyleFrame] = [{ tag: "", style: default_inline_style() }]
@@ -845,7 +977,12 @@ fn parse_inline_markup(input : String, formatter : TextFormatter) -> Array[Style
   segments
 }
 
-fn render_styled_text(text : String, formatter : TextFormatter, mode : StyleMarkupMode) -> String {
+///|
+fn render_styled_text(
+  text : String,
+  formatter : TextFormatter,
+  mode : StyleMarkupMode,
+) -> String {
   match mode {
     StyleMarkupMode::Disabled => return text
     _ => ()
@@ -860,10 +997,12 @@ fn render_styled_text(text : String, formatter : TextFormatter, mode : StyleMark
   out.to_string()
 }
 
+///|
 fn render_inline_markup(message : String, formatter : TextFormatter) -> String {
   render_styled_text(message, formatter, formatter.style_markup)
 }
 
+///|
 fn level_ansi_code(level : @core.Level) -> String {
   match level {
     @core.Level::Trace => "90"
@@ -874,6 +1013,7 @@ fn level_ansi_code(level : @core.Level) -> String {
   }
 }
 
+///|
 fn fields_to_json(fields : Array[@core.Field]) -> Json {
   let obj : Map[String, Json] = {}
   for item in fields {
@@ -882,58 +1022,89 @@ fn fields_to_json(fields : Array[@core.Field]) -> Json {
   Json::object(obj)
 }
 
+///|
 fn timestamp_text(rec : @core.Record, formatter : TextFormatter) -> String {
   if formatter.show_timestamp && rec.timestamp_ms != 0UL {
-    ansi_wrap(rec.timestamp_ms.to_string(), "90", use_ansi_color(formatter.color_mode))
+    ansi_wrap(
+      rec.timestamp_ms.to_string(),
+      "90",
+      use_ansi_color(formatter.color_mode),
+    )
   } else {
     ""
   }
 }
 
+///|
 fn level_text(rec : @core.Record, formatter : TextFormatter) -> String {
   if formatter.show_level {
-    ansi_wrap(rec.level.label(), level_ansi_code(rec.level), use_ansi_color(formatter.color_mode))
+    ansi_wrap(
+      rec.level.label(),
+      level_ansi_code(rec.level),
+      use_ansi_color(formatter.color_mode),
+    )
   } else {
     ""
   }
 }
 
+///|
 fn target_text(rec : @core.Record, formatter : TextFormatter) -> String {
   if formatter.show_target && rec.target != "" {
-    let rendered = render_styled_text(rec.target, formatter, formatter.target_style_markup)
+    let rendered = render_styled_text(
+      rec.target,
+      formatter,
+      formatter.target_style_markup,
+    )
     ansi_wrap(rendered, "34", use_ansi_color(formatter.color_mode))
   } else {
     ""
   }
 }
 
+///|
 fn format_field_text(field : @core.Field, formatter : TextFormatter) -> String {
-  let value = render_styled_text(field.value, formatter, formatter.fields_style_markup)
+  let value = render_styled_text(
+    field.value,
+    formatter,
+    formatter.fields_style_markup,
+  )
   "\{field.key}=\{value}"
 }
 
+///|
 fn fields_text(rec : @core.Record, formatter : TextFormatter) -> String {
   if formatter.show_fields && rec.fields.length() != 0 {
-    let content = rec.fields.map(fn(field) { format_field_text(field, formatter) }).join(formatter.field_separator)
+    let content = rec.fields
+      .map(fn(field) { format_field_text(field, formatter) })
+      .join(formatter.field_separator)
     ansi_wrap(content, "35", use_ansi_color(formatter.color_mode))
   } else {
     ""
   }
 }
 
+///|
 fn render_template(rec : @core.Record, formatter : TextFormatter) -> String {
   formatter.template
-    .replace_all(old="{timestamp}", new=timestamp_text(rec, formatter))
-    .replace_all(old="{timestamp_ms}", new=timestamp_text(rec, formatter))
-    .replace_all(old="{level}", new=level_text(rec, formatter))
-    .replace_all(old="{target}", new=target_text(rec, formatter))
-    .replace_all(old="{message}", new=render_inline_markup(rec.message, formatter))
-    .replace_all(old="{fields}", new=fields_text(rec, formatter))
-    .trim()
-    .to_owned()
+  .replace_all(old="{timestamp}", new=timestamp_text(rec, formatter))
+  .replace_all(old="{timestamp_ms}", new=timestamp_text(rec, formatter))
+  .replace_all(old="{level}", new=level_text(rec, formatter))
+  .replace_all(old="{target}", new=target_text(rec, formatter))
+  .replace_all(
+    old="{message}",
+    new=render_inline_markup(rec.message, formatter),
+  )
+  .replace_all(old="{fields}", new=fields_text(rec, formatter))
+  .trim()
+  .to_owned()
 }
 
-pub fn format_text(rec : @core.Record, formatter~ : TextFormatter = text_formatter()) -> String {
+///|
+pub fn format_text(
+  rec : @core.Record,
+  formatter? : TextFormatter = text_formatter(),
+) -> String {
   if formatter.template != "" {
     return render_template(rec, formatter)
   }
@@ -957,6 +1128,7 @@ pub fn format_text(rec : @core.Record, formatter~ : TextFormatter = text_formatt
   }
 }
 
+///|
 pub fn format_json(rec : @core.Record) -> String {
   let obj : Map[String, Json] = {
     "level": Json::string(rec.level.label()),

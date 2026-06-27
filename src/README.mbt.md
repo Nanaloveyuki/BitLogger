@@ -19,13 +19,17 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 
 ## Example / 示例
 
-```moonbit
+```moonbit nocheck
+///|
 test {
   let logger = build_logger(
     text_console(
       min_level=Level::Debug,
       target="demo",
-      text_formatter=TextFormatterConfig::new(show_timestamp=false, separator=" | "),
+      text_formatter=TextFormatterConfig::new(
+        show_timestamp=false,
+        separator=" | ",
+      ),
     ),
   )
   logger.info("starting", fields=[field("port", "8080")])
@@ -76,7 +80,9 @@ Project command note / 项目命令说明:
   - `console_basic` / `text_formatter` / `style_tags` / `config_build` / `presets` are the portable-first set
   - `console_basic` / `text_formatter` / `style_tags` / `config_build` / `presets` 是 portable-first 示例集
   - `file_rotation` is native-sensitive, and `async_basic` stays native-only because of the current `async fn main` entry limitation
+  - `async_basic` currently relies on `moonbitlang/async`, whose upstream README only claims native/LLVM support on Linux/MacOS; do not treat Windows native as a supported baseline for this example until upstream support is stated clearly
   - `file_rotation` 是 native-sensitive，`async_basic` 的 native-only 限制来自当前 `async fn main` 入口能力
+  - `async_basic` 当前依赖 `moonbitlang/async`，其上游 README 目前只明确承诺 Linux/MacOS 的 native/LLVM 支持；在上游明确支持之前，不要把 Windows native 当作这个示例的支持基线
 - package-level API docs / 单接口 API 文档:
   - `../docs/api/`
 - common entry points / 常用入口:

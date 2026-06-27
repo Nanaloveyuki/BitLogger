@@ -1,20 +1,24 @@
+///|
 pub(all) enum AsyncOverflowPolicy {
   Blocking
   DropOldest
   DropNewest
 }
 
+///|
 pub(all) enum AsyncFlushPolicy {
   Never
   Batch
   Shutdown
 }
 
+///|
 pub enum AsyncRuntimeMode {
   NativeWorker
   Compatibility
 }
 
+///|
 pub fn async_runtime_mode_label(mode : AsyncRuntimeMode) -> String {
   match mode {
     AsyncRuntimeMode::NativeWorker => "native_worker"
@@ -22,19 +26,23 @@ pub fn async_runtime_mode_label(mode : AsyncRuntimeMode) -> String {
   }
 }
 
+///|
 pub fn native_worker_async_runtime_mode() -> AsyncRuntimeMode {
   AsyncRuntimeMode::NativeWorker
 }
 
+///|
 pub fn compatibility_async_runtime_mode() -> AsyncRuntimeMode {
   AsyncRuntimeMode::Compatibility
 }
 
+///|
 pub struct AsyncRuntimeState {
   mode : AsyncRuntimeMode
   background_worker : Bool
 }
 
+///|
 pub fn AsyncRuntimeState::new(
   mode : AsyncRuntimeMode,
   background_worker : Bool,
@@ -42,6 +50,7 @@ pub fn AsyncRuntimeState::new(
   { mode, background_worker }
 }
 
+///|
 pub struct AsyncLoggerState {
   runtime : AsyncRuntimeState
   pending_count : Int
@@ -53,6 +62,7 @@ pub struct AsyncLoggerState {
   flush_policy : AsyncFlushPolicy
 }
 
+///|
 pub fn AsyncLoggerState::new(
   runtime : AsyncRuntimeState,
   pending_count : Int,
@@ -75,16 +85,20 @@ pub fn AsyncLoggerState::new(
   }
 }
 
-pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> @json_parser.JsonValue {
+///|
+pub fn async_runtime_state_to_json(
+  state : AsyncRuntimeState,
+) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "mode": @json_parser.JsonValue::String(async_runtime_mode_label(state.mode)),
     "background_worker": @json_parser.JsonValue::Bool(state.background_worker),
   })
 }
 
+///|
 pub fn stringify_async_runtime_state(
   state : AsyncRuntimeState,
-  pretty~ : Bool = false,
+  pretty? : Bool = false,
 ) -> String {
   let value = async_runtime_state_to_json(state)
   if pretty {
@@ -94,6 +108,7 @@ pub fn stringify_async_runtime_state(
   }
 }
 
+///|
 fn async_flush_policy_label(policy : AsyncFlushPolicy) -> String {
   match policy {
     AsyncFlushPolicy::Never => "Never"
@@ -102,26 +117,39 @@ fn async_flush_policy_label(policy : AsyncFlushPolicy) -> String {
   }
 }
 
-fn async_logger_state_to_json_value(state : AsyncLoggerState) -> @json_parser.JsonValue {
+///|
+fn async_logger_state_to_json_value(
+  state : AsyncLoggerState,
+) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "runtime": async_runtime_state_to_json(state.runtime),
-    "pending_count": @json_parser.JsonValue::Number(state.pending_count.to_double()),
-    "dropped_count": @json_parser.JsonValue::Number(state.dropped_count.to_double()),
+    "pending_count": @json_parser.JsonValue::Number(
+      state.pending_count.to_double(),
+    ),
+    "dropped_count": @json_parser.JsonValue::Number(
+      state.dropped_count.to_double(),
+    ),
     "is_closed": @json_parser.JsonValue::Bool(state.is_closed),
     "is_running": @json_parser.JsonValue::Bool(state.is_running),
     "has_failed": @json_parser.JsonValue::Bool(state.has_failed),
     "last_error": @json_parser.JsonValue::String(state.last_error),
-    "flush_policy": @json_parser.JsonValue::String(async_flush_policy_label(state.flush_policy)),
+    "flush_policy": @json_parser.JsonValue::String(
+      async_flush_policy_label(state.flush_policy),
+    ),
   })
 }
 
-pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.JsonValue {
+///|
+pub fn async_logger_state_to_json(
+  state : AsyncLoggerState,
+) -> @json_parser.JsonValue {
   async_logger_state_to_json_value(state)
 }
 
+///|
 pub fn stringify_async_logger_state(
   state : AsyncLoggerState,
-  pretty~ : Bool = false,
+  pretty? : Bool = false,
 ) -> String {
   let value = async_logger_state_to_json_value(state)
   if pretty {
@@ -131,6 +159,7 @@ pub fn stringify_async_logger_state(
   }
 }
 
+///|
 pub struct AsyncLoggerConfig {
   max_pending : Int
   overflow : AsyncOverflowPolicy
@@ -139,22 +168,32 @@ pub struct AsyncLoggerConfig {
   flush : AsyncFlushPolicy
 }
 
+///|
 pub fn AsyncLoggerConfig::new(
-  max_pending~ : Int = 0,
-  overflow~ : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
-  max_batch~ : Int = 1,
-  linger_ms~ : Int = 0,
-  flush~ : AsyncFlushPolicy = AsyncFlushPolicy::Never,
+  max_pending? : Int = 0,
+  overflow? : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
+  max_batch? : Int = 1,
+  linger_ms? : Int = 0,
+  flush? : AsyncFlushPolicy = AsyncFlushPolicy::Never,
 ) -> AsyncLoggerConfig {
   {
     max_pending,
     overflow,
-    max_batch: if max_batch <= 1 { 1 } else { max_batch },
-    linger_ms: if linger_ms < 0 { 0 } else { linger_ms },
+    max_batch: if max_batch <= 1 {
+      1
+    } else {
+      max_batch
+    },
+    linger_ms: if linger_ms < 0 {
+      0
+    } else {
+      linger_ms
+    },
     flush,
   }
 }
 
+///|
 fn parse_async_overflow(name : String) -> AsyncOverflowPolicy raise {
   match name.to_upper() {
     "BLOCKING" => AsyncOverflowPolicy::Blocking
@@ -165,6 +204,7 @@ fn parse_async_overflow(name : String) -> AsyncOverflowPolicy raise {
   }
 }
 
+///|
 fn parse_async_flush(name : String) -> AsyncFlushPolicy raise {
   match name.to_upper() {
     "NEVER" => AsyncFlushPolicy::Never
@@ -175,75 +215,100 @@ fn parse_async_flush(name : String) -> AsyncFlushPolicy raise {
   }
 }
 
-pub fn parse_async_logger_config_text(input : String) -> AsyncLoggerConfig raise {
+///|
+pub fn parse_async_logger_config_text(
+  input : String,
+) -> AsyncLoggerConfig raise {
   let root = @json_parser.parse(input)
   let obj = match root.as_object() {
     Some(obj) => obj
     None => raise Failure::Failure("Expected object for async logger config")
   }
   let max_pending = match obj.get("max_pending") {
-    Some(value) => match value.as_number() {
-      Some(number) => number.to_int()
-      None => raise Failure::Failure("Expected number at async_config.max_pending")
-    }
+    Some(value) =>
+      match value.as_number() {
+        Some(number) => number.to_int()
+        None =>
+          raise Failure::Failure("Expected number at async_config.max_pending")
+      }
     None => 0
   }
   let overflow = match obj.get("overflow") {
-    Some(value) => match value.as_string() {
-      Some(text) => parse_async_overflow(text)
-      None => raise Failure::Failure("Expected string at async_config.overflow")
-    }
+    Some(value) =>
+      match value.as_string() {
+        Some(text) => parse_async_overflow(text)
+        None =>
+          raise Failure::Failure("Expected string at async_config.overflow")
+      }
     None => AsyncOverflowPolicy::Blocking
   }
   let max_batch = match obj.get("max_batch") {
-    Some(value) => match value.as_number() {
-      Some(number) => number.to_int()
-      None => raise Failure::Failure("Expected number at async_config.max_batch")
-    }
+    Some(value) =>
+      match value.as_number() {
+        Some(number) => number.to_int()
+        None =>
+          raise Failure::Failure("Expected number at async_config.max_batch")
+      }
     None => 1
   }
   let linger_ms = match obj.get("linger_ms") {
-    Some(value) => match value.as_number() {
-      Some(number) => number.to_int()
-      None => raise Failure::Failure("Expected number at async_config.linger_ms")
-    }
+    Some(value) =>
+      match value.as_number() {
+        Some(number) => number.to_int()
+        None =>
+          raise Failure::Failure("Expected number at async_config.linger_ms")
+      }
     None => 0
   }
   let flush = match obj.get("flush") {
-    Some(value) => match value.as_string() {
-      Some(text) => parse_async_flush(text)
-      None => raise Failure::Failure("Expected string at async_config.flush")
-    }
+    Some(value) =>
+      match value.as_string() {
+        Some(text) => parse_async_flush(text)
+        None => raise Failure::Failure("Expected string at async_config.flush")
+      }
     None => AsyncFlushPolicy::Never
   }
   AsyncLoggerConfig::new(
-    max_pending=max_pending,
-    overflow=overflow,
-    max_batch=max_batch,
-    linger_ms=linger_ms,
-    flush=flush,
+    max_pending~,
+    overflow~,
+    max_batch~,
+    linger_ms~,
+    flush~,
   )
 }
 
-pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.JsonValue {
+///|
+pub fn async_logger_config_to_json(
+  config : AsyncLoggerConfig,
+) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
-    "max_pending": @json_parser.JsonValue::Number(config.max_pending.to_double()),
+    "max_pending": @json_parser.JsonValue::Number(
+      config.max_pending.to_double(),
+    ),
     "max_batch": @json_parser.JsonValue::Number(config.max_batch.to_double()),
     "linger_ms": @json_parser.JsonValue::Number(config.linger_ms.to_double()),
-    "overflow": @json_parser.JsonValue::String(match config.overflow {
-      AsyncOverflowPolicy::Blocking => "Blocking"
-      AsyncOverflowPolicy::DropOldest => "DropOldest"
-      AsyncOverflowPolicy::DropNewest => "DropNewest"
-    }),
-    "flush": @json_parser.JsonValue::String(match config.flush {
-      AsyncFlushPolicy::Never => "Never"
-      AsyncFlushPolicy::Batch => "Batch"
-      AsyncFlushPolicy::Shutdown => "Shutdown"
-    }),
+    "overflow": @json_parser.JsonValue::String(
+      match config.overflow {
+        AsyncOverflowPolicy::Blocking => "Blocking"
+        AsyncOverflowPolicy::DropOldest => "DropOldest"
+        AsyncOverflowPolicy::DropNewest => "DropNewest"
+      },
+    ),
+    "flush": @json_parser.JsonValue::String(
+      match config.flush {
+        AsyncFlushPolicy::Never => "Never"
+        AsyncFlushPolicy::Batch => "Batch"
+        AsyncFlushPolicy::Shutdown => "Shutdown"
+      },
+    ),
   })
 }
 
-pub fn stringify_async_logger_config(config : AsyncLoggerConfig, pretty~ : Bool = false) -> String {
+///|
+pub fn stringify_async_logger_config(
+  config : AsyncLoggerConfig,
+  pretty? : Bool = false,
+) -> String {
   let value = async_logger_config_to_json(config)
   if pretty {
     @json_parser.stringify_pretty(value, 2)
@@ -252,35 +317,45 @@ pub fn stringify_async_logger_config(config : AsyncLoggerConfig, pretty~ : Bool 
   }
 }
 
+///|
 pub struct AsyncLoggerBuildConfig {
   logger : @bitlogger.LoggerConfig
   async_config : AsyncLoggerConfig
 }
 
+///|
 pub fn AsyncLoggerBuildConfig::new(
-  logger~ : @bitlogger.LoggerConfig = @bitlogger.default_logger_config(),
-  async_config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
+  logger? : @bitlogger.LoggerConfig = @bitlogger.default_logger_config(),
+  async_config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
 ) -> AsyncLoggerBuildConfig {
   { logger, async_config }
 }
 
-pub fn parse_async_logger_build_config_text(input : String) -> AsyncLoggerBuildConfig raise {
+///|
+pub fn parse_async_logger_build_config_text(
+  input : String,
+) -> AsyncLoggerBuildConfig raise {
   let root = @json_parser.parse(input)
   let obj = match root.as_object() {
     Some(obj) => obj
-    None => raise Failure::Failure("Expected object at async logger build config root")
+    None =>
+      raise Failure::Failure(
+        "Expected object at async logger build config root",
+      )
   }
   let logger = match obj.get("logger") {
-    Some(value) => @bitlogger.parse_logger_config_text(@json_parser.stringify(value))
+    Some(value) =>
+      @bitlogger.parse_logger_config_text(@json_parser.stringify(value))
     None => @bitlogger.default_logger_config()
   }
   let async_config = match obj.get("async_config") {
     Some(value) => parse_async_logger_config_text(@json_parser.stringify(value))
     None => AsyncLoggerConfig::new()
   }
-  AsyncLoggerBuildConfig::new(logger=logger, async_config=async_config)
+  AsyncLoggerBuildConfig::new(logger~, async_config~)
 }
 
+///|
 pub fn async_logger_build_config_to_json(
   config : AsyncLoggerBuildConfig,
 ) -> @json_parser.JsonValue {
@@ -290,9 +365,10 @@ pub fn async_logger_build_config_to_json(
   })
 }
 
+///|
 pub fn stringify_async_logger_build_config(
   config : AsyncLoggerBuildConfig,
-  pretty~ : Bool = false,
+  pretty? : Bool = false,
 ) -> String {
   let value = async_logger_build_config_to_json(config)
   if pretty {
