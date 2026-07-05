@@ -30,6 +30,14 @@ pub fn file_rotation(max_bytes : Int, max_backups? : Int = 1) -> FileRotation {
 }
 
 ///|
+pub fn file_rotation_i64(
+  max_bytes : Int64,
+  max_backups? : Int = 1,
+) -> FileRotation {
+  @utils.file_rotation_i64(max_bytes, max_backups~)
+}
+
+///|
 pub fn native_files_supported() -> Bool {
   native_files_supported_internal()
 }
@@ -216,8 +224,18 @@ fn policy_rotation_equals_internal(
   match (left, right) {
     (None, None) => true
     (Some(a), Some(b)) =>
-      a.max_bytes == b.max_bytes && a.max_backups == b.max_backups
+      a.max_bytes == b.max_bytes &&
+      a.max_backups == b.max_backups &&
+      a.native_wide_max_bytes == b.native_wide_max_bytes
     _ => false
+  }
+}
+
+///|
+fn rotation_max_bytes_internal(rotation : FileRotation) -> Int64 {
+  match rotation.native_wide_max_bytes {
+    Some(value) => value
+    None => rotation.max_bytes.to_int64()
   }
 }
 
@@ -316,8 +334,9 @@ fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
       match sink.handle.val {
         None => false
         Some(handle) => {
-          let size = file_size_internal(handle)
-          if size + next_line_bytes <= rotation.max_bytes {
+          let size = file_size_i64_internal(handle)
+          let next_line = next_line_bytes.to_int64()
+          if size + next_line <= rotation_max_bytes_internal(rotation) {
             true
           } else {
             let rotated = rotate_file_sink_internal(sink, rotation)

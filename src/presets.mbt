@@ -110,3 +110,29 @@ pub fn with_file_rotation(
     _ => config
   }
 }
+
+///|
+pub fn with_file_rotation_i64(
+  config : LoggerConfig,
+  max_bytes : Int64,
+  max_backups? : Int = 1,
+) -> LoggerConfig {
+  match config.sink.kind {
+    SinkKind::File =>
+      LoggerConfig::new(
+        min_level=config.min_level,
+        target=config.target,
+        timestamp=config.timestamp,
+        sink=SinkConfig::new(
+          kind=config.sink.kind,
+          path=config.sink.path,
+          append=config.sink.append,
+          auto_flush=config.sink.auto_flush,
+          rotation=Some(file_rotation_i64(max_bytes, max_backups~)),
+          text_formatter=config.sink.text_formatter,
+        ),
+        queue=config.queue,
+      )
+    _ => config
+  }
+}

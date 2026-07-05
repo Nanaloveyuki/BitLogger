@@ -2,6 +2,7 @@
 pub struct FileRotation {
   max_bytes : Int
   max_backups : Int
+  native_wide_max_bytes : Int64?
 }
 
 ///|
@@ -71,6 +72,29 @@ pub fn file_rotation(max_bytes : Int, max_backups? : Int = 1) -> FileRotation {
     } else {
       max_backups
     },
+    native_wide_max_bytes: None,
+  }
+}
+
+///|
+pub fn file_rotation_i64(
+  max_bytes : Int64,
+  max_backups? : Int = 1,
+) -> FileRotation {
+  let normalized = if max_bytes <= 0L { 1L } else { max_bytes }
+  let clamped_max_bytes = if normalized > 2147483647L {
+    2147483647
+  } else {
+    normalized.to_int()
+  }
+  {
+    max_bytes: clamped_max_bytes,
+    max_backups: if max_backups <= 0 {
+      1
+    } else {
+      max_backups
+    },
+    native_wide_max_bytes: Some(normalized),
   }
 }
 

@@ -577,6 +577,17 @@ test "file sink rotation config normalizes invalid inputs" {
 }
 
 ///|
+test "file rotation i64 preserves wide threshold metadata" {
+  let rotation = file_rotation_i64(4294967296L, max_backups=2)
+  inspect(rotation.max_bytes, content="2147483647")
+  inspect(rotation.max_backups, content="2")
+  match rotation.native_wide_max_bytes {
+    Some(value) => inspect(value, content="4294967296")
+    None => inspect(false, content="true")
+  }
+}
+
+///|
 test "file sink setters update auto flush and rotation state" {
   let sink = file_sink("bitlogger-setters.log")
   let default_policy = sink.default_policy()

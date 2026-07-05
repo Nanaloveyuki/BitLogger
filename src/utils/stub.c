@@ -37,9 +37,13 @@ int32_t bitlogger_file_seek(void *handle, int32_t offset, int32_t origin) {
   return fseek((FILE *)handle, offset, origin);
 }
 
-int32_t bitlogger_file_tell(void *handle) {
-  long position = ftell((FILE *)handle);
-  return position < 0 ? -1 : (int32_t)position;
+int64_t bitlogger_file_tell_i64(void *handle) {
+#if defined(_WIN32)
+  __int64 position = _ftelli64((FILE *)handle);
+#else
+  long long position = ftello((FILE *)handle);
+#endif
+  return position < 0 ? -1 : (int64_t)position;
 }
 
 int32_t bitlogger_file_rename(const char *from_path, const char *to_path) {

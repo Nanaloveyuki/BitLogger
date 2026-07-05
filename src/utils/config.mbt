@@ -246,6 +246,30 @@ fn get_int(
 }
 
 ///|
+fn get_optional_int64_string(
+  obj : Map[String, @json_parser.JsonValue],
+  key : String,
+) -> Int64? raise ConfigError {
+  match obj.get(key) {
+    None => None
+    Some(value) =>
+      match value.as_string() {
+        Some(text) =>
+          Some(
+            @string.parse_int64(text) catch {
+              _ =>
+                raise ConfigError::InvalidConfig(
+                  "Expected int64 string at key " + key,
+                )
+            },
+          )
+        None =>
+          raise ConfigError::InvalidConfig("Expected string at key " + key)
+      }
+  }
+}
+
+///|
 fn parse_level(name : String) -> @core.Level raise ConfigError {
   match name.to_upper() {
     "TRACE" => @core.Level::Trace
@@ -403,10 +427,11 @@ fn parse_file_rotation_config(
   value : @json_parser.JsonValue,
 ) -> FileRotation raise ConfigError {
   let obj = expect_object(value, "sink.rotation")
-  file_rotation(
-    get_int(obj, "max_bytes", default=1),
-    max_backups=get_int(obj, "max_backups", default=1),
-  )
+  let max_backups = get_int(obj, "max_backups", default=1)
+  match get_optional_int64_string(obj, "max_bytes_i64") {
+    Some(max_bytes_i64) => file_rotation_i64(max_bytes_i64, max_backups~)
+    None => file_rotation(get_int(obj, "max_bytes", default=1), max_backups~)
+  }
 }
 
 ///|
@@ -570,12 +595,18 @@ pub fn stringify_text_formatter_config(
 pub fn file_rotation_config_to_json(
   config : FileRotation,
 ) -> @json_parser.JsonValue {
-  @json_parser.JsonValue::Object({
+  let obj : Map[String, @json_parser.JsonValue] = {
     "max_bytes": @json_parser.JsonValue::Number(config.max_bytes.to_double()),
     "max_backups": @json_parser.JsonValue::Number(
       config.max_backups.to_double(),
     ),
-  })
+  }
+  match config.native_wide_max_bytes {
+    Some(value) =>
+      obj["max_bytes_i64"] = @json_parser.JsonValue::String(value.to_string())
+    None => ()
+  }
+  @json_parser.JsonValue::Object(obj)
 }
 
 ///|

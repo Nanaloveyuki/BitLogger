@@ -161,6 +161,28 @@ test "queue helper preserves file rotation when applied after rotation" {
 }
 
 ///|
+test "file rotation i64 helper preserves file preset shape" {
+  let config = with_file_rotation_i64(
+    with_queue(file("service.log", append=false), max_pending=8),
+    4294967296L,
+    max_backups=2,
+  )
+  inspect(config.sink.path, content="service.log")
+  inspect(config.sink.append, content="false")
+  match config.sink.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="2147483647")
+      inspect(rotation.max_backups, content="2")
+      match rotation.native_wide_max_bytes {
+        Some(value) => inspect(value, content="4294967296")
+        None => inspect(false, content="true")
+      }
+    }
+    None => inspect(false, content="true")
+  }
+}
+
+///|
 test "file rotation helper leaves non-file presets unchanged" {
   let console_config = with_file_rotation(
     console(target="console"),

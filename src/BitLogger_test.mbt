@@ -147,6 +147,23 @@ test "logger config parser reads file rotation options" {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="128")
       inspect(rotation.max_backups, content="3")
+      inspect(rotation.native_wide_max_bytes is None, content="true")
+    }
+    None => inspect(false, content="true")
+  }
+}
+
+///|
+test "logger config parser prefers max_bytes_i64 when present" {
+  let config = parse_logger_config_text(
+    "{\"sink\":{\"kind\":\"file\",\"path\":\"bitlogger.log\",\"rotation\":{\"max_bytes\":128,\"max_bytes_i64\":\"4294967296\",\"max_backups\":3}}}",
+  )
+  inspect(config.sink.path, content="bitlogger.log")
+  match config.sink.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="2147483647")
+      inspect(rotation.max_backups, content="3")
+      inspect(rotation.native_wide_max_bytes.unwrap(), content="4294967296")
     }
     None => inspect(false, content="true")
   }
@@ -376,6 +393,30 @@ test "logger config stringify roundtrips file rotation fields" {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="256")
       inspect(rotation.max_backups, content="2")
+      inspect(rotation.native_wide_max_bytes is None, content="true")
+    }
+    None => inspect(false, content="true")
+  }
+}
+
+///|
+test "logger config stringify roundtrips file rotation i64 metadata" {
+  let text = stringify_logger_config(
+    LoggerConfig::new(
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="bitlogger.log",
+        rotation=Some(file_rotation_i64(4294967296L, max_backups=2)),
+      ),
+    ),
+  )
+  let config = parse_logger_config_text(text)
+  inspect(config.sink.path, content="bitlogger.log")
+  match config.sink.rotation {
+    Some(rotation) => {
+      inspect(rotation.max_bytes, content="2147483647")
+      inspect(rotation.max_backups, content="2")
+      inspect(rotation.native_wide_max_bytes.unwrap(), content="4294967296")
     }
     None => inspect(false, content="true")
   }
@@ -424,6 +465,14 @@ test "config subtype json helpers stringify stable shapes" {
       ),
     ),
     content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\",\"color_support\":\"truecolor\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
+  )
+  inspect(
+    @json_parser.stringify(
+      file_rotation_config_to_json(
+        file_rotation_i64(4294967296L, max_backups=2),
+      ),
+    ),
+    content="{\"max_bytes\":2147483647,\"max_backups\":2,\"max_bytes_i64\":\"4294967296\"}",
   )
 }
 
@@ -558,6 +607,24 @@ test "config json helpers export stable structured shapes" {
   inspect(
     rotation_obj.get("max_backups").unwrap().as_number().unwrap().to_int(),
     content="2",
+  )
+  inspect(rotation_obj.get("max_bytes_i64") is None, content="true")
+
+  let wide_rotation_json = file_rotation_config_to_json(
+    file_rotation_i64(4294967296L, max_backups=3),
+  )
+  let wide_rotation_obj = wide_rotation_json.as_object().unwrap()
+  inspect(
+    wide_rotation_obj.get("max_bytes").unwrap().as_number().unwrap().to_int(),
+    content="2147483647",
+  )
+  inspect(
+    wide_rotation_obj.get("max_backups").unwrap().as_number().unwrap().to_int(),
+    content="3",
+  )
+  inspect(
+    wide_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    content="4294967296",
   )
 
   let logger_json = logger_config_to_json(
@@ -1614,6 +1681,16 @@ test "file state json helpers stringify stable snapshots" {
     rotation_obj.get("max_backups").unwrap().as_number().unwrap().to_int(),
     content="2",
   )
+  inspect(rotation_obj.get("max_bytes_i64") is None, content="true")
+
+  let wide_rotation_json = file_rotation_config_to_json(
+    file_rotation_i64(4294967296L, max_backups=2),
+  )
+  let wide_rotation_obj = wide_rotation_json.as_object().unwrap()
+  inspect(
+    wide_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    content="4294967296",
+  )
 
   let plain = file_sink_state_to_json(
     FileSinkState::new(
@@ -1674,6 +1751,48 @@ test "file state json helpers stringify stable snapshots" {
   inspect(
     plain_rotation_obj.get("max_backups").unwrap().as_number().unwrap().to_int(),
     content="2",
+  )
+
+  let wide = file_sink_state_to_json(
+    FileSinkState::new(
+      "wide.log",
+      available=true,
+      append=true,
+      auto_flush=false,
+      rotation=Some(file_rotation_i64(4294967296L, max_backups=3)),
+      open_failures=0,
+      write_failures=0,
+      flush_failures=0,
+      rotation_failures=0,
+    ),
+  )
+  let wide_obj = wide.as_object().unwrap()
+  let wide_state_rotation_obj = wide_obj
+    .get("rotation")
+    .unwrap()
+    .as_object()
+    .unwrap()
+  inspect(
+    wide_state_rotation_obj
+    .get("max_bytes")
+    .unwrap()
+    .as_number()
+    .unwrap()
+    .to_int(),
+    content="2147483647",
+  )
+  inspect(
+    wide_state_rotation_obj
+    .get("max_backups")
+    .unwrap()
+    .as_number()
+    .unwrap()
+    .to_int(),
+    content="3",
+  )
+  inspect(
+    wide_state_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    content="4294967296",
   )
   inspect(
     stringify_file_sink_state(
@@ -1759,6 +1878,58 @@ test "runtime file state json helpers stringify queue snapshots" {
     json,
     content="{\"file\":{\"path\":\"queue.log\",\"available\":true,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":1,\"flush_failures\":2,\"rotation_failures\":3,\"rotation\":null},\"queued\":true,\"pending_count\":7,\"dropped_count\":5}",
   )
+
+  let wide_runtime_json = runtime_file_state_to_json(
+    RuntimeFileState::new(
+      FileSinkState::new(
+        "wide-queue.log",
+        available=true,
+        append=true,
+        auto_flush=true,
+        rotation=Some(file_rotation_i64(4294967296L, max_backups=2)),
+        open_failures=0,
+        write_failures=0,
+        flush_failures=0,
+        rotation_failures=0,
+      ),
+      queued=false,
+      pending_count=0,
+      dropped_count=0,
+    ),
+  )
+  let wide_runtime_obj = wide_runtime_json.as_object().unwrap()
+  let wide_runtime_file_obj = wide_runtime_obj
+    .get("file")
+    .unwrap()
+    .as_object()
+    .unwrap()
+  let wide_runtime_rotation_obj = wide_runtime_file_obj
+    .get("rotation")
+    .unwrap()
+    .as_object()
+    .unwrap()
+  inspect(
+    wide_runtime_rotation_obj
+    .get("max_bytes")
+    .unwrap()
+    .as_number()
+    .unwrap()
+    .to_int(),
+    content="2147483647",
+  )
+  inspect(
+    wide_runtime_rotation_obj
+    .get("max_backups")
+    .unwrap()
+    .as_number()
+    .unwrap()
+    .to_int(),
+    content="2",
+  )
+  inspect(
+    wide_runtime_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    content="4294967296",
+  )
 }
 
 ///|
@@ -1797,6 +1968,42 @@ test "file sink policy json helpers stringify stable policies" {
     .unwrap()
     .to_int(),
     content="3",
+  )
+
+  let wide_policy_json = file_sink_policy_to_json(
+    FileSinkPolicy::new(
+      append=true,
+      auto_flush=false,
+      rotation=Some(file_rotation_i64(4294967296L, max_backups=4)),
+    ),
+  )
+  let wide_policy_obj = wide_policy_json.as_object().unwrap()
+  let wide_policy_rotation_obj = wide_policy_obj
+    .get("rotation")
+    .unwrap()
+    .as_object()
+    .unwrap()
+  inspect(
+    wide_policy_rotation_obj
+    .get("max_bytes")
+    .unwrap()
+    .as_number()
+    .unwrap()
+    .to_int(),
+    content="2147483647",
+  )
+  inspect(
+    wide_policy_rotation_obj
+    .get("max_backups")
+    .unwrap()
+    .as_number()
+    .unwrap()
+    .to_int(),
+    content="4",
+  )
+  inspect(
+    wide_policy_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    content="4294967296",
   )
   inspect(
     stringify_file_sink_policy(
