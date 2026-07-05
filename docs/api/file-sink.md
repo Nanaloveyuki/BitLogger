@@ -32,7 +32,7 @@ pub fn file_sink(
 - `path : String` - Destination file path.
 - `append : Bool` - Whether opening/reopening should append rather than truncate.
 - `auto_flush : Bool` - Whether flush is attempted after each write.
-- `rotation : FileRotation?` - Optional size-based rotation policy.
+- `rotation : FileRotation?` - Optional size-based rotation policy. The default helper path is `file_rotation(...)`; advanced native large-file callers can also pass a policy created by `file_rotation_i64(...)`.
 - `formatter : RecordFormatter` - Formatter used to render each record before writing.
 
 #### output

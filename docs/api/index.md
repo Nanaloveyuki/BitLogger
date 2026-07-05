@@ -178,6 +178,7 @@ BitLogger API navigation.
 - [file-sink-type.md](./file-sink-type.md)
 - [native-files-supported.md](./native-files-supported.md)
 - [file-rotation.md](./file-rotation.md)
+- [file-rotation-i64.md](./file-rotation-i64.md)
 - [file-rotation-type.md](./file-rotation-type.md)
 - [file-sink-policy-to-json.md](./file-sink-policy-to-json.md)
 - [file-sink-policy.md](./file-sink-policy.md)
@@ -244,6 +245,7 @@ BitLogger API navigation.
 - [file.md](./file.md)
 - [with-queue.md](./with-queue.md)
 - [with-file-rotation.md](./with-file-rotation.md)
+- [with-file-rotation-i64.md](./with-file-rotation-i64.md)
 
 ## Async logger
 

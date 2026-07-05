@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This helper exports runtime file policy, not current file health counters or availability.
 - The JSON value is useful for policy snapshots, comparisons, and diagnostics payloads.
 - Typical inputs come from `FileSink::policy()`, `RuntimeSink::file_policy()`, or `ConfiguredLogger::file_policy()`.
+- If the active rotation policy originated from `file_rotation_i64(...)`, the nested rotation JSON includes both the compatibility `max_bytes` number and `max_bytes_i64` as the exact string form.
 
 ### How to Use
 
@@ -74,3 +75,5 @@ e.g.:
 1. Use this helper when downstream code expects `JsonValue` rather than text.
 
 2. It pairs naturally with `FileSink::policy()`, `RuntimeSink::file_policy()`, and related default-policy accessors.
+
+3. For wide native rotation policies, downstream code should read `rotation.max_bytes_i64` when exact threshold recovery matters.

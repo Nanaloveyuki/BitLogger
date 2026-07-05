@@ -38,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 - This helper exports state snapshots, not mutable runtime control handles.
 - It is useful when file sink state should be embedded into larger diagnostics payloads.
 - Typical inputs come from `FileSink::state()`, `RuntimeSink::file_state()`, or `ConfiguredLogger::file_state()`.
+- If the live rotation policy was created from `file_rotation_i64(...)`, the nested `rotation` JSON includes `max_bytes_i64` as a string alongside the compatibility `max_bytes` number.
 
 ### How to Use
 
@@ -73,3 +74,5 @@ e.g.:
 1. Use this helper when diagnostics consumers expect `JsonValue`.
 
 2. It pairs naturally with `FileSink::state()`, `RuntimeSink::file_state()`, and `ConfiguredLogger::file_state()`.
+
+3. For wide native rotation policies, `rotation.max_bytes_i64` is the exact roundtrip field.

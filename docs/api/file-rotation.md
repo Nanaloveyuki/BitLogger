@@ -38,6 +38,9 @@ Detailed rules explaining key parameters and behaviors
 - `max_backups <= 0` is normalized to `1`.
 - Rotation is size-based only.
 - This policy is consumed by `file_sink(...)`, file policy helpers, and config-driven file sink assembly.
+- The default `max_bytes : Int` path follows the current 32-bit `Int` contract used by the standard file rotation APIs.
+- On native targets, that default path is intended for ordinary log-file ranges rather than explicit large-file guarantees beyond the 32-bit `Int` boundary.
+- If a native large-file threshold is required, prefer `file_rotation_i64(...)`.
 
 ### How to Use
 
@@ -78,4 +81,6 @@ e.g.:
 1. This API defines policy only; it does not open files by itself.
 
 2. Rotation currently focuses on size thresholds rather than time schedules or compression.
+
+3. The default API keeps the portable `Int`-based contract stable; the wider native-only path is exposed separately through `file_rotation_i64(...)`.
 

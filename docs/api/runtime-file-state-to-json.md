@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `file` is itself exported as a nested file sink state object.
 - This helper is richer than `file_sink_state_to_json(...)` because it also carries queue wrapping context.
 - It is useful for `RuntimeSink::file_runtime_state()`, `ConfiguredLogger::file_runtime_state()`, and similar queued-file diagnostics flows.
+- Any `file_rotation_i64(...)` policy nested under `file` includes both the compatibility `max_bytes` number and `max_bytes_i64` as a string.
 
 ### How to Use
 
@@ -78,3 +79,5 @@ e.g.:
 1. Use this helper when file and queue runtime context should stay together.
 
 2. It is especially useful for queued file runtime paths, whether accessed directly or through configured loggers.
+
+3. For wide native rotation policies nested under `file.rotation`, use `max_bytes_i64` when exact threshold recovery matters.
