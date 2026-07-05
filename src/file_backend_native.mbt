@@ -22,8 +22,8 @@ fn close_file_handle_internal(handle : FileHandle) -> Bool {
 }
 
 ///|
-fn file_size_internal(handle : FileHandle) -> Int {
-  @utils.file_size_internal(handle)
+fn file_size_i64_internal(handle : FileHandle) -> Int64 {
+  @utils.file_size_i64_internal(handle)
 }
 
 ///|

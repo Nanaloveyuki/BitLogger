@@ -35,9 +35,9 @@ pub fn close_file_handle_internal(handle : FileHandle) -> Bool {
 }
 
 ///|
-pub fn file_size_internal(handle : FileHandle) -> Int {
+pub fn file_size_i64_internal(handle : FileHandle) -> Int64 {
   ignore(handle)
-  0
+  0L
 }
 
 ///|

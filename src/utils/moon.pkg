@@ -4,6 +4,7 @@ import {
   "moonbitlang/core/env",
   "moonbitlang/core/json",
   "moonbitlang/core/ref",
+  "moonbitlang/core/string",
 }
 
 options(

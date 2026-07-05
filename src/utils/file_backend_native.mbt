@@ -66,7 +66,7 @@ extern "C" fn file_seek_ffi(
 ) -> Int = "bitlogger_file_seek"
 
 ///|
-extern "C" fn file_tell_ffi(handle : NativeFileHandle) -> Int = "bitlogger_file_tell"
+extern "C" fn file_tell_i64_ffi(handle : NativeFileHandle) -> Int64 = "bitlogger_file_tell_i64"
 
 ///|
 #borrow(from_path, to_path)
@@ -114,11 +114,11 @@ pub fn close_file_handle_internal(handle : FileHandle) -> Bool {
 }
 
 ///|
-pub fn file_size_internal(handle : FileHandle) -> Int {
+pub fn file_size_i64_internal(handle : FileHandle) -> Int64 {
   ignore(file_seek_ffi(handle.raw, 0, 2))
-  let size = file_tell_ffi(handle.raw)
-  if size < 0 {
-    0
+  let size = file_tell_i64_ffi(handle.raw)
+  if size < 0L {
+    0L
   } else {
     size
   }
