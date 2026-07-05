@@ -4,6 +4,7 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库，适合命令行�
 
 - [Mooncake 文档页](https://mooncakes.io/docs/Nanaloveyuki/BitLogger)
 - [English README](./docs/README-en.md)
+- [Wiki](https://bitlogger.naloveyuki.top)
 
 ## 介绍
 
