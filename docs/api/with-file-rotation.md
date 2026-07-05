@@ -43,6 +43,8 @@ Detailed rules explaining key parameters and behaviors
 - If the input config is not file-based, the helper returns the config unchanged.
 - When the input config is file-based, the helper preserves `min_level`, `target`, `timestamp`, file path, append mode, auto-flush, formatter, and queue settings while replacing `sink.rotation`.
 - Rotation policy creation follows `file_rotation(...)` normalization rules for `max_bytes` and `max_backups`.
+- The default `max_bytes : Int` path keeps the standard 32-bit `Int` contract for config-built file rotation.
+- If a native-only large-file threshold is required, use `with_file_rotation_i64(...)` rather than overloading the default `Int` path.
 
 ### How to Use
 
@@ -84,3 +86,5 @@ e.g.:
 1. This helper is a no-op for `console(...)`, `json_console(...)`, and `text_console(...)` presets.
 
 2. Use `file(...)` when you need to provide the initial file path, because `with_file_rotation(...)` does not create a file sink from a non-file config.
+
+3. The wider `with_file_rotation_i64(...)` path is additive and native-focused; it does not replace the default config contract.

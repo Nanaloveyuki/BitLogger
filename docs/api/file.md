@@ -38,7 +38,7 @@ pub fn file(
 - `timestamp : Bool` - Whether the built logger should emit timestamps.
 - `append : Bool` - Whether file writes should append instead of truncate-on-open behavior.
 - `auto_flush : Bool` - Whether writes should be flushed automatically.
-- `rotation : FileRotation?` - Optional size-based file rotation policy.
+- `rotation : FileRotation?` - Optional size-based file rotation policy. The default `file_rotation(...)` path uses the standard `Int`-based threshold contract, while advanced native large-file callers can opt into `file_rotation_i64(...)`.
 - `text_formatter : TextFormatterConfig` - Formatter config used for file text rendering.
 
 #### output

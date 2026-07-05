@@ -13,7 +13,7 @@ key-word:
 
 ## File-rotation-type
 
-`FileRotation` is the public file sink rotation policy type used for native size-based log file rollover. It is a direct alias to the sink model that stores the byte limit and retained backup count.
+`FileRotation` is the public file sink rotation policy type used for native size-based log file rollover. It is a direct alias to the sink model that stores the standard byte limit, retained backup count, and additive native wide-threshold metadata for the optional `Int64` path.
 
 ### Interface
 
@@ -23,14 +23,14 @@ pub type FileRotation = @utils.FileRotation
 
 #### output
 
-- `FileRotation` - Public file rotation policy object containing `max_bytes` and `max_backups`.
+- `FileRotation` - Public file rotation policy object containing the standard `max_bytes` view, `max_backups`, and additive native wide-threshold support for advanced rotation flows.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a file sink or rotation trigger by itself.
-- The current fields are `max_bytes : Int` and `max_backups : Int`.
+- The current fields are `max_bytes : Int`, `max_backups : Int`, and additive native wide-threshold metadata used by the optional `file_rotation_i64(...)` path.
 - `file_rotation(...)` constructs this type as the main public helper.
 - The same value type is consumed by `file_sink(...)`, `FileSinkPolicy::new(...)`, `SinkConfig`, file runtime inspection APIs, and logger config serialization helpers.
 
@@ -65,6 +65,8 @@ e.g.:
 
 ### Notes
 
-1. Use `file_rotation(...)` when you need a value of this type in code.
+1. Use `file_rotation(...)` when you need the default `Int`-based value of this type in code.
 
-2. Use `native_files_supported()` or the target verification guidance when portability matters across non-native targets.
+2. Use `file_rotation_i64(...)` when a native large-file threshold must exceed the default `Int` contract.
+
+3. Use `native_files_supported()` or the target verification guidance when portability matters across non-native targets.
