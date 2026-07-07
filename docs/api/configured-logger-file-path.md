@@ -2,8 +2,8 @@
 name: configured-logger-file-path
 group: api
 category: runtime
-update-time: 20260512
-description: Read the effective file path used by the configured runtime logger when it is file-backed.
+update-time: 20260707
+description: Read the effective file path used by the configured runtime logger, with a compatibility fallback for non-file sinks.
 key-word:
     - logger
     - runtime
@@ -14,6 +14,8 @@ key-word:
 ## Configured-logger-file-path
 
 Read the effective file path used by a `ConfiguredLogger`. This helper is useful for diagnostics, support output, and confirming which file-backed runtime sink is active.
+
+`file_path()` is the compatibility form. For truthful file-semantics detection, prefer `file_path_or_none()`.
 
 ### Interface
 
@@ -36,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - File-backed sinks return their current file path through the wrapped `RuntimeSink`.
 - Queued file sinks forward the wrapped inner file sink path.
 - Non-file sinks return an empty string.
+- This fallback keeps older callers source-compatible, but it does not truthfully express whether file semantics exist.
+- New diagnostic code should prefer `file_path_or_none()`.
 - This helper is observation-only and does not modify file state.
 
 ### How to Use
@@ -65,10 +69,12 @@ In this example, the path can be surfaced without reading broader runtime state.
 e.g.:
 - If the configured sink is not file-backed, the method returns an empty string.
 
-- If callers need richer file status than just the path, `file_state()` or `file_runtime_state()` is the better API.
+- If callers need a truthful file-semantics check, use `file_path_or_none()`.
+
+- If callers need richer file status than just the path, `file_state_or_none()` or `file_runtime_state()` is the better API.
 
 ### Notes
 
 1. Use this helper for direct runtime path visibility.
 
-2. Empty string usually means the configured sink is not file-backed.
+2. Empty string is a compatibility fallback; `file_path_or_none()` is the recommended truthful API.

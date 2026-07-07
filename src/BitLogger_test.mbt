@@ -1034,6 +1034,7 @@ test "runtime sink plain variants use documented fallback counts" {
 test "runtime sink non-file variants expose documented file fallbacks" {
   let sink = RuntimeSink::Console(console_sink())
   inspect(sink.file_available(), content="false")
+  inspect(sink.file_path_or_none() is None, content="true")
   inspect(sink.file_path(), content="")
   inspect(sink.file_append_mode(), content="false")
   inspect(sink.file_auto_flush(), content="false")
@@ -1059,8 +1060,11 @@ test "runtime sink non-file variants expose documented file fallbacks" {
   inspect(sink.file_reset_policy(), content="false")
   inspect(sink.file_flush(), content="false")
   inspect(sink.file_close(), content="false")
+  inspect(sink.file_policy_or_none() is None, content="true")
+  inspect(sink.file_default_policy_or_none() is None, content="true")
   let policy = sink.file_policy()
   let defaults = sink.file_default_policy()
+  inspect(sink.file_state_or_none() is None, content="true")
   let state = sink.file_state()
   inspect(policy.append, content="false")
   inspect(policy.auto_flush, content="false")
@@ -1091,10 +1095,28 @@ test "runtime sink plain file helpers expose direct file state and policy" {
     ),
   )
   inspect(sink.file_available() == native_files_supported(), content="true")
+  match sink.file_path_or_none() {
+    Some(path) => inspect(path, content="runtime-file-helpers.log")
+    None => inspect(false, content="true")
+  }
   inspect(sink.file_path(), content="runtime-file-helpers.log")
   inspect(sink.file_append_mode(), content="true")
   inspect(sink.file_auto_flush(), content="false")
   inspect(sink.file_rotation_enabled(), content="true")
+  match sink.file_default_policy_or_none() {
+    Some(policy) => {
+      inspect(policy.append, content="true")
+      inspect(policy.auto_flush, content="false")
+    }
+    None => inspect(false, content="true")
+  }
+  match sink.file_policy_or_none() {
+    Some(policy) => {
+      inspect(policy.append, content="true")
+      inspect(policy.auto_flush, content="false")
+    }
+    None => inspect(false, content="true")
+  }
   let defaults = sink.file_default_policy()
   let policy = sink.file_policy()
   inspect(defaults.append, content="true")
@@ -1106,6 +1128,14 @@ test "runtime sink plain file helpers expose direct file state and policy" {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="40")
       inspect(rotation.max_backups, content="2")
+    }
+    None => inspect(false, content="true")
+  }
+  match sink.file_state_or_none() {
+    Some(snapshot) => {
+      inspect(snapshot.path, content="runtime-file-helpers.log")
+      inspect(snapshot.append, content="true")
+      inspect(snapshot.auto_flush, content="false")
     }
     None => inspect(false, content="true")
   }
@@ -1162,7 +1192,14 @@ test "runtime sink queued file helpers preserve queue-aware file runtime state" 
   logger.info("two")
   logger.info("three")
   inspect(sink.file_available() == native_files_supported(), content="true")
+  match sink.file_path_or_none() {
+    Some(path) => inspect(path, content="runtime-queued-file.log")
+    None => inspect(false, content="true")
+  }
   inspect(sink.file_path(), content="runtime-queued-file.log")
+  inspect(sink.file_policy_or_none() is None, content="false")
+  inspect(sink.file_default_policy_or_none() is None, content="false")
+  inspect(sink.file_state_or_none() is None, content="false")
   inspect(sink.pending_count(), content="2")
   inspect(sink.dropped_count(), content="1")
   match sink.file_runtime_state() {
@@ -2034,6 +2071,10 @@ test "configured non-file logger has no file runtime state" {
   let logger = build_logger(
     LoggerConfig::new(sink=SinkConfig::new(kind=SinkKind::Console)),
   )
+  inspect(logger.file_path_or_none() is None, content="true")
+  inspect(logger.file_policy_or_none() is None, content="true")
+  inspect(logger.file_default_policy_or_none() is None, content="true")
+  inspect(logger.file_state_or_none() is None, content="true")
   inspect(logger.file_runtime_state() is None, content="true")
 }
 
@@ -2045,6 +2086,13 @@ test "configured file logger mirrors backend file capability" {
     ),
   )
   inspect(logger.file_available() == native_files_supported(), content="true")
+  match logger.file_path_or_none() {
+    Some(path) => inspect(path, content="config-capability.log")
+    None => inspect(false, content="true")
+  }
+  inspect(logger.file_policy_or_none() is None, content="false")
+  inspect(logger.file_default_policy_or_none() is None, content="false")
+  inspect(logger.file_state_or_none() is None, content="false")
   if logger.file_available() {
     inspect(logger.file_state().available, content="true")
     ignore(logger.close())

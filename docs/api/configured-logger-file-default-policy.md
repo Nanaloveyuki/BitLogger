@@ -2,8 +2,8 @@
 name: configured-logger-file-default-policy
 group: api
 category: runtime
-update-time: 20260512
-description: Read the initial default file policy associated with a configured file-backed logger.
+update-time: 20260707
+description: Read the initial default file policy associated with a configured logger, with a compatibility fallback for non-file sinks.
 key-word:
     - logger
     - runtime
@@ -14,6 +14,8 @@ key-word:
 ## Configured-logger-file-default-policy
 
 Read the initial default file policy associated with a `ConfiguredLogger`. This helper exposes the baseline file policy captured when the runtime sink was created.
+
+`file_default_policy()` is the compatibility form. For truthful file-semantics detection, prefer `file_default_policy_or_none()`.
 
 ### Interface
 
@@ -36,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - File-backed sinks return the default policy captured at creation time through the wrapped `RuntimeSink`.
 - Queued file sinks forward the default policy from the wrapped inner file sink.
 - Non-file sinks return the same neutral fallback policy value produced by `RuntimeSink::file_default_policy()`.
+- This fallback keeps older callers source-compatible, but it is not a real file default policy.
+- New diagnostic or recovery code should prefer `file_default_policy_or_none()`.
 - This helper is useful when callers need to compare runtime drift or restore defaults later.
 
 ### How to Use
@@ -65,10 +69,12 @@ In this example, callers can reason about “factory” file policy separately f
 e.g.:
 - If the configured sink is not file-backed, the return value is a neutral fallback policy.
 
+- If callers need a truthful file-semantics check, use `file_default_policy_or_none()`.
+
 - If callers only need to know whether runtime drift exists, `file_policy_matches_default()` is the simpler API.
 
 ### Notes
 
 1. Use this helper when the original file policy matters operationally.
 
-2. It complements `file_policy()` and `file_reset_policy()`.
+2. It complements `file_policy()` and `file_reset_policy()`, while `file_default_policy_or_none()` is the truthful diagnostic form.

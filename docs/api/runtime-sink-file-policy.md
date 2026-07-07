@@ -2,8 +2,8 @@
 name: runtime-sink-file-policy
 group: api
 category: runtime
-update-time: 20260613
-description: Read the current runtime file policy from a RuntimeSink.
+update-time: 20260707
+description: Read the current runtime file policy from a RuntimeSink, with a compatibility fallback for non-file sinks.
 key-word:
     - runtime
     - sink
@@ -14,6 +14,8 @@ key-word:
 ## Runtime-sink-file-policy
 
 Read the current runtime file policy from a `RuntimeSink`. This helper exposes the active append, auto-flush, and rotation settings as one policy object.
+
+`file_policy()` is the compatibility form. For truthful file-semantics detection, prefer `file_policy_or_none()`.
 
 ### Interface
 
@@ -36,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - Plain `File` runtime variants return the current policy from the wrapped `FileSink`.
 - `QueuedFile` runtime variants forward the policy from the wrapped inner `FileSink`.
 - Non-file runtime variants return the neutral fallback policy `FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)`.
+- This fallback keeps older callers source-compatible, but it is not a real file policy.
+- New diagnostic or recovery code should prefer `file_policy_or_none()`.
 - This helper is broader than `file_append_mode()` or `file_auto_flush()` because it returns the whole policy object.
 
 ### How to Use
@@ -66,10 +70,12 @@ In this example, callers can compare current runtime settings with the initial p
 e.g.:
 - If the runtime sink is not file-backed, the return value is a neutral fallback policy rather than a real active file policy.
 
+- If callers need a truthful file-semantics check, use `file_policy_or_none()`.
+
 - If callers only need one field from the policy, a narrower helper may be simpler.
 
 ### Notes
 
 1. Use this helper when file policy should be handled as one object.
 
-2. Pair it with `file_set_policy(...)` for roundtrip-style policy management.
+2. Pair it with `file_set_policy(...)` for roundtrip-style policy management, or prefer `file_policy_or_none()` for truthful diagnostics.
