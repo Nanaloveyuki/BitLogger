@@ -14,6 +14,14 @@ pub(all) enum RuntimeSink {
 pub type RuntimeFileState = @utils.RuntimeFileState
 
 ///|
+pub struct RuntimeSinkProgress {
+  queue_advanced_count : Int
+  file_flush_step_count : Int
+  queue_backed : Bool
+  file_backed : Bool
+}
+
+///|
 pub fn file_sink_policy_to_json(
   policy : FileSinkPolicy,
 ) -> @json_parser.JsonValue {
@@ -71,31 +79,135 @@ pub impl Sink for RuntimeSink with fn write(self, rec) {
 }
 
 ///|
-pub fn RuntimeSink::flush(self : RuntimeSink) -> Int {
+fn[S : Sink] queued_sink_close_internal(sink : QueuedSink[S]) -> Bool {
+  ignore(sink.flush())
+  sink.pending_count() == 0
+}
+
+///|
+fn runtime_sink_progress_compat_count(progress : RuntimeSinkProgress) -> Int {
+  progress.queue_advanced_count + progress.file_flush_step_count
+}
+
+///|
+pub fn RuntimeSink::flush_progress(self : RuntimeSink) -> RuntimeSinkProgress {
   match self {
-    Console(_) => 0
-    JsonConsole(_) => 0
-    TextConsole(_) => 0
-    File(sink) => if sink.flush() { 1 } else { 0 }
-    QueuedConsole(sink) => sink.flush()
-    QueuedJsonConsole(sink) => sink.flush()
-    QueuedTextConsole(sink) => sink.flush()
-    QueuedFile(sink) => sink.flush()
+    Console(_) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: 0,
+      queue_backed: false,
+      file_backed: false,
+    }
+    JsonConsole(_) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: 0,
+      queue_backed: false,
+      file_backed: false,
+    }
+    TextConsole(_) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: 0,
+      queue_backed: false,
+      file_backed: false,
+    }
+    File(sink) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: if sink.flush() { 1 } else { 0 },
+      queue_backed: false,
+      file_backed: true,
+    }
+    QueuedConsole(sink) => {
+      queue_advanced_count: sink.flush(),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: false,
+    }
+    QueuedJsonConsole(sink) => {
+      queue_advanced_count: sink.flush(),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: false,
+    }
+    QueuedTextConsole(sink) => {
+      queue_advanced_count: sink.flush(),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: false,
+    }
+    QueuedFile(sink) => {
+      queue_advanced_count: sink.flush(),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: true,
+    }
+  }
+}
+
+///|
+pub fn RuntimeSink::flush(self : RuntimeSink) -> Int {
+  runtime_sink_progress_compat_count(self.flush_progress())
+}
+
+///|
+pub fn RuntimeSink::drain_progress(
+  self : RuntimeSink,
+  max_items? : Int = -1,
+) -> RuntimeSinkProgress {
+  match self {
+    Console(_) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: 0,
+      queue_backed: false,
+      file_backed: false,
+    }
+    JsonConsole(_) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: 0,
+      queue_backed: false,
+      file_backed: false,
+    }
+    TextConsole(_) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: 0,
+      queue_backed: false,
+      file_backed: false,
+    }
+    File(sink) => {
+      queue_advanced_count: 0,
+      file_flush_step_count: if sink.flush() { 1 } else { 0 },
+      queue_backed: false,
+      file_backed: true,
+    }
+    QueuedConsole(sink) => {
+      queue_advanced_count: sink.drain(max_items~),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: false,
+    }
+    QueuedJsonConsole(sink) => {
+      queue_advanced_count: sink.drain(max_items~),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: false,
+    }
+    QueuedTextConsole(sink) => {
+      queue_advanced_count: sink.drain(max_items~),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: false,
+    }
+    QueuedFile(sink) => {
+      queue_advanced_count: sink.drain(max_items~),
+      file_flush_step_count: 0,
+      queue_backed: true,
+      file_backed: true,
+    }
   }
 }
 
 ///|
 pub fn RuntimeSink::drain(self : RuntimeSink, max_items? : Int = -1) -> Int {
-  match self {
-    Console(_) => 0
-    JsonConsole(_) => 0
-    TextConsole(_) => 0
-    File(sink) => if sink.flush() { 1 } else { 0 }
-    QueuedConsole(sink) => sink.drain(max_items~)
-    QueuedJsonConsole(sink) => sink.drain(max_items~)
-    QueuedTextConsole(sink) => sink.drain(max_items~)
-    QueuedFile(sink) => sink.drain(max_items~)
-  }
+  runtime_sink_progress_compat_count(self.drain_progress(max_items~))
 }
 
 ///|
@@ -105,10 +217,10 @@ pub fn RuntimeSink::close(self : RuntimeSink) -> Bool {
     JsonConsole(_) => true
     TextConsole(_) => true
     File(sink) => sink.close()
-    QueuedConsole(_) => true
-    QueuedJsonConsole(_) => true
-    QueuedTextConsole(_) => true
-    QueuedFile(sink) => sink.sink.close()
+    QueuedConsole(sink) => queued_sink_close_internal(sink)
+    QueuedJsonConsole(sink) => queued_sink_close_internal(sink)
+    QueuedTextConsole(sink) => queued_sink_close_internal(sink)
+    QueuedFile(sink) => queued_file_close_internal(sink)
   }
 }
 
@@ -144,8 +256,23 @@ pub fn RuntimeSink::dropped_count(self : RuntimeSink) -> Int {
 pub type ConfiguredLogger = Logger[RuntimeSink]
 
 ///|
+pub fn ConfiguredLogger::flush_progress(
+  self : ConfiguredLogger,
+) -> RuntimeSinkProgress {
+  self.sink.flush_progress()
+}
+
+///|
 pub fn ConfiguredLogger::flush(self : ConfiguredLogger) -> Int {
   self.sink.flush()
+}
+
+///|
+pub fn ConfiguredLogger::drain_progress(
+  self : ConfiguredLogger,
+  max_items? : Int = -1,
+) -> RuntimeSinkProgress {
+  self.sink.drain_progress(max_items~)
 }
 
 ///|

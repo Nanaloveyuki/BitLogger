@@ -8,6 +8,34 @@ fn runtime_file_sink_internal(sink : RuntimeSink) -> FileSink? {
 }
 
 ///|
+fn queued_file_policy_mutation_allowed_internal(
+  sink : QueuedSink[FileSink],
+) -> Bool {
+  sink.pending_count() == 0
+}
+
+///|
+fn queued_file_flush_internal(sink : QueuedSink[FileSink]) -> Bool {
+  let before_write_failures = sink.sink.write_failures()
+  let before_flush_failures = sink.sink.flush_failures()
+  let before_rotation_failures = sink.sink.rotation_failures()
+  ignore(sink.flush())
+  let flushed = sink.sink.flush()
+  sink.pending_count() == 0 &&
+  flushed &&
+  sink.sink.write_failures() == before_write_failures &&
+  sink.sink.flush_failures() == before_flush_failures &&
+  sink.sink.rotation_failures() == before_rotation_failures
+}
+
+///|
+fn queued_file_close_internal(sink : QueuedSink[FileSink]) -> Bool {
+  let flushed = queued_file_flush_internal(sink)
+  let closed = sink.sink.close()
+  flushed && closed
+}
+
+///|
 pub fn RuntimeSink::file_available(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.is_available()
@@ -23,36 +51,29 @@ pub fn RuntimeSink::file_reopen(
 ) -> Bool {
   match self {
     File(sink) => sink.reopen(append~)
-    QueuedFile(sink) => sink.sink.reopen(append~)
+    QueuedFile(sink) =>
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.reopen(append~)
+      } else {
+        false
+      }
     _ => false
   }
 }
 
 ///|
 pub fn RuntimeSink::file_reopen_with_current_policy(self : RuntimeSink) -> Bool {
-  match self {
-    File(sink) => sink.reopen_with_current_policy()
-    QueuedFile(sink) => sink.sink.reopen_with_current_policy()
-    _ => false
-  }
+  self.file_reopen()
 }
 
 ///|
 pub fn RuntimeSink::file_reopen_append(self : RuntimeSink) -> Bool {
-  match self {
-    File(sink) => sink.reopen_append()
-    QueuedFile(sink) => sink.sink.reopen_append()
-    _ => false
-  }
+  self.file_reopen(append=Some(true))
 }
 
 ///|
 pub fn RuntimeSink::file_reopen_truncate(self : RuntimeSink) -> Bool {
-  match self {
-    File(sink) => sink.reopen_truncate()
-    QueuedFile(sink) => sink.sink.reopen_truncate()
-    _ => false
-  }
+  self.file_reopen(append=Some(false))
 }
 
 ///|
@@ -75,8 +96,12 @@ pub fn RuntimeSink::file_set_append_mode(
       true
     }
     QueuedFile(sink) => {
-      sink.sink.set_append_mode(append)
-      true
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.set_append_mode(append)
+        true
+      } else {
+        false
+      }
     }
     _ => false
   }
@@ -130,8 +155,12 @@ pub fn RuntimeSink::file_set_auto_flush(
       true
     }
     QueuedFile(sink) => {
-      sink.sink.set_auto_flush(enabled)
-      true
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.set_auto_flush(enabled)
+        true
+      } else {
+        false
+      }
     }
     _ => false
   }
@@ -148,8 +177,12 @@ pub fn RuntimeSink::file_set_policy(
       true
     }
     QueuedFile(sink) => {
-      sink.sink.set_policy(policy)
-      true
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.set_policy(policy)
+        true
+      } else {
+        false
+      }
     }
     _ => false
   }
@@ -166,8 +199,12 @@ pub fn RuntimeSink::file_set_rotation(
       true
     }
     QueuedFile(sink) => {
-      sink.sink.set_rotation(rotation)
-      true
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.set_rotation(rotation)
+        true
+      } else {
+        false
+      }
     }
     _ => false
   }
@@ -181,8 +218,12 @@ pub fn RuntimeSink::file_clear_rotation(self : RuntimeSink) -> Bool {
       true
     }
     QueuedFile(sink) => {
-      sink.sink.clear_rotation()
-      true
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.clear_rotation()
+        true
+      } else {
+        false
+      }
     }
     _ => false
   }
@@ -192,10 +233,7 @@ pub fn RuntimeSink::file_clear_rotation(self : RuntimeSink) -> Bool {
 pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.flush()
-    QueuedFile(sink) => {
-      ignore(sink.flush())
-      sink.sink.flush()
-    }
+    QueuedFile(sink) => queued_file_flush_internal(sink)
     _ => false
   }
 }
@@ -204,10 +242,7 @@ pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
 pub fn RuntimeSink::file_close(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.close()
-    QueuedFile(sink) => {
-      ignore(sink.flush())
-      sink.sink.close()
-    }
+    QueuedFile(sink) => queued_file_close_internal(sink)
     _ => false
   }
 }
@@ -271,8 +306,12 @@ pub fn RuntimeSink::file_reset_policy(self : RuntimeSink) -> Bool {
       true
     }
     QueuedFile(sink) => {
-      sink.sink.reset_policy()
-      true
+      if queued_file_policy_mutation_allowed_internal(sink) {
+        sink.sink.reset_policy()
+        true
+      } else {
+        false
+      }
     }
     _ => false
   }
