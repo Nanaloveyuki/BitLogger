@@ -15,6 +15,8 @@ key-word:
 
 Read the current file sink snapshot from a `RuntimeSink`. This helper exposes path, availability, policy flags, rotation config, and failure counters as one object.
 
+The returned `FileSinkState` value is owned by `src/file_model`; this method belongs to the runtime facade layer and reads file snapshots through `src/runtime` over file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 `file_state()` is the compatibility form. For truthful file-semantics detection, prefer `file_state_or_none()`.
 
 ### Interface
@@ -37,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants return a live snapshot from the wrapped `FileSink`.
 - `QueuedFile` runtime variants forward the snapshot from the wrapped inner `FileSink`.
+- The returned snapshot object itself is the shared `@file_model.FileSinkState` model, not a runtime-owned concrete type.
 - Non-file runtime variants return a fallback empty-style state with `path=""`, `available=false`, `append=false`, `auto_flush=false`, `rotation=None`, and all failure counters set to `0`.
 - This fallback keeps older callers source-compatible, but it is not a live file-backed snapshot.
 - New diagnostic or recovery code should prefer `file_state_or_none()`.

@@ -2,8 +2,8 @@
 name: text-formatter-config-type
 group: api
 category: config
-update-time: 20260613
-description: Public text formatter config alias used for serializable formatter settings.
+update-time: 20260707
+description: Public text formatter config type re-exported from config_model for serializable formatter settings.
 key-word:
     - formatter
     - config
@@ -13,12 +13,12 @@ key-word:
 
 ## Text-formatter-config-type
 
-`TextFormatterConfig` is the public serializable config type used to describe text rendering behavior. It is a direct alias to the formatter config model used by config parsing, config serialization, and runtime formatter conversion.
+`TextFormatterConfig` is the public serializable config type used to describe text rendering behavior. On the root `src` facade, it is re-exported from `src/config_model`, which is the real owner of the concrete formatter config model.
 
 ### Interface
 
 ```moonbit
-pub type TextFormatterConfig = @utils.TextFormatterConfig
+pub using @config_model { type TextFormatterConfig }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type TextFormatterConfig = @utils.TextFormatterConfig
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a runtime `TextFormatter` instance.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@config_model.TextFormatterConfig`, not in `@utils`.
 - The current fields are `show_timestamp`, `show_level`, `show_target`, `show_fields`, `separator`, `field_separator`, `template`, `color_mode`, `color_support`, `style_markup`, `target_style_markup`, `fields_style_markup`, and `style_tags`.
 - `TextFormatterConfig::new(...)` constructs this type as the main code-side entry point.
 - `text_formatter_config_to_json(...)`, `stringify_text_formatter_config(...)`, and `TextFormatterConfig::to_formatter()` all consume the same public config shape.

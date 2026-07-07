@@ -2,8 +2,8 @@
 name: config-error
 group: api
 category: config
-update-time: 20260613
-description: Public config parsing error alias used by synchronous config-loading helpers.
+update-time: 20260707
+description: Public config parsing error re-exported from config_model for synchronous config-loading helpers.
 key-word:
     - config
     - error
@@ -13,12 +13,12 @@ key-word:
 
 ## Config-error
 
-`ConfigError` is the public error type raised by synchronous config parsing helpers. It is a direct alias to the internal config error definition and currently exposes a single structured error case for invalid input.
+`ConfigError` is the public error type raised by synchronous config parsing helpers. On the root `src` facade, it is re-exported from `src/config_model`, which is the real owner of the structured config error definition.
 
 ### Interface
 
 ```moonbit
-pub type ConfigError = @utils.ConfigError
+pub using @config_model { type ConfigError }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type ConfigError = @utils.ConfigError
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a separate public wrapper.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete error lives in `@config_model.ConfigError`, not in `@utils`.
 - The current public error case is `ConfigError::InvalidConfig(message)`.
 - The alias is used by parsing helpers such as `parse_logger_config_text(...)` and by lower-level config parsing routines beneath it.
 - Error messages describe concrete schema problems such as invalid JSON, wrong value types, unsupported enum text, or missing required values for a chosen sink kind.

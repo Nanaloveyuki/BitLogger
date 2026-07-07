@@ -15,6 +15,8 @@ key-word:
 
 Update the rotation policy used by a file-backed `RuntimeSink`.
 
+The input `FileRotation` value is owned by `src/file_model`; this method belongs to the runtime facade layer and forwards rotation mutation through `src/runtime` to file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 ### Interface
 
 ```moonbit
@@ -36,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants update the wrapped `FileSink` rotation policy and return `true`.
 - `QueuedFile` runtime variants forward the update to the wrapped inner `FileSink` only when no queued records are pending.
+- The accepted rotation object itself is the shared `@file_model.FileRotation` model, not a runtime-owned concrete type.
 - Non-file runtime variants return `false`.
 - This helper changes policy only; it does not itself rotate or flush pending data.
 - If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different rotation policy than the one they were queued under.

@@ -2,8 +2,8 @@
 name: file-sink-policy
 group: api
 category: sink
-update-time: 20260613
-description: Public file policy alias used by file sinks and runtime file-control APIs.
+update-time: 20260707
+description: Public file policy type re-exported from file_model for file and runtime control APIs.
 key-word:
     - file
     - policy
@@ -13,12 +13,12 @@ key-word:
 
 ## File-sink-policy
 
-`FileSinkPolicy` is the public policy object used to describe file append mode, auto-flush behavior, and optional rotation settings together. It is a direct alias to the file policy model shared by `FileSink`, `RuntimeSink`, `ConfiguredLogger`, and file policy JSON helpers.
+`FileSinkPolicy` is the public policy object used to describe file append mode, auto-flush behavior, and optional rotation settings together. On the root `src` facade, it is re-exported from `src/file_model`, which is the real owner of the concrete policy model.
 
 ### Interface
 
 ```moonbit
-pub type FileSinkPolicy = @utils.FileSinkPolicy
+pub using @file_model { type FileSinkPolicy }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type FileSinkPolicy = @utils.FileSinkPolicy
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a separate runtime wrapper.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@file_model.FileSinkPolicy`, not in `@utils`.
 - The current policy fields are `append : Bool`, `auto_flush : Bool`, and `rotation : FileRotation?`.
 - The same policy object is returned by `FileSink::policy()`, `RuntimeSink::file_policy()`, and `ConfiguredLogger::file_policy()`.
 - It is also accepted by `FileSink::set_policy(...)`, `RuntimeSink::file_set_policy(...)`, and `ConfiguredLogger::file_set_policy(...)`.

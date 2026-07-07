@@ -2,7 +2,7 @@
 name: runtime-sink-file-rotation-failures
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Read the number of rotation failures recorded by a file-backed RuntimeSink.
 key-word:
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Runtime-sink-file-rotation-failures
 
-Read the number of rotation failures recorded by a file-backed `RuntimeSink`. This helper is useful when direct runtime rotation behavior should be observed operationally.
+Read the number of file-rotation attempts whose critical file steps failed in a file-backed `RuntimeSink`.
 
 ### Interface
 
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - Plain `File` runtime variants report the wrapped `FileSink` rotation-failure count.
 - `QueuedFile` runtime variants forward the metric from the wrapped inner `FileSink`.
 - Non-file runtime variants return `0`.
+- For file-backed variants, the counter covers incomplete rotations caused by critical remove/rename/reopen failures, not merely policy changes or missing optional backup slots.
 - The counter is cumulative until `file_reset_failure_counters()` clears it.
 
 ### How to Use
@@ -49,7 +50,7 @@ When support output should reveal whether rotation is failing:
 let count = sink.file_rotation_failures()
 ```
 
-In this example, the runtime sink exposes a focused metric for direct rotation-path health.
+In this example, the runtime sink exposes whether direct file rotation stopped completing its critical steps.
 
 #### When Validate Runtime Rotation Tuning
 
@@ -58,7 +59,7 @@ When changed rotation settings should be checked in operation:
 ignore(sink.file_rotation_failures())
 ```
 
-In this example, callers can observe whether runtime rotation changes introduced problems.
+In this example, callers can observe whether runtime rotation changes introduced incomplete rotations.
 
 ### Error Case
 
@@ -67,8 +68,10 @@ e.g.:
 
 - If callers need both rotation config and failure metrics, they should combine this helper with `file_rotation_config()` or `file_state()`.
 
+- This counter does not expose which low-level step failed inside the rotation chain.
+
 ### Notes
 
-1. Use this helper when diagnosing direct runtime file rotation reliability.
+1. Use this helper when diagnosing incomplete direct runtime file rotations.
 
 2. It is especially relevant when runtime rotation policy can change after startup.

@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-state-to-json
 
-Convert `FileSinkState` into a `JsonValue`. This helper exports file path, availability, policy flags, rotation config, and failure counters in a structured form.
+Convert `FileSinkState` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
@@ -34,6 +34,7 @@ pub fn file_sink_state_to_json(state : FileSinkState) -> @json_parser.JsonValue 
 Detailed rules explaining key parameters and behaviors
 
 - The output includes `path`, `available`, `append`, `auto_flush`, failure counters, and `rotation`.
+- The root surface forwards to `@file_model.file_sink_state_to_json(...)`, which is the real owner of this serialization logic.
 - `rotation` is exported as `null` when rotation is disabled.
 - This helper exports state snapshots, not mutable runtime control handles.
 - It is useful when file sink state should be embedded into larger diagnostics payloads.

@@ -15,6 +15,8 @@ key-word:
 
 Read the current rotation configuration used by a file-backed `RuntimeSink`. This helper exposes active direct runtime rotation parameters when rotation is enabled.
 
+The returned `FileRotation` value is owned by `src/file_model`; this method belongs to the runtime facade layer and reads rotation policy through `src/runtime` over file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 ### Interface
 
 ```moonbit
@@ -35,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants return the current rotation config from the wrapped `FileSink`.
 - `QueuedFile` runtime variants forward the config from the wrapped inner `FileSink`.
+- The returned rotation object itself is the shared `@file_model.FileRotation` model, not a runtime-owned concrete type.
 - Non-file runtime variants return `None`.
 - This helper is useful when callers need the active direct runtime policy rather than only a boolean flag.
 

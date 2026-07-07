@@ -2,8 +2,8 @@
 name: file-sink-type
 group: api
 category: sink
-update-time: 20260613
-description: Public native file sink type used for file-backed synchronous logging with runtime policy and failure tracking.
+update-time: 20260707
+description: Public file sink type re-exported from file_runtime for file-backed synchronous logging.
 key-word:
     - sink
     - file
@@ -13,26 +13,12 @@ key-word:
 
 ## File-sink-type
 
-`FileSink` is the public native file sink type used for file-backed synchronous logging. It is the concrete sink type returned by `file_sink(...)`, and it stores runtime file policy, availability state, formatter behavior, and failure counters.
+`FileSink` is the public file sink type used for file-backed synchronous logging. On the root `src` facade, it is re-exported from `src/file_runtime`, which is the real owner of the concrete sink behavior type.
 
 ### Interface
 
 ```moonbit
-pub struct FileSink {
-  path : String
-  append : Ref[Bool]
-  default_append : Bool
-  handle : Ref[FileHandle?]
-  formatter : RecordFormatter
-  auto_flush : Ref[Bool]
-  default_auto_flush : Bool
-  rotation : Ref[FileRotation?]
-  default_rotation : FileRotation?
-  open_failures : Ref[Int]
-  write_failures : Ref[Int]
-  flush_failures : Ref[Int]
-  rotation_failures : Ref[Int]
-}
+pub using @file_runtime { type FileSink }
 ```
 
 #### output
@@ -43,8 +29,9 @@ pub struct FileSink {
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a public root struct, not a type alias.
-- The current fields cover path, append mode, handle state, formatter, auto-flush policy, optional rotation policy, and failure counters.
+- This root surface is a re-export of the concrete `@file_runtime.FileSink` type.
+- The struct intentionally hides its fields; callers interact through methods such as `flush()`, `close()`, `reopen()`, `policy()`, and `state()`.
+- File model companions such as `FileRotation`, `FileSinkPolicy`, `FileSinkState`, and `RuntimeFileState` are owned by `@file_model`, not by `FileSink` itself.
 - `file_sink(...)` constructs this type directly from path and policy inputs.
 - The type exposes runtime helpers such as `flush()`, `close()`, `reopen()`, `policy()`, `state()`, and failure-counter accessors.
 

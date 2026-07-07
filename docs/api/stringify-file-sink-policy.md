@@ -13,7 +13,7 @@ key-word:
 
 ## Stringify-file-sink-policy
 
-Serialize `FileSinkPolicy` into JSON text. This helper is the most direct export path for runtime file policy snapshots.
+Serialize `FileSinkPolicy` into JSON text. On the root `src` facade, this helper forwards to the concrete stringifier owned by `src/file_model`.
 
 ### Interface
 
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human inspection.
+- The root surface forwards to `@file_model.stringify_file_sink_policy(...)`, which is the real owner of this formatting logic.
 - This helper builds on top of `file_sink_policy_to_json(...)`.
 - The output is suited for support dumps, policy snapshots, and generated diagnostics text.
 - Typical inputs come from `FileSink::policy()`, `RuntimeSink::file_policy()`, or `ConfiguredLogger::file_policy()`.

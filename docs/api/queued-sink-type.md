@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a public root struct, not a type alias.
 - The current fields are `sink : S`, `queue : @queue.Queue[Record]`, `max_pending : Int`, `overflow : QueueOverflowPolicy`, and `dropped_count : Ref[Int]`.
+- The `overflow` field resolves to the shared `@queue_model.QueueOverflowPolicy` owner.
 - `queued_sink(...)` constructs this type directly from a wrapped sink and queue policy.
 - The sink preserves the wrapped sink type `S`, which is useful when typed composition still matters after queueing is introduced.
 

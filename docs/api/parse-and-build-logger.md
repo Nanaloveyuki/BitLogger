@@ -15,6 +15,8 @@ key-word:
 
 Parse a JSON logger definition and build a ready-to-use `ConfiguredLogger`. This is the most direct API when configuration is loaded from files, environment-derived JSON, or external settings systems.
 
+At the public `src` layer, this API is a facade composition of the root parser and root builder: it parses into the shared config model owned by `src/config_model`, then produces a `ConfiguredLogger` backed by `src/runtime.RuntimeSink`.
+
 ### Interface
 
 ```moonbit
@@ -34,6 +36,7 @@ pub fn parse_and_build_logger(input : String) -> ConfiguredLogger raise ConfigEr
 Detailed rules explaining key parameters and behaviors
 
 - Parsing and building are done in one step by calling `parse_logger_config_text(input)` first and then passing the resulting `LoggerConfig` into `build_logger(...)`.
+- The resulting file-control and file-diagnostics helpers remain facade methods over `RuntimeSink`, which in turn delegates file behavior to `src/file_runtime` and file model values to `src/file_model`.
 - The returned `ConfiguredLogger` is just `Logger[RuntimeSink]`, so it still supports regular logging calls.
 - The returned logger also keeps inherited logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.

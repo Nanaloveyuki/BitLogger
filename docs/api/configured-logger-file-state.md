@@ -15,6 +15,8 @@ key-word:
 
 Read the current file sink snapshot from a `ConfiguredLogger`. This helper exposes path, availability, policy flags, rotation config, and failure counters as one object.
 
+The returned `FileSinkState` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and delegates file-state reads to the wrapped `RuntimeSink`.
+
 `file_state()` is the compatibility form. For truthful file-semantics detection, prefer `file_state_or_none()`.
 
 ### Interface
@@ -37,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks return a live snapshot of file state.
 - Queued file sinks forward the snapshot from the wrapped inner file sink.
+- The returned snapshot object itself is the shared `@file_model.FileSinkState` model, not a configured-logger-owned concrete type.
 - Non-file sinks return the same fallback empty-style state produced by `RuntimeSink::file_state()`, with an empty path, disabled policy flags, no rotation, and zeroed counters.
 - This fallback keeps older callers source-compatible, but it is not a live file-backed snapshot.
 - New diagnostic or recovery code should prefer `file_state_or_none()`.

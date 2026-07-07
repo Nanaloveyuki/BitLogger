@@ -13,7 +13,7 @@ key-word:
 
 ## With-file-rotation-i64
 
-Add or replace a size-based file rotation policy with an `Int64` byte threshold on an existing `LoggerConfig`. This helper is the additive native-focused counterpart to `with_file_rotation(...)` for large-file rotation thresholds.
+Add or replace a size-based file rotation policy with an `Int64` byte threshold on an existing `LoggerConfig`. On the root `src` facade, this helper forwards to the preset builder owned by `src/presets_pkg` and rewrites the shared config model owned by `src/config_model`.
 
 ### Interface
 
@@ -38,6 +38,8 @@ pub fn with_file_rotation_i64(
 ### Explanation
 
 - `with_file_rotation_i64(...)` only applies to file presets or other configs whose `sink.kind=SinkKind::File`.
+- The root `with_file_rotation_i64(...)` entry is a facade over `@presets_pkg.with_file_rotation_i64(...)`.
+- The resulting `sink.rotation` field still uses the shared `@file_model.FileRotation` model, with the wide threshold preserved inside that file-model-owned type.
 - If the input config is not file-based, the helper returns the config unchanged.
 - When the input config is file-based, the helper preserves all existing config fields while replacing `sink.rotation` with a wide native-focused policy.
 - Rotation policy creation follows `file_rotation_i64(...)` normalization rules.

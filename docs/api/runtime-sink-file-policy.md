@@ -15,6 +15,8 @@ key-word:
 
 Read the current runtime file policy from a `RuntimeSink`. This helper exposes the active append, auto-flush, and rotation settings as one policy object.
 
+The returned `FileSinkPolicy` value is owned by `src/file_model`; this method is part of the runtime facade layer and reads or synthesizes policy through `src/runtime` over file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 `file_policy()` is the compatibility form. For truthful file-semantics detection, prefer `file_policy_or_none()`.
 
 ### Interface
@@ -37,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants return the current policy from the wrapped `FileSink`.
 - `QueuedFile` runtime variants forward the policy from the wrapped inner `FileSink`.
+- The returned policy object itself is the shared `@file_model.FileSinkPolicy` model, not a runtime-owned concrete type.
 - Non-file runtime variants return the neutral fallback policy `FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)`.
 - This fallback keeps older callers source-compatible, but it is not a real file policy.
 - New diagnostic or recovery code should prefer `file_policy_or_none()`.

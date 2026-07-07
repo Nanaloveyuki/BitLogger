@@ -2,8 +2,8 @@
 name: sink-config-type
 group: api
 category: config
-update-time: 20260613
-description: Public sink config alias used for serializable built-in sink selection and settings.
+update-time: 20260707
+description: Public sink config type re-exported from config_model for serializable built-in sink settings.
 key-word:
     - sink
     - config
@@ -13,12 +13,12 @@ key-word:
 
 ## Sink-config-type
 
-`SinkConfig` is the public serializable config type used to describe the built-in sink shape and its related settings. It is a direct alias to the sink config model used by config parsing, logger building, and sink config serializers.
+`SinkConfig` is the public serializable config type used to describe the built-in sink shape and its related settings. On the root `src` facade, it is re-exported from `src/config_model`, which is the real owner of the concrete sink config model.
 
 ### Interface
 
 ```moonbit
-pub type SinkConfig = @utils.SinkConfig
+pub using @config_model { type SinkConfig }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type SinkConfig = @utils.SinkConfig
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a runtime sink instance.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@config_model.SinkConfig`, not in `@utils`.
 - The current fields are `kind : SinkKind`, `path : String`, `append : Bool`, `auto_flush : Bool`, `rotation : FileRotation?`, and `text_formatter : TextFormatterConfig`.
 - `SinkConfig::new(...)` constructs this type as the main code-side entry point.
 - `sink_config_to_json(...)`, `stringify_sink_config(...)`, and `build_logger(...)` all consume the same public config shape.

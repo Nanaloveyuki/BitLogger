@@ -15,6 +15,8 @@ key-word:
 
 Build a `ConfiguredLogger` from `LoggerConfig`. This is the main config-to-runtime bridge for synchronous logging and is the builder used before async wrapping in config-driven async flows.
 
+At the public `src` layer, this API is the entry facade that consumes the shared config model owned by `src/config_model` and produces a `ConfiguredLogger` backed by `src/runtime.RuntimeSink`.
+
 ### Interface
 
 ```moonbit
@@ -34,6 +36,7 @@ pub fn build_logger(config : LoggerConfig) -> ConfiguredLogger {}
 Detailed rules explaining key parameters and behaviors
 
 - `build_logger(...)` first constructs a base `RuntimeSink` from `config.sink`, then applies `config.queue` when present, and finally builds `Logger::new(...)` with `config.min_level`, `config.target`, and `config.timestamp`.
+- The returned file-control and file-diagnostics helpers are still facade methods over `RuntimeSink`, which in turn delegates file behavior to `src/file_runtime` and file model values to `src/file_model`.
 - The returned logger still supports normal logging methods because `ConfiguredLogger` is `Logger[RuntimeSink]`.
 - The returned logger also keeps inherited logger target behavior such as `with_target(...)`, `child(...)`, and per-call `target=` overrides on `log(...)`.
 - That means `log(..., target=...)` can override the target for one write, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.

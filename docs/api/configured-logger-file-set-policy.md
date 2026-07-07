@@ -15,6 +15,8 @@ key-word:
 
 Apply a bundled runtime file policy update to a `ConfiguredLogger`. This helper updates append mode, auto-flush, and rotation together through one runtime policy object.
 
+The input `FileSinkPolicy` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and delegates policy mutation to the wrapped `RuntimeSink`.
+
 ### Interface
 
 ```moonbit
@@ -36,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks update append, auto-flush, and rotation together through the wrapped `RuntimeSink`.
 - Queued file sinks forward the policy update to the wrapped inner file sink only when no queued records are pending.
+- The accepted policy object itself is the shared `@file_model.FileSinkPolicy` model, not a configured-logger-owned concrete type.
 - Non-file sinks return `false`.
 - This helper is broader than the single-setting setters because it updates the whole file policy in one call.
 - If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different policy bundle than the one they were queued under.

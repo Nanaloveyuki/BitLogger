@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-policy-to-json
 
-Convert `FileSinkPolicy` into a `JsonValue`. This helper exports append mode, auto-flush, and optional rotation as a structured runtime policy snapshot.
+Convert `FileSinkPolicy` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
@@ -34,6 +34,7 @@ pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> @json_parser.JsonVal
 Detailed rules explaining key parameters and behaviors
 
 - The output includes `append`, `auto_flush`, and `rotation`.
+- The root surface forwards to `@file_model.file_sink_policy_to_json(...)`, which is the real owner of this serialization logic.
 - `rotation` is exported as `null` when rotation is disabled.
 - This helper exports runtime file policy, not current file health counters or availability.
 - The JSON value is useful for policy snapshots, comparisons, and diagnostics payloads.

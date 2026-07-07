@@ -15,6 +15,8 @@ key-word:
 
 Apply a bundled runtime file policy update to a `RuntimeSink`. This helper updates append mode, auto-flush, and rotation together through one runtime policy object on direct sink values.
 
+The input `FileSinkPolicy` value is owned by `src/file_model`; this method belongs to the runtime facade layer and forwards policy mutation through `src/runtime` to file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 ### Interface
 
 ```moonbit
@@ -36,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants update append, auto-flush, and rotation together on the wrapped `FileSink` and return `true`.
 - `QueuedFile` runtime variants forward the policy update to the wrapped inner `FileSink` only when no queued records are pending.
+- The accepted policy object itself is the shared `@file_model.FileSinkPolicy` model, not a runtime-owned concrete type.
 - Non-file runtime variants return `false`.
 - This helper is broader than the single-setting setters because it updates the whole file policy in one call.
 - If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different policy bundle than the one they were queued under.

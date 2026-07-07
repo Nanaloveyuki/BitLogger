@@ -15,6 +15,8 @@ key-word:
 
 Read the default runtime file policy from a `ConfiguredLogger` only when it is actually file-backed.
 
+The returned `FileSinkPolicy` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and avoids fabricating that model on non-file variants.
+
 This is the truthful companion to `file_default_policy()`. Prefer it when default-policy inspection should not fabricate a fallback object on non-file sinks.
 
 ### Interface
@@ -37,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks return `Some(default_policy)` through the wrapped `RuntimeSink`.
 - Queued file sinks forward the wrapped inner file sink default policy as `Some(default_policy)`.
+- The wrapped value is the shared `@file_model.FileSinkPolicy` model, not a configured-logger-owned concrete type.
 - Non-file sinks return `None`.
 - This helper is useful when callers need to compare runtime drift or restore defaults without fabricating file semantics.
 

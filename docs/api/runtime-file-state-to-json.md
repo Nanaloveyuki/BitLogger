@@ -13,7 +13,7 @@ key-word:
 
 ## Runtime-file-state-to-json
 
-Convert `RuntimeFileState` into a `JsonValue`. This helper exports both file sink status and queue metrics for combined runtime file diagnostics.
+Convert `RuntimeFileState` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
@@ -34,6 +34,7 @@ pub fn runtime_file_state_to_json(state : RuntimeFileState) -> @json_parser.Json
 Detailed rules explaining key parameters and behaviors
 
 - The output includes `file`, `queued`, `pending_count`, and `dropped_count`.
+- The root surface forwards to `@file_model.runtime_file_state_to_json(...)`, which is the real owner of this serialization logic.
 - `file` is itself exported as a nested file sink state object.
 - This helper is richer than `file_sink_state_to_json(...)` because it also carries queue wrapping context.
 - It is useful for `RuntimeSink::file_runtime_state()`, `ConfiguredLogger::file_runtime_state()`, and similar queued-file diagnostics flows.

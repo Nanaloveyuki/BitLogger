@@ -13,12 +13,12 @@ key-word:
 
 ## Queue-overflow-policy
 
-`QueueOverflowPolicy` is the public enum that defines what a synchronous queue should do when it reaches `max_pending`. It is a direct alias to the queue model enum used by both `QueuedSink` and `QueueConfig`.
+`QueueOverflowPolicy` is the public enum that defines what a synchronous queue should do when it reaches `max_pending`. It is a direct alias to the shared queue model enum used by both `QueuedSink` and `QueueConfig`.
 
 ### Interface
 
 ```moonbit
-pub type QueueOverflowPolicy = @utils.QueueOverflowPolicy
+pub type QueueOverflowPolicy = @queue_model.QueueOverflowPolicy
 ```
 
 #### output
@@ -32,6 +32,7 @@ Detailed rules explaining key parameters and behaviors
 - This is a type alias, not a separate policy wrapper.
 - `QueueOverflowPolicy::DropNewest` keeps the existing queued records and drops the incoming one when the queue is full.
 - `QueueOverflowPolicy::DropOldest` removes one pending record and enqueues the new record instead.
+- The concrete owner is the shared `@queue_model` package, so config-side and sink-side queue APIs reference the same model without making config packages depend on sink runtime packages.
 - The same enum is used by code-side queue composition through `queued_sink(...)` and config-driven queue composition through `QueueConfig::new(...)`.
 
 ### How to Use
