@@ -965,6 +965,53 @@ test "configured logger queue helpers stay aligned with runtime sink helpers" {
 }
 
 ///|
+test "configured logger progress helpers stay aligned with runtime sink helpers" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="config.progress.delegate",
+      sink=SinkConfig::new(
+        kind=SinkKind::TextConsole,
+        text_formatter=TextFormatterConfig::new(
+          show_timestamp=false,
+          show_target=false,
+        ),
+      ),
+      queue=Some(QueueConfig::new(3, overflow=QueueOverflowPolicy::DropOldest)),
+    ),
+  )
+  let sink = logger.sink
+
+  logger.info("one")
+  logger.info("two")
+  logger.info("three")
+
+  let logger_drain = logger.drain_progress(max_items=1)
+  inspect(logger_drain.queue_advanced_count, content="1")
+  inspect(logger_drain.file_flush_step_count, content="0")
+  inspect(logger_drain.queue_backed, content="true")
+  inspect(logger_drain.file_backed, content="false")
+
+  let sink_drain = sink.drain_progress(max_items=1)
+  inspect(sink_drain.queue_advanced_count, content="1")
+  inspect(sink_drain.file_flush_step_count, content="0")
+  inspect(sink_drain.queue_backed, content="true")
+  inspect(sink_drain.file_backed, content="false")
+
+  let logger_flush = logger.flush_progress()
+  inspect(logger_flush.queue_advanced_count, content="1")
+  inspect(logger_flush.file_flush_step_count, content="0")
+  inspect(logger_flush.queue_backed, content="true")
+  inspect(logger_flush.file_backed, content="false")
+
+  let sink_flush = sink.flush_progress()
+  inspect(sink_flush.queue_advanced_count, content="0")
+  inspect(sink_flush.file_flush_step_count, content="0")
+  inspect(sink_flush.queue_backed, content="true")
+  inspect(sink_flush.file_backed, content="false")
+}
+
+///|
 test "configured logger close stays aligned with runtime sink close" {
   let console_config = LoggerConfig::new(
     min_level=Level::Info,
@@ -974,7 +1021,11 @@ test "configured logger close stays aligned with runtime sink close" {
   )
   let console_logger = build_logger(console_config)
   let console_sink = build_logger(console_config).sink
+  console_logger.info("one")
+  console_logger.info("two")
+  inspect(console_logger.pending_count(), content="2")
   inspect(console_logger.close() == console_sink.close(), content="true")
+  inspect(console_logger.pending_count(), content="0")
 
   let file_config = LoggerConfig::new(
     target="config.close.file",
@@ -1007,6 +1058,129 @@ test "runtime sink queue helpers forward direct queue state" {
 }
 
 ///|
+test "queued console close drains pending queue before reporting success" {
+  let sink = RuntimeSink::QueuedConsole(
+    queued_sink(console_sink(), max_pending=4, overflow=QueueOverflowPolicy::DropNewest),
+  )
+  let logger = Logger::new(sink, min_level=Level::Info, target="runtime.close.console")
+  logger.info("one")
+  logger.info("two")
+  inspect(sink.pending_count(), content="2")
+  inspect(sink.close(), content="true")
+  inspect(sink.pending_count(), content="0")
+  inspect(sink.flush(), content="0")
+}
+
+///|
+test "queued json console close drains pending queue before reporting success" {
+  let sink = RuntimeSink::QueuedJsonConsole(
+    queued_sink(json_console_sink(), max_pending=4, overflow=QueueOverflowPolicy::DropNewest),
+  )
+  let logger = Logger::new(sink, min_level=Level::Info, target="runtime.close.json")
+  logger.info("one")
+  logger.info("two")
+  inspect(sink.pending_count(), content="2")
+  inspect(sink.close(), content="true")
+  inspect(sink.pending_count(), content="0")
+  inspect(sink.drain(), content="0")
+}
+
+///|
+test "queued text console close drains pending queue before reporting success" {
+  let sink = RuntimeSink::QueuedTextConsole(
+    queued_sink(
+      text_console_sink(text_formatter(show_timestamp=false, show_target=false)),
+      max_pending=4,
+      overflow=QueueOverflowPolicy::DropNewest,
+    ),
+  )
+  let logger = Logger::new(sink, min_level=Level::Info, target="runtime.close.text")
+  logger.info("one")
+  logger.info("two")
+  inspect(sink.pending_count(), content="2")
+  inspect(sink.close(), content="true")
+  inspect(sink.pending_count(), content="0")
+  inspect(sink.flush(), content="0")
+}
+
+///|
+test "configured queued console close drains pending queue" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      min_level=Level::Info,
+      target="config.close.queued.console",
+      sink=SinkConfig::new(kind=SinkKind::Console),
+      queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  )
+  logger.info("one")
+  logger.info("two")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.close(), content="true")
+  inspect(logger.pending_count(), content="0")
+}
+
+///|
+test "runtime sink queued file drain counts queue consumption separately from file write success" {
+  let sink = RuntimeSink::QueuedFile(
+    queued_sink(
+      file_sink("missing-dir/runtime-drain-unavailable.log", auto_flush=false),
+      max_pending=4,
+    ),
+  )
+  let logger = Logger::new(
+    sink,
+    min_level=Level::Info,
+    target="runtime.queue.file.unavailable",
+  )
+  logger.info("one")
+  logger.info("two")
+  inspect(sink.file_available(), content="false")
+  inspect(sink.pending_count(), content="2")
+  inspect(sink.file_write_failures(), content="0")
+  inspect(sink.drain(max_items=1), content="1")
+  inspect(sink.pending_count(), content="1")
+  inspect(sink.file_write_failures(), content="1")
+  inspect(sink.flush(), content="1")
+  inspect(sink.pending_count(), content="0")
+  inspect(sink.file_write_failures(), content="2")
+}
+
+///|
+test "runtime sink queued file progress helpers stay distinct from file flush outcome" {
+  let sink = RuntimeSink::QueuedFile(
+    queued_sink(
+      file_sink("missing-dir/runtime-progress-unavailable.log", auto_flush=false),
+      max_pending=4,
+    ),
+  )
+  let logger = Logger::new(
+    sink,
+    min_level=Level::Info,
+    target="runtime.queue.file.progress.unavailable",
+  )
+  logger.info("one")
+  logger.info("two")
+
+  let drained = sink.drain_progress(max_items=1)
+  inspect(drained.queue_advanced_count, content="1")
+  inspect(drained.file_flush_step_count, content="0")
+  inspect(drained.queue_backed, content="true")
+  inspect(drained.file_backed, content="true")
+  inspect(sink.pending_count(), content="1")
+  inspect(sink.file_write_failures(), content="1")
+
+  let flushed = sink.flush_progress()
+  inspect(flushed.queue_advanced_count, content="1")
+  inspect(flushed.file_flush_step_count, content="0")
+  inspect(flushed.queue_backed, content="true")
+  inspect(flushed.file_backed, content="true")
+  inspect(sink.pending_count(), content="0")
+  inspect(sink.file_write_failures(), content="2")
+  inspect(sink.file_flush(), content="false")
+}
+
+///|
 test "runtime sink plain variants use documented fallback counts" {
   let console_sink = RuntimeSink::Console(console_sink())
   inspect(console_sink.pending_count(), content="0")
@@ -1026,6 +1200,50 @@ test "runtime sink plain variants use documented fallback counts" {
   } else {
     inspect(file_sink.flush(), content="0")
     inspect(file_sink.drain(), content="0")
+    inspect(file_sink.close(), content="false")
+  }
+}
+
+///|
+test "runtime sink progress helpers expose queue and plain file steps separately" {
+  let console_sink = RuntimeSink::Console(console_sink())
+  let console_progress = console_sink.flush_progress()
+  inspect(console_progress.queue_advanced_count, content="0")
+  inspect(console_progress.file_flush_step_count, content="0")
+  inspect(console_progress.queue_backed, content="false")
+  inspect(console_progress.file_backed, content="false")
+
+  let queued_sink = RuntimeSink::QueuedTextConsole(
+    queued_sink(
+      text_console_sink(text_formatter(show_timestamp=false, show_target=false)),
+      max_pending=4,
+      overflow=QueueOverflowPolicy::DropNewest,
+    ),
+  )
+  let queued_logger = Logger::new(
+    queued_sink,
+    min_level=Level::Info,
+    target="runtime.progress.queue.text",
+  )
+  queued_logger.info("one")
+  let queued_progress = queued_sink.flush_progress()
+  inspect(queued_progress.queue_advanced_count, content="1")
+  inspect(queued_progress.file_flush_step_count, content="0")
+  inspect(queued_progress.queue_backed, content="true")
+  inspect(queued_progress.file_backed, content="false")
+
+  let file_sink = RuntimeSink::File(
+    file_sink("runtime-progress-direct.log", auto_flush=false),
+  )
+  let file_progress = file_sink.flush_progress()
+  inspect(file_progress.queue_advanced_count, content="0")
+  inspect(file_progress.queue_backed, content="false")
+  inspect(file_progress.file_backed, content="true")
+  if file_sink.file_available() {
+    inspect(file_progress.file_flush_step_count, content="1")
+    inspect(file_sink.close(), content="true")
+  } else {
+    inspect(file_progress.file_flush_step_count, content="0")
     inspect(file_sink.close(), content="false")
   }
 }
@@ -1300,6 +1518,19 @@ test "runtime sink queued file reopen helpers and failure resets work directly" 
     logger.info("one")
     logger.info("two")
     inspect(sink.pending_count(), content="2")
+    inspect(sink.file_reopen_truncate(), content="false")
+    inspect(sink.file_append_mode(), content="true")
+    inspect(sink.file_set_append_mode(false), content="false")
+    inspect(sink.file_append_mode(), content="true")
+    inspect(
+      sink.file_set_policy(
+        FileSinkPolicy::new(append=false, auto_flush=false, rotation=None),
+      ),
+      content="false",
+    )
+    inspect(sink.pending_count(), content="2")
+    inspect(sink.file_flush(), content="true")
+    inspect(sink.pending_count(), content="0")
     inspect(sink.file_reopen_truncate(), content="true")
     inspect(sink.file_append_mode(), content="false")
     inspect(sink.file_reopen(), content="true")
@@ -1325,6 +1556,8 @@ test "runtime sink queued file reopen helpers and failure resets work directly" 
     logger.info("one")
     inspect(sink.pending_count(), content="1")
     inspect(sink.file_write_failures(), content="0")
+    inspect(sink.file_set_append_mode(false), content="false")
+    inspect(sink.file_append_mode(), content="true")
     inspect(sink.file_flush(), content="false")
     inspect(sink.pending_count(), content="0")
     inspect(sink.file_write_failures(), content="1")
@@ -1342,6 +1575,33 @@ test "runtime sink queued file reopen helpers and failure resets work directly" 
     inspect(sink.file_write_failures(), content="0")
     inspect(sink.file_flush_failures(), content="0")
     inspect(sink.file_rotation_failures(), content="0")
+  }
+}
+
+///|
+test "runtime sink queued file close drains queue before teardown" {
+  let sink = RuntimeSink::QueuedFile(
+    queued_sink(file_sink("runtime-close-queued.log", auto_flush=false), max_pending=4),
+  )
+  let logger = Logger::new(
+    sink,
+    min_level=Level::Info,
+    target="runtime.close.queued",
+  )
+  logger.info("one")
+  logger.info("two")
+  inspect(sink.pending_count(), content="2")
+  if sink.file_available() {
+    inspect(sink.close(), content="true")
+    inspect(sink.pending_count(), content="0")
+    inspect(sink.file_available(), content="false")
+    inspect(sink.file_close(), content="false")
+  } else {
+    inspect(sink.close(), content="false")
+    inspect(sink.pending_count(), content="0")
+    inspect(sink.file_available(), content="false")
+    inspect(sink.file_write_failures(), content="2")
+    inspect(sink.file_close(), content="false")
   }
 }
 
@@ -2740,6 +3000,67 @@ test "configured queued file logger flushes queue through file helper" {
       Some(snapshot) => inspect(snapshot.pending_count, content="0")
       None => inspect(false, content="true")
     }
+    inspect(logger.file_close(), content="false")
+  }
+}
+
+///|
+test "configured queued file logger blocks policy mutation while queue is pending" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-queued-policy.log"),
+      queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  )
+  logger.info("one")
+  logger.info("two")
+  inspect(logger.pending_count(), content="2")
+  inspect(logger.file_set_append_mode(false), content="false")
+  inspect(logger.file_append_mode(), content="true")
+  inspect(
+    logger.file_set_policy(
+      FileSinkPolicy::new(append=false, auto_flush=false, rotation=None),
+    ),
+    content="false",
+  )
+  inspect(logger.file_reopen_truncate(), content="false")
+  inspect(logger.pending_count(), content="2")
+  if logger.file_available() {
+    inspect(logger.file_flush(), content="true")
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.file_set_append_mode(false), content="true")
+    inspect(logger.file_append_mode(), content="false")
+    inspect(logger.file_reopen_with_current_policy(), content="true")
+    inspect(logger.file_close(), content="true")
+  } else {
+    inspect(logger.file_flush(), content="false")
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.file_reopen_with_current_policy(), content="false")
+    inspect(logger.file_close(), content="false")
+  }
+}
+
+///|
+test "configured queued file logger close drains queue before teardown" {
+  let logger = build_logger(
+    LoggerConfig::new(
+      sink=SinkConfig::new(kind=SinkKind::File, path="config-close-queued.log"),
+      queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
+    ),
+  )
+  logger.info("one")
+  logger.info("two")
+  inspect(logger.pending_count(), content="2")
+  if logger.file_available() {
+    inspect(logger.close(), content="true")
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.file_available(), content="false")
+    inspect(logger.file_close(), content="false")
+  } else {
+    inspect(logger.close(), content="false")
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.file_available(), content="false")
+    inspect(logger.file_write_failures(), content="2")
     inspect(logger.file_close(), content="false")
   }
 }
