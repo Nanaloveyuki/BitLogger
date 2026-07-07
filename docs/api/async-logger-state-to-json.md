@@ -2,7 +2,7 @@
 name: async-logger-state-to-json
 group: api
 category: async
-update-time: 20260614
+update-time: 20260707
 description: Convert an AsyncLoggerState snapshot into a JSON value for diagnostics and transport using the canonical nested runtime shape and flush-policy labels.
 key-word:
     - async
@@ -33,14 +33,14 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 
 Detailed rules explaining key parameters and behaviors
 
-- The JSON includes runtime mode, worker support, queue counters, lifecycle flags, last error, and flush policy.
-- The top-level fields are `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
+- The JSON includes runtime mode, lifecycle phase, derived lifecycle conclusions, queue counters, last error, and flush policy.
+- The top-level fields are `runtime`, `phase`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `backlog_retained`, `can_rerun`, `terminal`, `last_error`, and `flush_policy`.
 - The nested `runtime` field reuses `async_runtime_state_to_json(...)`, and `flush_policy` is serialized with the canonical labels `Never`, `Batch`, or `Shutdown`.
 - The public helper returns the same internal JSON snapshot shape used by `stringify_async_logger_state(...)`, so both export paths stay aligned without duplicate field assembly logic.
 - This helper is suitable for health endpoints, diagnostics payloads, and custom serialization flows.
 - It shares the same stable field names used by `stringify_async_logger_state(...)`.
 - The state must already have been captured or constructed before serialization.
-- Serialization preserves whatever snapshot combination it receives, including failure flags together with remaining backlog counts.
+- Serialization preserves whatever snapshot combination it receives, including lifecycle phase and failure/backlog combinations together with remaining backlog counts.
 - This helper never rereads a logger instance by itself. If callers pass an older or manually constructed `AsyncLoggerState`, the JSON reflects that provided value exactly rather than refreshing fields from live runtime state.
 - It also does not normalize mixed diagnostic combinations. If the provided snapshot says `is_closed=true` together with retained `has_failed=true`, `last_error`, or non-zero backlog counters, those exact combinations are emitted unchanged.
 

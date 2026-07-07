@@ -21,7 +21,7 @@ pub fn[S] LibraryAsyncLogger::new(
   config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level? : @bitlogger.Level = @bitlogger.Level::Info,
   target? : String = "",
-  flush? : (S) -> Int raise = fn(_) { 0 },
+  flush? : (S) -> Unit raise = fn(_) { () },
 ) -> LibraryAsyncLogger[S] {
   library_async_logger(async_logger(sink, config~, min_level~, target~, flush~))
 }

@@ -1,0 +1,132 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/sink_graph"
+
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+  "moonbitlang/core/queue",
+  "moonbitlang/core/ref",
+}
+
+// Values
+pub fn[S] buffered_sink(S, flush_limit? : Int) -> BufferedSink[S]
+
+pub fn callback_sink((@core.Record) -> Unit) -> CallbackSink
+
+pub fn console_sink() -> ConsoleSink
+
+pub fn[S] context_sink(S, Array[@core.Field]) -> ContextSink[S]
+
+pub fn[A, B] fanout_sink(A, B) -> FanoutSink[A, B]
+
+pub fn[S] filter_sink(S, (@core.Record) -> Bool) -> FilterSink[S]
+
+pub fn formatted_callback_sink((@core.Record) -> String, (String) -> Unit) -> FormattedCallbackSink
+
+pub fn formatted_console_sink((@core.Record) -> String) -> FormattedConsoleSink
+
+pub fn json_console_sink() -> JsonConsoleSink
+
+pub fn[S] patch_sink(S, (@core.Record) -> @core.Record) -> PatchSink[S]
+
+pub fn[S] queued_sink(S, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> QueuedSink[S]
+
+pub fn[A, B] split_by_level(A, B, min_level? : @core.Level) -> SplitSink[A, B]
+
+pub fn[A, B] split_sink(A, B, (@core.Record) -> Bool) -> SplitSink[A, B]
+
+pub fn text_callback_sink(@formatting.TextFormatter, (String) -> Unit) -> FormattedCallbackSink
+
+pub fn text_console_sink(@formatting.TextFormatter) -> FormattedConsoleSink
+
+// Errors
+
+// Types and methods
+pub struct BufferedSink[S] {
+  sink : S
+  buffer : @ref.Ref[Array[@core.Record]]
+  flush_limit : Int
+}
+pub fn[S : Sink] BufferedSink::flush(Self[S]) -> Unit
+pub fn[S] BufferedSink::pending_count(Self[S]) -> Int
+pub impl[S : Sink] Sink for BufferedSink[S]
+
+pub struct CallbackSink {
+  callback : (@core.Record) -> Unit
+}
+pub impl Sink for CallbackSink
+
+pub struct ConsoleSink {
+  _dummy : Unit
+}
+pub impl Sink for ConsoleSink
+
+pub struct ContextSink[S] {
+  sink : S
+  context_fields : Array[@core.Field]
+}
+pub impl[S : Sink] Sink for ContextSink[S]
+
+pub struct FanoutSink[A, B] {
+  left : A
+  right : B
+}
+pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B]
+
+pub struct FilterSink[S] {
+  sink : S
+  predicate : (@core.Record) -> Bool
+}
+pub impl[S : Sink] Sink for FilterSink[S]
+
+pub struct FormattedCallbackSink {
+  formatter : (@core.Record) -> String
+  callback : (String) -> Unit
+}
+pub impl Sink for FormattedCallbackSink
+
+pub struct FormattedConsoleSink {
+  formatter : (@core.Record) -> String
+}
+pub impl Sink for FormattedConsoleSink
+
+pub struct JsonConsoleSink {
+  _dummy : Unit
+}
+pub impl Sink for JsonConsoleSink
+
+pub struct PatchSink[S] {
+  sink : S
+  patch : (@core.Record) -> @core.Record
+}
+pub impl[S : Sink] Sink for PatchSink[S]
+
+pub struct QueuedSink[S] {
+  sink : S
+  queue : @queue.Queue[@core.Record]
+  max_pending : Int
+  overflow : @queue_model.QueueOverflowPolicy
+  dropped_count : @ref.Ref[Int]
+}
+pub fn[S : Sink] QueuedSink::drain(Self[S], max_items? : Int) -> Int
+pub fn[S] QueuedSink::dropped_count(Self[S]) -> Int
+pub fn[S : Sink] QueuedSink::flush(Self[S]) -> Int
+pub fn[S] QueuedSink::pending_count(Self[S]) -> Int
+pub impl[S] Sink for QueuedSink[S]
+
+pub struct SplitSink[A, B] {
+  left : A
+  right : B
+  predicate : (@core.Record) -> Bool
+}
+pub impl[A : Sink, B : Sink] Sink for SplitSink[A, B]
+
+// Type aliases
+pub using @queue_model {type QueueOverflowPolicy}
+
+// Traits
+pub(open) trait Sink {
+  fn write(Self, @core.Record) -> Unit
+}
+

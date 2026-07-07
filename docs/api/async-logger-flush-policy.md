@@ -2,8 +2,8 @@
 name: async-logger-flush-policy
 group: api
 category: async
-update-time: 20260614
-description: Read the async logger flush policy currently governing batch-end and shutdown-end flushing behavior.
+update-time: 20260707
+description: Read the async logger flush policy currently governing batch-end and shutdown-end flush-callback timing.
 key-word:
     - async
     - logger
@@ -37,8 +37,10 @@ Detailed rules explaining key parameters and behaviors
 - `Batch` means the worker invokes the stored async flush callback after each completed drained batch, not after every individual record write.
 - `Shutdown` means the worker invokes the stored async flush callback once after the worker loop exits.
 - `Never` leaves that explicit callback path unused and relies entirely on sink behavior or external control.
-- This helper reports callback timing policy, not a guarantee that a particular sink type has a meaningful built-in flush effect on every constructor path.
-- In particular, text-specific async builder paths keep the default no-op flush callback even when the visible policy is `Batch` or `Shutdown`, so the reported policy can describe when the callback would run without implying extra sink work actually happens on that path.
+- This helper reports callback timing policy, not a progress count contract.
+- The callback is now treated as an attempted flush action with optional failure, not as a meaningful returned item count.
+- Builder routes that wrap `RuntimeSink` align with the sync/runtime facade by calling `RuntimeSink::flush_progress()` inside that callback and discarding the returned progress details.
+- Text-specific async builder paths still keep the default no-op flush callback even when the visible policy is `Batch` or `Shutdown`, so the reported policy can describe when the callback would run without implying extra sink work actually happens on that path.
 
 ### How to Use
 

@@ -4,6 +4,11 @@ pub(all) suberror AsyncLoggerClosed {
 }
 
 ///|
+pub(all) suberror AsyncLoggerAlreadyRunning {
+  AsyncLoggerAlreadyRunning
+}
+
+///|
 pub type AsyncOverflowPolicy = @utils.AsyncOverflowPolicy
 
 ///|
@@ -22,6 +27,9 @@ fn all_async_runtime_modes() -> Array[AsyncRuntimeMode] {
 
 ///|
 pub type AsyncRuntimeState = @utils.AsyncRuntimeState
+
+///|
+pub type AsyncLifecyclePhase = @utils.AsyncLifecyclePhase
 
 ///|
 pub type AsyncLoggerState = @utils.AsyncLoggerState
@@ -129,16 +137,14 @@ pub struct AsyncLogger[S] {
   linger_ms : Int
   flush_policy : AsyncFlushPolicy
   sink : S
-  flush_sink : (S) -> Int raise
+  flush_callback : (S) -> Unit raise
   context_fields : Array[@bitlogger.Field]
   filter : (@bitlogger.Record) -> Bool
   patch : @bitlogger.RecordPatch
   queue : @async.Queue[@bitlogger.Record]
   pending_count : Ref[Int]
   dropped_count : Ref[Int]
-  is_closed : Ref[Bool]
-  is_running : Ref[Bool]
-  has_failed : Ref[Bool]
+  phase : Ref[AsyncLifecyclePhase]
   last_error : Ref[String]
 }
 
@@ -148,7 +154,7 @@ pub fn[S] async_logger(
   config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level? : @bitlogger.Level = @bitlogger.Level::Info,
   target? : String = "",
-  flush? : (S) -> Int raise = fn(_) { 0 },
+  flush? : (S) -> Unit raise = fn(_) { () },
 ) -> AsyncLogger[S] {
   {
     min_level,
@@ -159,18 +165,85 @@ pub fn[S] async_logger(
     linger_ms: config.linger_ms,
     flush_policy: config.flush,
     sink,
-    flush_sink: flush,
+    flush_callback: flush,
     context_fields: [],
     filter: fn(_) { true },
     patch: @bitlogger.identity_patch(),
     queue: @async.Queue(kind=queue_kind_of(config)),
     pending_count: Ref(0),
     dropped_count: Ref(0),
-    is_closed: Ref(false),
-    is_running: Ref(false),
-    has_failed: Ref(false),
+    phase: Ref(AsyncLifecyclePhase::Ready),
     last_error: Ref(""),
   }
+}
+
+///|
+fn async_logger_phase_is_closed(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Closing |
+    AsyncLifecyclePhase::Closed |
+    AsyncLifecyclePhase::ClosedFailed => true
+    _ => false
+  }
+}
+
+///|
+fn async_logger_phase_is_running(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Running | AsyncLifecyclePhase::Closing => true
+    _ => false
+  }
+}
+
+///|
+fn async_logger_phase_has_failed(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Failed | AsyncLifecyclePhase::ClosedFailed => true
+    _ => false
+  }
+}
+
+///|
+fn async_logger_phase_after_close(
+  phase : AsyncLifecyclePhase,
+) -> AsyncLifecyclePhase {
+  match phase {
+    AsyncLifecyclePhase::Running | AsyncLifecyclePhase::Closing =>
+      AsyncLifecyclePhase::Closing
+    AsyncLifecyclePhase::Failed | AsyncLifecyclePhase::ClosedFailed =>
+      AsyncLifecyclePhase::ClosedFailed
+    AsyncLifecyclePhase::Closed => AsyncLifecyclePhase::Closed
+    AsyncLifecyclePhase::Ready => AsyncLifecyclePhase::Closed
+  }
+}
+
+///|
+fn async_logger_phase_after_run_exit(
+  phase : AsyncLifecyclePhase,
+) -> AsyncLifecyclePhase {
+  match phase {
+    AsyncLifecyclePhase::Closing => AsyncLifecyclePhase::Closed
+    AsyncLifecyclePhase::Running => AsyncLifecyclePhase::Ready
+    AsyncLifecyclePhase::Closed | AsyncLifecyclePhase::ClosedFailed => phase
+    _ => phase
+  }
+}
+
+///|
+fn async_logger_phase_after_run_failure(
+  phase : AsyncLifecyclePhase,
+) -> AsyncLifecyclePhase {
+  match phase {
+    AsyncLifecyclePhase::Closing => AsyncLifecyclePhase::ClosedFailed
+    AsyncLifecyclePhase::Closed | AsyncLifecyclePhase::ClosedFailed =>
+      AsyncLifecyclePhase::ClosedFailed
+    _ => AsyncLifecyclePhase::Failed
+  }
+}
+
+///|
+pub fn[S] AsyncLogger::phase(self : AsyncLogger[S]) -> AsyncLifecyclePhase {
+  self.phase.val
 }
 
 ///|
@@ -282,7 +355,7 @@ pub async fn[S] AsyncLogger::log(
   fields? : Array[@bitlogger.Field] = [],
   target? : String = "",
 ) -> Unit {
-  guard !(async_runtime_guard_closed_on_log() && self.is_closed()) else { () }
+  guard !self.is_closed() else { () }
   guard self.is_enabled(level) else { () }
   let actual_target = if target == "" { self.target } else { target }
   let timestamp_ms = if self.timestamp { @env.now() } else { 0UL }
@@ -378,17 +451,17 @@ pub fn[S] AsyncLogger::dropped_count(self : AsyncLogger[S]) -> Int {
 
 ///|
 pub fn[S] AsyncLogger::is_closed(self : AsyncLogger[S]) -> Bool {
-  self.is_closed.val
+  async_logger_phase_is_closed(self.phase())
 }
 
 ///|
 pub fn[S] AsyncLogger::is_running(self : AsyncLogger[S]) -> Bool {
-  self.is_running.val
+  async_logger_phase_is_running(self.phase())
 }
 
 ///|
 pub fn[S] AsyncLogger::has_failed(self : AsyncLogger[S]) -> Bool {
-  self.has_failed.val
+  async_logger_phase_has_failed(self.phase())
 }
 
 ///|
@@ -405,11 +478,9 @@ pub fn[S] AsyncLogger::flush_policy(self : AsyncLogger[S]) -> AsyncFlushPolicy {
 pub fn[S] AsyncLogger::state(self : AsyncLogger[S]) -> AsyncLoggerState {
   AsyncLoggerState::new(
     async_runtime_state(),
+    self.phase(),
     self.pending_count(),
     self.dropped_count(),
-    self.is_closed(),
-    self.is_running(),
-    self.has_failed(),
     self.last_error(),
     self.flush_policy(),
   )
@@ -420,7 +491,7 @@ pub fn[S] AsyncLogger::close(
   self : AsyncLogger[S],
   clear? : Bool = false,
 ) -> Unit {
-  self.is_closed.val = true
+  self.phase.val = async_logger_phase_after_close(self.phase())
   if clear {
     let abandoned = self.pending_count()
     if abandoned > 0 {
@@ -450,18 +521,20 @@ pub async fn[S] AsyncLogger::shutdown(
     self.close(clear=true)
   } else {
     self.wait_idle()
-    if async_runtime_shutdown_clears_pending_after_wait_idle() &&
-      self.pending_count() > 0 {
+    if self.pending_count() > 0 {
       self.close(clear=true)
     } else {
       self.close()
     }
   }
-  if async_runtime_shutdown_waits_for_worker() {
-    while self.is_running() {
-      @async.pause()
-    }
+  while self.is_running() {
+    @async.pause()
   }
+}
+
+///|
+fn[S] run_flush_callback(logger : AsyncLogger[S]) -> Unit raise {
+  (logger.flush_callback)(logger.sink)
 }
 
 ///|
@@ -512,12 +585,12 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
       }
     }
     match logger.flush_policy {
-      AsyncFlushPolicy::Batch => ignore((logger.flush_sink)(logger.sink))
+      AsyncFlushPolicy::Batch => run_flush_callback(logger)
       _ => ()
     }
   }
   match logger.flush_policy {
-    AsyncFlushPolicy::Shutdown => ignore((logger.flush_sink)(logger.sink))
+    AsyncFlushPolicy::Shutdown => run_flush_callback(logger)
     _ => ()
   }
 }
@@ -526,18 +599,18 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
 pub async fn[S : @bitlogger.Sink] AsyncLogger::run(
   self : AsyncLogger[S],
 ) -> Unit {
-  self.is_running.val = true
-  self.has_failed.val = false
+  guard !self.is_closed() else { raise AsyncLoggerClosed }
+  guard !self.is_running() else { raise AsyncLoggerAlreadyRunning }
+  self.phase.val = AsyncLifecyclePhase::Running
   self.last_error.val = ""
   run_worker(self) catch {
     err => {
-      self.has_failed.val = true
+      self.phase.val = async_logger_phase_after_run_failure(self.phase())
       self.last_error.val = err.to_string()
-      self.is_running.val = false
       raise err
     }
   }
-  self.is_running.val = false
+  self.phase.val = async_logger_phase_after_run_exit(self.phase())
 }
 
 ///|
@@ -550,7 +623,7 @@ pub fn build_async_logger(
     config=config.async_config,
     min_level=logger.min_level,
     target=logger.target,
-    flush=fn(sink) { sink.flush() },
+    flush=fn(sink) { ignore(sink.flush_progress()) },
   ).with_timestamp(enabled=logger.timestamp)
 }
 

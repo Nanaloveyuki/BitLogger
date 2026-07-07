@@ -2,7 +2,7 @@
 name: async-logger-last-error
 group: api
 category: async
-update-time: 20260614
+update-time: 20260707
 description: Read the last error string recorded by the async logger worker after run() resets and runtime failure capture.
 key-word:
     - async
@@ -76,7 +76,7 @@ e.g.:
 
 - `close()` or `shutdown()` do not clear a previously recorded error string by themselves; the reset happens only after a later `run()` has already started.
 
-- If the same error string is still present after shutdown, that does not by itself mean cleanup was skipped; the logger may already be `is_closed=true` while the remaining pending-versus-dropped outcome still reflects the active runtime's shutdown path.
+- If the same error string is still present after shutdown, that does not by itself mean cleanup was skipped; the logger may already be `phase=closed_failed` and `terminal=true` while the retained failure record is still intentionally visible.
 
 ### Notes
 

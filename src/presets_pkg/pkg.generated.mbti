@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/presets_pkg"
+
+import {
+  "Nanaloveyuki/BitLogger/src/config_model",
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+}
+
+// Values
+pub fn console(min_level? : @core.Level, target? : String, timestamp? : Bool) -> @config_model.LoggerConfig
+
+pub fn file(String, min_level? : @core.Level, target? : String, timestamp? : Bool, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, text_formatter? : @config_model.TextFormatterConfig) -> @config_model.LoggerConfig raise @config_model.ConfigError
+
+pub fn json_console(min_level? : @core.Level, target? : String, timestamp? : Bool) -> @config_model.LoggerConfig
+
+pub fn text_console(min_level? : @core.Level, target? : String, timestamp? : Bool, text_formatter? : @config_model.TextFormatterConfig) -> @config_model.LoggerConfig
+
+pub fn with_file_rotation(@config_model.LoggerConfig, Int, max_backups? : Int) -> @config_model.LoggerConfig
+
+pub fn with_file_rotation_i64(@config_model.LoggerConfig, Int64, max_backups? : Int) -> @config_model.LoggerConfig
+
+pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @config_model.LoggerConfig
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,365 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src"
+
+import {
+  "Nanaloveyuki/BitLogger/src/config_model",
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/file_runtime",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+  "Nanaloveyuki/BitLogger/src/runtime",
+  "Nanaloveyuki/BitLogger/src/sink_graph",
+  "maria/json_parser",
+}
+
+// Values
+pub fn all_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
+
+pub fn any_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
+
+pub fn append_fields(Array[@core.Field]) -> (@core.Record) -> @core.Record
+
+pub fn[S] buffered_sink(S, flush_limit? : Int) -> @sink_graph.BufferedSink[S]
+
+pub fn build_application_logger(@config_model.LoggerConfig) -> Logger[@runtime.RuntimeSink]
+
+pub fn build_library_logger(@config_model.LoggerConfig) -> LibraryLogger[@runtime.RuntimeSink]
+
+pub fn build_logger(@config_model.LoggerConfig) -> Logger[@runtime.RuntimeSink]
+
+pub fn callback_sink((@core.Record) -> Unit) -> @sink_graph.CallbackSink
+
+pub fn color_mode_label(@formatting.ColorMode) -> String
+
+pub fn color_support_label(@formatting.ColorSupport) -> String
+
+pub fn compose_patches(Array[(@core.Record) -> @core.Record]) -> (@core.Record) -> @core.Record
+
+pub fn console(min_level? : @core.Level, target? : String, timestamp? : Bool) -> @config_model.LoggerConfig
+
+pub fn console_sink() -> @sink_graph.ConsoleSink
+
+pub fn[S] context_sink(S, Array[@core.Field]) -> @sink_graph.ContextSink[S]
+
+pub fn debug(String, fields? : Array[@core.Field]) -> Unit
+
+pub fn default_library_logger() -> LibraryLogger[@sink_graph.ConsoleSink]
+
+pub fn default_logger() -> Logger[@sink_graph.ConsoleSink]
+
+pub fn default_logger_config() -> @config_model.LoggerConfig
+
+pub fn default_sink_config() -> @config_model.SinkConfig
+
+pub fn default_style_tag_registry() -> @formatting.StyleTagRegistry
+
+pub fn default_text_formatter_config() -> @config_model.TextFormatterConfig
+
+pub fn error(String, fields? : Array[@core.Field]) -> Unit
+
+pub fn[A, B] fanout_sink(A, B) -> @sink_graph.FanoutSink[A, B]
+
+pub fn field(String, String) -> @core.Field
+
+pub fn field_equals(String, String) -> (@core.Record) -> Bool
+
+pub fn fields(Array[(String, String)]) -> Array[@core.Field]
+
+pub fn file(String, min_level? : @core.Level, target? : String, timestamp? : Bool, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, text_formatter? : @config_model.TextFormatterConfig) -> @config_model.LoggerConfig raise @config_model.ConfigError
+
+pub fn file_rotation(Int, max_backups? : Int) -> @file_model.FileRotation
+
+pub fn file_rotation_config_to_json(@file_model.FileRotation) -> @json_parser.JsonValue
+
+pub fn file_rotation_i64(Int64, max_backups? : Int) -> @file_model.FileRotation
+
+pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
+
+pub fn file_sink_policy_to_json(@file_model.FileSinkPolicy) -> @json_parser.JsonValue
+
+pub fn file_sink_state_to_json(@file_model.FileSinkState) -> @json_parser.JsonValue
+
+pub fn[S] filter_sink(S, (@core.Record) -> Bool) -> @sink_graph.FilterSink[S]
+
+pub fn format_json(@core.Record) -> String
+
+pub fn format_text(@core.Record, formatter? : @formatting.TextFormatter) -> String
+
+pub fn formatted_callback_sink((@core.Record) -> String, (String) -> Unit) -> @sink_graph.FormattedCallbackSink
+
+pub fn formatted_console_sink((@core.Record) -> String) -> @sink_graph.FormattedConsoleSink
+
+pub fn global_style_tag_registry() -> @formatting.StyleTagRegistry
+
+pub fn has_field(String) -> (@core.Record) -> Bool
+
+pub fn identity_patch() -> (@core.Record) -> @core.Record
+
+pub fn info(String, fields? : Array[@core.Field]) -> Unit
+
+pub fn json_console(min_level? : @core.Level, target? : String, timestamp? : Bool) -> @config_model.LoggerConfig
+
+pub fn json_console_sink() -> @sink_graph.JsonConsoleSink
+
+pub fn level_at_least(@core.Level) -> (@core.Record) -> Bool
+
+pub fn log(@core.Level, String, fields? : Array[@core.Field]) -> Unit
+
+pub fn logger_config_to_json(@config_model.LoggerConfig) -> @json_parser.JsonValue
+
+pub fn message_contains(String) -> (@core.Record) -> Bool
+
+pub fn native_files_supported() -> Bool
+
+pub fn not_((@core.Record) -> Bool) -> (@core.Record) -> Bool
+
+pub fn parse_and_build_application_logger(String) -> Logger[@runtime.RuntimeSink] raise @config_model.ConfigError
+
+pub fn parse_and_build_library_logger(String) -> LibraryLogger[@runtime.RuntimeSink] raise @config_model.ConfigError
+
+pub fn parse_and_build_logger(String) -> Logger[@runtime.RuntimeSink] raise @config_model.ConfigError
+
+pub fn parse_logger_config_text(String) -> @config_model.LoggerConfig raise @config_model.ConfigError
+
+pub fn[S] patch_sink(S, (@core.Record) -> @core.Record) -> @sink_graph.PatchSink[S]
+
+pub fn prefix_message(String) -> (@core.Record) -> @core.Record
+
+pub fn queue_config_to_json(@config_model.QueueConfig) -> @json_parser.JsonValue
+
+pub fn[S] queued_sink(S, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @sink_graph.QueuedSink[S]
+
+pub fn redact_field(String, placeholder? : String) -> (@core.Record) -> @core.Record
+
+pub fn redact_fields(Array[String], placeholder? : String) -> (@core.Record) -> @core.Record
+
+pub fn reset_global_style_tag_registry() -> Unit
+
+pub fn runtime_file_state_to_json(@file_model.RuntimeFileState) -> @json_parser.JsonValue
+
+pub fn set_default_min_level(@core.Level) -> Unit
+
+pub fn set_default_target(String) -> Unit
+
+pub fn set_global_style_tag_registry(@formatting.StyleTagRegistry) -> Unit
+
+pub fn set_target(String) -> (@core.Record) -> @core.Record
+
+pub fn sink_config_to_json(@config_model.SinkConfig) -> @json_parser.JsonValue
+
+pub fn[A, B] split_by_level(A, B, min_level? : @core.Level) -> @sink_graph.SplitSink[A, B]
+
+pub fn[A, B] split_sink(A, B, (@core.Record) -> Bool) -> @sink_graph.SplitSink[A, B]
+
+pub fn stringify_file_sink_policy(@file_model.FileSinkPolicy, pretty? : Bool) -> String
+
+pub fn stringify_file_sink_state(@file_model.FileSinkState, pretty? : Bool) -> String
+
+pub fn stringify_logger_config(@config_model.LoggerConfig, pretty? : Bool) -> String
+
+pub fn stringify_queue_config(@config_model.QueueConfig, pretty? : Bool) -> String
+
+pub fn stringify_runtime_file_state(@file_model.RuntimeFileState, pretty? : Bool) -> String
+
+pub fn stringify_sink_config(@config_model.SinkConfig, pretty? : Bool) -> String
+
+pub fn stringify_text_formatter_config(@config_model.TextFormatterConfig, pretty? : Bool) -> String
+
+pub fn style_markup_mode_label(@formatting.StyleMarkupMode) -> String
+
+pub fn style_tag_registry() -> @formatting.StyleTagRegistry
+
+pub fn target_has_prefix(String) -> (@core.Record) -> Bool
+
+pub fn target_is(String) -> (@core.Record) -> Bool
+
+pub fn text_callback_sink(@formatting.TextFormatter, (String) -> Unit) -> @sink_graph.FormattedCallbackSink
+
+pub fn text_console(min_level? : @core.Level, target? : String, timestamp? : Bool, text_formatter? : @config_model.TextFormatterConfig) -> @config_model.LoggerConfig
+
+pub fn text_console_sink(@formatting.TextFormatter) -> @sink_graph.FormattedConsoleSink
+
+pub fn text_formatter(show_timestamp? : Bool, show_level? : Bool, show_target? : Bool, show_fields? : Bool, separator? : String, field_separator? : String, template? : String, color_mode? : @formatting.ColorMode, color_support? : @formatting.ColorSupport, style_markup? : @formatting.StyleMarkupMode, target_style_markup? : @formatting.StyleMarkupMode, fields_style_markup? : @formatting.StyleMarkupMode, style_tags? : @formatting.StyleTagRegistry?) -> @formatting.TextFormatter
+
+pub fn text_formatter_config_to_json(@config_model.TextFormatterConfig) -> @json_parser.JsonValue
+
+pub fn text_style(fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, italic? : Bool, underline? : Bool) -> @formatting.TextStyle
+
+pub fn trace(String, fields? : Array[@core.Field]) -> Unit
+
+pub fn warn(String, fields? : Array[@core.Field]) -> Unit
+
+pub fn with_file_rotation(@config_model.LoggerConfig, Int, max_backups? : Int) -> @config_model.LoggerConfig
+
+pub fn with_file_rotation_i64(@config_model.LoggerConfig, Int64, max_backups? : Int) -> @config_model.LoggerConfig
+
+pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @config_model.LoggerConfig
+
+// Errors
+
+// Types and methods
+pub struct LibraryLogger[S] {
+  inner : Logger[S]
+}
+pub fn[S] LibraryLogger::bind(Self[S], Array[@core.Field]) -> Self[@sink_graph.ContextSink[S]]
+pub fn[S] LibraryLogger::child(Self[S], String) -> Self[S]
+pub fn[S : @sink_graph.Sink] LibraryLogger::error(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S : @sink_graph.Sink] LibraryLogger::info(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] LibraryLogger::is_enabled(Self[S], @core.Level) -> Bool
+pub fn[S : @sink_graph.Sink] LibraryLogger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
+pub fn[S] LibraryLogger::new(S, min_level? : @core.Level, target? : String) -> Self[S]
+pub fn[S] LibraryLogger::to_logger(Self[S]) -> Logger[S]
+pub fn[S : @sink_graph.Sink] LibraryLogger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] LibraryLogger::with_context_fields(Self[S], Array[@core.Field]) -> Self[@sink_graph.ContextSink[S]]
+pub fn[S] LibraryLogger::with_target(Self[S], String) -> Self[S]
+
+pub struct Logger[S] {
+  min_level : @core.Level
+  sink : S
+  target : String
+  timestamp : Bool
+}
+pub fn[S] Logger::bind(Self[S], Array[@core.Field]) -> Self[@sink_graph.ContextSink[S]]
+pub fn[S] Logger::child(Self[S], String) -> Self[S]
+pub fn Logger::close(Self[@runtime.RuntimeSink]) -> Bool
+pub fn[S : @sink_graph.Sink] Logger::debug(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn Logger::drain(Self[@runtime.RuntimeSink], max_items? : Int) -> Int
+pub fn Logger::drain_progress(Self[@runtime.RuntimeSink], max_items? : Int) -> @runtime.RuntimeSinkProgress
+pub fn Logger::dropped_count(Self[@runtime.RuntimeSink]) -> Int
+pub fn[S : @sink_graph.Sink] Logger::error(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn Logger::file_append_mode(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_auto_flush(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_available(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_clear_rotation(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_close(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_default_policy(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy
+pub fn Logger::file_default_policy_or_none(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy?
+pub fn Logger::file_flush(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_flush_failures(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::file_open_failures(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::file_path(Self[@runtime.RuntimeSink]) -> String
+pub fn Logger::file_path_or_none(Self[@runtime.RuntimeSink]) -> String?
+pub fn Logger::file_policy(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy
+pub fn Logger::file_policy_matches_default(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_policy_or_none(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy?
+pub fn Logger::file_reopen(Self[@runtime.RuntimeSink], append? : Bool?) -> Bool
+pub fn Logger::file_reopen_append(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_reopen_truncate(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_reopen_with_current_policy(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_reset_failure_counters(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_reset_policy(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_rotation_config(Self[@runtime.RuntimeSink]) -> @file_model.FileRotation?
+pub fn Logger::file_rotation_enabled(Self[@runtime.RuntimeSink]) -> Bool
+pub fn Logger::file_rotation_failures(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::file_runtime_state(Self[@runtime.RuntimeSink]) -> @file_model.RuntimeFileState?
+pub fn Logger::file_set_append_mode(Self[@runtime.RuntimeSink], Bool) -> Bool
+pub fn Logger::file_set_auto_flush(Self[@runtime.RuntimeSink], Bool) -> Bool
+pub fn Logger::file_set_policy(Self[@runtime.RuntimeSink], @file_model.FileSinkPolicy) -> Bool
+pub fn Logger::file_set_rotation(Self[@runtime.RuntimeSink], @file_model.FileRotation?) -> Bool
+pub fn Logger::file_state(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkState
+pub fn Logger::file_state_or_none(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkState?
+pub fn Logger::file_write_failures(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::flush(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::flush_progress(Self[@runtime.RuntimeSink]) -> @runtime.RuntimeSinkProgress
+pub fn[S : @sink_graph.Sink] Logger::info(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] Logger::is_enabled(Self[S], @core.Level) -> Bool
+pub fn[S : @sink_graph.Sink] Logger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
+pub fn[S] Logger::new(S, min_level? : @core.Level, target? : String) -> Self[S]
+pub fn Logger::pending_count(Self[@runtime.RuntimeSink]) -> Int
+pub fn[S] Logger::to_library_logger(Self[S]) -> LibraryLogger[S]
+pub fn[S : @sink_graph.Sink] Logger::trace(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S : @sink_graph.Sink] Logger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] Logger::with_context_fields(Self[S], Array[@core.Field]) -> Self[@sink_graph.ContextSink[S]]
+pub fn[S] Logger::with_filter(Self[S], (@core.Record) -> Bool) -> Self[@sink_graph.FilterSink[S]]
+pub fn[S] Logger::with_min_level(Self[S], @core.Level) -> Self[S]
+pub fn[S] Logger::with_patch(Self[S], (@core.Record) -> @core.Record) -> Self[@sink_graph.PatchSink[S]]
+pub fn[S] Logger::with_queue(Self[S], max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> Self[@sink_graph.QueuedSink[S]]
+pub fn[S] Logger::with_target(Self[S], String) -> Self[S]
+pub fn[S] Logger::with_timestamp(Self[S], enabled? : Bool) -> Self[S]
+
+// Type aliases
+pub type ApplicationLogger = Logger[@runtime.RuntimeSink]
+
+pub using @sink_graph {type BufferedSink}
+
+pub using @sink_graph {type CallbackSink}
+
+pub using @formatting {type ColorMode}
+
+pub using @formatting {type ColorSupport}
+
+pub using @config_model {type ConfigError}
+
+pub type ConfiguredLogger = Logger[@runtime.RuntimeSink]
+
+pub using @sink_graph {type ConsoleSink}
+
+pub using @sink_graph {type ContextSink}
+
+pub using @sink_graph {type FanoutSink}
+
+pub using @core {type Field}
+
+pub using @file_model {type FileRotation}
+
+pub using @file_runtime {type FileSink}
+
+pub using @file_model {type FileSinkPolicy}
+
+pub using @file_model {type FileSinkState}
+
+pub using @sink_graph {type FilterSink}
+
+pub using @sink_graph {type FormattedCallbackSink}
+
+pub using @sink_graph {type FormattedConsoleSink}
+
+pub using @sink_graph {type JsonConsoleSink}
+
+pub using @core {type Level}
+
+pub using @config_model {type LoggerConfig}
+
+pub using @sink_graph {type PatchSink}
+
+pub using @config_model {type QueueConfig}
+
+pub using @queue_model {type QueueOverflowPolicy}
+
+pub using @sink_graph {type QueuedSink}
+
+pub using @core {type Record}
+
+pub type RecordFormatter = (@core.Record) -> String
+
+pub type RecordPatch = (@core.Record) -> @core.Record
+
+pub type RecordPredicate = (@core.Record) -> Bool
+
+pub using @file_model {type RuntimeFileState}
+
+pub using @runtime {type RuntimeSink}
+
+pub using @runtime {type RuntimeSinkProgress}
+
+pub using @config_model {type SinkConfig}
+
+pub using @config_model {type SinkKind}
+
+pub using @sink_graph {type SplitSink}
+
+pub using @formatting {type StyleMarkupMode}
+
+pub using @formatting {type StyleTagRegistry}
+
+pub using @formatting {type TextFormatter}
+
+pub using @config_model {type TextFormatterConfig}
+
+pub using @formatting {type TextStyle}
+
+pub using @sink_graph {trait Sink}
+
+// Traits
+

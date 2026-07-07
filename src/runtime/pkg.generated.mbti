@@ -1,0 +1,87 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/runtime"
+
+import {
+  "Nanaloveyuki/BitLogger/src/config_model",
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/file_runtime",
+  "Nanaloveyuki/BitLogger/src/sink_graph",
+  "maria/json_parser",
+}
+
+// Values
+pub fn apply_queue_config(RuntimeSink, @config_model.QueueConfig) -> RuntimeSink
+
+pub fn build_runtime_sink(@config_model.SinkConfig) -> RuntimeSink
+
+pub fn runtime_file_state_to_json(@file_model.RuntimeFileState) -> @json_parser.JsonValue
+
+pub fn stringify_runtime_file_state(@file_model.RuntimeFileState, pretty? : Bool) -> String
+
+// Errors
+
+// Types and methods
+pub(all) enum RuntimeSink {
+  Console(@sink_graph.ConsoleSink)
+  JsonConsole(@sink_graph.JsonConsoleSink)
+  TextConsole(@sink_graph.FormattedConsoleSink)
+  File(@file_runtime.FileSink)
+  QueuedConsole(@sink_graph.QueuedSink[@sink_graph.ConsoleSink])
+  QueuedJsonConsole(@sink_graph.QueuedSink[@sink_graph.JsonConsoleSink])
+  QueuedTextConsole(@sink_graph.QueuedSink[@sink_graph.FormattedConsoleSink])
+  QueuedFile(@sink_graph.QueuedSink[@file_runtime.FileSink])
+}
+pub fn RuntimeSink::close(Self) -> Bool
+pub fn RuntimeSink::drain(Self, max_items? : Int) -> Int
+pub fn RuntimeSink::drain_progress(Self, max_items? : Int) -> RuntimeSinkProgress
+pub fn RuntimeSink::dropped_count(Self) -> Int
+pub fn RuntimeSink::file_append_mode(Self) -> Bool
+pub fn RuntimeSink::file_auto_flush(Self) -> Bool
+pub fn RuntimeSink::file_available(Self) -> Bool
+pub fn RuntimeSink::file_clear_rotation(Self) -> Bool
+pub fn RuntimeSink::file_close(Self) -> Bool
+pub fn RuntimeSink::file_default_policy(Self) -> @file_model.FileSinkPolicy
+pub fn RuntimeSink::file_default_policy_or_none(Self) -> @file_model.FileSinkPolicy?
+pub fn RuntimeSink::file_flush(Self) -> Bool
+pub fn RuntimeSink::file_flush_failures(Self) -> Int
+pub fn RuntimeSink::file_open_failures(Self) -> Int
+pub fn RuntimeSink::file_path(Self) -> String
+pub fn RuntimeSink::file_path_or_none(Self) -> String?
+pub fn RuntimeSink::file_policy(Self) -> @file_model.FileSinkPolicy
+pub fn RuntimeSink::file_policy_matches_default(Self) -> Bool
+pub fn RuntimeSink::file_policy_or_none(Self) -> @file_model.FileSinkPolicy?
+pub fn RuntimeSink::file_reopen(Self, append? : Bool?) -> Bool
+pub fn RuntimeSink::file_reopen_append(Self) -> Bool
+pub fn RuntimeSink::file_reopen_truncate(Self) -> Bool
+pub fn RuntimeSink::file_reopen_with_current_policy(Self) -> Bool
+pub fn RuntimeSink::file_reset_failure_counters(Self) -> Bool
+pub fn RuntimeSink::file_reset_policy(Self) -> Bool
+pub fn RuntimeSink::file_rotation_config(Self) -> @file_model.FileRotation?
+pub fn RuntimeSink::file_rotation_enabled(Self) -> Bool
+pub fn RuntimeSink::file_rotation_failures(Self) -> Int
+pub fn RuntimeSink::file_runtime_state(Self) -> @file_model.RuntimeFileState?
+pub fn RuntimeSink::file_set_append_mode(Self, Bool) -> Bool
+pub fn RuntimeSink::file_set_auto_flush(Self, Bool) -> Bool
+pub fn RuntimeSink::file_set_policy(Self, @file_model.FileSinkPolicy) -> Bool
+pub fn RuntimeSink::file_set_rotation(Self, @file_model.FileRotation?) -> Bool
+pub fn RuntimeSink::file_state(Self) -> @file_model.FileSinkState
+pub fn RuntimeSink::file_state_or_none(Self) -> @file_model.FileSinkState?
+pub fn RuntimeSink::file_write_failures(Self) -> Int
+pub fn RuntimeSink::flush(Self) -> Int
+pub fn RuntimeSink::flush_progress(Self) -> RuntimeSinkProgress
+pub fn RuntimeSink::pending_count(Self) -> Int
+pub impl @sink_graph.Sink for RuntimeSink
+
+pub struct RuntimeSinkProgress {
+  queue_advanced_count : Int
+  file_flush_step_count : Int
+  queue_backed : Bool
+  file_backed : Bool
+}
+
+// Type aliases
+pub using @file_model {type RuntimeFileState}
+
+// Traits
+

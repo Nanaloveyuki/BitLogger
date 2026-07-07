@@ -2,7 +2,7 @@
 name: async-logger-to-library-async-logger
 group: api
 category: facade
-update-time: 20260614
+update-time: 20260707
 description: Convert a full async logger into the narrower library-facing async facade without rebuilding or detaching the underlying async state.
 key-word:
     - async
@@ -38,8 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - The original `AsyncLogger[S]` handle remains the same live logger. If caller code keeps that original value, later facade calls and later unwraps still observe the same shared queue, counters, sink helpers, and lifecycle mutations.
 - The returned facade keeps library-facing async operations including `log(...)`, `run()`, and `shutdown(...)`.
 - Async inspection helpers and broader composition APIs remain on the underlying `AsyncLogger[S]` and are intentionally hidden until `to_async_logger()` is used again.
-- If later facade-level `run()` or `shutdown()` calls record worker failure, leave backlog behind, or follow runtime-dependent shutdown cleanup rules, unwrapping later still exposes that same post-call state instead of a translated facade copy.
-- That includes states where delegated shutdown already finished with `is_closed=true` while retained `has_failed()` and `last_error()` remain on the wrapped logger, together with the same runtime-dependent pending-versus-dropped cleanup outcome.
+- If later facade-level `run()` or `shutdown()` calls record worker failure or perform shutdown cleanup, unwrapping later still exposes that same post-call state instead of a translated facade copy.
+- That includes states where delegated shutdown already finished with `is_closed=true` while retained `has_failed()` and `last_error()` remain on the wrapped logger, together with the same retained dropped-count cleanup outcome.
 - When `S` itself exposes richer runtime helpers, projecting to the library facade does not strip those capabilities from the wrapped logger; they are still reachable after `to_async_logger()`.
 - When `S` is `RuntimeSink`, projection also preserves queued runtime state and file-backed runtime helper behavior behind the facade instead of replacing them with a library-specific copy.
 - Unwrapping later with `to_async_logger()` therefore exposes the same queue counters, failure snapshots, file state, and runtime file controls that the original async logger already carried.
@@ -83,7 +83,7 @@ e.g.:
 
 - Projection does not normalize failure snapshots; a later unwrap can still show combinations such as retained `last_error()` with remaining `pending_count()` when the wrapped async logger really ended up in that state.
 
-- Projection also does not normalize delegated shutdown results; a later unwrap can still show `is_closed=true` together with retained `has_failed()`, the same `last_error()`, and the same runtime-dependent leftover backlog or dropped-count cleanup that accumulated behind the facade.
+- Projection also does not normalize delegated shutdown results; a later unwrap can still show `is_closed=true` together with retained `has_failed()`, the same `last_error()`, and the same retained dropped-count cleanup that accumulated behind the facade.
 
 - Projection also does not normalize richer runtime sink state; if the original async logger already carried queued runtime data or file-backed helper state, a later unwrap still exposes that same live state.
 

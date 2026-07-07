@@ -1,0 +1,8 @@
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+  "Nanaloveyuki/BitLogger/src/record_ops",
+  "moonbitlang/core/queue",
+  "moonbitlang/core/ref",
+}

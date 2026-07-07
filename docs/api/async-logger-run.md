@@ -2,7 +2,7 @@
 name: async-logger-run
 group: api
 category: async
-update-time: 20260614
+update-time: 20260707
 description: Start the async logger worker loop so queued records are drained to the underlying sink while lifecycle and failure state are reset and updated around execution.
 key-word:
     - async
@@ -34,13 +34,15 @@ pub async fn[S : @bitlogger.Sink] AsyncLogger::run(self : AsyncLogger[S]) -> Uni
 Detailed rules explaining key parameters and behaviors
 
 - `run()` sets `is_running` to `true` before worker execution begins.
+- `run()` moves the logger lifecycle phase from `ready` or `failed` into `running`.
+- `run()` now enforces a single-worker contract. If the same logger already has a running worker, the later call raises `AsyncLoggerAlreadyRunning` instead of silently starting another drain loop.
+- If the logger is already closed, `run()` raises `AsyncLoggerClosed` instead of trying to restart a terminal logger.
 - Every invocation clears previous failure state first by setting `has_failed=false` and `last_error()` to an empty string once that `run()` call has actually started executing.
 - The method then keeps draining records until `queue.get()` stops with `AsyncLoggerClosed` or a worker error escapes.
-- On a normal queue-close exit, `run()` clears `is_running` and returns normally.
-- On failure, the logger records `has_failed=true`, stores the error text in `last_error`, clears `is_running`, and then raises the error back out of `run()`.
+- On a normal queue-close exit, `run()` leaves the logger in `closed` if shutdown/close had already started, otherwise it returns to `ready`.
+- On failure, the logger records `last_error`, transitions to `failed` or `closed_failed`, and then raises the error back out of `run()`.
 - A worker failure does not guarantee the async backlog was fully drained first. If the failure happens after some records were already written, later queued records can remain pending when `run()` exits.
 - A later `run()` invocation can resume draining that retained backlog, but the stale failure flag and stale `last_error()` value are only cleared after the new worker call actually begins running.
-- This helper does not enforce a single-worker guard by itself, so the public contract should be treated as application-controlled worker startup rather than an API that deduplicates repeated `run()` calls.
 
 ### How to Use
 
@@ -80,7 +82,9 @@ e.g.:
 
 - A later `run()` attempt starts from a fresh failure flag and empty `last_error()` string once that retrying worker has actually started, even if an earlier run failed.
 
-- Starting more than one `run()` task for the same logger is not prevented by this method and can produce application-level worker coordination bugs.
+- Starting more than one `run()` task for the same logger raises `AsyncLoggerAlreadyRunning` on the later attempt.
+
+- Starting `run()` after a terminal close path raises `AsyncLoggerClosed`.
 
 ### Notes
 
@@ -90,4 +94,4 @@ e.g.:
 
 3. Pair it with `has_failed()`, `last_error()`, or `state()` when tests need to inspect how a worker exit affected logger health.
 
-4. Start one deliberate worker task per logger unless your own code is intentionally coordinating a different pattern.
+4. Start one deliberate worker task per logger. A concurrent second startup now fails explicitly with `AsyncLoggerAlreadyRunning`.

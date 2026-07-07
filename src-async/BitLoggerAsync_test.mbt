@@ -25,7 +25,7 @@ async test "shutdown drains pending records" {
     target="async.test",
     flush=fn(_) {
       flushes.val += 1
-      1
+      ()
     },
   )
 
@@ -141,12 +141,82 @@ async test "closed logger runtime determines whether later log reaches patch pat
   inspect(logger.dropped_count(), content="1")
 
   logger.info("late")
-  inspect(
-    patched.val,
-    content=if async_runtime_supports_background_worker() { "2" } else { "1" },
-  )
+  inspect(patched.val, content="1")
   inspect(logger.pending_count(), content="0")
   inspect(logger.dropped_count(), content="1")
+}
+
+///|
+async test "closed logger does not enter filter path on later log attempts" {
+  let filtered : Ref[Int] = Ref(0)
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {  }),
+    config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::Blocking,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.closed.filter",
+  ).with_filter(fn(_) {
+    filtered.val += 1
+    true
+  })
+
+  logger.info("one")
+  inspect(filtered.val, content="1")
+  logger.close(clear=true)
+
+  logger.info("late")
+  inspect(filtered.val, content="1")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+}
+
+///|
+async test "run rejects duplicate worker startup for same logger" {
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {  }),
+    config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::Blocking,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.run.duplicate",
+  )
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    while !logger.is_running() {
+      @async.pause()
+    }
+
+    let second_error = (async fn() -> String raise {
+      logger.run()
+      "no error"
+    })() catch {
+      err => err.to_string()
+    }
+
+    inspect(second_error.contains("AsyncLoggerAlreadyRunning"), content="true")
+    let state = logger.state()
+    inspect(
+      match state.phase {
+        AsyncLifecyclePhase::Running => "running"
+        _ => "other"
+      },
+      content="running",
+    )
+    inspect(logger.has_failed(), content="false")
+    inspect(logger.last_error(), content="")
+    inspect(state.can_rerun, content="false")
+    inspect(state.terminal, content="false")
+    logger.shutdown(clear=true)
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.has_failed(), content="false")
+  inspect(logger.last_error(), content="")
 }
 
 ///|
@@ -1128,9 +1198,23 @@ test "async logger state snapshot reflects current counters and runtime" {
   )
   inspect(state.pending_count, content="0")
   inspect(state.dropped_count, content="0")
+  inspect(
+    match state.phase {
+      AsyncLifecyclePhase::Ready => "ready"
+      AsyncLifecyclePhase::Running => "running"
+      AsyncLifecyclePhase::Failed => "failed"
+      AsyncLifecyclePhase::Closing => "closing"
+      AsyncLifecyclePhase::Closed => "closed"
+      AsyncLifecyclePhase::ClosedFailed => "closed_failed"
+    },
+    content="ready",
+  )
   inspect(state.is_closed, content="false")
   inspect(state.is_running, content="false")
   inspect(state.has_failed, content="false")
+  inspect(state.backlog_retained, content="false")
+  inspect(state.can_rerun, content="true")
+  inspect(state.terminal, content="false")
   inspect(state.last_error, content="")
   inspect(
     match state.flush_policy {
@@ -1143,19 +1227,52 @@ test "async logger state snapshot reflects current counters and runtime" {
   inspect(
     @json_parser.stringify(async_logger_state_to_json(state)),
     content=if async_runtime_supports_background_worker() {
-      "{\"runtime\":{\"mode\":\"native_worker\",\"background_worker\":true},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+      "{\"runtime\":{\"mode\":\"native_worker\",\"background_worker\":true},\"phase\":\"ready\",\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"backlog_retained\":false,\"can_rerun\":true,\"terminal\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
     } else {
-      "{\"runtime\":{\"mode\":\"compatibility\",\"background_worker\":false},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+      "{\"runtime\":{\"mode\":\"compatibility\",\"background_worker\":false},\"phase\":\"ready\",\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"backlog_retained\":false,\"can_rerun\":true,\"terminal\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
     },
   )
   inspect(
     stringify_async_logger_state(state),
     content=if async_runtime_supports_background_worker() {
-      "{\"runtime\":{\"mode\":\"native_worker\",\"background_worker\":true},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+      "{\"runtime\":{\"mode\":\"native_worker\",\"background_worker\":true},\"phase\":\"ready\",\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"backlog_retained\":false,\"can_rerun\":true,\"terminal\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
     } else {
-      "{\"runtime\":{\"mode\":\"compatibility\",\"background_worker\":false},\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
+      "{\"runtime\":{\"mode\":\"compatibility\",\"background_worker\":false},\"phase\":\"ready\",\"pending_count\":0,\"dropped_count\":0,\"is_closed\":false,\"is_running\":false,\"has_failed\":false,\"backlog_retained\":false,\"can_rerun\":true,\"terminal\":false,\"last_error\":\"\",\"flush_policy\":\"Shutdown\"}"
     },
   )
+}
+
+///|
+async test "async logger state enters running phase while worker is active" {
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {  }),
+    config=AsyncLoggerConfig::new(max_pending=2),
+    min_level=@bitlogger.Level::Info,
+    target="async.state.running",
+  )
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    while !logger.is_running() {
+      @async.pause()
+    }
+
+    let state = logger.state()
+    inspect(
+      match state.phase {
+        AsyncLifecyclePhase::Running => "running"
+        _ => "other"
+      },
+      content="running",
+    )
+    inspect(state.is_closed, content="false")
+    inspect(state.is_running, content="true")
+    inspect(state.has_failed, content="false")
+    inspect(state.backlog_retained, content="false")
+    inspect(state.can_rerun, content="false")
+    inspect(state.terminal, content="false")
+    logger.shutdown(clear=true)
+  })
 }
 
 ///|
@@ -1201,7 +1318,7 @@ async test "async logger records worker failures and wait_idle stops early" {
     ),
     min_level=@bitlogger.Level::Info,
     target="async.failure",
-    flush=fn(_) -> Int raise { raise TestFlushError("flush exploded") },
+    flush=fn(_) -> Unit raise { raise TestFlushError("flush exploded") },
   )
 
   @async.with_task_group(group => {
@@ -1219,6 +1336,18 @@ async test "async logger records worker failures and wait_idle stops early" {
   inspect(logger.last_error().contains("TestFlushError"), content="true")
   inspect(logger.is_running(), content="false")
   inspect(logger.pending_count(), content="0")
+
+  let state = logger.state()
+  inspect(
+    match state.phase {
+      AsyncLifecyclePhase::ClosedFailed => "closed_failed"
+      _ => "other"
+    },
+    content="closed_failed",
+  )
+  inspect(state.backlog_retained, content="false")
+  inspect(state.can_rerun, content="false")
+  inspect(state.terminal, content="true")
 }
 
 ///|
@@ -1234,12 +1363,12 @@ async test "later started run resets async failure state before draining remaini
     ),
     min_level=@bitlogger.Level::Info,
     target="async.retry",
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       flushes.val += 1
       if flushes.val == 1 {
         raise TestFlushError("flush exploded once")
       }
-      1
+      ()
     },
   )
 
@@ -1253,12 +1382,33 @@ async test "later started run resets async failure state before draining remaini
     inspect(logger.is_running(), content="false")
     inspect(logger.pending_count(), content="1")
 
+    let failed_state = logger.state()
+    inspect(
+      match failed_state.phase {
+        AsyncLifecyclePhase::Failed => "failed"
+        _ => "other"
+      },
+      content="failed",
+    )
+    inspect(failed_state.backlog_retained, content="true")
+    inspect(failed_state.can_rerun, content="true")
+    inspect(failed_state.terminal, content="false")
+
     group.spawn_bg(() => logger.run())
     while !logger.is_running() {
       @async.pause()
     }
     inspect(logger.has_failed(), content="false")
     inspect(logger.last_error(), content="")
+
+    let running_state = logger.state()
+    inspect(
+      match running_state.phase {
+        AsyncLifecyclePhase::Running => "running"
+        _ => "other"
+      },
+      content="running",
+    )
     logger.shutdown()
   })
 
@@ -1272,7 +1422,7 @@ async test "later started run resets async failure state before draining remaini
 }
 
 ///|
-async test "shutdown after worker failure uses runtime-specific pending cleanup" {
+async test "shutdown after worker failure clears remaining pending backlog" {
   let writes : Ref[Int] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
@@ -1283,7 +1433,7 @@ async test "shutdown after worker failure uses runtime-specific pending cleanup"
     ),
     min_level=@bitlogger.Level::Info,
     target="async.failure.shutdown",
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       raise TestFlushError("flush exploded on shutdown path")
     },
   )
@@ -1303,14 +1453,58 @@ async test "shutdown after worker failure uses runtime-specific pending cleanup"
   inspect(logger.last_error().contains("TestFlushError"), content="true")
   inspect(logger.is_running(), content="false")
   inspect(writes.val, content="1")
+  inspect(logger.pending_count(), content="0")
+  inspect(logger.dropped_count(), content="1")
+
+  let state = logger.state()
   inspect(
-    logger.pending_count(),
-    content=if async_runtime_supports_background_worker() { "0" } else { "1" },
+    match state.phase {
+      AsyncLifecyclePhase::ClosedFailed => "closed_failed"
+      _ => "other"
+    },
+    content="closed_failed",
   )
+  inspect(state.is_closed, content="true")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="true")
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="1")
+  inspect(state.backlog_retained, content="false")
+  inspect(state.can_rerun, content="false")
+  inspect(state.terminal, content="true")
+}
+
+///|
+async test "shutdown clear reaches terminal closed phase without worker startup" {
+  let logger = async_logger(
+    @bitlogger.callback_sink(fn(_) {  }),
+    config=AsyncLoggerConfig::new(
+      max_pending=2,
+      overflow=AsyncOverflowPolicy::Blocking,
+    ),
+    min_level=@bitlogger.Level::Info,
+    target="async.shutdown.clear.state",
+  )
+
+  logger.info("one")
+  logger.shutdown(clear=true)
+
+  let state = logger.state()
   inspect(
-    logger.dropped_count(),
-    content=if async_runtime_supports_background_worker() { "1" } else { "0" },
+    match state.phase {
+      AsyncLifecyclePhase::Closed => "closed"
+      _ => "other"
+    },
+    content="closed",
   )
+  inspect(state.is_closed, content="true")
+  inspect(state.is_running, content="false")
+  inspect(state.has_failed, content="false")
+  inspect(state.pending_count, content="0")
+  inspect(state.dropped_count, content="1")
+  inspect(state.backlog_retained, content="false")
+  inspect(state.can_rerun, content="false")
+  inspect(state.terminal, content="true")
 }
 
 ///|
@@ -1358,7 +1552,7 @@ async test "library async new preserves config and flush failure contract" {
     ),
     min_level=@bitlogger.Level::Warn,
     target="async.lib.new",
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       flushes.val += 1
       raise TestFlushError("library new flush exploded")
     },
@@ -1687,7 +1881,7 @@ async test "library async shutdown preserves wrapped failure cleanup semantics" 
     ),
     min_level=@bitlogger.Level::Info,
     target="async.lib.failure",
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       raise TestFlushError("library facade flush exploded")
     },
   )
@@ -2847,6 +3041,47 @@ async test "build async logger keeps direct helper surface and runtime sink path
   inspect(logger.dropped_count(), content="1")
   inspect(logger.has_failed(), content="false")
   inspect(logger.last_error(), content="")
+  inspect(logger.sink.pending_count(), content="0")
+}
+
+///|
+async test "build async logger batch flush policy drains queued runtime sink work at batch boundary" {
+  let logger = build_async_logger(
+    AsyncLoggerBuildConfig::new(
+      logger=@bitlogger.LoggerConfig::new(
+        min_level=@bitlogger.Level::Info,
+        target="async.direct.batch.flush.runtime",
+        queue=Some(
+          @bitlogger.QueueConfig::new(
+            4,
+            overflow=@bitlogger.QueueOverflowPolicy::DropNewest,
+          ),
+        ),
+        sink=@bitlogger.SinkConfig::new(kind=@bitlogger.SinkKind::Console),
+      ),
+      async_config=AsyncLoggerConfig::new(
+        max_pending=4,
+        overflow=AsyncOverflowPolicy::Blocking,
+        max_batch=2,
+        flush=AsyncFlushPolicy::Batch,
+      ),
+    ),
+  )
+
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.run())
+    logger.info("one")
+    logger.info("two")
+    logger.wait_idle()
+    inspect(logger.pending_count(), content="0")
+    inspect(logger.sink.pending_count(), content="0")
+    inspect(logger.has_failed(), content="false")
+    logger.shutdown()
+  })
+
+  inspect(logger.is_closed(), content="true")
+  inspect(logger.is_running(), content="false")
+  inspect(logger.sink.pending_count(), content="0")
 }
 
 ///|
@@ -2959,7 +3194,7 @@ async test "async logger projection preserves async queue and failure state" {
     ),
     min_level=@bitlogger.Level::Info,
     target="async.projected.state",
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       raise TestFlushError("projected facade flush exploded")
     },
   ).to_library_async_logger()
@@ -4471,7 +4706,7 @@ async test "build async text logger batch flush policy keeps default no-op flush
     config=config.async_config,
     min_level=config.logger.min_level,
     target=config.logger.target,
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       raise TestFlushError("text batch flush exploded")
     },
   ).with_timestamp(enabled=config.logger.timestamp)
@@ -4556,7 +4791,7 @@ async test "build async text logger shutdown flush policy keeps default no-op fl
     config=config.async_config,
     min_level=config.logger.min_level,
     target=config.logger.target,
-    flush=fn(_) -> Int raise {
+    flush=fn(_) -> Unit raise {
       raise TestFlushError("text shutdown flush exploded")
     },
   ).with_timestamp(enabled=config.logger.timestamp)

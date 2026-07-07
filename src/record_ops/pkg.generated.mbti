@@ -1,0 +1,51 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/record_ops"
+
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+}
+
+// Values
+pub fn all_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
+
+pub fn any_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
+
+pub fn append_fields(Array[@core.Field]) -> (@core.Record) -> @core.Record
+
+pub fn compose_patches(Array[(@core.Record) -> @core.Record]) -> (@core.Record) -> @core.Record
+
+pub fn field_equals(String, String) -> (@core.Record) -> Bool
+
+pub fn has_field(String) -> (@core.Record) -> Bool
+
+pub fn identity_patch() -> (@core.Record) -> @core.Record
+
+pub fn level_at_least(@core.Level) -> (@core.Record) -> Bool
+
+pub fn message_contains(String) -> (@core.Record) -> Bool
+
+pub fn not_((@core.Record) -> Bool) -> (@core.Record) -> Bool
+
+pub fn prefix_message(String) -> (@core.Record) -> @core.Record
+
+pub fn redact_field(String, placeholder? : String) -> (@core.Record) -> @core.Record
+
+pub fn redact_fields(Array[String], placeholder? : String) -> (@core.Record) -> @core.Record
+
+pub fn set_target(String) -> (@core.Record) -> @core.Record
+
+pub fn target_has_prefix(String) -> (@core.Record) -> Bool
+
+pub fn target_is(String) -> (@core.Record) -> Bool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+pub type RecordPatch = (@core.Record) -> @core.Record
+
+pub type RecordPredicate = (@core.Record) -> Bool
+
+// Traits
+

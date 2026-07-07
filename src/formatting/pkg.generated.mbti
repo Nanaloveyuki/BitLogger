@@ -1,0 +1,96 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/formatting"
+
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+}
+
+// Values
+pub fn color_mode_label(ColorMode) -> String
+
+pub fn color_support_label(ColorSupport) -> String
+
+pub fn default_style_tag_registry() -> StyleTagRegistry
+
+pub fn format_json(@core.Record) -> String
+
+pub fn format_text(@core.Record, formatter? : TextFormatter) -> String
+
+pub fn global_style_tag_registry() -> StyleTagRegistry
+
+pub fn reset_global_style_tag_registry() -> Unit
+
+pub fn set_global_style_tag_registry(StyleTagRegistry) -> Unit
+
+pub fn style_markup_mode_label(StyleMarkupMode) -> String
+
+pub fn style_tag_registry() -> StyleTagRegistry
+
+pub fn text_formatter(show_timestamp? : Bool, show_level? : Bool, show_target? : Bool, show_fields? : Bool, separator? : String, field_separator? : String, template? : String, color_mode? : ColorMode, color_support? : ColorSupport, style_markup? : StyleMarkupMode, target_style_markup? : StyleMarkupMode, fields_style_markup? : StyleMarkupMode, style_tags? : StyleTagRegistry?) -> TextFormatter
+
+pub fn text_style(fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, italic? : Bool, underline? : Bool) -> TextStyle
+
+// Errors
+
+// Types and methods
+pub(all) enum ColorMode {
+  Never
+  Auto
+  Always
+}
+
+pub(all) enum ColorSupport {
+  Basic
+  TrueColor
+}
+
+pub(all) enum StyleMarkupMode {
+  Disabled
+  Builtin
+  Full
+}
+
+pub struct StyleTagRegistry {
+  entries : Map[String, TextStyle]
+}
+pub fn StyleTagRegistry::contains(Self, String) -> Bool
+pub fn StyleTagRegistry::define_alias(Self, String, String) -> Self
+pub fn StyleTagRegistry::get(Self, String) -> TextStyle?
+pub fn StyleTagRegistry::set_tag(Self, String, style? : TextStyle, fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, italic? : Bool, underline? : Bool) -> Self
+
+pub struct TextFormatter {
+  show_timestamp : Bool
+  show_level : Bool
+  show_target : Bool
+  show_fields : Bool
+  separator : String
+  field_separator : String
+  template : String
+  color_mode : ColorMode
+  color_support : ColorSupport
+  style_markup : StyleMarkupMode
+  target_style_markup : StyleMarkupMode
+  fields_style_markup : StyleMarkupMode
+  style_tags : StyleTagRegistry?
+}
+pub fn TextFormatter::with_color_support(Self, ColorSupport) -> Self
+pub fn TextFormatter::with_fields_style_markup(Self, StyleMarkupMode) -> Self
+pub fn TextFormatter::with_style_markup(Self, StyleMarkupMode) -> Self
+pub fn TextFormatter::with_style_tags(Self, StyleTagRegistry) -> Self
+pub fn TextFormatter::with_target_style_markup(Self, StyleMarkupMode) -> Self
+pub fn TextFormatter::without_style_markup(Self) -> Self
+
+pub struct TextStyle {
+  fg : String?
+  bg : String?
+  bold : Bool
+  dim : Bool
+  italic : Bool
+  underline : Bool
+}
+
+// Type aliases
+pub type RecordFormatter = (@core.Record) -> String
+
+// Traits
+

@@ -1,0 +1,8 @@
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+  "maria/json_parser",
+  "moonbitlang/core/string",
+}

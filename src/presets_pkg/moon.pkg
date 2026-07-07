@@ -1,0 +1,6 @@
+import {
+  "Nanaloveyuki/BitLogger/src/config_model",
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+}

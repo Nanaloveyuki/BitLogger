@@ -43,7 +43,7 @@ pub fn[S] Logger::with_context_fields(
 ) -> Logger[ContextSink[S]] {
   {
     min_level: self.min_level,
-    sink: ContextSink::{ sink: self.sink, context_fields: fields },
+    sink: context_sink(self.sink, fields),
     target: self.target,
     timestamp: self.timestamp,
   }

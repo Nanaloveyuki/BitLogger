@@ -2,8 +2,8 @@
 name: async-logger-state-type
 group: api
 category: async
-update-time: 20260614
-description: Public async logger state alias used for queue, lifecycle, runtime, and flush-policy diagnostics.
+update-time: 20260707
+description: Public async logger state alias used for queue, lifecycle phase, derived lifecycle conclusions, runtime, and flush-policy diagnostics.
 key-word:
     - async
     - logger
@@ -23,7 +23,7 @@ pub type AsyncLoggerState = @utils.AsyncLoggerState
 
 #### output
 
-- `AsyncLoggerState` - Public async logger snapshot containing `runtime`, `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, `last_error`, and `flush_policy`.
+- `AsyncLoggerState` - Public async logger snapshot containing `runtime`, `phase`, queue counters, derived lifecycle conclusions, `last_error`, and `flush_policy`.
 
 ### Explanation
 
@@ -31,13 +31,14 @@ Detailed rules explaining key parameters and behaviors
 
 - This is a type alias, not a live logger handle.
 - The `runtime` field embeds an `AsyncRuntimeState` snapshot.
-- The remaining fields capture queue counts, lifecycle status, failure state, last error text, and active flush policy.
+- The remaining fields capture queue counts, lifecycle phase, derived lifecycle conclusions, failure state, last error text, and active flush policy.
 - `AsyncLogger::state()` returns this type directly, while `async_logger_state_to_json(...)` and `stringify_async_logger_state(...)` export the same data shape for diagnostics.
-- `AsyncLogger::state()` currently builds this snapshot from `async_runtime_state()` plus the logger's current counters, lifecycle flags, last error, and flush policy.
+- `AsyncLogger::state()` currently builds this snapshot from `async_runtime_state()` plus the logger's current counters, lifecycle phase, last error, and flush policy.
 - When the value comes from `AsyncLogger::state()`, the fields are read one by one rather than through a transactional snapshot primitive.
 - `AsyncLoggerState::new(...)` can also construct this type manually, but manual construction is synthetic snapshot data and does not read one live logger instant by itself.
 - The type itself does not distinguish live logger snapshots from hand-built ones; callers must track whether a given `AsyncLoggerState` value came from `AsyncLogger::state()` or from manual construction.
-- When a live snapshot is taken after worker failure, `has_failed=true`, a retained `last_error`, and non-zero `pending_count` may legitimately coexist until later cleanup or restart.
+- `phase` is the strongest lifecycle conclusion in the snapshot, while `is_closed`, `is_running`, `has_failed`, `backlog_retained`, `can_rerun`, and `terminal` are the main derived convenience reads.
+- When a live snapshot is taken after worker failure, `phase=failed`, a retained `last_error`, `backlog_retained=true`, and non-zero `pending_count` may legitimately coexist until later cleanup or restart.
 
 ### How to Use
 

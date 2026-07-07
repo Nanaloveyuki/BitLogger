@@ -1,0 +1,157 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src-async"
+
+import {
+  "Nanaloveyuki/BitLogger/src",
+  "Nanaloveyuki/BitLogger/src-async/utils",
+  "Nanaloveyuki/BitLogger/src/core",
+  "maria/json_parser",
+  "moonbitlang/async/aqueue",
+  "moonbitlang/core/ref",
+}
+
+// Values
+pub fn[S] async_logger(S, config? : @utils.AsyncLoggerConfig, min_level? : @core.Level, target? : String, flush? : (S) -> Unit raise) -> AsyncLogger[S]
+
+pub fn async_logger_build_config_to_json(@utils.AsyncLoggerBuildConfig) -> @json_parser.JsonValue
+
+pub fn async_logger_config_to_json(@utils.AsyncLoggerConfig) -> @json_parser.JsonValue
+
+pub fn async_logger_state_to_json(@utils.AsyncLoggerState) -> @json_parser.JsonValue
+
+pub fn async_runtime_mode() -> @utils.AsyncRuntimeMode
+
+pub fn async_runtime_mode_label(@utils.AsyncRuntimeMode) -> String
+
+pub fn async_runtime_state() -> @utils.AsyncRuntimeState
+
+pub fn async_runtime_state_to_json(@utils.AsyncRuntimeState) -> @json_parser.JsonValue
+
+pub fn async_runtime_supports_background_worker() -> Bool
+
+pub fn build_application_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.RuntimeSink]
+
+pub fn build_application_text_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.FormattedConsoleSink]
+
+pub fn build_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.RuntimeSink]
+
+pub fn build_async_text_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.FormattedConsoleSink]
+
+pub fn build_library_async_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@src.RuntimeSink]
+
+pub fn build_library_async_text_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@src.FormattedConsoleSink]
+
+pub fn parse_and_build_application_async_logger(String) -> AsyncLogger[@src.RuntimeSink] raise
+
+pub fn parse_and_build_library_async_logger(String) -> LibraryAsyncLogger[@src.RuntimeSink] raise
+
+pub fn parse_async_logger_build_config_text(String) -> @utils.AsyncLoggerBuildConfig raise
+
+pub fn parse_async_logger_config_text(String) -> @utils.AsyncLoggerConfig raise
+
+pub fn stringify_async_logger_build_config(@utils.AsyncLoggerBuildConfig, pretty? : Bool) -> String
+
+pub fn stringify_async_logger_config(@utils.AsyncLoggerConfig, pretty? : Bool) -> String
+
+pub fn stringify_async_logger_state(@utils.AsyncLoggerState, pretty? : Bool) -> String
+
+pub fn stringify_async_runtime_state(@utils.AsyncRuntimeState, pretty? : Bool) -> String
+
+// Errors
+pub(all) suberror AsyncLoggerAlreadyRunning {
+  AsyncLoggerAlreadyRunning
+}
+
+pub(all) suberror AsyncLoggerClosed {
+  AsyncLoggerClosed
+}
+
+// Types and methods
+pub struct AsyncLogger[S] {
+  min_level : @core.Level
+  target : String
+  timestamp : Bool
+  overflow : @utils.AsyncOverflowPolicy
+  max_batch : Int
+  linger_ms : Int
+  flush_policy : @utils.AsyncFlushPolicy
+  sink : S
+  flush_callback : (S) -> Unit raise
+  context_fields : Array[@core.Field]
+  filter : (@core.Record) -> Bool
+  patch : (@core.Record) -> @core.Record
+  queue : @aqueue.Queue[@core.Record]
+  pending_count : @ref.Ref[Int]
+  dropped_count : @ref.Ref[Int]
+  phase : @ref.Ref[@utils.AsyncLifecyclePhase]
+  last_error : @ref.Ref[String]
+}
+pub fn[S] AsyncLogger::child(Self[S], String) -> Self[S]
+pub fn[S] AsyncLogger::close(Self[S], clear? : Bool) -> Unit
+pub async fn[S] AsyncLogger::debug(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] AsyncLogger::dropped_count(Self[S]) -> Int
+pub async fn[S] AsyncLogger::error(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] AsyncLogger::flush_policy(Self[S]) -> @utils.AsyncFlushPolicy
+pub fn[S] AsyncLogger::has_failed(Self[S]) -> Bool
+pub async fn[S] AsyncLogger::info(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] AsyncLogger::is_closed(Self[S]) -> Bool
+pub fn[S] AsyncLogger::is_enabled(Self[S], @core.Level) -> Bool
+pub fn[S] AsyncLogger::is_running(Self[S]) -> Bool
+pub fn[S] AsyncLogger::last_error(Self[S]) -> String
+pub async fn[S] AsyncLogger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
+pub fn[S] AsyncLogger::pending_count(Self[S]) -> Int
+pub fn[S] AsyncLogger::phase(Self[S]) -> @utils.AsyncLifecyclePhase
+pub async fn[S : @src.Sink] AsyncLogger::run(Self[S]) -> Unit
+pub async fn[S] AsyncLogger::shutdown(Self[S], clear? : Bool) -> Unit
+pub fn[S] AsyncLogger::state(Self[S]) -> @utils.AsyncLoggerState
+pub fn[S] AsyncLogger::to_library_async_logger(Self[S]) -> LibraryAsyncLogger[S]
+pub async fn[S] AsyncLogger::trace(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub async fn[S] AsyncLogger::wait_idle(Self[S]) -> Unit
+pub async fn[S] AsyncLogger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] AsyncLogger::with_context_fields(Self[S], Array[@core.Field]) -> Self[S]
+pub fn[S] AsyncLogger::with_filter(Self[S], (@core.Record) -> Bool) -> Self[S]
+pub fn[S] AsyncLogger::with_min_level(Self[S], @core.Level) -> Self[S]
+pub fn[S] AsyncLogger::with_patch(Self[S], (@core.Record) -> @core.Record) -> Self[S]
+pub fn[S] AsyncLogger::with_target(Self[S], String) -> Self[S]
+pub fn[S] AsyncLogger::with_timestamp(Self[S], enabled? : Bool) -> Self[S]
+
+pub struct LibraryAsyncLogger[S] {
+  inner : AsyncLogger[S]
+}
+pub fn[S] LibraryAsyncLogger::bind(Self[S], Array[@core.Field]) -> Self[S]
+pub fn[S] LibraryAsyncLogger::child(Self[S], String) -> Self[S]
+pub async fn[S] LibraryAsyncLogger::error(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub async fn[S] LibraryAsyncLogger::info(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] LibraryAsyncLogger::is_enabled(Self[S], @core.Level) -> Bool
+pub async fn[S] LibraryAsyncLogger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
+pub fn[S] LibraryAsyncLogger::new(S, config? : @utils.AsyncLoggerConfig, min_level? : @core.Level, target? : String, flush? : (S) -> Unit raise) -> Self[S]
+pub async fn[S : @src.Sink] LibraryAsyncLogger::run(Self[S]) -> Unit
+pub async fn[S] LibraryAsyncLogger::shutdown(Self[S], clear? : Bool) -> Unit
+pub fn[S] LibraryAsyncLogger::to_async_logger(Self[S]) -> AsyncLogger[S]
+pub async fn[S] LibraryAsyncLogger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
+pub fn[S] LibraryAsyncLogger::with_context_fields(Self[S], Array[@core.Field]) -> Self[S]
+pub fn[S] LibraryAsyncLogger::with_target(Self[S], String) -> Self[S]
+
+// Type aliases
+pub type ApplicationAsyncLogger = AsyncLogger[@src.RuntimeSink]
+
+pub type ApplicationTextAsyncLogger = AsyncLogger[@src.FormattedConsoleSink]
+
+pub using @utils {type AsyncFlushPolicy}
+
+pub using @utils {type AsyncLifecyclePhase}
+
+pub using @utils {type AsyncLoggerBuildConfig}
+
+pub using @utils {type AsyncLoggerConfig}
+
+pub using @utils {type AsyncLoggerState}
+
+pub using @utils {type AsyncOverflowPolicy}
+
+pub using @utils {type AsyncRuntimeMode}
+
+pub using @utils {type AsyncRuntimeState}
+
+// Traits
+
