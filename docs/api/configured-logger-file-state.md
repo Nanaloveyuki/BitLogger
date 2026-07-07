@@ -2,8 +2,8 @@
 name: configured-logger-file-state
 group: api
 category: runtime
-update-time: 20260512
-description: Read the current file sink snapshot from a configured runtime logger.
+update-time: 20260707
+description: Read the current file sink snapshot from a configured runtime logger, with a compatibility fallback for non-file sinks.
 key-word:
     - logger
     - runtime
@@ -14,6 +14,8 @@ key-word:
 ## Configured-logger-file-state
 
 Read the current file sink snapshot from a `ConfiguredLogger`. This helper exposes path, availability, policy flags, rotation config, and failure counters as one object.
+
+`file_state()` is the compatibility form. For truthful file-semantics detection, prefer `file_state_or_none()`.
 
 ### Interface
 
@@ -36,6 +38,8 @@ Detailed rules explaining key parameters and behaviors
 - File-backed sinks return a live snapshot of file state.
 - Queued file sinks forward the snapshot from the wrapped inner file sink.
 - Non-file sinks return the same fallback empty-style state produced by `RuntimeSink::file_state()`, with an empty path, disabled policy flags, no rotation, and zeroed counters.
+- This fallback keeps older callers source-compatible, but it is not a live file-backed snapshot.
+- New diagnostic or recovery code should prefer `file_state_or_none()`.
 - This helper is broader than individual file counters or policy accessors because it aggregates core file status into one read.
 
 ### How to Use
@@ -65,10 +69,12 @@ In this example, the configured logger snapshot can be exported directly through
 e.g.:
 - If the configured sink is not file-backed, the returned snapshot is a fallback empty-style state rather than a live file view.
 
+- If callers need a truthful file-semantics check, use `file_state_or_none()`.
+
 - If callers also need queue context for queued file sinks, `file_runtime_state()` is the richer API.
 
 ### Notes
 
 1. Use this helper for the main one-shot file status snapshot.
 
-2. Prefer it over individual counters when broader file diagnostics are needed.
+2. Prefer `file_state_or_none()` or `file_runtime_state()` when broader truthful diagnostics are needed.

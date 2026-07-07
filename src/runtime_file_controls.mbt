@@ -1,4 +1,13 @@
 ///|
+fn runtime_file_sink_internal(sink : RuntimeSink) -> FileSink? {
+  match sink {
+    File(sink) => Some(sink)
+    QueuedFile(sink) => Some(sink.sink)
+    _ => None
+  }
+}
+
+///|
 pub fn RuntimeSink::file_available(self : RuntimeSink) -> Bool {
   match self {
     File(sink) => sink.is_available()
@@ -74,12 +83,13 @@ pub fn RuntimeSink::file_set_append_mode(
 }
 
 ///|
+pub fn RuntimeSink::file_path_or_none(self : RuntimeSink) -> String? {
+  runtime_file_sink_internal(self).map(fn(sink) { sink.path() })
+}
+
+///|
 pub fn RuntimeSink::file_path(self : RuntimeSink) -> String {
-  match self {
-    File(sink) => sink.path()
-    QueuedFile(sink) => sink.sink.path()
-    _ => ""
-  }
+  self.file_path_or_none().unwrap_or("")
 }
 
 ///|
@@ -269,21 +279,29 @@ pub fn RuntimeSink::file_reset_policy(self : RuntimeSink) -> Bool {
 }
 
 ///|
+pub fn RuntimeSink::file_policy_or_none(self : RuntimeSink) -> FileSinkPolicy? {
+  runtime_file_sink_internal(self).map(fn(sink) { sink.policy() })
+}
+
+///|
 pub fn RuntimeSink::file_policy(self : RuntimeSink) -> FileSinkPolicy {
-  match self {
-    File(sink) => sink.policy()
-    QueuedFile(sink) => sink.sink.policy()
-    _ => FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)
-  }
+  self.file_policy_or_none().unwrap_or(
+    FileSinkPolicy::new(append=false, auto_flush=false, rotation=None),
+  )
+}
+
+///|
+pub fn RuntimeSink::file_default_policy_or_none(
+  self : RuntimeSink,
+) -> FileSinkPolicy? {
+  runtime_file_sink_internal(self).map(fn(sink) { sink.default_policy() })
 }
 
 ///|
 pub fn RuntimeSink::file_default_policy(self : RuntimeSink) -> FileSinkPolicy {
-  match self {
-    File(sink) => sink.default_policy()
-    QueuedFile(sink) => sink.sink.default_policy()
-    _ => FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)
-  }
+  self.file_default_policy_or_none().unwrap_or(
+    FileSinkPolicy::new(append=false, auto_flush=false, rotation=None),
+  )
 }
 
 ///|
@@ -296,23 +314,25 @@ pub fn RuntimeSink::file_policy_matches_default(self : RuntimeSink) -> Bool {
 }
 
 ///|
+pub fn RuntimeSink::file_state_or_none(self : RuntimeSink) -> FileSinkState? {
+  runtime_file_sink_internal(self).map(fn(sink) { sink.state() })
+}
+
+///|
 pub fn RuntimeSink::file_state(self : RuntimeSink) -> FileSinkState {
-  match self {
-    File(sink) => sink.state()
-    QueuedFile(sink) => sink.sink.state()
-    _ =>
-      FileSinkState::new(
-        "",
-        available=false,
-        append=false,
-        auto_flush=false,
-        rotation=None,
-        open_failures=0,
-        write_failures=0,
-        flush_failures=0,
-        rotation_failures=0,
-      )
-  }
+  self.file_state_or_none().unwrap_or(
+    FileSinkState::new(
+      "",
+      available=false,
+      append=false,
+      auto_flush=false,
+      rotation=None,
+      open_failures=0,
+      write_failures=0,
+      flush_failures=0,
+      rotation_failures=0,
+    ),
+  )
 }
 
 ///|
@@ -373,6 +393,11 @@ pub fn ConfiguredLogger::file_set_append_mode(
   append : Bool,
 ) -> Bool {
   self.sink.file_set_append_mode(append)
+}
+
+///|
+pub fn ConfiguredLogger::file_path_or_none(self : ConfiguredLogger) -> String? {
+  self.sink.file_path_or_none()
 }
 
 ///|
@@ -469,8 +494,22 @@ pub fn ConfiguredLogger::file_reset_policy(self : ConfiguredLogger) -> Bool {
 }
 
 ///|
+pub fn ConfiguredLogger::file_policy_or_none(
+  self : ConfiguredLogger,
+) -> FileSinkPolicy? {
+  self.sink.file_policy_or_none()
+}
+
+///|
 pub fn ConfiguredLogger::file_policy(self : ConfiguredLogger) -> FileSinkPolicy {
   self.sink.file_policy()
+}
+
+///|
+pub fn ConfiguredLogger::file_default_policy_or_none(
+  self : ConfiguredLogger,
+) -> FileSinkPolicy? {
+  self.sink.file_default_policy_or_none()
 }
 
 ///|
@@ -485,6 +524,13 @@ pub fn ConfiguredLogger::file_policy_matches_default(
   self : ConfiguredLogger,
 ) -> Bool {
   self.sink.file_policy_matches_default()
+}
+
+///|
+pub fn ConfiguredLogger::file_state_or_none(
+  self : ConfiguredLogger,
+) -> FileSinkState? {
+  self.sink.file_state_or_none()
 }
 
 ///|
