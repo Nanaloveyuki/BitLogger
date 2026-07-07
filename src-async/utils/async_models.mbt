@@ -51,13 +51,73 @@ pub fn AsyncRuntimeState::new(
 }
 
 ///|
+pub(all) enum AsyncLifecyclePhase {
+  Ready
+  Running
+  Failed
+  Closing
+  Closed
+  ClosedFailed
+}
+
+///|
+fn async_lifecycle_phase_label(phase : AsyncLifecyclePhase) -> String {
+  match phase {
+    AsyncLifecyclePhase::Ready => "ready"
+    AsyncLifecyclePhase::Running => "running"
+    AsyncLifecyclePhase::Failed => "failed"
+    AsyncLifecyclePhase::Closing => "closing"
+    AsyncLifecyclePhase::Closed => "closed"
+    AsyncLifecyclePhase::ClosedFailed => "closed_failed"
+  }
+}
+
+///|
+fn async_lifecycle_phase_is_closed(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Closing |
+    AsyncLifecyclePhase::Closed |
+    AsyncLifecyclePhase::ClosedFailed => true
+    _ => false
+  }
+}
+
+///|
+fn async_lifecycle_phase_is_running(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Running | AsyncLifecyclePhase::Closing => true
+    _ => false
+  }
+}
+
+///|
+fn async_lifecycle_phase_has_failed(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Failed | AsyncLifecyclePhase::ClosedFailed => true
+    _ => false
+  }
+}
+
+///|
+fn async_lifecycle_phase_can_rerun(phase : AsyncLifecyclePhase) -> Bool {
+  match phase {
+    AsyncLifecyclePhase::Ready | AsyncLifecyclePhase::Failed => true
+    _ => false
+  }
+}
+
+///|
 pub struct AsyncLoggerState {
   runtime : AsyncRuntimeState
+  phase : AsyncLifecyclePhase
   pending_count : Int
   dropped_count : Int
   is_closed : Bool
   is_running : Bool
   has_failed : Bool
+  backlog_retained : Bool
+  can_rerun : Bool
+  terminal : Bool
   last_error : String
   flush_policy : AsyncFlushPolicy
 }
@@ -65,21 +125,29 @@ pub struct AsyncLoggerState {
 ///|
 pub fn AsyncLoggerState::new(
   runtime : AsyncRuntimeState,
+  phase : AsyncLifecyclePhase,
   pending_count : Int,
   dropped_count : Int,
-  is_closed : Bool,
-  is_running : Bool,
-  has_failed : Bool,
   last_error : String,
   flush_policy : AsyncFlushPolicy,
 ) -> AsyncLoggerState {
+  let is_closed = async_lifecycle_phase_is_closed(phase)
+  let is_running = async_lifecycle_phase_is_running(phase)
+  let has_failed = async_lifecycle_phase_has_failed(phase)
+  let backlog_retained = pending_count > 0 && !is_running
+  let can_rerun = async_lifecycle_phase_can_rerun(phase)
+  let terminal = is_closed && !is_running && pending_count == 0
   {
     runtime,
+    phase,
     pending_count,
     dropped_count,
     is_closed,
     is_running,
     has_failed,
+    backlog_retained,
+    can_rerun,
+    terminal,
     last_error,
     flush_policy,
   }
@@ -123,6 +191,9 @@ fn async_logger_state_to_json_value(
 ) -> @json_parser.JsonValue {
   @json_parser.JsonValue::Object({
     "runtime": async_runtime_state_to_json(state.runtime),
+    "phase": @json_parser.JsonValue::String(
+      async_lifecycle_phase_label(state.phase),
+    ),
     "pending_count": @json_parser.JsonValue::Number(
       state.pending_count.to_double(),
     ),
@@ -132,6 +203,11 @@ fn async_logger_state_to_json_value(
     "is_closed": @json_parser.JsonValue::Bool(state.is_closed),
     "is_running": @json_parser.JsonValue::Bool(state.is_running),
     "has_failed": @json_parser.JsonValue::Bool(state.has_failed),
+    "backlog_retained": @json_parser.JsonValue::Bool(
+      state.backlog_retained,
+    ),
+    "can_rerun": @json_parser.JsonValue::Bool(state.can_rerun),
+    "terminal": @json_parser.JsonValue::Bool(state.terminal),
     "last_error": @json_parser.JsonValue::String(state.last_error),
     "flush_policy": @json_parser.JsonValue::String(
       async_flush_policy_label(state.flush_policy),

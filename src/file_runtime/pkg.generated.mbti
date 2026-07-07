@@ -1,0 +1,53 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/file_runtime"
+
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/sink_graph",
+}
+
+// Values
+pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> FileSink
+
+pub fn native_files_supported() -> Bool
+
+// Errors
+
+// Types and methods
+pub struct FileSink {
+  // private fields
+}
+pub fn FileSink::append_mode(Self) -> Bool
+pub fn FileSink::auto_flush_enabled(Self) -> Bool
+pub fn FileSink::clear_rotation(Self) -> Unit
+pub fn FileSink::close(Self) -> Bool
+pub fn FileSink::default_policy(Self) -> @file_model.FileSinkPolicy
+pub fn FileSink::flush(Self) -> Bool
+pub fn FileSink::flush_failures(Self) -> Int
+pub fn FileSink::is_available(Self) -> Bool
+pub fn FileSink::open_failures(Self) -> Int
+pub fn FileSink::path(Self) -> String
+pub fn FileSink::policy(Self) -> @file_model.FileSinkPolicy
+pub fn FileSink::policy_matches_default(Self) -> Bool
+pub fn FileSink::reopen(Self, append? : Bool?) -> Bool
+pub fn FileSink::reopen_append(Self) -> Bool
+pub fn FileSink::reopen_truncate(Self) -> Bool
+pub fn FileSink::reopen_with_current_policy(Self) -> Bool
+pub fn FileSink::reset_failure_counters(Self) -> Unit
+pub fn FileSink::reset_policy(Self) -> Unit
+pub fn FileSink::rotation_config(Self) -> @file_model.FileRotation?
+pub fn FileSink::rotation_enabled(Self) -> Bool
+pub fn FileSink::rotation_failures(Self) -> Int
+pub fn FileSink::set_append_mode(Self, Bool) -> Unit
+pub fn FileSink::set_auto_flush(Self, Bool) -> Unit
+pub fn FileSink::set_policy(Self, @file_model.FileSinkPolicy) -> Unit
+pub fn FileSink::set_rotation(Self, @file_model.FileRotation?) -> Unit
+pub fn FileSink::state(Self) -> @file_model.FileSinkState
+pub fn FileSink::write_failures(Self) -> Int
+pub impl @sink_graph.Sink for FileSink
+
+// Type aliases
+
+// Traits
+

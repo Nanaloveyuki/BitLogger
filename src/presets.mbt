@@ -4,12 +4,7 @@ pub fn console(
   target? : String = "",
   timestamp? : Bool = false,
 ) -> LoggerConfig {
-  LoggerConfig::new(
-    min_level~,
-    target~,
-    timestamp~,
-    sink=SinkConfig::new(kind=SinkKind::Console),
-  )
+  @presets_pkg.console(min_level~, target~, timestamp~)
 }
 
 ///|
@@ -18,12 +13,7 @@ pub fn json_console(
   target? : String = "",
   timestamp? : Bool = false,
 ) -> LoggerConfig {
-  LoggerConfig::new(
-    min_level~,
-    target~,
-    timestamp~,
-    sink=SinkConfig::new(kind=SinkKind::JsonConsole),
-  )
+  @presets_pkg.json_console(min_level~, target~, timestamp~)
 }
 
 ///|
@@ -33,12 +23,7 @@ pub fn text_console(
   timestamp? : Bool = false,
   text_formatter? : TextFormatterConfig = default_text_formatter_config(),
 ) -> LoggerConfig {
-  LoggerConfig::new(
-    min_level~,
-    target~,
-    timestamp~,
-    sink=SinkConfig::new(kind=SinkKind::TextConsole, text_formatter~),
-  )
+  @presets_pkg.text_console(min_level~, target~, timestamp~, text_formatter~)
 }
 
 ///|
@@ -52,21 +37,15 @@ pub fn file(
   rotation? : FileRotation? = None,
   text_formatter? : TextFormatterConfig = default_text_formatter_config(),
 ) -> LoggerConfig raise ConfigError {
-  if path == "" {
-    raise ConfigError::InvalidConfig("File sink requires non-empty path")
-  }
-  LoggerConfig::new(
+  @presets_pkg.file(
+    path,
     min_level~,
     target~,
     timestamp~,
-    sink=SinkConfig::new(
-      kind=SinkKind::File,
-      path~,
-      append~,
-      auto_flush~,
-      rotation~,
-      text_formatter~,
-    ),
+    append~,
+    auto_flush~,
+    rotation~,
+    text_formatter~,
   )
 }
 
@@ -76,13 +55,7 @@ pub fn with_queue(
   max_pending? : Int = 0,
   overflow? : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
 ) -> LoggerConfig {
-  LoggerConfig::new(
-    min_level=config.min_level,
-    target=config.target,
-    timestamp=config.timestamp,
-    sink=config.sink,
-    queue=Some(QueueConfig::new(max_pending, overflow~)),
-  )
+  @presets_pkg.with_queue(config, max_pending~, overflow~)
 }
 
 ///|
@@ -91,24 +64,7 @@ pub fn with_file_rotation(
   max_bytes : Int,
   max_backups? : Int = 1,
 ) -> LoggerConfig {
-  match config.sink.kind {
-    SinkKind::File =>
-      LoggerConfig::new(
-        min_level=config.min_level,
-        target=config.target,
-        timestamp=config.timestamp,
-        sink=SinkConfig::new(
-          kind=config.sink.kind,
-          path=config.sink.path,
-          append=config.sink.append,
-          auto_flush=config.sink.auto_flush,
-          rotation=Some(file_rotation(max_bytes, max_backups~)),
-          text_formatter=config.sink.text_formatter,
-        ),
-        queue=config.queue,
-      )
-    _ => config
-  }
+  @presets_pkg.with_file_rotation(config, max_bytes, max_backups~)
 }
 
 ///|
@@ -117,22 +73,5 @@ pub fn with_file_rotation_i64(
   max_bytes : Int64,
   max_backups? : Int = 1,
 ) -> LoggerConfig {
-  match config.sink.kind {
-    SinkKind::File =>
-      LoggerConfig::new(
-        min_level=config.min_level,
-        target=config.target,
-        timestamp=config.timestamp,
-        sink=SinkConfig::new(
-          kind=config.sink.kind,
-          path=config.sink.path,
-          append=config.sink.append,
-          auto_flush=config.sink.auto_flush,
-          rotation=Some(file_rotation_i64(max_bytes, max_backups~)),
-          text_formatter=config.sink.text_formatter,
-        ),
-        queue=config.queue,
-      )
-    _ => config
-  }
+  @presets_pkg.with_file_rotation_i64(config, max_bytes, max_backups~)
 }

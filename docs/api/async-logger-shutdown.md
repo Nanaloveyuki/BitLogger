@@ -2,8 +2,8 @@
 name: async-logger-shutdown
 group: api
 category: async
-update-time: 20260614
-description: Gracefully stop an async logger by waiting for idle or clearing queued work, with worker-wait behavior depending on the active async runtime.
+update-time: 20260707
+description: Gracefully stop an async logger by waiting for idle or clearing queued work, then waiting for any active worker to finish.
 key-word:
     - async
     - logger
@@ -35,12 +35,10 @@ pub async fn[S] AsyncLogger::shutdown(self : AsyncLogger[S], clear? : Bool = fal
 Detailed rules explaining key parameters and behaviors
 
 - `clear=false` first waits for idle, then closes the logger.
-- In runtimes where shutdown clearing after idle is enabled, remaining backlog after `wait_idle()` triggers a fallback `close(clear=true)`.
+- If `wait_idle()` returned early because a worker failure left backlog behind, shutdown now converts that retained pending backlog into dropped records with `close(clear=true)` before returning.
 - `clear=true` immediately closes and abandons pending records, even if no worker was ever started for that logger.
-- In runtimes where shutdown waits for workers, the method then waits until `is_running()` becomes `false` before returning.
-- In the current backend split, native-worker runtimes enable both the post-`wait_idle()` clear fallback and the final wait-for-worker phase, while compatibility runtimes skip both extra steps.
-- That means a failure-short-circuited `wait_idle()` can still be followed by forced pending-to-dropped cleanup on native-worker runtimes, while compatibility runtimes close without that extra forced clear step.
-- In the current tested failure path, native-worker shutdown turns the leftover pending item into one more dropped record, while compatibility shutdown leaves that leftover closed-queue count in `pending_count()` instead.
+- After either shutdown branch starts closing, the helper waits until `is_running()` becomes `false` before returning.
+- In lifecycle-phase terms, shutdown drives the logger into `closing` while a worker is still active, then settles into `closed` or `closed_failed` once that worker has exited.
 - Shutdown itself does not clear retained worker failure state. If a previous `run()` already recorded `has_failed=true` and a non-empty `last_error()`, those diagnostics can remain visible after shutdown completes.
 - Because `clear=false` delegates to `wait_idle()` first, shutdown can also wait indefinitely when pending records exist but no worker is making progress and no failure flag is raised.
 
@@ -71,14 +69,9 @@ In this example, pending work is abandoned intentionally so shutdown can complet
 e.g.:
 - If `clear=true`, pending records are intentionally dropped rather than drained.
 
-- If `wait_idle()` returns early because the worker failed, shutdown behavior after that point still depends on the active runtime's fallback and worker-wait rules.
-
-- After a worker failure, native-worker shutdown may convert the remaining backlog into dropped records, while compatibility shutdown can leave the pending counter reflecting that leftover closed queue state.
-- In the current direct regression coverage, that split appears as `pending_count() == 0` and `dropped_count()` increasing on native-worker runtimes, versus `pending_count() > 0` and no extra dropped cleanup on compatibility runtimes.
+- If `wait_idle()` returns early because the worker failed, shutdown still finishes by converting retained pending backlog into dropped records before it returns.
 
 - Even after shutdown finishes with `is_closed=true`, callers can still observe retained `has_failed()` and `last_error()` from an earlier worker failure.
-
-- In compatibility-style runtimes without background-worker waiting, shutdown still closes the logger but may not perform the extra wait-for-worker phase described for native-worker runtimes.
 
 - If pending work exists but no worker was started, `shutdown(clear=false)` may never reach its later close step because it is still waiting inside `wait_idle()`.
 
@@ -88,7 +81,7 @@ e.g.:
 
 1. Prefer this API over raw `close()` in normal application shutdown paths.
 
-2. Exact post-close waiting behavior depends on the active async runtime mode.
+2. `shutdown()` now always waits for an already-running worker to leave `is_running=true` before returning.
 
 3. Choose `clear=true` only when loss of queued records is acceptable.
 

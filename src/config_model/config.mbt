@@ -20,12 +20,12 @@ pub struct TextFormatterConfig {
   separator : String
   field_separator : String
   template : String
-  color_mode : ColorMode
-  color_support : ColorSupport
-  style_markup : StyleMarkupMode
-  target_style_markup : StyleMarkupMode
-  fields_style_markup : StyleMarkupMode
-  style_tags : Map[String, TextStyle]
+  color_mode : @formatting.ColorMode
+  color_support : @formatting.ColorSupport
+  style_markup : @formatting.StyleMarkupMode
+  target_style_markup : @formatting.StyleMarkupMode
+  fields_style_markup : @formatting.StyleMarkupMode
+  style_tags : Map[String, @formatting.TextStyle]
 }
 
 ///|
@@ -37,12 +37,12 @@ pub fn TextFormatterConfig::new(
   separator? : String = " ",
   field_separator? : String = " ",
   template? : String = "",
-  color_mode? : ColorMode = ColorMode::Never,
-  color_support? : ColorSupport = ColorSupport::TrueColor,
-  style_markup? : StyleMarkupMode = StyleMarkupMode::Full,
-  target_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
-  fields_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
-  style_tags? : Map[String, TextStyle] = {},
+  color_mode? : @formatting.ColorMode = @formatting.ColorMode::Never,
+  color_support? : @formatting.ColorSupport = @formatting.ColorSupport::TrueColor,
+  style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Full,
+  target_style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
+  fields_style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
+  style_tags? : Map[String, @formatting.TextStyle] = {},
 ) -> TextFormatterConfig {
   {
     show_timestamp,
@@ -63,9 +63,9 @@ pub fn TextFormatterConfig::new(
 
 ///|
 fn style_tag_registry_from_config(
-  style_tags : Map[String, TextStyle],
-) -> StyleTagRegistry {
-  let registry = style_tag_registry()
+  style_tags : Map[String, @formatting.TextStyle],
+) -> @formatting.StyleTagRegistry {
+  let registry = @formatting.style_tag_registry()
   for name, style in style_tags {
     ignore(registry.set_tag(name, style~))
   }
@@ -75,8 +75,8 @@ fn style_tag_registry_from_config(
 ///|
 pub fn TextFormatterConfig::to_formatter(
   self : TextFormatterConfig,
-) -> TextFormatter {
-  text_formatter(
+) -> @formatting.TextFormatter {
+  @formatting.text_formatter(
     show_timestamp=self.show_timestamp,
     show_level=self.show_level,
     show_target=self.show_target,
@@ -100,13 +100,13 @@ pub fn TextFormatterConfig::to_formatter(
 ///|
 pub struct QueueConfig {
   max_pending : Int
-  overflow : QueueOverflowPolicy
+  overflow : @queue_model.QueueOverflowPolicy
 }
 
 ///|
 pub fn QueueConfig::new(
   max_pending : Int,
-  overflow? : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
+  overflow? : @queue_model.QueueOverflowPolicy = @queue_model.QueueOverflowPolicy::DropNewest,
 ) -> QueueConfig {
   { max_pending, overflow }
 }
@@ -117,7 +117,7 @@ pub struct SinkConfig {
   path : String
   append : Bool
   auto_flush : Bool
-  rotation : FileRotation?
+  rotation : @file_model.FileRotation?
   text_formatter : TextFormatterConfig
 }
 
@@ -127,7 +127,7 @@ pub fn SinkConfig::new(
   path? : String = "",
   append? : Bool = true,
   auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
+  rotation? : @file_model.FileRotation? = None,
   text_formatter? : TextFormatterConfig = default_text_formatter_config(),
 ) -> SinkConfig {
   { kind, path, append, auto_flush, rotation, text_formatter }
@@ -282,11 +282,13 @@ fn parse_level(name : String) -> @core.Level raise ConfigError {
 }
 
 ///|
-fn parse_overflow(name : String) -> QueueOverflowPolicy raise ConfigError {
+fn parse_overflow(
+  name : String,
+) -> @queue_model.QueueOverflowPolicy raise ConfigError {
   match name.to_upper() {
-    "DROPNEWEST" => QueueOverflowPolicy::DropNewest
-    "DROPPOLDEST" => QueueOverflowPolicy::DropOldest
-    "DROPOLDEST" => QueueOverflowPolicy::DropOldest
+    "DROPNEWEST" => @queue_model.QueueOverflowPolicy::DropNewest
+    "DROPPOLDEST" => @queue_model.QueueOverflowPolicy::DropOldest
+    "DROPOLDEST" => @queue_model.QueueOverflowPolicy::DropOldest
     _ =>
       raise ConfigError::InvalidConfig(
         "Unsupported queue overflow policy: " + name,
@@ -308,30 +310,34 @@ fn parse_sink_kind(name : String) -> SinkKind raise ConfigError {
 }
 
 ///|
-fn parse_color_mode(name : String) -> ColorMode raise ConfigError {
+fn parse_color_mode(name : String) -> @formatting.ColorMode raise ConfigError {
   match name.to_upper() {
-    "NEVER" => ColorMode::Never
-    "AUTO" => ColorMode::Auto
-    "ALWAYS" => ColorMode::Always
+    "NEVER" => @formatting.ColorMode::Never
+    "AUTO" => @formatting.ColorMode::Auto
+    "ALWAYS" => @formatting.ColorMode::Always
     _ => raise ConfigError::InvalidConfig("Unsupported color mode: " + name)
   }
 }
 
 ///|
-fn parse_color_support(name : String) -> ColorSupport raise ConfigError {
+fn parse_color_support(
+  name : String,
+) -> @formatting.ColorSupport raise ConfigError {
   match name.to_upper() {
-    "BASIC" => ColorSupport::Basic
-    "TRUECOLOR" => ColorSupport::TrueColor
+    "BASIC" => @formatting.ColorSupport::Basic
+    "TRUECOLOR" => @formatting.ColorSupport::TrueColor
     _ => raise ConfigError::InvalidConfig("Unsupported color support: " + name)
   }
 }
 
 ///|
-fn parse_style_markup_mode(name : String) -> StyleMarkupMode raise ConfigError {
+fn parse_style_markup_mode(
+  name : String,
+) -> @formatting.StyleMarkupMode raise ConfigError {
   match name.to_upper() {
-    "DISABLED" => StyleMarkupMode::Disabled
-    "BUILTIN" => StyleMarkupMode::Builtin
-    "FULL" => StyleMarkupMode::Full
+    "DISABLED" => @formatting.StyleMarkupMode::Disabled
+    "BUILTIN" => @formatting.StyleMarkupMode::Builtin
+    "FULL" => @formatting.StyleMarkupMode::Full
     _ =>
       raise ConfigError::InvalidConfig("Unsupported style markup mode: " + name)
   }
@@ -384,9 +390,9 @@ fn parse_text_formatter_config(
 fn parse_text_style_config(
   value : @json_parser.JsonValue,
   context : String,
-) -> TextStyle raise ConfigError {
+) -> @formatting.TextStyle raise ConfigError {
   let obj = expect_object(value, context)
-  text_style(
+  @formatting.text_style(
     fg=get_optional_string(obj, "fg"),
     bg=get_optional_string(obj, "bg"),
     bold=get_bool(obj, "bold", default=false),
@@ -399,9 +405,9 @@ fn parse_text_style_config(
 ///|
 fn parse_style_tags_config(
   value : @json_parser.JsonValue,
-) -> Map[String, TextStyle] raise ConfigError {
+) -> Map[String, @formatting.TextStyle] raise ConfigError {
   let obj = expect_object(value, "text_formatter.style_tags")
-  let style_tags : Map[String, TextStyle] = {}
+  let style_tags : Map[String, @formatting.TextStyle] = {}
   for name, item in obj {
     style_tags[name] = parse_text_style_config(
       item,
@@ -425,12 +431,17 @@ fn parse_queue_config(
 ///|
 fn parse_file_rotation_config(
   value : @json_parser.JsonValue,
-) -> FileRotation raise ConfigError {
+) -> @file_model.FileRotation raise ConfigError {
   let obj = expect_object(value, "sink.rotation")
   let max_backups = get_int(obj, "max_backups", default=1)
   match get_optional_int64_string(obj, "max_bytes_i64") {
-    Some(max_bytes_i64) => file_rotation_i64(max_bytes_i64, max_backups~)
-    None => file_rotation(get_int(obj, "max_bytes", default=1), max_backups~)
+    Some(max_bytes_i64) =>
+      @file_model.file_rotation_i64(max_bytes_i64, max_backups~)
+    None =>
+      @file_model.file_rotation(
+        get_int(obj, "max_bytes", default=1),
+        max_backups~,
+      )
   }
 }
 
@@ -494,8 +505,8 @@ pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
     "max_pending": @json_parser.JsonValue::Number(queue.max_pending.to_double()),
     "overflow": @json_parser.JsonValue::String(
       match queue.overflow {
-        QueueOverflowPolicy::DropNewest => "DropNewest"
-        QueueOverflowPolicy::DropOldest => "DropOldest"
+        @queue_model.QueueOverflowPolicy::DropNewest => "DropNewest"
+        @queue_model.QueueOverflowPolicy::DropOldest => "DropOldest"
       },
     ),
   })
@@ -527,19 +538,19 @@ pub fn text_formatter_config_to_json(
     "field_separator": @json_parser.JsonValue::String(config.field_separator),
     "template": @json_parser.JsonValue::String(config.template),
     "color_mode": @json_parser.JsonValue::String(
-      color_mode_label(config.color_mode),
+      @formatting.color_mode_label(config.color_mode),
     ),
     "color_support": @json_parser.JsonValue::String(
-      color_support_label(config.color_support),
+      @formatting.color_support_label(config.color_support),
     ),
     "style_markup": @json_parser.JsonValue::String(
-      style_markup_mode_label(config.style_markup),
+      @formatting.style_markup_mode_label(config.style_markup),
     ),
     "target_style_markup": @json_parser.JsonValue::String(
-      style_markup_mode_label(config.target_style_markup),
+      @formatting.style_markup_mode_label(config.target_style_markup),
     ),
     "fields_style_markup": @json_parser.JsonValue::String(
-      style_markup_mode_label(config.fields_style_markup),
+      @formatting.style_markup_mode_label(config.fields_style_markup),
     ),
   }
   if config.style_tags.length() != 0 {
@@ -549,7 +560,9 @@ pub fn text_formatter_config_to_json(
 }
 
 ///|
-fn text_style_config_to_json(style : TextStyle) -> @json_parser.JsonValue {
+fn text_style_config_to_json(
+  style : @formatting.TextStyle,
+) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "bold": @json_parser.JsonValue::Bool(style.bold),
     "dim": @json_parser.JsonValue::Bool(style.dim),
@@ -569,7 +582,7 @@ fn text_style_config_to_json(style : TextStyle) -> @json_parser.JsonValue {
 
 ///|
 fn style_tags_config_to_json(
-  style_tags : Map[String, TextStyle],
+  style_tags : Map[String, @formatting.TextStyle],
 ) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {}
   for name, style in style_tags {
@@ -592,24 +605,6 @@ pub fn stringify_text_formatter_config(
 }
 
 ///|
-pub fn file_rotation_config_to_json(
-  config : FileRotation,
-) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = {
-    "max_bytes": @json_parser.JsonValue::Number(config.max_bytes.to_double()),
-    "max_backups": @json_parser.JsonValue::Number(
-      config.max_backups.to_double(),
-    ),
-  }
-  match config.native_wide_max_bytes {
-    Some(value) =>
-      obj["max_bytes_i64"] = @json_parser.JsonValue::String(value.to_string())
-    None => ()
-  }
-  @json_parser.JsonValue::Object(obj)
-}
-
-///|
 pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
   let obj : Map[String, @json_parser.JsonValue] = {
     "kind": @json_parser.JsonValue::String(sink_kind_label(config.kind)),
@@ -620,7 +615,8 @@ pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
   }
   match config.rotation {
     None => ()
-    Some(rotation) => obj["rotation"] = file_rotation_config_to_json(rotation)
+    Some(rotation) =>
+      obj["rotation"] = @file_model.file_rotation_config_to_json(rotation)
   }
   @json_parser.JsonValue::Object(obj)
 }

@@ -2,7 +2,7 @@
 name: library-async-logger
 group: api
 category: facade
-update-time: 20260614
+update-time: 20260707
 description: Public library-facing async logger facade type used to expose a narrower surface than AsyncLogger while preserving sink typing.
 key-word:
     - library
@@ -34,13 +34,13 @@ Detailed rules explaining key parameters and behaviors
 - This is a public facade struct, not a type alias.
 - The wrapped sink type `S` is preserved, so sink-specific typing remains available through the facade type parameter.
 - The facade keeps common library-safe async operations such as `new(...)`, `with_target(...)`, `child(...)`, `bind(...)`, `is_enabled(...)`, `run()`, `shutdown()`, and the main async write methods `log(...)`, `info(...)`, `warn(...)`, and `error(...)`.
-- `LibraryAsyncLogger::new(...)` delegates to `async_logger(...)`, so the same async queue, raising flush callback, and runtime-dependent lifecycle behavior still exist behind the narrower facade.
+- `LibraryAsyncLogger::new(...)` delegates to `async_logger(...)`, so the same async queue, raising flush callback, and lifecycle behavior still exist behind the narrower facade.
 - Because `new(...)` delegates directly, `AsyncLoggerConfig` values such as pending limits, overflow mode, batch sizing, linger timing, and flush policy are preserved exactly rather than being translated into facade-specific defaults.
 - The facade also preserves the wrapped async logger's target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derives another logger with `with_target(...)` or `child(...)`.
 - Most facade reshaping helpers keep the same visible sink type, and unlike synchronous `LibraryLogger`, async `with_context_fields(...)` and `bind(...)` also preserve the visible `LibraryAsyncLogger[S]` type because they update stored async context metadata instead of changing the exposed sink wrapper.
 - It does not expose the wider `AsyncLogger[S]` composition surface or the async state and lifecycle inspection helpers directly.
 - Call `to_async_logger()` when later code must recover the full underlying `AsyncLogger[S]` surface.
-- That recovered logger is the same live async value, so queue counters, retained failure state, runtime-dependent shutdown outcomes, and sink helper access are preserved rather than recomputed.
+- That recovered logger is the same live async value, so queue counters, retained failure state, shutdown outcomes, and sink helper access are preserved rather than recomputed.
 - If the delegated async flush callback fails, the facade preserves the same `has_failed()`, `last_error()`, `is_running()`, pending-backlog, and shutdown-cleanup semantics that the underlying `AsyncLogger[S]` would have exposed directly.
 - If `S` is `RuntimeSink`, queued runtime state and file-backed helper behavior also stay on that same wrapped logger value; the facade only hides direct access until `to_async_logger()` is used.
 - If `S` is `RuntimeSink` and the value came from `build_library_async_logger(...)` or `parse_and_build_library_async_logger(...)`, the wrapped logger also keeps that sync-first builder route unchanged: any optional `LoggerConfig.queue` was already applied before async wrapping, and `logger.sink.kind` had already decided the concrete `RuntimeSink` variant before the facade narrowed the surface.
@@ -111,7 +111,7 @@ e.g.:
 
 - If the wrapped async logger later ends in a mixed diagnostic state such as `has_failed=true` with retained backlog, unwrapping exposes that exact state instead of a library-specific translation.
 
-- Shutdown through the facade keeps the wrapped logger's runtime-dependent failure cleanup behavior: after a worker-side failure, unwrapped pending versus dropped cleanup can still differ between native-worker and compatibility runtimes.
+- Shutdown through the facade keeps the wrapped logger's failure cleanup behavior: after a worker-side failure, unwrapped retained pending backlog is converted into dropped records before shutdown returns.
 
 - Helpers such as `pending_count()`, `dropped_count()`, `is_closed()`, `is_running()`, `has_failed()`, `last_error()`, `flush_policy()`, `state()`, and `wait_idle()` remain on the underlying `AsyncLogger[S]` and require `to_async_logger()` first.
 

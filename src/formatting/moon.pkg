@@ -1,0 +1,7 @@
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/ref",
+  "moonbitlang/core/string",
+}

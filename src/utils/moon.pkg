@@ -1,6 +1,7 @@
 import {
   "Nanaloveyuki/BitLogger/src/core",
-  "maria/json_parser",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/record_ops",
   "moonbitlang/core/env",
   "moonbitlang/core/json",
   "moonbitlang/core/ref",

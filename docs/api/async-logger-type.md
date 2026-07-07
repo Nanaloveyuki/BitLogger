@@ -2,7 +2,7 @@
 name: async-logger-type
 group: api
 category: async
-update-time: 20260614
+update-time: 20260707
 description: Public asynchronous logger root type used for queue-backed sink-preserving logging pipelines with explicit lifecycle, failure, and flush-callback state.
 key-word:
     - async
@@ -13,7 +13,7 @@ key-word:
 
 ## Async-logger-type
 
-`AsyncLogger[S]` is the public asynchronous root logger type. It stores a concrete sink type `S` together with queue policy, runtime state counters, and lifecycle flags, then serves as the base value for async composition, worker control, and async write APIs.
+`AsyncLogger[S]` is the public asynchronous root logger type. It stores a concrete sink type `S` together with queue policy, runtime state counters, and lifecycle state, then serves as the base value for async composition, worker control, and async write APIs.
 
 ### Interface
 
@@ -27,16 +27,14 @@ pub struct AsyncLogger[S] {
   linger_ms : Int
   flush_policy : AsyncFlushPolicy
   sink : S
-  flush_sink : (S) -> Int raise
+  flush_callback : (S) -> Unit raise
   context_fields : Array[@bitlogger.Field]
   filter : (@bitlogger.Record) -> Bool
   patch : @bitlogger.RecordPatch
   queue : @async.Queue[@bitlogger.Record]
   pending_count : Ref[Int]
   dropped_count : Ref[Int]
-  is_closed : Ref[Bool]
-  is_running : Ref[Bool]
-  has_failed : Ref[Bool]
+  phase : Ref[AsyncLifecyclePhase]
   last_error : Ref[String]
 }
 ```
@@ -50,9 +48,10 @@ pub struct AsyncLogger[S] {
 Detailed rules explaining key parameters and behaviors
 
 - This is a public root struct, not a type alias.
-- The current fields cover targeting, overflow policy, batching, linger timing, flush policy, the wrapped sink, context/filter/patch behavior, queue state, and worker lifecycle flags.
-- `flush_sink : (S) -> Int raise` stores the raising flush callback used by batch and shutdown flush policies.
-- `pending_count`, `dropped_count`, `is_closed`, `is_running`, `has_failed`, and `last_error` are mutable runtime refs that power the higher-level lifecycle and diagnostics helpers.
+- The current fields cover targeting, overflow policy, batching, linger timing, flush policy, the wrapped sink, context/filter/patch behavior, queue state, and the internal lifecycle phase model.
+- `flush_callback : (S) -> Unit raise` stores the raising flush callback used by batch and shutdown flush policies.
+- `pending_count`, `dropped_count`, `phase`, and `last_error` are the mutable runtime refs that power the higher-level lifecycle and diagnostics helpers.
+- `phase` is the stronger internal lifecycle source of truth; helper reads such as `is_closed()`, `is_running()`, `has_failed()`, and the richer `state()` snapshot are derived from it.
 - The sink type parameter is preserved across async composition, which is why helpers such as `with_target(...)`, `with_context_fields(...)`, `with_filter(...)`, and `with_patch(...)` keep returning `AsyncLogger[S]`.
 - `async_logger(...)` constructs this type as the main asynchronous entry point.
 - This root type is also what sits underneath both async facade families: `ApplicationAsyncLogger` is a direct alias over the runtime-sink line, while `LibraryAsyncLogger[S]` is a narrowing wrapper around an `AsyncLogger[S]` value.
@@ -88,7 +87,7 @@ e.g.:
 
 - Actual enqueue, worker, and flush behavior still depends on the wrapped sink `S`, async runtime support, and the configured queue policy.
 
-- Post-close logging behavior is not a property of the struct shape alone; it also depends on the active runtime implementation.
+- Post-close logging behavior now follows the shared close contract rather than backend-specific divergence, but lifecycle interpretation should still prefer `state()` over manual field reasoning.
 
 ### Notes
 

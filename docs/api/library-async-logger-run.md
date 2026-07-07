@@ -2,7 +2,7 @@
 name: library-async-logger-run
 group: api
 category: facade
-update-time: 20260613
+update-time: 20260707
 description: Start the LibraryAsyncLogger worker loop by delegating to the wrapped async logger's run behavior.
 key-word:
     - async
@@ -35,6 +35,7 @@ Detailed rules explaining key parameters and behaviors
 
 - This method delegates directly to the wrapped async logger's `run()` behavior.
 - It starts the worker loop that makes accepted queued records reach the underlying sink.
+- The delegated `run()` call now preserves the wrapped logger's single-worker guard, so a second concurrent facade-level startup raises `AsyncLoggerAlreadyRunning`.
 - Failure and lifecycle state are still tracked by the wrapped async logger.
 - Once a delegated `run()` call has actually started, it clears any previous `has_failed()` flag and stored `last_error()` string on that same wrapped logger before draining resumes.
 - The narrower library facade does not hide the need to explicitly activate queue draining.
@@ -78,6 +79,7 @@ e.g.:
 - If `run()` is never started, accepted records may remain queued and not reach the sink.
 
 - A later delegated `run()` attempt starts from a fresh failure flag and empty `last_error()` string on the same wrapped logger, even if an earlier facade-level run failed.
+- A concurrent delegated `run()` attempt while the wrapped logger is already active fails explicitly with `AsyncLoggerAlreadyRunning`.
 
 - If callers need to inspect `is_running()`, `has_failed()`, or `last_error()` directly, they must unwrap first with `to_async_logger()`.
 

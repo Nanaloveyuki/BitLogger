@@ -94,6 +94,17 @@ pub fn open_file_handle_internal(path : String, append : Bool) -> FileHandle? {
 }
 
 ///|
+pub fn file_exists_internal(path : String) -> Bool {
+  let raw = file_open_ffi(string_to_c_bytes(path), string_to_c_bytes("rb"))
+  if file_is_null_ffi(raw) {
+    false
+  } else {
+    ignore(file_close_ffi(raw))
+    true
+  }
+}
+
+///|
 pub fn write_file_handle_internal(
   handle : FileHandle,
   content : String,

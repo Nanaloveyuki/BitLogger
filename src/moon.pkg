@@ -1,6 +1,14 @@
 import {
+  "Nanaloveyuki/BitLogger/src/record_ops",
+  "Nanaloveyuki/BitLogger/src/config_model",
   "Nanaloveyuki/BitLogger/src/core",
-  "Nanaloveyuki/BitLogger/src/utils",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/file_runtime",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/presets_pkg",
+  "Nanaloveyuki/BitLogger/src/queue_model",
+  "Nanaloveyuki/BitLogger/src/runtime",
+  "Nanaloveyuki/BitLogger/src/sink_graph",
   "maria/json_parser",
   "moonbitlang/core/array",
   "moonbitlang/core/builtin",
@@ -10,11 +18,6 @@ import {
   "moonbitlang/core/ref",
 }
 
-options(
-  targets: {
-    "sinks_file.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
-    "runtime_file_controls.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
-    "file_backend_native.mbt": [ "native", "llvm" ],
-    "file_backend_stub.mbt": [ "js", "wasm", "wasm-gc" ],
-  },
-)
+import {
+  "Nanaloveyuki/BitLogger/src/utils",
+} for "wbtest"

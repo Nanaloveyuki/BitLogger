@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/queue_model"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum QueueOverflowPolicy {
+  DropNewest
+  DropOldest
+}
+
+// Type aliases
+
+// Traits
+

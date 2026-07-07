@@ -1,0 +1,67 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/file_model"
+
+import {
+  "maria/json_parser",
+}
+
+// Values
+pub fn file_rotation(Int, max_backups? : Int) -> FileRotation
+
+pub fn file_rotation_config_to_json(FileRotation) -> @json_parser.JsonValue
+
+pub fn file_rotation_i64(Int64, max_backups? : Int) -> FileRotation
+
+pub fn file_sink_policy_to_json(FileSinkPolicy) -> @json_parser.JsonValue
+
+pub fn file_sink_state_to_json(FileSinkState) -> @json_parser.JsonValue
+
+pub fn runtime_file_state_to_json(RuntimeFileState) -> @json_parser.JsonValue
+
+pub fn stringify_file_sink_policy(FileSinkPolicy, pretty? : Bool) -> String
+
+pub fn stringify_file_sink_state(FileSinkState, pretty? : Bool) -> String
+
+pub fn stringify_runtime_file_state(RuntimeFileState, pretty? : Bool) -> String
+
+// Errors
+
+// Types and methods
+pub struct FileRotation {
+  max_bytes : Int
+  max_backups : Int
+  native_wide_max_bytes : Int64?
+}
+
+pub struct FileSinkPolicy {
+  append : Bool
+  auto_flush : Bool
+  rotation : FileRotation?
+}
+pub fn FileSinkPolicy::new(append? : Bool, auto_flush? : Bool, rotation? : FileRotation?) -> Self
+
+pub struct FileSinkState {
+  path : String
+  available : Bool
+  append : Bool
+  auto_flush : Bool
+  rotation : FileRotation?
+  open_failures : Int
+  write_failures : Int
+  flush_failures : Int
+  rotation_failures : Int
+}
+pub fn FileSinkState::new(String, available? : Bool, append? : Bool, auto_flush? : Bool, rotation? : FileRotation?, open_failures? : Int, write_failures? : Int, flush_failures? : Int, rotation_failures? : Int) -> Self
+
+pub struct RuntimeFileState {
+  file : FileSinkState
+  queued : Bool
+  pending_count : Int
+  dropped_count : Int
+}
+pub fn RuntimeFileState::new(FileSinkState, queued? : Bool, pending_count? : Int, dropped_count? : Int) -> Self
+
+// Type aliases
+
+// Traits
+

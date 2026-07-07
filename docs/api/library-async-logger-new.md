@@ -2,7 +2,7 @@
 name: library-async-logger-new
 group: api
 category: facade
-update-time: 20260613
+update-time: 20260707
 description: Create a narrower library-facing async logger facade by building a regular async logger and wrapping the same underlying state.
 key-word:
     - async
@@ -23,7 +23,7 @@ pub fn[S] LibraryAsyncLogger::new(
   config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
   min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
   target~ : String = "",
-  flush~ : (S) -> Int raise = fn(_) { 0 },
+  flush~ : (S) -> Unit raise = fn(_) { () },
 ) -> LibraryAsyncLogger[S] {
 ```
 
@@ -33,7 +33,7 @@ pub fn[S] LibraryAsyncLogger::new(
 - `config : AsyncLoggerConfig` - Queue size, overflow behavior, batching, linger, and flush policy.
 - `min_level : Level` - Minimum enabled level. Messages below this threshold are ignored before enqueue.
 - `target : String` - Default target attached to emitted records unless later overridden.
-- `flush : (S) -> Int raise` - Flush callback used when async batch or shutdown policy needs explicit flushing, and allowed to raise if flushing fails.
+- `flush : (S) -> Unit raise` - Flush callback used when async batch or shutdown policy needs explicit flushing, and allowed to raise if flushing fails.
 
 #### output
 
@@ -73,7 +73,7 @@ When the sink requires a flush callback for batch or shutdown policy:
 ```moonbit
 let logger = LibraryAsyncLogger::new(
   @bitlogger.console_sink(),
-  flush=fn(sink) { 0 },
+  flush=fn(sink) { () },
 )
 ```
 

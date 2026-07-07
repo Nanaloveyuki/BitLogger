@@ -1,0 +1,8 @@
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
+  "Nanaloveyuki/BitLogger/src/formatting",
+  "Nanaloveyuki/BitLogger/src/sink_graph",
+  "Nanaloveyuki/BitLogger/src/utils",
+  "moonbitlang/core/ref",
+}

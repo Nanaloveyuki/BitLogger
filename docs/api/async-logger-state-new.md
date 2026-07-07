@@ -2,8 +2,8 @@
 name: async-logger-state-new
 group: api
 category: async
-update-time: 20260614
-description: Construct an AsyncLoggerState snapshot from explicit runtime, queue, lifecycle, failure, and flush-policy values without probing a live logger.
+update-time: 20260707
+description: Construct an AsyncLoggerState snapshot from explicit runtime, lifecycle phase, queue, failure text, and flush-policy values without probing a live logger.
 key-word:
     - async
     - logger
@@ -20,11 +20,9 @@ Construct an `AsyncLoggerState` snapshot from explicit runtime, queue, lifecycle
 ```moonbit
 pub fn AsyncLoggerState::new(
   runtime : AsyncRuntimeState,
+  phase : AsyncLifecyclePhase,
   pending_count : Int,
   dropped_count : Int,
-  is_closed : Bool,
-  is_running : Bool,
-  has_failed : Bool,
   last_error : String,
   flush_policy : AsyncFlushPolicy,
 ) -> AsyncLoggerState {
@@ -33,11 +31,9 @@ pub fn AsyncLoggerState::new(
 #### input
 
 - `runtime : AsyncRuntimeState` - Embedded backend-level runtime snapshot.
+- `phase : AsyncLifecyclePhase` - Primary lifecycle conclusion for the snapshot.
 - `pending_count : Int` - Current async queue backlog.
 - `dropped_count : Int` - Current dropped-record count.
-- `is_closed : Bool` - Whether the logger has been closed.
-- `is_running : Bool` - Whether the logger worker loop is currently running.
-- `has_failed : Bool` - Whether the logger has recorded a runtime failure state.
 - `last_error : String` - Latest error text, or an empty string when no failure has been recorded.
 - `flush_policy : AsyncFlushPolicy` - Active async flush policy for the logger.
 
@@ -49,11 +45,12 @@ pub fn AsyncLoggerState::new(
 
 Detailed rules explaining key parameters and behaviors
 
-- This constructor simply packages the supplied fields into one public snapshot value.
+- This constructor packages the supplied runtime, phase, counters, last error, and flush policy into one public snapshot value.
 - It does not inspect a live logger instance by itself.
 - `AsyncLogger::state()` is the higher-level API that reads these values from a concrete logger.
 - It also does not validate whether the supplied fields represent a combination that could come from one real logger instant.
 - The supplied `runtime : AsyncRuntimeState` is stored exactly as provided; this constructor does not recompute `mode` or `background_worker` from the active backend.
+- The constructor derives `is_closed`, `is_running`, `has_failed`, `backlog_retained`, `can_rerun`, and `terminal` from the supplied `phase` and `pending_count`.
 - The constructed value matches the same public shape used by async logger serializers.
 - Because `AsyncLoggerState` is only a data snapshot type, this constructor is mainly useful for tests, adapters, and synthetic diagnostics rather than ordinary logger inspection.
 - Serialization helpers accept any `AsyncLoggerState` value, including hand-built ones from this constructor.
@@ -69,11 +66,9 @@ When tests or adapters should construct a full async logger state explicitly:
 ```moonbit
 let state = AsyncLoggerState::new(
   runtime=AsyncRuntimeState::new(AsyncRuntimeMode::Compatibility, false),
+  phase=AsyncLifecyclePhase::Running,
   pending_count=0,
   dropped_count=0,
-  is_closed=false,
-  is_running=true,
-  has_failed=false,
   last_error="",
   flush_policy=AsyncFlushPolicy::Never,
 )
@@ -87,11 +82,9 @@ When code should prepare a typed logger state value for later export:
 ```moonbit
 let state = AsyncLoggerState::new(
   runtime=async_runtime_state(),
+  phase=logger.phase(),
   pending_count=logger.pending_count(),
   dropped_count=logger.dropped_count(),
-  is_closed=logger.is_closed(),
-  is_running=logger.is_running(),
-  has_failed=logger.has_failed(),
   last_error=logger.last_error(),
   flush_policy=logger.flush_policy(),
 )
@@ -110,7 +103,7 @@ e.g.:
 
 - If callers want the current backend-derived runtime pair instead of a synthetic one, they must pass `async_runtime_state()` explicitly or use `AsyncLogger::state()`.
 
-- This constructor does not apply cleanup semantics such as clearing `last_error` on restart or draining pending records; callers must provide those fields exactly as they want them represented.
+- This constructor does not apply cleanup semantics such as clearing `last_error` on restart or draining pending records; callers must provide the phase and counters exactly as they want them represented.
 
 ### Notes
 
