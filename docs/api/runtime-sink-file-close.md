@@ -2,8 +2,8 @@
 name: runtime-sink-file-close
 group: api
 category: runtime
-update-time: 20260613
-description: Close the file sink behind a RuntimeSink when one is present.
+update-time: 20260707
+description: Close the file sink behind a RuntimeSink when one is present, with queued-file success tied to safe drain-flush-close behavior.
 key-word:
     - runtime
     - sink
@@ -27,15 +27,15 @@ pub fn RuntimeSink::file_close(self : RuntimeSink) -> Bool {
 
 #### output
 
-- `Bool` - Whether the underlying file close succeeded.
+- `Bool` - Whether the file-specific close path succeeded.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants forward directly to `FileSink::close()`.
-- `QueuedFile` runtime variants first attempt `sink.flush()` on the queue wrapper, then call `sink.sink.close()` on the wrapped file sink.
-- For `QueuedFile`, the queue flush result is ignored and the returned `Bool` comes from the inner file close.
+- `QueuedFile` runtime variants first drain the queue, then flush the wrapped file sink, then close it.
+- For `QueuedFile`, the returned `Bool` is `true` only when that whole path succeeds and no new write, flush, or rotation failures are observed during the drain-flush-close step.
 - Non-file runtime variants return `false`.
 - After a file-backed runtime sink has already cleared its handle, later `file_close()` calls return `false`.
 
@@ -59,7 +59,7 @@ When application code wants the direct file close outcome:
 let closed = sink.file_close()
 ```
 
-In this example, the result describes file close behavior rather than generic sink close behavior.
+In this example, the result describes the file-specific close path rather than generic sink close behavior.
 
 ### Error Case
 
@@ -70,8 +70,10 @@ e.g.:
 
 - If callers only need generic sink teardown, `close()` is the broader API.
 
+- On queued file sinks, `true` still does not mean a stronger durability contract than the current backend can report; it means the safe drain-flush-close path completed without a newly observed file failure.
+
 ### Notes
 
 1. Prefer this helper when direct runtime code specifically cares about file-backed shutdown.
 
-2. Queued file sinks flush pending records before closing the file, unlike generic `close()`.
+2. Generic `close()` now uses the same safe queued-file teardown path.

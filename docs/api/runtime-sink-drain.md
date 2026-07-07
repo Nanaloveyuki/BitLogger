@@ -2,8 +2,8 @@
 name: runtime-sink-drain
 group: api
 category: runtime
-update-time: 20260613
-description: Drain queued work from a RuntimeSink with an optional item limit.
+update-time: 20260707
+description: Compatibility RuntimeSink drain helper that still returns one Int by collapsing generic queue progress and plain-file fallback steps.
 key-word:
     - runtime
     - sink
@@ -13,7 +13,7 @@ key-word:
 
 ## Runtime-sink-drain
 
-Drain queued work from a `RuntimeSink`. This helper is useful when code owns a runtime sink directly and needs controlled queue progress.
+Drain queued work from a `RuntimeSink` and return one compatibility count. This helper is still available for older code, but new generic runtime code should prefer `drain_progress()` because it exposes queue advancement and plain-file fallback steps separately.
 
 ### Interface
 
@@ -28,16 +28,18 @@ pub fn RuntimeSink::drain(self : RuntimeSink, max_items~ : Int = -1) -> Int {
 
 #### output
 
-- `Int` - Number of drained items, or the fallback flush count for plain file sinks.
+- `Int` - Compatibility count produced from the structured `drain_progress()` result.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- Queue-wrapped runtime sinks forward to the wrapped queue sink's `drain(...)` behavior.
-- Plain file runtime sinks fall back to `FileSink::flush()` behavior and return `1` or `0`.
-- Plain console-style runtime sinks return `0` because they do not own a drainable queue.
-- This method is the direct sink-level API used by `ConfiguredLogger::drain(...)`.
+- This method now delegates to `drain_progress()` and sums `queue_advanced_count + file_flush_step_count` back into one compatibility number.
+- Queue-wrapped runtime sinks still report how many queued records were consumed during the drain.
+- A queued file drain can still return a positive number even when file failure counters increase during the same queue-delivery step.
+- Plain file runtime sinks still use the generic `FileSink::flush()` fallback and therefore still return `1` or `0`.
+- Plain console-style runtime sinks still return `0` because the structured result stays zeroed.
+- This method remains the direct sink-level API used by `ConfiguredLogger::drain(...)`.
 
 ### How to Use
 
@@ -45,31 +47,37 @@ Here are some specific examples provided.
 
 #### When Need Bounded Queue Progress
 
-When direct queue-backed runtime work should be advanced in chunks:
+When older code already expects one numeric drain count:
 ```moonbit
 let drained = sink.drain(max_items=16)
 ```
 
-In this example, callers cap how much queued work is processed in one step.
+In this example, callers still cap how much queued work is processed in one step while keeping the legacy return shape.
 
 #### When Need Full Manual Drain
 
-When a runtime queue should be emptied without an explicit item cap:
+When code should keep the older full-drain compatibility path:
 ```moonbit
 ignore(sink.drain())
 ```
 
-In this example, the runtime sink drains as much queued work as its concrete variant allows.
+In this example, the runtime sink drains as much queued work as its concrete variant allows while still returning one numeric count.
 
 ### Error Case
 
 e.g.:
 - If the runtime sink is not queue-backed, the result may be `0` or file-flush fallback behavior.
 
-- If callers only need generic flush semantics, `flush()` may be the simpler API.
+- If callers need truthful generic progress semantics, `drain_progress()` is the better API.
+
+- If callers only need generic flush semantics, `flush_progress()` may be the simpler structured API.
+
+- If callers need file-specific success semantics after draining a queued file sink, they should inspect failure counters or use `file_flush()` for the file-specific path.
 
 ### Notes
 
-1. Prefer this helper when queue progress should be bounded or directly observed.
+1. Treat this method as a compatibility helper for older numeric code.
 
-2. `ConfiguredLogger::drain(...)` is the higher-level wrapper for config-built loggers.
+2. Prefer `drain_progress()` in new generic runtime code.
+
+3. `ConfiguredLogger::drain(...)` is the higher-level wrapper for config-built loggers.

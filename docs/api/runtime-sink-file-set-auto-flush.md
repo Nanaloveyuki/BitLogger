@@ -2,7 +2,7 @@
 name: runtime-sink-file-set-auto-flush
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Update the auto-flush policy used by a file-backed RuntimeSink.
 key-word:
     - runtime
@@ -35,9 +35,10 @@ pub fn RuntimeSink::file_set_auto_flush(self : RuntimeSink, enabled : Bool) -> B
 Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants update the wrapped `FileSink` auto-flush policy and return `true`.
-- `QueuedFile` runtime variants forward the update to the wrapped inner `FileSink` and return `true`.
+- `QueuedFile` runtime variants forward the update to the wrapped inner `FileSink` only when no queued records are pending.
 - Non-file runtime variants return `false`.
 - This helper changes policy only; it does not itself flush pending data.
+- If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different auto-flush policy than the one they were queued under.
 
 ### How to Use
 
@@ -68,8 +69,10 @@ e.g.:
 
 - If callers need an immediate flush action, `file_flush()` is the operational API.
 
+- If a queued file sink still has pending records, callers should flush or close it first before changing auto-flush policy.
+
 ### Notes
 
 1. Use this helper for direct runtime durability tuning on `RuntimeSink` values.
 
-2. Pair it with `file_auto_flush()` to verify the active policy.
+2. On queued file sinks, clear pending records first so policy mutation does not retroactively affect already queued writes.

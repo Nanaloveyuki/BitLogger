@@ -2,7 +2,7 @@
 name: runtime-sink-file-set-policy
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Apply a bundled runtime file policy update to a file-backed RuntimeSink.
 key-word:
     - runtime
@@ -35,9 +35,10 @@ pub fn RuntimeSink::file_set_policy(self : RuntimeSink, policy : FileSinkPolicy)
 Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants update append, auto-flush, and rotation together on the wrapped `FileSink` and return `true`.
-- `QueuedFile` runtime variants forward the policy update to the wrapped inner `FileSink` and return `true`.
+- `QueuedFile` runtime variants forward the policy update to the wrapped inner `FileSink` only when no queued records are pending.
 - Non-file runtime variants return `false`.
 - This helper is broader than the single-setting setters because it updates the whole file policy in one call.
+- If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different policy bundle than the one they were queued under.
 
 ### How to Use
 
@@ -72,8 +73,10 @@ e.g.:
 
 - If callers only need to change one setting, a narrower setter such as `file_set_auto_flush(...)` or `file_set_rotation(...)` may be clearer.
 
+- If a queued file sink still has pending records, callers should flush or close it first before changing policy.
+
 ### Notes
 
 1. Use this helper when the runtime policy should be treated as one cohesive object.
 
-2. It pairs naturally with `file_policy()` and `file_default_policy()`.
+2. On queued file sinks, clear pending records first so policy mutation does not retroactively affect already queued writes.

@@ -2,7 +2,7 @@
 name: runtime-sink-file-set-append-mode
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Update the append-mode policy used by a file-backed RuntimeSink for later reopen behavior.
 key-word:
     - runtime
@@ -35,9 +35,10 @@ pub fn RuntimeSink::file_set_append_mode(self : RuntimeSink, append : Bool) -> B
 Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants update their stored append policy and return `true`.
-- `QueuedFile` runtime variants forward the policy update to the wrapped inner `FileSink` and return `true`.
+- `QueuedFile` runtime variants forward the policy update to the wrapped inner `FileSink` only when no queued records are pending.
 - This helper updates policy only; it does not force immediate reopen.
 - Non-file runtime variants return `false`.
+- If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different append policy than the one they were queued under.
 
 ### How to Use
 
@@ -69,8 +70,10 @@ e.g.:
 
 - If callers need an immediate reopen as part of the same operation, one of the reopen helpers should be used afterward.
 
+- If a queued file sink still has pending records, callers should flush or close it first before changing append mode.
+
 ### Notes
 
 1. This helper changes stored policy, not live file-handle state by itself.
 
-2. It is useful when recovery logic wants to stage reopen behavior in advance.
+2. On queued file sinks, clear pending records first so staged reopen policy does not retroactively affect already queued writes.

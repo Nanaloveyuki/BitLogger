@@ -2,8 +2,8 @@
 name: configured-logger-file-reset-policy
 group: api
 category: runtime
-update-time: 20260512
-description: Reset the runtime file policy of a configured file-backed logger back to its original defaults.
+update-time: 20260707
+description: Reset the runtime file policy of a configured logger back to its captured defaults.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-file-reset-policy
 
-Reset the runtime file policy of a `ConfiguredLogger` back to its original defaults. This helper restores append, auto-flush, and rotation policy together.
+Reset the runtime file policy of a `ConfiguredLogger` back to its captured defaults.
 
 ### Interface
 
@@ -21,56 +21,17 @@ Reset the runtime file policy of a `ConfiguredLogger` back to its original defau
 pub fn ConfiguredLogger::file_reset_policy(self : ConfiguredLogger) -> Bool {}
 ```
 
-#### input
-
-- `self : ConfiguredLogger` - Config-driven runtime logger whose file policy should be restored.
-
-#### output
-
-- `Bool` - Whether the reset was applied.
-
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- File-backed sinks restore their stored default file policy through the wrapped `RuntimeSink`.
-- Queued file sinks forward the reset behavior to the wrapped inner file sink.
+- File-backed sinks restore their runtime default policy through the wrapped `RuntimeSink`.
+- Queued file sinks restore the wrapped inner file sink default policy only when no queued records are pending.
 - Non-file sinks return `false`.
-- This helper is the inverse of runtime policy drift, not a generic reopen or flush action.
-
-### How to Use
-
-Here are some specific examples provided.
-
-#### When Need To Undo Runtime Policy Changes
-
-When file policy should return to the original configured defaults:
-```moonbit
-ignore(logger.file_reset_policy())
-```
-
-In this example, append, auto-flush, and rotation settings are restored together.
-
-#### When Use Drift-aware Recovery
-
-When reset should only happen after runtime changes:
-```moonbit
-if !logger.file_policy_matches_default() {
-  ignore(logger.file_reset_policy())
-}
-```
-
-In this example, reset is only applied when runtime policy has diverged.
-
-### Error Case
-
-e.g.:
-- If the configured sink is not file-backed, the method returns `false`.
-
-- If callers need to restore only one setting, a narrower setter may be more appropriate than a full policy reset.
+- If a queued file sink still has pending records, the reset is rejected and returns `false` so already queued records are not later written under a different policy than the one they were queued under.
 
 ### Notes
 
-1. Use this helper when the original bundled file policy should be restored intact.
+1. Use this helper when runtime file policy should return to its captured defaults.
 
-2. It pairs naturally with `file_policy_matches_default()` and `file_default_policy()`.
+2. On queued file sinks, clear pending records first so policy mutation does not retroactively affect already queued writes.

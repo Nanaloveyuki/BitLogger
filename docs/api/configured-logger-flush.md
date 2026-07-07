@@ -2,8 +2,8 @@
 name: configured-logger-flush
 group: api
 category: runtime
-update-time: 20260613
-description: Flush a configured runtime logger and return how many queued or file-backed operations were advanced through RuntimeSink.
+update-time: 20260707
+description: Compatibility configured runtime flush helper that still returns one Int by collapsing generic queue progress and plain-file fallback steps.
 key-word:
     - logger
     - runtime
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-flush
 
-Flush a `ConfiguredLogger` and return how much work was advanced. This is the configured logger wrapper over `RuntimeSink::flush(...)` for forcing queued or file-backed output to move forward after config-driven construction.
+Flush a `ConfiguredLogger` and return one compatibility count. This helper is still available for older code, but new configured-runtime code should prefer `flush_progress()` because it exposes queue advancement and plain-file fallback steps separately.
 
 ### Interface
 
@@ -27,16 +27,17 @@ pub fn ConfiguredLogger::flush(self : ConfiguredLogger) -> Int {}
 
 #### output
 
-- `Int` - Count returned by the wrapped `RuntimeSink::flush(...)` call.
+- `Int` - Compatibility count returned by the wrapped `RuntimeSink::flush(...)` call.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - This helper delegates directly to `self.sink.flush()`.
-- Queue-wrapped sinks forward to the concrete queue sink's `flush()` behavior.
-- Plain file sinks call `FileSink::flush()` through `RuntimeSink` and convert the boolean result into `1` or `0`.
-- Plain console-style sinks return `0` because they do not expose a meaningful buffered flush step here.
+- Under the hood, `RuntimeSink::flush()` now rebuilds one compatibility count from `flush_progress()`.
+- Queue-wrapped sinks still report queued-record consumption through that compatibility count.
+- Plain file sinks still report the generic fallback flush step as `1` or `0`.
+- Plain console-style sinks still return `0`.
 
 ### How to Use
 
@@ -44,31 +45,37 @@ Here are some specific examples provided.
 
 #### When Need Explicit Queue Progress
 
-When config-built queue output should be advanced manually:
+When older code already expects one numeric flush count from a config-built logger:
 ```moonbit
 ignore(logger.flush())
 ```
 
-In this example, the configured runtime logger is flushed without reaching into the sink directly.
+In this example, the configured runtime logger is flushed without changing the legacy return shape.
 
 #### When Need A Post-write Flush Barrier
 
-When a service wants stronger delivery behavior after a burst of writes:
+When code only needs a coarse non-zero check and does not care which runtime dimension advanced:
 ```moonbit
 let flushed = logger.flush()
 ```
 
-In this example, callers can observe how much work was advanced by the flush request.
+In this example, callers still get one compatibility count rather than a structured progress snapshot.
 
 ### Error Case
 
 e.g.:
 - If the configured runtime sink shape has no flushable state, the method may simply return `0`.
 
-- If callers need bounded manual draining rather than generic flush behavior, `drain(...)` is the better API.
+- If callers need truthful generic progress semantics, `flush_progress()` is the better API.
+
+- If callers need bounded manual draining rather than generic flush behavior, `drain_progress(...)` is usually the better API.
+
+- If callers need file-specific success semantics on a file-backed logger, `file_flush()` is the better API.
 
 ### Notes
 
-1. Use this helper after config-driven logger construction when explicit runtime flushing matters.
+1. Treat this method as a compatibility helper for older numeric code.
 
-2. The exact return value depends on which `RuntimeSink` variant the configured logger owns.
+2. Prefer `flush_progress()` in new configured-runtime code.
+
+3. The exact return value depends on which `RuntimeSink` variant the configured logger owns.

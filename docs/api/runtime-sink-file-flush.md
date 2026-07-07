@@ -2,8 +2,8 @@
 name: runtime-sink-file-flush
 group: api
 category: runtime
-update-time: 20260614
-description: Flush the file sink behind a RuntimeSink when one is present.
+update-time: 20260707
+description: Flush the file sink behind a RuntimeSink when one is present, with queued-file success tied to both queue drain and file flush outcome.
 key-word:
     - runtime
     - sink
@@ -27,16 +27,16 @@ pub fn RuntimeSink::file_flush(self : RuntimeSink) -> Bool {
 
 #### output
 
-- `Bool` - Whether the underlying file flush succeeded.
+- `Bool` - Whether the file-specific flush path succeeded.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants forward directly to `FileSink::flush()`.
-- `QueuedFile` runtime variants first attempt `sink.flush()` on the queue wrapper, then call `sink.sink.flush()` on the wrapped file sink.
-- For `QueuedFile`, the queue flush result is ignored and the returned `Bool` comes from the inner file flush.
-- For `QueuedFile`, this step may also be the point where queued records finally reach the inner file sink, so write-failure counters can change here even if earlier `log(...)` calls only enqueued records.
+- `QueuedFile` runtime variants first drain the queue, then flush the wrapped file sink.
+- For `QueuedFile`, the returned `Bool` is `true` only when all queued records were consumed, the final file flush succeeded, and no new write, flush, or rotation failures were observed during that flush path.
+- For `QueuedFile`, this step may also be the point where queued records finally reach the inner file sink, so failure counters can change here even if earlier `log(...)` calls only enqueued records.
 - Non-file runtime variants return `false`.
 - After a file-backed runtime sink has already cleared its handle, later `file_flush()` calls return `false`.
 
@@ -60,7 +60,7 @@ When code should branch on the outcome of a direct file flush:
 let ok = sink.file_flush()
 ```
 
-In this example, callers can distinguish file flush success from a non-file sink shape.
+In this example, callers can distinguish file-specific flush success from a non-file sink shape.
 
 ### Error Case
 
@@ -71,10 +71,12 @@ e.g.:
 
 - If callers want generic queue or sink advancement instead of file-specific behavior, `flush()` is the broader API.
 
+- On queued file sinks, a `false` result may mean queue consumption happened but file delivery still observed a new failure.
+
 ### Notes
 
 1. Prefer this helper when direct runtime code specifically cares about file flush behavior.
 
-2. Queued file sinks may perform both queue flush work and file flush work here, including surfacing delayed write failures from previously queued records.
+2. Queued file sinks may perform both queue drain work and file flush work here, including surfacing delayed failures from previously queued records.
 
 3. Library or application facades that share the same wrapped file-backed runtime sink still observe the same flush availability state.

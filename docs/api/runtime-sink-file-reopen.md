@@ -2,7 +2,7 @@
 name: runtime-sink-file-reopen
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Reopen the file sink behind a RuntimeSink with an optional append-mode override.
 key-word:
     - runtime
@@ -35,9 +35,10 @@ pub fn RuntimeSink::file_reopen(self : RuntimeSink, append~ : Bool? = None) -> B
 Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants reopen directly.
-- `QueuedFile` runtime variants forward reopen behavior to the wrapped inner file sink.
+- `QueuedFile` runtime variants forward reopen behavior to the wrapped inner file sink only when no queued records are pending.
 - `append=None` preserves current reopen policy, while `Some(true/false)` overrides append mode.
 - Non-file runtime variants return `false`.
+- If a queued file sink still has pending records, reopen is rejected and returns `false` so queued records are not later written under a different reopen mode than the one they were queued under.
 
 ### How to Use
 
@@ -68,8 +69,10 @@ e.g.:
 
 - If callers only need the current configured policy, `file_reopen_with_current_policy()` may be the clearer API.
 
+- If a queued file sink still has pending records, callers should flush or close it first before attempting reopen.
+
 ### Notes
 
 1. Use this helper for explicit direct recovery flows on `RuntimeSink` values.
 
-2. Pair it with `file_available()` and failure counters when diagnosing reopen behavior.
+2. On queued file sinks, clear pending records first so reopen semantics stay stable for already queued writes.

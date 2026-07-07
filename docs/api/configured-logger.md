@@ -2,7 +2,7 @@
 name: configured-logger
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Public configured runtime logger alias used for config-built sync logging with queue and file controls.
 key-word:
     - logger
@@ -33,7 +33,8 @@ Detailed rules explaining key parameters and behaviors
 - It preserves normal logger methods such as `info(...)`, `warn(...)`, `error(...)`, and the other `Logger` APIs.
 - Because it is `Logger[RuntimeSink]`, it also keeps ordinary logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
-- It also exposes configured runtime helpers such as `flush()`, `drain()`, `pending_count()`, `dropped_count()`, and file-specific controls when the runtime sink supports them.
+- It also exposes configured runtime helpers such as `flush_progress()`, `drain_progress()`, `flush()`, `drain()`, `pending_count()`, `dropped_count()`, and file-specific controls when the runtime sink supports them.
+- `flush_progress()` and `drain_progress()` are the recommended truthful generic progress helpers, while `flush()` and `drain()` remain compatibility wrappers that collapse the structured result back into one `Int`.
 - Because `ConfiguredLogger` is only an alias over `Logger[RuntimeSink]`, ordinary sync composition helpers such as `with_target(...)`, `child(...)`, `with_timestamp(...)`, `with_filter(...)`, and `with_patch(...)` keep the same visible runtime-sink logger line rather than stripping away the configured helper surface.
 - In current direct builder coverage, derived configured loggers still preserve queue counters, drain or flush behavior, runtime sink variant choice, and file helper access instead of collapsing back to a narrower non-runtime shape.
 - Builders such as `build_logger(...)` and `parse_and_build_logger(...)` return this alias as the main sync config-to-runtime result.
