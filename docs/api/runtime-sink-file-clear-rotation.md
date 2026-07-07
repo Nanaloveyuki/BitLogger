@@ -2,8 +2,8 @@
 name: runtime-sink-file-clear-rotation
 group: api
 category: runtime
-update-time: 20260613
-description: Disable runtime rotation on a file-backed RuntimeSink.
+update-time: 20260707
+description: Clear the rotation policy used by a file-backed RuntimeSink.
 key-word:
     - runtime
     - sink
@@ -13,7 +13,7 @@ key-word:
 
 ## Runtime-sink-file-clear-rotation
 
-Disable runtime rotation on a file-backed `RuntimeSink`. This helper is the direct shortcut for clearing rotation policy from a runtime sink value.
+Clear the rotation policy used by a file-backed `RuntimeSink`.
 
 ### Interface
 
@@ -23,7 +23,7 @@ pub fn RuntimeSink::file_clear_rotation(self : RuntimeSink) -> Bool {
 
 #### input
 
-- `self : RuntimeSink` - Runtime sink whose rotation policy should be cleared.
+- `self : RuntimeSink` - Runtime sink whose file rotation policy should be cleared.
 
 #### output
 
@@ -33,42 +33,13 @@ pub fn RuntimeSink::file_clear_rotation(self : RuntimeSink) -> Bool {
 
 Detailed rules explaining key parameters and behaviors
 
-- Plain `File` runtime variants clear rotation on the wrapped `FileSink` and return `true`.
-- `QueuedFile` runtime variants forward the update to the wrapped inner `FileSink` and return `true`.
+- Plain `File` runtime variants clear the wrapped `FileSink` rotation policy and return `true`.
+- `QueuedFile` runtime variants clear the wrapped inner `FileSink` rotation policy only when no queued records are pending.
 - Non-file runtime variants return `false`.
-- This helper is equivalent in intent to setting rotation to `None`, but is clearer at the call site.
-
-### How to Use
-
-Here are some specific examples provided.
-
-#### When Need To Disable Rotation Explicitly
-
-When runtime file rotation should be turned off on a direct sink value:
-```moonbit
-ignore(sink.file_clear_rotation())
-```
-
-In this example, rotation policy is removed directly.
-
-#### When Need A Clear Intent Shortcut
-
-When code should make the disable-rotation intent obvious:
-```moonbit
-let ok = sink.file_clear_rotation()
-```
-
-In this example, the call site reads more clearly than a generic config setter.
-
-### Error Case
-
-e.g.:
-- If the runtime sink is not file-backed, the method returns `false`.
-
-- If callers need to switch to another rotation config rather than disable rotation, `file_set_rotation(...)` is the better API.
+- If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different rotation policy than the one they were queued under.
 
 ### Notes
 
-1. Use this helper when the desired effect is simply `rotation off`.
+1. Use this helper when runtime rotation policy should be removed without rebuilding the sink.
 
-2. It is clearer than passing `None` through a broader setter when intent matters.
+2. On queued file sinks, clear pending records first so policy mutation does not retroactively affect already queued writes.

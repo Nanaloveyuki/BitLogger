@@ -2,7 +2,7 @@
 name: configured-logger-file-set-auto-flush
 group: api
 category: runtime
-update-time: 20260512
+update-time: 20260707
 description: Update the auto-flush policy used by the configured runtime file sink.
 key-word:
     - logger
@@ -35,9 +35,10 @@ pub fn ConfiguredLogger::file_set_auto_flush(self : ConfiguredLogger, enabled : 
 Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks update their runtime auto-flush policy through the wrapped `RuntimeSink`.
-- Queued file sinks forward the update to the wrapped inner file sink.
+- Queued file sinks forward the update to the wrapped inner file sink only when no queued records are pending.
 - Non-file sinks return `false`.
 - This helper changes policy only; it does not itself flush pending data.
+- If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different auto-flush policy than the one they were queued under.
 
 ### How to Use
 
@@ -68,8 +69,10 @@ e.g.:
 
 - If callers need an immediate flush action, `file_flush()` is the operational API.
 
+- If a queued file sink still has pending records, callers should flush or close it first before changing auto-flush policy.
+
 ### Notes
 
 1. Use this helper for runtime durability tuning.
 
-2. Pair it with `file_auto_flush()` to verify the active policy.
+2. On queued file sinks, clear pending records first so policy mutation does not retroactively affect already queued writes.

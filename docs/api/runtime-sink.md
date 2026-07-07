@@ -2,7 +2,7 @@
 name: runtime-sink
 group: api
 category: runtime
-update-time: 20260613
+update-time: 20260707
 description: Public runtime sink enum used by config-built synchronous loggers to unify console, file, and queued sink variants.
 key-word:
     - runtime
@@ -41,8 +41,9 @@ Detailed rules explaining key parameters and behaviors
 - This is a public enum root type, not a type alias.
 - The variants cover plain console sinks, plain file sinks, and queue-wrapped forms of those sink families.
 - `build_logger(...)` and related config-driven construction paths use this type as the concrete sink behind `ConfiguredLogger`.
-- The type exposes direct runtime helpers such as `flush()`, `drain()`, `close()`, `pending_count()`, and `dropped_count()`.
+- The type exposes direct runtime helpers such as `flush_progress()`, `drain_progress()`, `flush()`, `drain()`, `close()`, `pending_count()`, and `dropped_count()`.
 - Queue-specific metrics are meaningful only for queued variants, while plain variants usually report `0` for queue counters.
+- `flush_progress()` and `drain_progress()` are the recommended truthful generic progress helpers, while `flush()` and `drain()` remain compatibility wrappers that collapse the structured result back into one `Int`.
 
 ### How to Use
 

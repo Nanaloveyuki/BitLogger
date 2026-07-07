@@ -2,8 +2,8 @@
 name: configured-logger-file-flush
 group: api
 category: runtime
-update-time: 20260614
-description: Flush the file sink behind a configured runtime logger when one is present.
+update-time: 20260707
+description: Flush the file sink behind a configured runtime logger when one is present, with queued-file success tied to both queue drain and file flush outcome.
 key-word:
     - logger
     - runtime
@@ -27,16 +27,16 @@ pub fn ConfiguredLogger::file_flush(self : ConfiguredLogger) -> Bool {}
 
 #### output
 
-- `Bool` - Whether the underlying file flush succeeded.
+- `Bool` - Whether the file-specific flush path succeeded.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
 - Plain file sinks forward directly to file flush behavior through the wrapped `RuntimeSink`.
-- Queued file sinks first flush queued records, then flush the wrapped inner file sink.
-- For queued file sinks, the returned `Bool` comes from the inner file flush rather than the queue flush step.
-- For queued file sinks, this step may also be the point where queued records finally hit the inner file sink, so write-failure counters can change here even if earlier log calls only queued records.
+- Queued file sinks first drain queued records, then flush the wrapped inner file sink.
+- For queued file sinks, the returned `Bool` is `true` only when all queued records were consumed, the final file flush succeeded, and no new write, flush, or rotation failures were observed during that flush path.
+- For queued file sinks, this step may also be the point where queued records finally hit the inner file sink, so failure counters can change here even if earlier log calls only queued records.
 - Non-file sinks return `false`.
 - This helper is narrower than generic `flush()` because it targets file sink behavior specifically.
 - After a file-backed configured logger has already cleared its file handle, later `file_flush()` calls return `false`.
@@ -61,7 +61,7 @@ When code should branch on the outcome of a file flush:
 let ok = logger.file_flush()
 ```
 
-In this example, callers can distinguish file flush success from a non-file sink shape.
+In this example, callers can distinguish file-specific flush success from a non-file sink shape.
 
 ### Error Case
 
@@ -72,10 +72,12 @@ e.g.:
 
 - If callers want generic queue or sink advancement instead of file-specific behavior, `flush()` is the broader API.
 
+- On queued file sinks, a `false` result may still mean queue consumption happened but file delivery observed a new failure.
+
 ### Notes
 
 1. Prefer this helper when the configured sink is known to be file-backed.
 
-2. Queued file sinks may perform both queue flush and file flush work here, including surfacing delayed write failures from previously queued records.
+2. Queued file sinks may perform both queue drain and file flush work here, including surfacing delayed failures from previously queued records.
 
 3. Library or application facades derived from the same configured runtime logger still observe the same underlying file-flush availability state.
