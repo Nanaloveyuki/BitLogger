@@ -15,6 +15,8 @@ key-word:
 
 Parse JSON text into a typed `LoggerConfig`. This API is useful when you want validation and inspection of config data before turning it into a runtime logger.
 
+At the public `src` layer, this parser is a facade over the concrete config parser owned by `src/config_model`, and the returned config object is the shared `@config_model.LoggerConfig` model.
+
 ### Interface
 
 ```moonbit
@@ -34,6 +36,7 @@ pub fn parse_logger_config_text(input : String) -> LoggerConfig raise ConfigErro
 Detailed rules explaining key parameters and behaviors
 
 - Parsing is separated from runtime construction.
+- Any parsed file rotation field is stored as the shared `@file_model.FileRotation` model inside `SinkConfig.rotation`.
 - This API is ideal for validating, editing, or inspecting config values before calling `build_logger(...)`.
 - Supported keys are intentionally constrained to stable built-in sink shapes and formatter options.
 - Omitted top-level keys fall back to the same defaults used by the typed config constructors: `min_level=Info`, `target=""`, `timestamp=false`, `sink=default_sink_config()`, and `queue=None`.

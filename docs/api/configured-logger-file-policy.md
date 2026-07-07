@@ -15,6 +15,8 @@ key-word:
 
 Read the current runtime file policy from a `ConfiguredLogger`. This helper exposes the active append, auto-flush, and rotation settings as one policy object.
 
+The returned `FileSinkPolicy` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and delegates policy reads to the wrapped `RuntimeSink`, which in turn reaches file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 `file_policy()` is the compatibility form. For truthful file-semantics detection, prefer `file_policy_or_none()`.
 
 ### Interface
@@ -37,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks return their current runtime file policy through the wrapped `RuntimeSink`.
 - Queued file sinks forward the policy from the wrapped inner file sink.
+- The returned policy object itself is the shared `@file_model.FileSinkPolicy` model, not a configured-logger-owned concrete type.
 - Non-file sinks return the same neutral fallback policy value produced by `RuntimeSink::file_policy()`.
 - This fallback keeps older callers source-compatible, but it is not a real file policy.
 - New diagnostic or recovery code should prefer `file_policy_or_none()`.

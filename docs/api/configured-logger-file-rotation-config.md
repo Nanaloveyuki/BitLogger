@@ -15,6 +15,8 @@ key-word:
 
 Read the current rotation configuration used by a `ConfiguredLogger` file sink. This helper exposes the active runtime rotation parameters when rotation is enabled.
 
+The returned `FileRotation` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and delegates rotation reads to the wrapped `RuntimeSink`.
+
 ### Interface
 
 ```moonbit
@@ -35,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks return their current rotation configuration when enabled through the wrapped `RuntimeSink`.
 - Queued file sinks forward the config from the wrapped inner file sink.
+- The returned rotation object itself is the shared `@file_model.FileRotation` model, not a configured-logger-owned concrete type.
 - Non-file sinks return `None`.
 - This helper is useful when callers need active runtime rotation parameters rather than only a boolean flag.
 

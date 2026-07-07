@@ -15,6 +15,8 @@ key-word:
 
 Update the rotation policy used by a `ConfiguredLogger` file sink.
 
+The input `FileRotation` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and delegates rotation mutation to the wrapped `RuntimeSink`.
+
 ### Interface
 
 ```moonbit
@@ -36,6 +38,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks update their runtime rotation policy through the wrapped `RuntimeSink`.
 - Queued file sinks forward the update to the wrapped inner file sink only when no queued records are pending.
+- The accepted rotation object itself is the shared `@file_model.FileRotation` model, not a configured-logger-owned concrete type.
 - Non-file sinks return `false`.
 - This helper changes policy only; it does not itself rotate or flush pending data.
 - If a queued file sink still has pending records, the update is rejected and returns `false` so already queued records are not later written under a different rotation policy than the one they were queued under.

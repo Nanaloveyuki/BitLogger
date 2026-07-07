@@ -2,8 +2,8 @@
 name: file-rotation-type
 group: api
 category: sink
-update-time: 20260613
-description: Public file rotation alias used for native size-based file sink policy data.
+update-time: 20260707
+description: Public file rotation type re-exported from file_model for root file and config APIs.
 key-word:
     - file
     - rotation
@@ -13,12 +13,12 @@ key-word:
 
 ## File-rotation-type
 
-`FileRotation` is the public file sink rotation policy type used for native size-based log file rollover. It is a direct alias to the sink model that stores the standard byte limit, retained backup count, and additive native wide-threshold metadata for the optional `Int64` path.
+`FileRotation` is the public file sink rotation policy type used for size-based log file rollover. On the root `src` facade, it is re-exported from `src/file_model`, which is the real owner of the concrete file rotation model.
 
 ### Interface
 
 ```moonbit
-pub type FileRotation = @utils.FileRotation
+pub using @file_model { type FileRotation }
 ```
 
 #### output
@@ -29,10 +29,12 @@ pub type FileRotation = @utils.FileRotation
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a file sink or rotation trigger by itself.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@file_model.FileRotation`, not in `@utils` and not in `@file_runtime`.
 - The current fields are `max_bytes : Int`, `max_backups : Int`, and additive native wide-threshold metadata used by the optional `file_rotation_i64(...)` path.
 - `file_rotation(...)` constructs this type as the main public helper.
 - The same value type is consumed by `file_sink(...)`, `FileSinkPolicy::new(...)`, `SinkConfig`, file runtime inspection APIs, and logger config serialization helpers.
+- `file_runtime` owns the live `FileSink` behavior that consumes this type, while `runtime` owns higher-level runtime file projections.
 
 ### How to Use
 

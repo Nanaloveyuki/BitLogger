@@ -13,7 +13,7 @@ key-word:
 
 ## File-rotation-config-to-json
 
-Convert `FileRotation` into a `JsonValue`. This helper is the structured export path for file rotation policy when callers need machine-readable config data instead of a runtime policy object.
+Convert `FileRotation` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
@@ -34,6 +34,7 @@ pub fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonV
 Detailed rules explaining key parameters and behaviors
 
 - The output always includes `max_bytes` and `max_backups`.
+- The root surface forwards to `@file_model.file_rotation_config_to_json(...)`, which is the real owner of this serialization logic.
 - Both of those compatibility fields are exported as JSON numbers.
 - If the policy carries a wide threshold from `file_rotation_i64(...)`, the output also includes `max_bytes_i64` as a JSON string for exact roundtrip transport.
 - This helper serializes the rotation config object itself rather than sink availability, failure counters, or file state.

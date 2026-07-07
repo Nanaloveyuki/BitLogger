@@ -13,7 +13,7 @@ key-word:
 
 ## Stringify-runtime-file-state
 
-Serialize `RuntimeFileState` into JSON text. This helper is the most direct export path for combined file-and-queue runtime diagnostics.
+Serialize `RuntimeFileState` into JSON text. On the root `src` facade, this helper forwards to the concrete stringifier owned by `src/file_model`.
 
 ### Interface
 
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human diagnostics.
+- The root surface forwards to `@file_model.stringify_runtime_file_state(...)`, which is the real owner of this formatting logic.
 - This helper builds on top of `runtime_file_state_to_json(...)`.
 - The output is useful when queued file runtime state should be printed directly during support or incident handling.
 - Typical inputs come from `RuntimeSink::file_runtime_state()` or `ConfiguredLogger::file_runtime_state()`.

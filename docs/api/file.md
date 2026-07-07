@@ -13,7 +13,9 @@ key-word:
 
 ## File
 
-Create a `LoggerConfig` preset for the built-in file sink. This helper packages file path, append policy, auto-flush behavior, optional rotation, and text formatter settings into a single config object for runtime logger assembly.
+Create a `LoggerConfig` preset for the built-in file sink. On the root `src` facade, this helper forwards to the preset builder owned by `src/presets_pkg` and returns a `LoggerConfig` owned by `src/config_model`.
+
+The optional `rotation` value accepted here is the shared `FileRotation` model owned by `src/file_model`.
 
 ### Interface
 
@@ -50,6 +52,8 @@ pub fn file(
 Detailed rules explaining key parameters and behaviors
 
 - This preset always returns `sink.kind=SinkKind::File`.
+- The root `file(...)` entry is a facade over `@presets_pkg.file(...)`.
+- The returned config shape is the shared `@config_model.LoggerConfig` / `@config_model.SinkConfig` model, not a preset-owned concrete type.
 - `path` must be non-empty.
 - `rotation=None` leaves file rotation disabled until a rotation policy is provided directly or through `with_file_rotation(...)`.
 - `queue=None` by default, so buffering is opt-in through `with_queue(...)`.

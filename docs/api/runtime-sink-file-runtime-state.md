@@ -15,6 +15,8 @@ key-word:
 
 Read combined file and queue runtime state from a `RuntimeSink`. This helper is the richest file-specific diagnostics API on direct runtime sink values.
 
+The returned `RuntimeFileState` value is owned by `src/file_model`; this method belongs to the runtime facade layer in `src/runtime` and combines file snapshots from `src/file_runtime.FileSink` with outer queue metrics.
+
 ### Interface
 
 ```moonbit
@@ -35,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants return `Some(RuntimeFileState::new(sink.state()))`, so queue metadata stays at its default non-queued shape.
 - `QueuedFile` runtime variants return `Some(RuntimeFileState)` with the wrapped file state plus `queued=true`, `pending_count=sink.pending_count()`, and `dropped_count=sink.dropped_count()`.
+- The returned snapshot object itself is the shared `@file_model.RuntimeFileState` model, not a runtime-owned concrete type.
 - Non-file runtime variants return `None`.
 - This helper is richer than `file_state()` because it can also surface queued backlog and dropped counts.
 

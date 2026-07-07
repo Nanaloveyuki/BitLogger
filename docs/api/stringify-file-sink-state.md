@@ -13,7 +13,7 @@ key-word:
 
 ## Stringify-file-sink-state
 
-Serialize `FileSinkState` into JSON text. This helper is the most direct export path for file sink diagnostics snapshots.
+Serialize `FileSinkState` into JSON text. On the root `src` facade, this helper forwards to the concrete stringifier owned by `src/file_model`.
 
 ### Interface
 
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human diagnostics.
+- The root surface forwards to `@file_model.stringify_file_sink_state(...)`, which is the real owner of this formatting logic.
 - This helper builds on top of `file_sink_state_to_json(...)`.
 - The output is well-suited for support dumps, incident reports, and log snapshots.
 - Typical inputs come from `FileSink::state()`, `RuntimeSink::file_state()`, or `ConfiguredLogger::file_state()`.

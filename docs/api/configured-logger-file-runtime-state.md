@@ -15,6 +15,8 @@ key-word:
 
 Read combined file and queue runtime state from a `ConfiguredLogger`. This helper is the richest file-specific diagnostics API on config-built runtime loggers.
 
+The returned `RuntimeFileState` value is owned by `src/file_model`; this configured-logger surface is a facade over `Logger[@runtime.RuntimeSink]` and delegates runtime file-state reads to the wrapped `RuntimeSink`.
+
 ### Interface
 
 ```moonbit
@@ -35,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - File-backed sinks return `Some(RuntimeFileState)` through the wrapped `RuntimeSink`.
 - Queued file sinks include both file status and queue metrics in the returned state.
+- The returned snapshot object itself is the shared `@file_model.RuntimeFileState` model, not a configured-logger-owned concrete type.
 - Non-file sinks return `None`.
 - This helper is richer than `file_state()` because it can also surface queued backlog and dropped counts.
 

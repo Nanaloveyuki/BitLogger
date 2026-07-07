@@ -2,7 +2,7 @@
 name: configured-logger-file-rotation-failures
 group: api
 category: runtime
-update-time: 20260512
+update-time: 20260707
 description: Read the number of rotation failures recorded by the configured runtime file sink.
 key-word:
     - logger
@@ -13,7 +13,7 @@ key-word:
 
 ## Configured-logger-file-rotation-failures
 
-Read the number of rotation failures recorded by a `ConfiguredLogger` file sink. This helper is useful when runtime rotation behavior should be observed operationally.
+Read the number of runtime file-rotation attempts whose critical file steps failed in a `ConfiguredLogger`.
 
 ### Interface
 
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - File-backed sinks report their recorded rotation-failure count through the wrapped `RuntimeSink`.
 - Queued file sinks forward the metric from the wrapped inner file sink.
 - Non-file sinks return `0`.
+- For file-backed paths, the counter covers incomplete rotations caused by critical remove/rename/reopen failures, not every possible file-health issue.
 - The counter is cumulative until reset.
 
 ### How to Use
@@ -49,7 +50,7 @@ When support output should reveal whether rotation is failing:
 let count = logger.file_rotation_failures()
 ```
 
-In this example, the configured logger exposes a focused metric for rotation-path health.
+In this example, the configured logger exposes whether runtime file rotation stopped completing its critical steps.
 
 #### When Validate Runtime Rotation Tuning
 
@@ -58,7 +59,7 @@ When changed rotation settings should be checked in operation:
 ignore(logger.file_rotation_failures())
 ```
 
-In this example, callers can observe whether runtime rotation changes introduced problems.
+In this example, callers can observe whether runtime rotation changes introduced incomplete rotations.
 
 ### Error Case
 
@@ -67,8 +68,10 @@ e.g.:
 
 - If callers need both rotation config and failure metrics, they should combine this helper with `file_rotation_config()` or `file_state()`.
 
+- This counter does not identify the exact remove/rename/reopen step that failed.
+
 ### Notes
 
-1. Use this helper when diagnosing file rotation reliability.
+1. Use this helper when diagnosing incomplete file rotations.
 
 2. It is especially relevant when runtime rotation policy can change after startup.

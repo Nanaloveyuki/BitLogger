@@ -2,8 +2,8 @@
 name: sink-kind
 group: api
 category: config
-update-time: 20260613
-description: Public sink kind enum alias used by SinkConfig and config parsing.
+update-time: 20260707
+description: Public sink kind enum re-exported from config_model for built-in sink selection.
 key-word:
     - sink
     - config
@@ -13,12 +13,12 @@ key-word:
 
 ## Sink-kind
 
-`SinkKind` is the public enum that selects which built-in sink shape a `SinkConfig` should build. It is a direct alias to the internal config enum, so config builders, JSON parsers, and sink serialization helpers all use the same small set of variants.
+`SinkKind` is the public enum that selects which built-in sink shape a `SinkConfig` should build. On the root `src` facade, it is re-exported from `src/config_model`, so config builders, JSON parsers, and sink serialization helpers all use the same small set of variants.
 
 ### Interface
 
 ```moonbit
-pub type SinkKind = @utils.SinkKind
+pub using @config_model { type SinkKind }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type SinkKind = @utils.SinkKind
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a wrapper or a new runtime sink implementation.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete enum lives in `@config_model.SinkKind`, not in `@utils`.
 - `SinkKind::Console` selects the basic text console sink.
 - `SinkKind::JsonConsole` selects JSON line output.
 - `SinkKind::TextConsole` selects text console output driven by `TextFormatterConfig`.

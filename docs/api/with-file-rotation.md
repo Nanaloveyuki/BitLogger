@@ -13,7 +13,7 @@ key-word:
 
 ## With-file-rotation
 
-Add or replace a size-based file rotation policy on an existing `LoggerConfig`. This helper is intentionally narrow: it only mutates configs whose sink kind is `File` and leaves every non-file config unchanged.
+Add or replace a size-based file rotation policy on an existing `LoggerConfig`. On the root `src` facade, this helper forwards to the preset builder owned by `src/presets_pkg` and rewrites the shared config model owned by `src/config_model`.
 
 ### Interface
 
@@ -40,6 +40,8 @@ pub fn with_file_rotation(
 Detailed rules explaining key parameters and behaviors
 
 - `with_file_rotation(...)` only applies to file presets or other configs whose `sink.kind=SinkKind::File`.
+- The root `with_file_rotation(...)` entry is a facade over `@presets_pkg.with_file_rotation(...)`.
+- The resulting `sink.rotation` field still uses the shared `@file_model.FileRotation` model.
 - If the input config is not file-based, the helper returns the config unchanged.
 - When the input config is file-based, the helper preserves `min_level`, `target`, `timestamp`, file path, append mode, auto-flush, formatter, and queue settings while replacing `sink.rotation`.
 - Rotation policy creation follows `file_rotation(...)` normalization rules for `max_bytes` and `max_backups`.

@@ -2,8 +2,8 @@
 name: runtime-file-state
 group: api
 category: runtime
-update-time: 20260613
-description: Public combined file-and-queue runtime state alias used by runtime file diagnostics.
+update-time: 20260707
+description: Public combined file-and-queue runtime state re-exported from file_model for runtime diagnostics.
 key-word:
     - runtime
     - file
@@ -13,12 +13,12 @@ key-word:
 
 ## Runtime-file-state
 
-`RuntimeFileState` is the public snapshot object that combines file state with queue runtime context for file-backed runtime diagnostics. It is a direct alias to the runtime model used by `RuntimeSink`, `ConfiguredLogger`, and JSON export helpers.
+`RuntimeFileState` is the public snapshot object that combines file state with queue runtime context for file-backed runtime diagnostics. On the root `src` facade, it is re-exported from `src/file_model`, which is the real owner of the concrete runtime file state model.
 
 ### Interface
 
 ```moonbit
-pub type RuntimeFileState = @utils.RuntimeFileState
+pub using @file_model { type RuntimeFileState }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type RuntimeFileState = @utils.RuntimeFileState
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a live runtime controller.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@file_model.RuntimeFileState`, not in `@utils`.
 - The current fields are `file : FileSinkState`, `queued : Bool`, `pending_count : Int`, and `dropped_count : Int`.
 - This type is returned by `RuntimeSink::file_runtime_state()` and by `ConfiguredLogger::file_runtime_state()` when file runtime context is available.
 - It is broader than `FileSinkState` because it also reports whether queue wrapping is involved and how the queue is behaving.

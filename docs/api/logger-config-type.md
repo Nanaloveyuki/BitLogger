@@ -2,8 +2,8 @@
 name: logger-config-type
 group: api
 category: config
-update-time: 20260613
-description: Public logger config alias used for serializable top-level sync logger settings.
+update-time: 20260707
+description: Public logger config type re-exported from config_model for serializable top-level sync settings.
 key-word:
     - logger
     - config
@@ -13,12 +13,12 @@ key-word:
 
 ## Logger-config-type
 
-`LoggerConfig` is the public top-level serializable config type used to describe sync logger behavior. It is a direct alias to the logger config model used by config parsers, sync logger builders, and async build config embedding.
+`LoggerConfig` is the public top-level serializable config type used to describe sync logger behavior. On the root `src` facade, it is re-exported from `src/config_model`, which is the real owner of the concrete logger config model.
 
 ### Interface
 
 ```moonbit
-pub type LoggerConfig = @utils.LoggerConfig
+pub using @config_model { type LoggerConfig }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type LoggerConfig = @utils.LoggerConfig
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a built logger instance.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@config_model.LoggerConfig`, not in `@utils`.
 - The current fields are `min_level : Level`, `target : String`, `timestamp : Bool`, `sink : SinkConfig`, and `queue : QueueConfig?`.
 - `LoggerConfig::new(...)` constructs this type as the main sync config entry point.
 - `parse_logger_config_text(...)`, `logger_config_to_json(...)`, `stringify_logger_config(...)`, and `build_logger(...)` all consume or produce the same public config shape.

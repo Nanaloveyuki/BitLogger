@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink
 
-Create a native file sink for text-oriented or custom-formatted file logging. This API includes lifecycle controls, rotation configuration, reopen behavior, policy inspection, and failure counters.
+Create a native file sink for text-oriented or custom-formatted file logging. On the root `src` facade, this helper forwards to `src/file_runtime`, while the companion file model types it accepts and returns are owned by `src/file_model`.
 
 ### Interface
 
@@ -44,6 +44,8 @@ pub fn file_sink(
 Detailed rules explaining key parameters and behaviors
 
 - This sink is designed for host-file capable backends, with current local verification centered on `native`.
+- The root `file_sink(...)` entry is a facade over `@file_runtime.file_sink(...)`.
+- The accepted `FileRotation` input and the related `FileSinkPolicy` / `FileSinkState` diagnostics types come from `@file_model`.
 - `llvm` should be treated as experimental in the current release context and was not successfully re-verified in this environment.
 - The `src` library is still designed for multi-target compilation, but file sink availability remains backend-sensitive inside that broader portable surface.
 - `append` is persistent policy state and also affects later reopen behavior.

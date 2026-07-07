@@ -2,8 +2,8 @@
 name: queue-config-type
 group: api
 category: config
-update-time: 20260613
-description: Public queue config alias used for serializable synchronous queue wrapping settings.
+update-time: 20260707
+description: Public queue config type re-exported from config_model for serializable sync queue settings.
 key-word:
     - queue
     - config
@@ -13,12 +13,12 @@ key-word:
 
 ## Queue-config-type
 
-`QueueConfig` is the public serializable config type used to describe synchronous queue wrapping. It is a direct alias to the queue config model used by sync logger configuration, parsers, and queue config serializers.
+`QueueConfig` is the public serializable config type used to describe synchronous queue wrapping. On the root `src` facade, it is re-exported from `src/config_model`, which is the real owner of the concrete queue config model.
 
 ### Interface
 
 ```moonbit
-pub type QueueConfig = @utils.QueueConfig
+pub using @config_model { type QueueConfig }
 ```
 
 #### output
@@ -29,7 +29,8 @@ pub type QueueConfig = @utils.QueueConfig
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a runtime queue instance.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@config_model.QueueConfig`, not in `@utils`.
 - The current fields are `max_pending : Int` and `overflow : QueueOverflowPolicy`.
 - `QueueConfig::new(...)` constructs this type as the normal handwritten entry point.
 - `queue_config_to_json(...)` and `stringify_queue_config(...)` serialize the same public config shape for tooling or persistence.

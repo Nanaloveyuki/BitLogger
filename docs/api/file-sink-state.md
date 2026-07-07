@@ -2,8 +2,8 @@
 name: file-sink-state
 group: api
 category: runtime
-update-time: 20260613
-description: Public file state alias used for live file-sink snapshots and runtime diagnostics.
+update-time: 20260707
+description: Public file state type re-exported from file_model for live file-sink snapshots and runtime diagnostics.
 key-word:
     - file
     - state
@@ -13,12 +13,12 @@ key-word:
 
 ## File-sink-state
 
-`FileSinkState` is the public snapshot object used to describe the current state of a file sink. It is a direct alias to the file state model returned by `FileSink::state()` and by higher-level runtime file inspection helpers.
+`FileSinkState` is the public snapshot object used to describe the current state of a file sink. On the root `src` facade, it is re-exported from `src/file_model`, which is the real owner of the concrete file state model.
 
 ### Interface
 
 ```moonbit
-pub type FileSinkState = @utils.FileSinkState
+pub using @file_model { type FileSinkState }
 ```
 
 #### output
@@ -29,8 +29,10 @@ pub type FileSinkState = @utils.FileSinkState
 
 Detailed rules explaining key parameters and behaviors
 
-- This is a type alias, not a live file handle wrapper.
+- This root surface is a re-export, not the concrete owner definition.
+- The concrete type lives in `@file_model.FileSinkState`, not in `@utils`.
 - The current snapshot fields are `path`, `available`, `append`, `auto_flush`, `rotation`, `open_failures`, `write_failures`, `flush_failures`, and `rotation_failures`.
+- `rotation_failures` records how many rotation attempts failed to complete critical remove/rename/reopen steps; it is not a full file-health or backup-integrity audit.
 - `FileSink::state()` returns this object directly for a concrete file sink.
 - `RuntimeSink::file_state()` also returns this type, including fallback snapshots for non-file runtime sinks.
 - `ConfiguredLogger::file_state()` returns the same snapshot type through the config-built runtime wrapper.

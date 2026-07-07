@@ -15,6 +15,8 @@ key-word:
 
 Read the initial default file policy associated with a `RuntimeSink`. This helper exposes the baseline file policy captured when the runtime sink was created.
 
+The returned `FileSinkPolicy` value is owned by `src/file_model`; this method belongs to the runtime facade layer and reads defaults through `src/runtime` over file-backed variants that ultimately use `src/file_runtime.FileSink`.
+
 ### Interface
 
 ```moonbit
@@ -35,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants return the default policy captured at creation time.
 - `QueuedFile` runtime variants forward the default policy from the wrapped inner `FileSink`.
+- The returned policy object itself is the shared `@file_model.FileSinkPolicy` model, not a runtime-owned concrete type.
 - Non-file runtime variants return the neutral fallback policy `FileSinkPolicy::new(append=false, auto_flush=false, rotation=None)`.
 - This helper is useful when callers need to compare runtime drift or restore defaults later.
 

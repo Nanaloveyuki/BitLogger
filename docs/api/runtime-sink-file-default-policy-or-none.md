@@ -15,6 +15,8 @@ key-word:
 
 Read the default runtime file policy from a `RuntimeSink` only when it is actually file-backed.
 
+The returned `FileSinkPolicy` value is owned by `src/file_model`; this method belongs to the runtime facade layer and avoids fabricating that model on non-file variants.
+
 This is the truthful companion to `file_default_policy()`. Prefer it when default-policy inspection should not fabricate a fallback object on non-file sinks.
 
 ### Interface
@@ -37,6 +39,7 @@ Detailed rules explaining key parameters and behaviors
 
 - Plain `File` runtime variants return `Some(default_policy)`.
 - `QueuedFile` runtime variants forward the wrapped inner file sink default policy as `Some(default_policy)`.
+- The wrapped value is the shared `@file_model.FileSinkPolicy` model, not a runtime-owned concrete type.
 - Non-file runtime variants return `None`.
 - This helper is useful when callers need to compare runtime drift or restore defaults without fabricating file semantics.
 
