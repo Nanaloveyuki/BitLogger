@@ -1,7 +1,6 @@
 name = "Nanaloveyuki/BitLogger"
 
-version = "0.6.1"
-
+version = "0.7.0"
 
 import {
   "maria/json_parser@0.1.1",
