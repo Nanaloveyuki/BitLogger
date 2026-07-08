@@ -1,0 +1,111 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/utils"
+
+import {
+  "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/formatting",
+}
+
+// Values
+pub fn all_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
+
+pub fn any_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
+
+pub fn append_fields(Array[@core.Field]) -> (@core.Record) -> @core.Record
+
+pub fn close_file_handle_internal(FileHandle) -> Bool
+
+pub fn color_mode_label(@formatting.ColorMode) -> String
+
+pub fn color_support_label(@formatting.ColorSupport) -> String
+
+pub fn compose_patches(Array[(@core.Record) -> @core.Record]) -> (@core.Record) -> @core.Record
+
+pub fn default_style_tag_registry() -> @formatting.StyleTagRegistry
+
+pub fn field_equals(String, String) -> (@core.Record) -> Bool
+
+pub fn file_size_i64_internal(FileHandle) -> Int64
+
+pub fn flush_file_handle_internal(FileHandle) -> Bool
+
+pub fn format_json(@core.Record) -> String
+
+pub fn format_text(@core.Record, formatter? : @formatting.TextFormatter) -> String
+
+pub fn global_style_tag_registry() -> @formatting.StyleTagRegistry
+
+pub fn has_field(String) -> (@core.Record) -> Bool
+
+pub fn identity_patch() -> (@core.Record) -> @core.Record
+
+pub fn level_at_least(@core.Level) -> (@core.Record) -> Bool
+
+pub fn message_contains(String) -> (@core.Record) -> Bool
+
+pub fn native_files_supported_internal() -> Bool
+
+pub fn not_((@core.Record) -> Bool) -> (@core.Record) -> Bool
+
+pub fn open_file_handle_internal(String, Bool) -> FileHandle?
+
+pub fn prefix_message(String) -> (@core.Record) -> @core.Record
+
+pub fn redact_field(String, placeholder? : String) -> (@core.Record) -> @core.Record
+
+pub fn redact_fields(Array[String], placeholder? : String) -> (@core.Record) -> @core.Record
+
+pub fn remove_file_internal(String) -> Bool
+
+pub fn rename_file_internal(String, String) -> Bool
+
+pub fn reset_global_style_tag_registry() -> Unit
+
+pub fn set_global_style_tag_registry(@formatting.StyleTagRegistry) -> Unit
+
+pub fn set_target(String) -> (@core.Record) -> @core.Record
+
+pub fn string_byte_length_internal(String) -> Int
+
+pub fn style_markup_mode_label(@formatting.StyleMarkupMode) -> String
+
+pub fn style_tag_registry() -> @formatting.StyleTagRegistry
+
+pub fn target_has_prefix(String) -> (@core.Record) -> Bool
+
+pub fn target_is(String) -> (@core.Record) -> Bool
+
+pub fn text_formatter(show_timestamp? : Bool, show_level? : Bool, show_target? : Bool, show_fields? : Bool, separator? : String, field_separator? : String, template? : String, color_mode? : @formatting.ColorMode, color_support? : @formatting.ColorSupport, style_markup? : @formatting.StyleMarkupMode, target_style_markup? : @formatting.StyleMarkupMode, fields_style_markup? : @formatting.StyleMarkupMode, style_tags? : @formatting.StyleTagRegistry?) -> @formatting.TextFormatter
+
+pub fn text_style(fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, italic? : Bool, underline? : Bool) -> @formatting.TextStyle
+
+pub fn write_file_handle_internal(FileHandle, String) -> Bool
+
+// Errors
+
+// Types and methods
+pub struct FileHandle {
+  path : String
+}
+
+// Type aliases
+pub using @formatting {type ColorMode}
+
+pub using @formatting {type ColorSupport}
+
+pub type RecordFormatter = (@core.Record) -> String
+
+pub type RecordPatch = (@core.Record) -> @core.Record
+
+pub type RecordPredicate = (@core.Record) -> Bool
+
+pub using @formatting {type StyleMarkupMode}
+
+pub using @formatting {type StyleTagRegistry}
+
+pub using @formatting {type TextFormatter}
+
+pub using @formatting {type TextStyle}
+
+// Traits
+
