@@ -1,0 +1,105 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src-async/utils"
+
+import {
+  "Nanaloveyuki/BitLogger/src/config_model",
+  "maria/json_parser",
+}
+
+// Values
+pub fn async_logger_build_config_to_json(AsyncLoggerBuildConfig) -> @json_parser.JsonValue
+
+pub fn async_logger_config_to_json(AsyncLoggerConfig) -> @json_parser.JsonValue
+
+pub fn async_logger_state_to_json(AsyncLoggerState) -> @json_parser.JsonValue
+
+pub fn async_runtime_mode_label(AsyncRuntimeMode) -> String
+
+pub fn async_runtime_state_to_json(AsyncRuntimeState) -> @json_parser.JsonValue
+
+pub fn compatibility_async_runtime_mode() -> AsyncRuntimeMode
+
+pub fn native_worker_async_runtime_mode() -> AsyncRuntimeMode
+
+pub fn parse_async_logger_build_config_text(String) -> AsyncLoggerBuildConfig raise
+
+pub fn parse_async_logger_config_text(String) -> AsyncLoggerConfig raise
+
+pub fn stringify_async_logger_build_config(AsyncLoggerBuildConfig, pretty? : Bool) -> String
+
+pub fn stringify_async_logger_config(AsyncLoggerConfig, pretty? : Bool) -> String
+
+pub fn stringify_async_logger_state(AsyncLoggerState, pretty? : Bool) -> String
+
+pub fn stringify_async_runtime_state(AsyncRuntimeState, pretty? : Bool) -> String
+
+// Errors
+
+// Types and methods
+pub(all) enum AsyncFlushPolicy {
+  Never
+  Batch
+  Shutdown
+}
+
+pub(all) enum AsyncLifecyclePhase {
+  Ready
+  Running
+  Failed
+  Closing
+  Closed
+  ClosedFailed
+}
+
+pub struct AsyncLoggerBuildConfig {
+  logger : @config_model.LoggerConfig
+  async_config : AsyncLoggerConfig
+}
+pub fn AsyncLoggerBuildConfig::new(logger? : @config_model.LoggerConfig, async_config? : AsyncLoggerConfig) -> Self
+
+pub struct AsyncLoggerConfig {
+  max_pending : Int
+  overflow : AsyncOverflowPolicy
+  max_batch : Int
+  linger_ms : Int
+  flush : AsyncFlushPolicy
+}
+pub fn AsyncLoggerConfig::new(max_pending? : Int, overflow? : AsyncOverflowPolicy, max_batch? : Int, linger_ms? : Int, flush? : AsyncFlushPolicy) -> Self
+
+pub struct AsyncLoggerState {
+  runtime : AsyncRuntimeState
+  phase : AsyncLifecyclePhase
+  pending_count : Int
+  dropped_count : Int
+  is_closed : Bool
+  is_running : Bool
+  has_failed : Bool
+  backlog_retained : Bool
+  can_rerun : Bool
+  terminal : Bool
+  last_error : String
+  flush_policy : AsyncFlushPolicy
+}
+pub fn AsyncLoggerState::new(AsyncRuntimeState, AsyncLifecyclePhase, Int, Int, String, AsyncFlushPolicy) -> Self
+
+pub(all) enum AsyncOverflowPolicy {
+  Blocking
+  DropOldest
+  DropNewest
+}
+
+pub enum AsyncRuntimeMode {
+  NativeWorker
+  Compatibility
+}
+
+pub struct AsyncRuntimeState {
+  mode : AsyncRuntimeMode
+  background_worker : Bool
+}
+pub fn AsyncRuntimeState::new(AsyncRuntimeMode, Bool) -> Self
+
+// Type aliases
+
+// Traits
+

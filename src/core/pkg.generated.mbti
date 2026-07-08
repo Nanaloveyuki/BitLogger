@@ -1,0 +1,45 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Nanaloveyuki/BitLogger/src/core"
+
+// Values
+pub fn field(String, String) -> Field
+
+pub fn fields(Array[(String, String)]) -> Array[Field]
+
+// Errors
+
+// Types and methods
+pub struct Field {
+  key : String
+  value : String
+}
+pub fn Field::with_value(Self, String) -> Self
+
+pub(all) enum Level {
+  Trace
+  Debug
+  Info
+  Warn
+  Error
+}
+pub fn Level::enabled(Self, Self) -> Bool
+pub fn Level::label(Self) -> String
+pub fn Level::priority(Self) -> Int
+
+pub struct Record {
+  level : Level
+  timestamp_ms : UInt64
+  target : String
+  message : String
+  fields : Array[Field]
+}
+pub fn Record::copy(Self) -> Self
+pub fn Record::new(Level, String, timestamp_ms? : UInt64, target? : String, fields? : Array[Field]) -> Self
+pub fn Record::with_fields(Self, Array[Field]) -> Self
+pub fn Record::with_message(Self, String) -> Self
+pub fn Record::with_target(Self, String) -> Self
+
+// Type aliases
+
+// Traits
+
