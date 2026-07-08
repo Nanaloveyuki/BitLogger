@@ -190,7 +190,7 @@ async test "run rejects duplicate worker startup for same logger" {
       @async.pause()
     }
 
-    let second_error = (async fn() -> String raise {
+    let second_error = (async fn() -> String {
       logger.run()
       "no error"
     })() catch {

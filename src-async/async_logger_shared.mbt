@@ -180,9 +180,9 @@ pub fn[S] async_logger(
 ///|
 fn async_logger_phase_is_closed(phase : AsyncLifecyclePhase) -> Bool {
   match phase {
-    AsyncLifecyclePhase::Closing |
-    AsyncLifecyclePhase::Closed |
-    AsyncLifecyclePhase::ClosedFailed => true
+    AsyncLifecyclePhase::Closing
+    | AsyncLifecyclePhase::Closed
+    | AsyncLifecyclePhase::ClosedFailed => true
     _ => false
   }
 }

@@ -2,9 +2,10 @@
 package "Nanaloveyuki/BitLogger/src-async"
 
 import {
-  "Nanaloveyuki/BitLogger/src",
   "Nanaloveyuki/BitLogger/src-async/utils",
   "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/runtime",
+  "Nanaloveyuki/BitLogger/src/sink_graph",
   "maria/json_parser",
   "moonbitlang/async/aqueue",
   "moonbitlang/core/ref",
@@ -29,21 +30,21 @@ pub fn async_runtime_state_to_json(@utils.AsyncRuntimeState) -> @json_parser.Jso
 
 pub fn async_runtime_supports_background_worker() -> Bool
 
-pub fn build_application_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.RuntimeSink]
+pub fn build_application_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@runtime.RuntimeSink]
 
-pub fn build_application_text_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.FormattedConsoleSink]
+pub fn build_application_text_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@sink_graph.FormattedConsoleSink]
 
-pub fn build_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.RuntimeSink]
+pub fn build_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@runtime.RuntimeSink]
 
-pub fn build_async_text_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@src.FormattedConsoleSink]
+pub fn build_async_text_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@sink_graph.FormattedConsoleSink]
 
-pub fn build_library_async_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@src.RuntimeSink]
+pub fn build_library_async_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@runtime.RuntimeSink]
 
-pub fn build_library_async_text_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@src.FormattedConsoleSink]
+pub fn build_library_async_text_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@sink_graph.FormattedConsoleSink]
 
-pub fn parse_and_build_application_async_logger(String) -> AsyncLogger[@src.RuntimeSink] raise
+pub fn parse_and_build_application_async_logger(String) -> AsyncLogger[@runtime.RuntimeSink] raise
 
-pub fn parse_and_build_library_async_logger(String) -> LibraryAsyncLogger[@src.RuntimeSink] raise
+pub fn parse_and_build_library_async_logger(String) -> LibraryAsyncLogger[@runtime.RuntimeSink] raise
 
 pub fn parse_async_logger_build_config_text(String) -> @utils.AsyncLoggerBuildConfig raise
 
@@ -101,7 +102,7 @@ pub fn[S] AsyncLogger::last_error(Self[S]) -> String
 pub async fn[S] AsyncLogger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
 pub fn[S] AsyncLogger::pending_count(Self[S]) -> Int
 pub fn[S] AsyncLogger::phase(Self[S]) -> @utils.AsyncLifecyclePhase
-pub async fn[S : @src.Sink] AsyncLogger::run(Self[S]) -> Unit
+pub async fn[S : @sink_graph.Sink] AsyncLogger::run(Self[S]) -> Unit
 pub async fn[S] AsyncLogger::shutdown(Self[S], clear? : Bool) -> Unit
 pub fn[S] AsyncLogger::state(Self[S]) -> @utils.AsyncLoggerState
 pub fn[S] AsyncLogger::to_library_async_logger(Self[S]) -> LibraryAsyncLogger[S]
@@ -125,7 +126,7 @@ pub async fn[S] LibraryAsyncLogger::info(Self[S], String, fields? : Array[@core.
 pub fn[S] LibraryAsyncLogger::is_enabled(Self[S], @core.Level) -> Bool
 pub async fn[S] LibraryAsyncLogger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
 pub fn[S] LibraryAsyncLogger::new(S, config? : @utils.AsyncLoggerConfig, min_level? : @core.Level, target? : String, flush? : (S) -> Unit raise) -> Self[S]
-pub async fn[S : @src.Sink] LibraryAsyncLogger::run(Self[S]) -> Unit
+pub async fn[S : @sink_graph.Sink] LibraryAsyncLogger::run(Self[S]) -> Unit
 pub async fn[S] LibraryAsyncLogger::shutdown(Self[S], clear? : Bool) -> Unit
 pub fn[S] LibraryAsyncLogger::to_async_logger(Self[S]) -> AsyncLogger[S]
 pub async fn[S] LibraryAsyncLogger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
@@ -133,9 +134,9 @@ pub fn[S] LibraryAsyncLogger::with_context_fields(Self[S], Array[@core.Field]) -
 pub fn[S] LibraryAsyncLogger::with_target(Self[S], String) -> Self[S]
 
 // Type aliases
-pub type ApplicationAsyncLogger = AsyncLogger[@src.RuntimeSink]
+pub type ApplicationAsyncLogger = AsyncLogger[@runtime.RuntimeSink]
 
-pub type ApplicationTextAsyncLogger = AsyncLogger[@src.FormattedConsoleSink]
+pub type ApplicationTextAsyncLogger = AsyncLogger[@sink_graph.FormattedConsoleSink]
 
 pub using @utils {type AsyncFlushPolicy}
 

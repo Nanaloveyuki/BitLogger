@@ -128,9 +128,7 @@ pub fn Logger::file_rotation_failures(self : Logger[RuntimeSink]) -> Int {
 }
 
 ///|
-pub fn Logger::file_reset_failure_counters(
-  self : Logger[RuntimeSink],
-) -> Bool {
+pub fn Logger::file_reset_failure_counters(self : Logger[RuntimeSink]) -> Bool {
   @runtime.RuntimeSink::file_reset_failure_counters(self.sink)
 }
 
@@ -166,16 +164,12 @@ pub fn Logger::file_default_policy(
 }
 
 ///|
-pub fn Logger::file_policy_matches_default(
-  self : Logger[RuntimeSink],
-) -> Bool {
+pub fn Logger::file_policy_matches_default(self : Logger[RuntimeSink]) -> Bool {
   @runtime.RuntimeSink::file_policy_matches_default(self.sink)
 }
 
 ///|
-pub fn Logger::file_state_or_none(
-  self : Logger[RuntimeSink],
-) -> FileSinkState? {
+pub fn Logger::file_state_or_none(self : Logger[RuntimeSink]) -> FileSinkState? {
   @runtime.RuntimeSink::file_state_or_none(self.sink)
 }
 
