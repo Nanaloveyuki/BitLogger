@@ -1902,14 +1902,8 @@ async test "library async shutdown preserves wrapped failure cleanup semantics" 
   inspect(full.last_error().contains("TestFlushError"), content="true")
   inspect(full.is_running(), content="false")
   inspect(writes.val, content="1")
-  inspect(
-    full.pending_count(),
-    content=if async_runtime_supports_background_worker() { "0" } else { "1" },
-  )
-  inspect(
-    full.dropped_count(),
-    content=if async_runtime_supports_background_worker() { "1" } else { "0" },
-  )
+  inspect(full.pending_count(), content="0")
+  inspect(full.dropped_count(), content="1")
 }
 
 ///|
