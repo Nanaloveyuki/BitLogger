@@ -7,74 +7,190 @@ on:
   pull_request:
 
 jobs:
-  moonbit:
+  quality-matrix:
+    name: Quality (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MoonBit (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Setup MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+          irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+          "$HOME/.moon/bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Setup MSYS2 toolchain (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-openssl
+
+      - name: Show tool versions
+        shell: bash
+        run: |
+          moon version --all
+
+      - name: Update Moon registry
+        shell: bash
+        run: |
+          moon update
+
+      - name: Check formatting and exported interfaces
+        shell: bash
+        run: |
+          moon fmt --check
+          moon info
+          git diff --exit-code
+
+      - name: Root checks and tests
+        shell: bash
+        run: |
+          moon check --deny-warn
+          moon test --deny-warn
+          moon check --target native --deny-warn
+          moon check --target wasm-gc --deny-warn
+          moon check --target js --deny-warn
+
+      - name: Run sync example
+        shell: bash
+        run: |
+          moon run examples/basic
+
+      - name: Check async example native
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          moon check examples/async_basic --target native --deny-warn
+
+  async-cross-targets:
+    name: Async cross-targets (Ubuntu)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install MoonBit
+      - name: Setup MoonBit
+        shell: bash
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
       - name: Show tool versions
+        shell: bash
         run: |
-          moon version
+          moon version --all
 
       - name: Update Moon registry
+        shell: bash
         run: |
           moon update
 
-      - name: Check bitlogger
+      - name: Check async package on wasm-gc and js
+        shell: bash
         run: |
-          moon check
+          moon check src-async --target wasm-gc --deny-warn
+          moon check src-async --target js --deny-warn
 
-      - name: Test bitlogger
+      - name: Test async package on wasm-gc and js
+        shell: bash
         run: |
-          moon test
+          moon test src-async --target wasm-gc --deny-warn
+          moon test src-async --target js --deny-warn
 
-      - name: Check bitlogger native
-        run: |
-          moon check --target native
+  async-native:
+    name: Async native (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
-      - name: Check bitlogger wasm-gc
-        run: |
-          moon check --target wasm-gc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Check bitlogger js
+      - name: Setup MoonBit
+        shell: bash
         run: |
-          moon check --target js
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
-      - name: Check bitlogger_async native
+      - name: Show tool versions
+        shell: bash
         run: |
-          moon check src-async --target native
+          moon version --all
 
-      - name: Check bitlogger_async wasm-gc
+      - name: Update Moon registry
+        shell: bash
         run: |
-          moon check src-async --target wasm-gc
+          moon update
 
-      - name: Check bitlogger_async js
+      - name: Check async native path
+        shell: bash
         run: |
-          moon check src-async --target js
+          moon check src-async --target native --deny-warn
 
-      - name: Test bitlogger_async native
+      - name: Test async native path
+        shell: bash
         run: |
-          moon test src-async --target native
+          moon test src-async --target native --deny-warn
 
-      - name: Test bitlogger_async wasm-gc
-        run: |
-          moon test src-async --target wasm-gc
+  coverage:
+    name: Coverage (Ubuntu)
+    runs-on: ubuntu-latest
 
-      - name: Test bitlogger_async js
-        run: |
-          moon test src-async --target js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Run basic example
+      - name: Setup MoonBit
+        shell: bash
         run: |
-          moon run examples/basic
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
-      - name: Check async example native
+      - name: Show tool versions
+        shell: bash
         run: |
-          moon check examples/async_basic --target native
+          moon version --all
+
+      - name: Update Moon registry
+        shell: bash
+        run: |
+          moon update
+
+      - name: Root coverage (default target)
+        shell: bash
+        run: |
+          moon coverage clean
+          moon test --deny-warn --enable-coverage
+          moon coverage report -f summary
+          moon coverage analyze
+
+      - name: Root coverage (native target)
+        shell: bash
+        run: |
+          moon coverage clean
+          moon test --deny-warn --target native --enable-coverage
+          moon coverage report -f summary
+          moon coverage analyze
