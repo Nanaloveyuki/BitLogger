@@ -75,9 +75,9 @@ fn async_lifecycle_phase_label(phase : AsyncLifecyclePhase) -> String {
 ///|
 fn async_lifecycle_phase_is_closed(phase : AsyncLifecyclePhase) -> Bool {
   match phase {
-    AsyncLifecyclePhase::Closing |
-    AsyncLifecyclePhase::Closed |
-    AsyncLifecyclePhase::ClosedFailed => true
+    AsyncLifecyclePhase::Closing
+    | AsyncLifecyclePhase::Closed
+    | AsyncLifecyclePhase::ClosedFailed => true
     _ => false
   }
 }
@@ -203,9 +203,7 @@ fn async_logger_state_to_json_value(
     "is_closed": @json_parser.JsonValue::Bool(state.is_closed),
     "is_running": @json_parser.JsonValue::Bool(state.is_running),
     "has_failed": @json_parser.JsonValue::Bool(state.has_failed),
-    "backlog_retained": @json_parser.JsonValue::Bool(
-      state.backlog_retained,
-    ),
+    "backlog_retained": @json_parser.JsonValue::Bool(state.backlog_retained),
     "can_rerun": @json_parser.JsonValue::Bool(state.can_rerun),
     "terminal": @json_parser.JsonValue::Bool(state.terminal),
     "last_error": @json_parser.JsonValue::String(state.last_error),

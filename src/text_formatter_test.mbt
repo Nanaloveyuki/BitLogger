@@ -1,9 +1,12 @@
 ///|
 test "text formatter can customize visible parts" {
-  let rec = Record::new(Level::Info, "hello", timestamp_ms=123UL, target="svc.api", fields=[
-    field("user", "alice"),
-    field("request_id", "42"),
-  ])
+  let rec = Record::new(
+    Level::Info,
+    "hello",
+    timestamp_ms=123UL,
+    target="svc.api",
+    fields=[field("user", "alice"), field("request_id", "42")],
+  )
   let compact = text_formatter(
     show_timestamp=false,
     show_target=false,
@@ -458,9 +461,13 @@ test "formatted callback sink receives rendered text" {
 
 ///|
 test "json formatter keeps structured shape" {
-  let rec = Record::new(Level::Error, "failed", timestamp_ms=55UL, target="svc", fields=[
-    field("code", "500"),
-  ])
+  let rec = Record::new(
+    Level::Error,
+    "failed",
+    timestamp_ms=55UL,
+    target="svc",
+    fields=[field("code", "500")],
+  )
   inspect(
     format_json(rec),
     content="{\"level\":\"ERROR\",\"message\":\"failed\",\"fields\":{\"code\":\"500\"},\"timestamp_ms\":\"55\",\"target\":\"svc\"}",

@@ -46,10 +46,7 @@ pub fn Logger::drain_progress(
 }
 
 ///|
-pub fn Logger::drain(
-  self : Logger[RuntimeSink],
-  max_items? : Int = -1,
-) -> Int {
+pub fn Logger::drain(self : Logger[RuntimeSink], max_items? : Int = -1) -> Int {
   @runtime.RuntimeSink::drain(self.sink, max_items~)
 }
 
