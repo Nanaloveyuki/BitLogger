@@ -26,8 +26,6 @@ if @log.native_files_supported() {
 
 异步库在声明目标上提供兼容表面，但可执行 `async fn main` 的入口支持更严格。请把 native-only 可执行示例与可移植库代码分开。
 
-## 英文 API
+## API
 
-- [`native_files_supported()`](../../api/native-files-supported.md)
-- [目标验证](../../api/target-verification.md)
-- [异步日志生命周期](../examples/async.md)
+阅读[文件输出 API](../api/file-output.md)和[异步生命周期](../examples/async.md)。完整目标验证记录仍在[英文 API](../../api/target-verification.md)。

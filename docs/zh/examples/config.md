@@ -32,4 +32,4 @@ moon run examples/config_build
 
 - 需要明确选择满队列时的行为，阅读[队列](../extend/queue.md)。
 - 需要后台 worker 生命周期时，阅读[异步日志生命周期](./async.md)。
-- 英文 API：[`parse_logger_config_text(...)`](../../api/parse-logger-config-text.md)、[`build_logger(...)`](../../api/build-logger.md)、[`with_queue(...)`](../../api/with-queue.md)。
+- 阅读[配置与队列 API](../api/configuration.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。

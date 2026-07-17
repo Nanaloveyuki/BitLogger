@@ -34,9 +34,6 @@ let logger = @log.Logger::new(
 
 只有当路由规则属于应用设计时才使用直接 Sink 组合；单一输出时，preset 更容易审查和维护。
 
-## 英文 API
+## API
 
-- [`Logger::new(...)`](../../api/logger-new.md)
-- [`fanout_sink(...)`](../../api/fanout-sink.md)
-- [`split_by_level(...)`](../../api/split-by-level.md)
-- [`callback_sink(...)`](../../api/callback-sink.md)
+阅读[Sink 组合 API](../api/composition.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。

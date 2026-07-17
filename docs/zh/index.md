@@ -29,4 +29,4 @@ features:
 
 1. 阅读[示例](./examples/index.md)，完成从安装到运行 Logger 的全流程。
 2. 当基础控制台流程需要更多能力时，阅读[扩展](./extend/index.md)。
-3. 需要精确签名和边界时，查询[英文 API 参考](../api/index.md)；API 的中文翻译会按使用频率逐步补充。
+3. 需要高频签名和边界时，查询[中文高频 API](./api/index.md)；较少使用的符号仍进入[英文完整 API 参考](../api/index.md)。

@@ -44,4 +44,4 @@ moon run examples/async_basic --target native
 ## 下一步
 
 - 查看[队列](../extend/queue.md)中的溢出与 flush 选择。
-- 英文 API：[`parse_async_logger_build_config_text(...)`](../../api/parse-async-logger-build-config-text.md)、[`build_async_logger(...)`](../../api/build-async-logger.md)、[`run()`](../../api/async-logger-run.md)、[`shutdown()`](../../api/async-logger-shutdown.md)。
+- 阅读[异步生命周期 API](../api/async.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。

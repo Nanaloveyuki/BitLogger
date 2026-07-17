@@ -36,9 +36,6 @@ let formatter = @log.text_formatter(
 
 样式标签是终端呈现元数据，不应作为唯一的业务或运维语义；语义仍应保存在 level、target 与 fields 中。
 
-## 英文 API
+## API
 
-- [`text_console(...)`](../../api/text-console.md)
-- [`TextFormatterConfig`](../../api/text-formatter-config.md)
-- [`text_formatter(...)`](../../api/text-formatter.md)
-- [`ColorMode`](../../api/color-mode.md)
+阅读[文本格式 API](../api/formatting.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。

@@ -52,4 +52,4 @@ let logger = @log.build_logger(
 
 - 需要自定义终端输出时，阅读[文本格式](../extend/formatting.md)。
 - 需要由 JSON 配置构建时，阅读[配置构建](./config.md)。
-- 英文 API：[`console(...)`](../../api/console.md)、[`json_console(...)`](../../api/json-console.md)、[`field(...)`](../../api/field.md)、[`build_logger(...)`](../../api/build-logger.md)。
+- 阅读[基础记录 API](../api/basics.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。

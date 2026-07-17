@@ -144,6 +144,18 @@ function buildChineseExtendSidebar(): DefaultTheme.SidebarItem[] {
   ]
 }
 
+function buildChineseApiSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    { text: '概览', link: '/zh/api/' },
+    { text: '基础记录', link: '/zh/api/basics' },
+    { text: '配置与队列', link: '/zh/api/configuration' },
+    { text: '文件输出', link: '/zh/api/file-output' },
+    { text: '文本格式', link: '/zh/api/formatting' },
+    { text: '异步生命周期', link: '/zh/api/async' },
+    { text: 'Sink 组合', link: '/zh/api/composition' },
+  ]
+}
+
 const englishThemeConfig: DefaultTheme.Config = {
   siteTitle: 'BitLogger',
   nav: [
@@ -180,7 +192,7 @@ const chineseThemeConfig: DefaultTheme.Config = {
     { text: '首页', link: '/zh/' },
     { text: '示例', link: '/zh/examples/' },
     { text: '扩展', link: '/zh/extend/' },
-    { text: 'API（英文）', link: '/api/' },
+    { text: 'API', link: '/zh/api/' },
     { text: '更新记录（英文）', link: '/changes/' },
     { text: 'Mooncake', link: 'https://mooncakes.io/docs/Nanaloveyuki/BitLogger' },
   ],
@@ -195,6 +207,7 @@ const chineseThemeConfig: DefaultTheme.Config = {
   sidebar: {
     '/zh/examples/': buildChineseExamplesSidebar(),
     '/zh/extend/': buildChineseExtendSidebar(),
+    '/zh/api/': buildChineseApiSidebar(),
   },
   footer: {
     message: '由仓库中的 VitePress 文档构建。',

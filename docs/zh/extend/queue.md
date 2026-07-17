@@ -22,9 +22,6 @@ ignore(logger.flush())
 
 同步队列只是普通运行时 Logger 的一层配置。当 native 异步应用需要 worker 生命周期和批处理时，转到[异步日志生命周期](../examples/async.md)。
 
-## 英文 API
+## API
 
-- [`with_queue(...)`](../../api/with-queue.md)
-- [`QueueConfig`](../../api/queue-config.md)
-- [`QueueOverflowPolicy`](../../api/queue-overflow-policy.md)
-- [`flush()`](../../api/configured-logger-flush.md)
+阅读[配置与队列 API](../api/configuration.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。

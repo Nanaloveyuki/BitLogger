@@ -48,4 +48,4 @@ moon run examples/file_rotation --target native
 
 - 写入突发较多时，加入[队列](../extend/queue.md)。
 - 与 web 目标共享代码前，阅读[目标平台边界](../extend/targets.md)。
-- 英文 API：[`file(...)`](../../api/file.md)、[`with_file_rotation(...)`](../../api/with-file-rotation.md)、[`file_close(...)`](../../api/configured-logger-file-close.md)。
+- 阅读[文件输出 API](../api/file-output.md)；完整契约仍可查询[英文 API 索引](../../api/index.md)。
