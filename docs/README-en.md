@@ -9,24 +9,38 @@ BitLogger is a structured logging library for MoonBit projects.
 
 BitLogger gives you consistent levels, targets, structured fields, configurable text output, native file logging, and an async logging layer.
 
-## Quick Start
+## Start With A Working Flow
 
-```moonbit
-let logger = build_logger(
-  text_console(
-    min_level=Level::Info,
-    target="demo",
-    text_formatter=TextFormatterConfig::new(show_timestamp=false, separator=" | "),
-  ),
-)
+The documentation is organized around complete usage flows. Start with an executable logger, then move into file output, configuration, async lifecycle, and extensions. The API reference remains the precise symbol-level reference.
 
-logger.info("starting", fields=[field("port", "8080")])
-ignore(logger.flush())
+### 1. Install
+
+```bash
+moon new log-demo
+cd log-demo
+moon add Nanaloveyuki/BitLogger@0.7.0
 ```
 
-Start with `console(...)`, `json_console(...)`, `text_console(...)`, or `file(...)`, then add `with_queue(...)` or `with_file_rotation(...)` only when needed.
+### 2. Import And Log
 
-Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
+Add the package import to your application's `moon.pkg`:
+
+```moonbit
+import {
+  "Nanaloveyuki/BitLogger/src" @log,
+}
+```
+
+```moonbit
+fn main {
+  let logger = @log.build_logger(
+    @log.console(min_level=@log.Level::Info, target="app"),
+  )
+  logger.info("server started", fields=[@log.field("port", "8080")])
+}
+```
+
+Continue with the [Examples guide](./examples/index.md): console fields, file rotation, JSON configuration, and async lifecycle are each documented as a complete path.
 
 ## Support Status
 
@@ -45,18 +59,10 @@ Use `Logger::new(...)` when you want to assemble custom sink graphs directly.
 - Composition helpers: queue, filter, patch, fanout, split, callback
 - Separate async package under `src-async`
 
-## Examples
-
-- `examples/console_basic/`: minimal console and JSON console example
-- `examples/text_formatter/`: text formatting and template example
-- `examples/style_tags/`: style tags and colored output example
-- `examples/config_build/`: config-based build example
-- `examples/presets/`: common preset combinations
-- `examples/file_rotation/`: native file logging and rotation example
-- `examples/async_basic/`: async logging example
-
 ## Documentation
 
+- [Examples](./examples/index.md): complete application-facing usage flows
+- [Extend](./extend/index.md): queueing, sink composition, formatting, and target boundaries
 - [API index](./api/index.md): canonical API reference, organized as one public API per file
 - [src package README](https://github.com/Nanaloveyuki/BitLogger/blob/main/src/README.mbt.md): package-level usage notes and target reminders
 - [`docs/changes/`](./changes/): versioned release notes and publish-facing change summaries

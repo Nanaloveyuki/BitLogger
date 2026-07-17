@@ -104,6 +104,26 @@ function buildChangesSidebar(): DefaultTheme.SidebarItem[] {
   ]
 }
 
+function buildExamplesSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    { text: 'Overview', link: '/examples/' },
+    { text: 'Console And Fields', link: '/examples/console' },
+    { text: 'File Rotation', link: '/examples/file-rotation' },
+    { text: 'Configuration', link: '/examples/config' },
+    { text: 'Async Lifecycle', link: '/examples/async' },
+  ]
+}
+
+function buildExtendSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    { text: 'Overview', link: '/extend/' },
+    { text: 'Queueing', link: '/extend/queue' },
+    { text: 'Sink Composition', link: '/extend/composition' },
+    { text: 'Text Formatting', link: '/extend/formatting' },
+    { text: 'Target Boundaries', link: '/extend/targets' },
+  ]
+}
+
 export default defineConfig({
   title: 'BitLogger',
   description: 'Structured logging library docs for MoonBit.',
@@ -118,6 +138,8 @@ export default defineConfig({
     siteTitle: 'BitLogger',
     nav: [
       { text: 'Home', link: '/' },
+      { text: 'Examples', link: '/examples/' },
+      { text: 'Extend', link: '/extend/' },
       { text: 'API', link: '/api/' },
       { text: 'Changes', link: '/changes/' },
       { text: 'Mooncake', link: 'https://mooncakes.io/docs/Nanaloveyuki/BitLogger' },
@@ -131,6 +153,8 @@ export default defineConfig({
       text: 'Edit this page on GitHub',
     },
     sidebar: {
+      '/examples/': buildExamplesSidebar(),
+      '/extend/': buildExtendSidebar(),
       '/api/': buildApiSidebar(),
       '/changes/': buildChangesSidebar(),
     },

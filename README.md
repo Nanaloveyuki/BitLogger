@@ -6,28 +6,51 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库，适合命令行�
 - [English README](./docs/README-en.md)
 - [Wiki](https://bitlogger.naloveyuki.top)
 
-## 介绍
+## 从第一个日志到扩展能力
 
-BitLogger 提供统一的日志级别、目标名、结构化字段和可定制格式，既可以直接输出到控制台，也可以在 native 环境写入文件，并提供异步日志版本。
+BitLogger 的文档按使用路径组织：先完成一个可运行的日志输出，再按需进入文件、配置、异步和组合能力。API 文档保留为精确参考，不需要从 API 文件名开始阅读。
 
-## 快速开始
+### 1. 安装
 
-```moonbit
-let logger = build_logger(
-  text_console(
-    min_level=Level::Info,
-    target="demo",
-    text_formatter=TextFormatterConfig::new(show_timestamp=false, separator=" | "),
-  ),
-)
+从一个空项目开始：
 
-logger.info("starting", fields=[field("port", "8080")])
-ignore(logger.flush())
+```bash
+moon new log-demo
+cd log-demo
+moon add Nanaloveyuki/BitLogger@0.7.0
 ```
 
-推荐从 `console(...)`、`json_console(...)`、`text_console(...)`、`file(...)` 这几个入口开始，再按需配合 `with_queue(...)` 或 `with_file_rotation(...)`。
+### 2. 写入第一条结构化日志
 
-如果你需要自己组合 sink，比如 `fanout`、`split`、`callback`，再使用 `Logger::new(...)`。
+在应用 package 的 `moon.pkg` 中导入库：
+
+```moonbit
+import {
+  "Nanaloveyuki/BitLogger/src" @log,
+}
+```
+
+然后在 `main.mbt` 中创建控制台 logger：
+
+```moonbit
+fn main {
+  let logger = @log.build_logger(
+    @log.console(min_level=@log.Level::Info, target="app"),
+  )
+
+  logger.info("server started", fields=[
+    @log.field("port", "8080"),
+    @log.field("environment", "development"),
+  ])
+}
+```
+
+运行 `moon run` 后，记录会携带 level、target、message 和 fields。下一步按实际需求选择：
+
+- [控制台与结构化字段](./docs/examples/console.md)
+- [文件输出与轮转](./docs/examples/file-rotation.md)
+- [JSON 配置构建](./docs/examples/config.md)
+- [异步日志生命周期](./docs/examples/async.md)
 
 ## 支持情况
 
@@ -47,19 +70,11 @@ ignore(logger.flush())
 - 组合能力：queue、filter、patch、fanout、split、callback
 - 异步日志：独立 `src-async` package
 
-## 示例
-
-- `examples/console_basic/`：最小 console / json console 示例
-- `examples/text_formatter/`：文本格式与模板示例
-- `examples/style_tags/`：style tag 与彩色输出示例
-- `examples/config_build/`：配置构建示例
-- `examples/presets/`：常用预设组合示例
-- `examples/file_rotation/`：文件输出与轮转示例，仅适用于 native
-- `examples/async_basic/`：异步日志示例
-
 ## 文档
 
-- [API 索引](./docs/api/index.md)
+- [Examples：完整使用流程](./docs/examples/index.md)
+- [Extend：队列、组合、格式化和跨端边界](./docs/extend/index.md)
+- [API 索引：按公开符号查询](./docs/api/index.md)
 - [src package README](./src/README.mbt.md)
 
-常用入口：`text_console(...)`、`file(...)`、`with_queue(...)`、`build_logger(...)`、`build_async_logger(...)`
+仓库内的 `examples/` 目录与 Examples 文档一一对应；文档解释选择、前提、运行命令和后续扩展，源码保持为可执行参考。
