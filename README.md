@@ -17,7 +17,7 @@ BitLogger 的文档按使用路径组织：先完成一个可运行的日志输�
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.7.1
+moon add Nanaloveyuki/BitLogger@0.7.2
 ```
 
 ### 2. 写入第一条结构化日志
