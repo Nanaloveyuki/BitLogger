@@ -42,7 +42,7 @@ pub fn TextFormatterConfig::new(
   style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Full,
   target_style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
   fields_style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
-  style_tags? : Map[String, @formatting.TextStyle] = {},
+  style_tags? : Map[String, @formatting.TextStyle] = Map([]),
 ) -> TextFormatterConfig {
   {
     show_timestamp,
@@ -380,7 +380,7 @@ fn parse_text_formatter_config(
       get_string(obj, "fields_style_markup", default="disabled"),
     ),
     style_tags=match obj.get("style_tags") {
-      None => {}
+      None => Map([])
       Some(inner) => parse_style_tags_config(inner)
     },
   )
@@ -407,7 +407,7 @@ fn parse_style_tags_config(
   value : @json_parser.JsonValue,
 ) -> Map[String, @formatting.TextStyle] raise ConfigError {
   let obj = expect_object(value, "text_formatter.style_tags")
-  let style_tags : Map[String, @formatting.TextStyle] = {}
+  let style_tags : Map[String, @formatting.TextStyle] = Map([])
   for name, item in obj {
     style_tags[name] = parse_text_style_config(
       item,
@@ -584,7 +584,7 @@ fn text_style_config_to_json(
 fn style_tags_config_to_json(
   style_tags : Map[String, @formatting.TextStyle],
 ) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = {}
+  let obj : Map[String, @json_parser.JsonValue] = Map([])
   for name, style in style_tags {
     obj[name] = text_style_config_to_json(style)
   }

@@ -55,7 +55,7 @@ fn normalize_style_tag_name(name : String) -> String {
 
 ///|
 pub fn style_tag_registry() -> StyleTagRegistry {
-  { entries: {} }
+  { entries: Map([]) }
 }
 
 ///|
@@ -1015,7 +1015,7 @@ fn level_ansi_code(level : @core.Level) -> String {
 
 ///|
 fn fields_to_json(fields : Array[@core.Field]) -> Json {
-  let obj : Map[String, Json] = {}
+  let obj : Map[String, Json] = Map([])
   for item in fields {
     obj[item.key] = Json::string(item.value)
   }
