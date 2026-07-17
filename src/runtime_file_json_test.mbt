@@ -3,17 +3,17 @@ test "file state json helpers stringify stable snapshots" {
   let rotation_json = file_rotation_config_to_json(
     file_rotation(64, max_backups=2),
   )
-  let rotation_obj = rotation_json.as_object().unwrap()
+  let rotation_obj = rotation_json.expect_json_object()
   inspect(
-    @json_parser.stringify(rotation_json),
+    rotation_json.stringify(),
     content="{\"max_bytes\":64,\"max_backups\":2}",
   )
   inspect(
-    rotation_obj.get("max_bytes").unwrap().as_number().unwrap().to_int(),
+    rotation_obj.get("max_bytes").unwrap().expect_json_number().to_int(),
     content="64",
   )
   inspect(
-    rotation_obj.get("max_backups").unwrap().as_number().unwrap().to_int(),
+    rotation_obj.get("max_backups").unwrap().expect_json_number().to_int(),
     content="2",
   )
   inspect(rotation_obj.get("max_bytes_i64") is None, content="true")
@@ -21,9 +21,9 @@ test "file state json helpers stringify stable snapshots" {
   let wide_rotation_json = file_rotation_config_to_json(
     file_rotation_i64(4294967296L, max_backups=2),
   )
-  let wide_rotation_obj = wide_rotation_json.as_object().unwrap()
+  let wide_rotation_obj = wide_rotation_json.expect_json_object()
   inspect(
-    wide_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    wide_rotation_obj.get("max_bytes_i64").unwrap().expect_json_string(),
     content="4294967296",
   )
 
@@ -40,51 +40,50 @@ test "file state json helpers stringify stable snapshots" {
       rotation_failures=4,
     ),
   )
-  let plain_obj = plain.as_object().unwrap()
+  let plain_obj = plain.expect_json_object()
   let plain_rotation_obj = plain_obj
     .get("rotation")
     .unwrap()
-    .as_object()
-    .unwrap()
+    .expect_json_object()
   inspect(
-    @json_parser.stringify(plain),
+    plain.stringify(),
     content="{\"path\":\"logs/demo.log\",\"available\":true,\"append\":false,\"auto_flush\":true,\"open_failures\":1,\"write_failures\":2,\"flush_failures\":3,\"rotation_failures\":4,\"rotation\":{\"max_bytes\":64,\"max_backups\":2}}",
   )
   inspect(
-    plain_obj.get("path").unwrap().as_string().unwrap(),
+    plain_obj.get("path").unwrap().expect_json_string(),
     content="logs/demo.log",
   )
   inspect(
-    plain_obj.get("available").unwrap().as_bool().unwrap(),
+    plain_obj.get("available").unwrap().expect_json_bool(),
     content="true",
   )
-  inspect(plain_obj.get("append").unwrap().as_bool().unwrap(), content="false")
+  inspect(plain_obj.get("append").unwrap().expect_json_bool(), content="false")
   inspect(
-    plain_obj.get("auto_flush").unwrap().as_bool().unwrap(),
+    plain_obj.get("auto_flush").unwrap().expect_json_bool(),
     content="true",
   )
   inspect(
-    plain_obj.get("open_failures").unwrap().as_number().unwrap().to_int(),
+    plain_obj.get("open_failures").unwrap().expect_json_number().to_int(),
     content="1",
   )
   inspect(
-    plain_obj.get("write_failures").unwrap().as_number().unwrap().to_int(),
+    plain_obj.get("write_failures").unwrap().expect_json_number().to_int(),
     content="2",
   )
   inspect(
-    plain_obj.get("flush_failures").unwrap().as_number().unwrap().to_int(),
+    plain_obj.get("flush_failures").unwrap().expect_json_number().to_int(),
     content="3",
   )
   inspect(
-    plain_obj.get("rotation_failures").unwrap().as_number().unwrap().to_int(),
+    plain_obj.get("rotation_failures").unwrap().expect_json_number().to_int(),
     content="4",
   )
   inspect(
-    plain_rotation_obj.get("max_bytes").unwrap().as_number().unwrap().to_int(),
+    plain_rotation_obj.get("max_bytes").unwrap().expect_json_number().to_int(),
     content="64",
   )
   inspect(
-    plain_rotation_obj.get("max_backups").unwrap().as_number().unwrap().to_int(),
+    plain_rotation_obj.get("max_backups").unwrap().expect_json_number().to_int(),
     content="2",
   )
 
@@ -101,18 +100,16 @@ test "file state json helpers stringify stable snapshots" {
       rotation_failures=0,
     ),
   )
-  let wide_obj = wide.as_object().unwrap()
+  let wide_obj = wide.expect_json_object()
   let wide_state_rotation_obj = wide_obj
     .get("rotation")
     .unwrap()
-    .as_object()
-    .unwrap()
+    .expect_json_object()
   inspect(
     wide_state_rotation_obj
     .get("max_bytes")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="2147483647",
   )
@@ -120,13 +117,12 @@ test "file state json helpers stringify stable snapshots" {
     wide_state_rotation_obj
     .get("max_backups")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="3",
   )
   inspect(
-    wide_state_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    wide_state_rotation_obj.get("max_bytes_i64").unwrap().expect_json_string(),
     content="4294967296",
   )
   inspect(
@@ -167,27 +163,27 @@ test "runtime file state json helpers stringify queue snapshots" {
       dropped_count=5,
     ),
   )
-  let runtime_obj = runtime_json.as_object().unwrap()
-  let runtime_file_obj = runtime_obj.get("file").unwrap().as_object().unwrap()
-  inspect(runtime_obj.get("queued").unwrap().as_bool().unwrap(), content="true")
+  let runtime_obj = runtime_json.expect_json_object()
+  let runtime_file_obj = runtime_obj.get("file").unwrap().expect_json_object()
+  inspect(runtime_obj.get("queued").unwrap().expect_json_bool(), content="true")
   inspect(
-    runtime_obj.get("pending_count").unwrap().as_number().unwrap().to_int(),
+    runtime_obj.get("pending_count").unwrap().expect_json_number().to_int(),
     content="7",
   )
   inspect(
-    runtime_obj.get("dropped_count").unwrap().as_number().unwrap().to_int(),
+    runtime_obj.get("dropped_count").unwrap().expect_json_number().to_int(),
     content="5",
   )
   inspect(
-    runtime_file_obj.get("path").unwrap().as_string().unwrap(),
+    runtime_file_obj.get("path").unwrap().expect_json_string(),
     content="logs/queue.log",
   )
   inspect(
-    runtime_file_obj.get("available").unwrap().as_bool().unwrap(),
+    runtime_file_obj.get("available").unwrap().expect_json_bool(),
     content="true",
   )
   inspect(
-    runtime_file_obj.get("rotation").unwrap() is @json_parser.JsonValue::Null,
+    runtime_file_obj.get("rotation").unwrap() is Json::Null,
     content="true",
   )
 
@@ -232,23 +228,20 @@ test "runtime file state json helpers stringify queue snapshots" {
       dropped_count=0,
     ),
   )
-  let wide_runtime_obj = wide_runtime_json.as_object().unwrap()
+  let wide_runtime_obj = wide_runtime_json.expect_json_object()
   let wide_runtime_file_obj = wide_runtime_obj
     .get("file")
     .unwrap()
-    .as_object()
-    .unwrap()
+    .expect_json_object()
   let wide_runtime_rotation_obj = wide_runtime_file_obj
     .get("rotation")
     .unwrap()
-    .as_object()
-    .unwrap()
+    .expect_json_object()
   inspect(
     wide_runtime_rotation_obj
     .get("max_bytes")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="2147483647",
   )
@@ -256,13 +249,12 @@ test "runtime file state json helpers stringify queue snapshots" {
     wide_runtime_rotation_obj
     .get("max_backups")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="2",
   )
   inspect(
-    wide_runtime_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    wide_runtime_rotation_obj.get("max_bytes_i64").unwrap().expect_json_string(),
     content="4294967296",
   )
 }
@@ -276,31 +268,29 @@ test "file sink policy json helpers stringify stable policies" {
       rotation=Some(file_rotation(96, max_backups=3)),
     ),
   )
-  let policy_obj = policy_json.as_object().unwrap()
+  let policy_obj = policy_json.expect_json_object()
   let policy_rotation_obj = policy_obj
     .get("rotation")
     .unwrap()
-    .as_object()
-    .unwrap()
+    .expect_json_object()
   inspect(
-    @json_parser.stringify(policy_json),
+    policy_json.stringify(),
     content="{\"append\":false,\"auto_flush\":true,\"rotation\":{\"max_bytes\":96,\"max_backups\":3}}",
   )
-  inspect(policy_obj.get("append").unwrap().as_bool().unwrap(), content="false")
+  inspect(policy_obj.get("append").unwrap().expect_json_bool(), content="false")
   inspect(
-    policy_obj.get("auto_flush").unwrap().as_bool().unwrap(),
+    policy_obj.get("auto_flush").unwrap().expect_json_bool(),
     content="true",
   )
   inspect(
-    policy_rotation_obj.get("max_bytes").unwrap().as_number().unwrap().to_int(),
+    policy_rotation_obj.get("max_bytes").unwrap().expect_json_number().to_int(),
     content="96",
   )
   inspect(
     policy_rotation_obj
     .get("max_backups")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="3",
   )
@@ -312,18 +302,16 @@ test "file sink policy json helpers stringify stable policies" {
       rotation=Some(file_rotation_i64(4294967296L, max_backups=4)),
     ),
   )
-  let wide_policy_obj = wide_policy_json.as_object().unwrap()
+  let wide_policy_obj = wide_policy_json.expect_json_object()
   let wide_policy_rotation_obj = wide_policy_obj
     .get("rotation")
     .unwrap()
-    .as_object()
-    .unwrap()
+    .expect_json_object()
   inspect(
     wide_policy_rotation_obj
     .get("max_bytes")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="2147483647",
   )
@@ -331,13 +319,12 @@ test "file sink policy json helpers stringify stable policies" {
     wide_policy_rotation_obj
     .get("max_backups")
     .unwrap()
-    .as_number()
-    .unwrap()
+    .expect_json_number()
     .to_int(),
     content="4",
   )
   inspect(
-    wide_policy_rotation_obj.get("max_bytes_i64").unwrap().as_string().unwrap(),
+    wide_policy_rotation_obj.get("max_bytes_i64").unwrap().expect_json_string(),
     content="4294967296",
   )
   inspect(

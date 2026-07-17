@@ -6,7 +6,6 @@ import {
   "Nanaloveyuki/BitLogger/src/file_model",
   "Nanaloveyuki/BitLogger/src/formatting",
   "Nanaloveyuki/BitLogger/src/queue_model",
-  "maria/json_parser",
 }
 
 // Values
@@ -16,13 +15,13 @@ pub fn default_sink_config() -> SinkConfig
 
 pub fn default_text_formatter_config() -> TextFormatterConfig
 
-pub fn logger_config_to_json(LoggerConfig) -> @json_parser.JsonValue
+pub fn logger_config_to_json(LoggerConfig) -> Json
 
 pub fn parse_logger_config_text(String) -> LoggerConfig raise ConfigError
 
-pub fn queue_config_to_json(QueueConfig) -> @json_parser.JsonValue
+pub fn queue_config_to_json(QueueConfig) -> Json
 
-pub fn sink_config_to_json(SinkConfig) -> @json_parser.JsonValue
+pub fn sink_config_to_json(SinkConfig) -> Json
 
 pub fn stringify_logger_config(LoggerConfig, pretty? : Bool) -> String
 
@@ -32,7 +31,7 @@ pub fn stringify_sink_config(SinkConfig, pretty? : Bool) -> String
 
 pub fn stringify_text_formatter_config(TextFormatterConfig, pretty? : Bool) -> String
 
-pub fn text_formatter_config_to_json(TextFormatterConfig) -> @json_parser.JsonValue
+pub fn text_formatter_config_to_json(TextFormatterConfig) -> Json
 
 // Errors
 pub(all) suberror ConfigError {

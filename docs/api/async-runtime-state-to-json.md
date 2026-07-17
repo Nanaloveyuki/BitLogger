@@ -13,12 +13,12 @@ key-word:
 
 ## Async-runtime-state-to-json
 
-Convert `AsyncRuntimeState` into a `JsonValue`. This helper exports the async runtime mode and background worker capability in a structured form.
+Convert `AsyncRuntimeState` into a `Json`. This helper exports the async runtime mode and background worker capability in a structured form.
 
 ### Interface
 
 ```moonbit
-pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> @json_parser.JsonValue {}
+pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> @json_parser.Js
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the runtime state.
+- `Json` - Structured JSON representation of the runtime state.
 
 ### Explanation
 

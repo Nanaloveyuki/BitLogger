@@ -17,18 +17,12 @@ pub fn RuntimeFileState::new(
 }
 
 ///|
-pub fn runtime_file_state_to_json(
-  state : RuntimeFileState,
-) -> @json_parser.JsonValue {
-  @json_parser.JsonValue::Object({
+pub fn runtime_file_state_to_json(state : RuntimeFileState) -> Json {
+  Json::object({
     "file": file_sink_state_to_json(state.file),
-    "queued": @json_parser.JsonValue::Bool(state.queued),
-    "pending_count": @json_parser.JsonValue::Number(
-      state.pending_count.to_double(),
-    ),
-    "dropped_count": @json_parser.JsonValue::Number(
-      state.dropped_count.to_double(),
-    ),
+    "queued": Json::boolean(state.queued),
+    "pending_count": Json::number(state.pending_count.to_double()),
+    "dropped_count": Json::number(state.dropped_count.to_double()),
   })
 }
 
@@ -39,8 +33,8 @@ pub fn stringify_runtime_file_state(
 ) -> String {
   let value = runtime_file_state_to_json(state)
   if pretty {
-    @json_parser.stringify_pretty(value, 2)
+    value.stringify(indent=2)
   } else {
-    @json_parser.stringify(value)
+    value.stringify()
   }
 }

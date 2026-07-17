@@ -13,12 +13,12 @@ key-word:
 
 ## Text-formatter-config-to-json
 
-Convert a typed `TextFormatterConfig` into a `JsonValue`. This helper exports formatter toggles, separators, color settings, markup behavior, and optional style tags in a machine-readable form.
+Convert a typed `TextFormatterConfig` into a `Json`. This helper exports formatter toggles, separators, color settings, markup behavior, and optional style tags in a machine-readable form.
 
 ### Interface
 
 ```moonbit
-pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_parser.JsonValue {}
+pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> @json_pars
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the formatter config.
+- `Json` - Structured JSON representation of the formatter config.
 
 ### Explanation
 

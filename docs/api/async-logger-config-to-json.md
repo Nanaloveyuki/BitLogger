@@ -13,12 +13,12 @@ key-word:
 
 ## Async-logger-config-to-json
 
-Convert a typed `AsyncLoggerConfig` into a `JsonValue`. This helper exports async queue capacity, overflow policy, batch sizing, linger timing, and flush behavior in a structured form.
+Convert a typed `AsyncLoggerConfig` into a `Json`. This helper exports async queue capacity, overflow policy, batch sizing, linger timing, and flush behavior in a structured form.
 
 ### Interface
 
 ```moonbit
-pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.JsonValue {}
+pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> @json_parser.J
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the async config.
+- `Json` - Structured JSON representation of the async config.
 
 ### Explanation
 

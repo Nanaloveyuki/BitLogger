@@ -3,7 +3,6 @@ name = "Nanaloveyuki/BitLogger"
 version = "0.7.1"
 
 import {
-  "maria/json_parser@0.1.1",
   "moonbitlang/async@0.20.2",
 }
 

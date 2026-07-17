@@ -40,7 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human inspection.
 - This helper is built on top of `async_logger_build_config_to_json(...)`.
-- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured async build-config export helper.
+- Internally it serializes the `Json` result with `value.stringify(...)` or `value.stringify(indent=2)`, so the text form stays aligned with the structured async build-config export helper.
 - The output keeps `logger` and `async_config` as separate sections, matching supported parser input.
 - The serialized `logger` section preserves the full `LoggerConfig` shape, even though `build_async_text_logger(...)` later consumes only the selected text-oriented subset of that logger config.
 - That includes preserving whatever `logger.sink.kind` text is present in the config, even though the later text-specific builder path still ignores that sink-kind branch and constructs `FormattedConsoleSink` from `logger.sink.text_formatter`.
@@ -80,7 +80,7 @@ In this example, compact JSON is returned without extra formatting.
 ### Error Case
 
 e.g.:
-- If callers need a `JsonValue` for further composition, they should use `async_logger_build_config_to_json(...)` instead.
+- If callers need a `Json` for further composition, they should use `async_logger_build_config_to_json(...)` instead.
 
 - If only one layer of config is required, this helper may be broader than necessary.
 
@@ -96,7 +96,7 @@ e.g.:
 
 4. In particular, serialized `logger.sink.kind` text is descriptive config data, not a guarantee that the text-specific builder path will branch on that sink kind later.
 
-5. Use `async_logger_build_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
+5. Use `async_logger_build_config_to_json(...)` when the next consumer still needs a `Json` for composition before final stringification.
 
 6. After parsing, the same text can also feed the application or library facade builders; string export preserves one shared build-config shape, not a direct-builder-only route.
 

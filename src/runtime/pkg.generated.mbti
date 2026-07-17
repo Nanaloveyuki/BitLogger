@@ -7,7 +7,6 @@ import {
   "Nanaloveyuki/BitLogger/src/file_model",
   "Nanaloveyuki/BitLogger/src/file_runtime",
   "Nanaloveyuki/BitLogger/src/sink_graph",
-  "maria/json_parser",
 }
 
 // Values
@@ -15,7 +14,7 @@ pub fn apply_queue_config(RuntimeSink, @config_model.QueueConfig) -> RuntimeSink
 
 pub fn build_runtime_sink(@config_model.SinkConfig) -> RuntimeSink
 
-pub fn runtime_file_state_to_json(@file_model.RuntimeFileState) -> @json_parser.JsonValue
+pub fn runtime_file_state_to_json(@file_model.RuntimeFileState) -> Json
 
 pub fn stringify_runtime_file_state(@file_model.RuntimeFileState, pretty? : Bool) -> String
 

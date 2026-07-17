@@ -4,5 +4,5 @@ import {
   "Nanaloveyuki/BitLogger/src/file_model",
   "Nanaloveyuki/BitLogger/src/formatting",
   "Nanaloveyuki/BitLogger/src/sink_graph",
-  "maria/json_parser",
+  "moonbitlang/core/json",
 }

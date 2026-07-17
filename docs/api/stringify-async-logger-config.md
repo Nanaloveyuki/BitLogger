@@ -37,7 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON suitable for transport and snapshots.
 - `pretty=true` returns indented JSON for humans.
 - This helper is built on top of `async_logger_config_to_json(...)`.
-- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured async-config export helper.
+- Internally it serializes the `Json` result with `value.stringify(...)` or `value.stringify(indent=2)`, so the text form stays aligned with the structured async-config export helper.
 - The exported text follows the supported async config schema rather than internal queue implementation details.
 - Canonical policy labels such as `DropNewest` and `Never` are emitted even though the parser also accepts aliases like `DropLatest` and `None`.
 
@@ -68,7 +68,7 @@ In this example, compact JSON is returned without extra formatting.
 ### Error Case
 
 e.g.:
-- If callers need a `JsonValue` for composition, they should use `async_logger_config_to_json(...)` instead.
+- If callers need a `Json` for composition, they should use `async_logger_config_to_json(...)` instead.
 
 - If invalid constructor inputs were normalized earlier, the resulting text contains the normalized config values.
 
@@ -78,5 +78,5 @@ e.g.:
 
 2. If negative `max_pending` semantics matter, remember that the serialized text preserves the config value while runtime queue creation later clamps the queue limit to `0`.
 
-3. Use `async_logger_config_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
+3. Use `async_logger_config_to_json(...)` when the next consumer still needs a `Json` for composition before final stringification.
 

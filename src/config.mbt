@@ -39,7 +39,7 @@ pub fn parse_logger_config_text(
 }
 
 ///|
-pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
+pub fn queue_config_to_json(queue : QueueConfig) -> Json {
   @config_model.queue_config_to_json(queue)
 }
 
@@ -52,9 +52,7 @@ pub fn stringify_queue_config(
 }
 
 ///|
-pub fn text_formatter_config_to_json(
-  config : TextFormatterConfig,
-) -> @json_parser.JsonValue {
+pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> Json {
   @config_model.text_formatter_config_to_json(config)
 }
 
@@ -67,14 +65,12 @@ pub fn stringify_text_formatter_config(
 }
 
 ///|
-pub fn file_rotation_config_to_json(
-  config : FileRotation,
-) -> @json_parser.JsonValue {
+pub fn file_rotation_config_to_json(config : FileRotation) -> Json {
   @file_model.file_rotation_config_to_json(config)
 }
 
 ///|
-pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
+pub fn sink_config_to_json(config : SinkConfig) -> Json {
   @config_model.sink_config_to_json(config)
 }
 
@@ -87,7 +83,7 @@ pub fn stringify_sink_config(
 }
 
 ///|
-pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {
+pub fn logger_config_to_json(config : LoggerConfig) -> Json {
   @config_model.logger_config_to_json(config)
 }
 

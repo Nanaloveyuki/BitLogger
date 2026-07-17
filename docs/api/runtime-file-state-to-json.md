@@ -13,12 +13,12 @@ key-word:
 
 ## Runtime-file-state-to-json
 
-Convert `RuntimeFileState` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
+Convert `RuntimeFileState` into a `Json`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
 ```moonbit
-pub fn runtime_file_state_to_json(state : RuntimeFileState) -> @json_parser.JsonValue {}
+pub fn runtime_file_state_to_json(state : RuntimeFileState) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn runtime_file_state_to_json(state : RuntimeFileState) -> @json_parser.Json
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the runtime file state.
+- `Json` - Structured JSON representation of the runtime file state.
 
 ### Explanation
 

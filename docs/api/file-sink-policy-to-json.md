@@ -13,12 +13,12 @@ key-word:
 
 ## File-sink-policy-to-json
 
-Convert `FileSinkPolicy` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
+Convert `FileSinkPolicy` into a `Json`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
 ```moonbit
-pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> @json_parser.JsonValue {}
+pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> @json_parser.JsonVal
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the file policy.
+- `Json` - Structured JSON representation of the file policy.
 
 ### Explanation
 
@@ -73,7 +73,7 @@ e.g.:
 
 ### Notes
 
-1. Use this helper when downstream code expects `JsonValue` rather than text.
+1. Use this helper when downstream code expects `Json` rather than text.
 
 2. It pairs naturally with `FileSink::policy()`, `RuntimeSink::file_policy()`, and related default-policy accessors.
 

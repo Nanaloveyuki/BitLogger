@@ -48,9 +48,7 @@ pub fn async_runtime_state() -> AsyncRuntimeState {
 }
 
 ///|
-pub fn async_runtime_state_to_json(
-  state : AsyncRuntimeState,
-) -> @json_parser.JsonValue {
+pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> Json {
   @utils.async_runtime_state_to_json(state)
 }
 
@@ -63,9 +61,7 @@ pub fn stringify_async_runtime_state(
 }
 
 ///|
-pub fn async_logger_state_to_json(
-  state : AsyncLoggerState,
-) -> @json_parser.JsonValue {
+pub fn async_logger_state_to_json(state : AsyncLoggerState) -> Json {
   @utils.async_logger_state_to_json(state)
 }
 
@@ -88,9 +84,7 @@ pub fn parse_async_logger_config_text(
 }
 
 ///|
-pub fn async_logger_config_to_json(
-  config : AsyncLoggerConfig,
-) -> @json_parser.JsonValue {
+pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> Json {
   @utils.async_logger_config_to_json(config)
 }
 
@@ -115,7 +109,7 @@ pub fn parse_async_logger_build_config_text(
 ///|
 pub fn async_logger_build_config_to_json(
   config : AsyncLoggerBuildConfig,
-) -> @json_parser.JsonValue {
+) -> Json {
   @utils.async_logger_build_config_to_json(config)
 }
 

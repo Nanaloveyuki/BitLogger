@@ -13,12 +13,12 @@ key-word:
 
 ## Sink-config-to-json
 
-Convert `SinkConfig` into a `JsonValue`. This helper is used directly for sink export and indirectly when exporting `LoggerConfig`.
+Convert `SinkConfig` into a `Json`. This helper is used directly for sink export and indirectly when exporting `LoggerConfig`.
 
 ### Interface
 
 ```moonbit
-pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {}
+pub fn sink_config_to_json(config : SinkConfig) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {}
 
 #### output
 
-- `JsonValue` - JSON representation of the sink configuration.
+- `Json` - JSON representation of the sink configuration.
 
 ### Explanation
 

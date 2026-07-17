@@ -40,7 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON suitable for human diagnostics.
 - This helper is built on top of `async_logger_state_to_json(...)`.
-- Internally it stringifies the same JSON snapshot shape returned by the public export helper, using `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`.
+- Internally it stringifies the same JSON snapshot shape returned by the public export helper, using `value.stringify(...)` or `value.stringify(indent=2)`.
 - The compact form matches snapshots such as `{"runtime":{"mode":"native_worker","background_worker":true},"phase":"ready","pending_count":0,...}`.
 - String output is convenient for logs, CLI output, and startup diagnostics.
 - The serializer does not care whether the input came from a live logger read or a synthetic `AsyncLoggerState::new(...)` call.
@@ -83,7 +83,7 @@ e.g.:
 
 2. The compact output shape is already locked by the async runtime snapshot tests, so it is suitable for stable diagnostics and assertions.
 
-3. Use `async_logger_state_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
+3. Use `async_logger_state_to_json(...)` when the next consumer still needs a `Json` for composition before final stringification.
 
 4. Pair it with `AsyncLogger::state()` for current logger diagnostics, or with `AsyncLoggerState::new(...)` when exporting a manual snapshot built by tests or adapters.
 

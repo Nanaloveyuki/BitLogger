@@ -13,12 +13,12 @@ key-word:
 
 ## Logger-config-to-json
 
-Convert a typed `LoggerConfig` into a `JsonValue`. This helper is the structured export path when config should be persisted, inspected, or embedded into larger JSON payloads.
+Convert a typed `LoggerConfig` into a `Json`. This helper is the structured export path when config should be persisted, inspected, or embedded into larger JSON payloads.
 
 ### Interface
 
 ```moonbit
-pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {}
+pub fn logger_config_to_json(config : LoggerConfig) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {}
 
 #### output
 
-- `JsonValue` - JSON representation of the logger config.
+- `Json` - JSON representation of the logger config.
 
 ### Explanation
 
@@ -73,5 +73,5 @@ e.g.:
 
 1. Use this helper when you need a reusable JSON value rather than a final JSON string.
 
-2. Use `stringify_logger_config(...)` when the next consumer expects JSON text instead of `JsonValue`.
+2. Use `stringify_logger_config(...)` when the next consumer expects JSON text instead of `Json`.
 

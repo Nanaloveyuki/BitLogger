@@ -3,6 +3,6 @@ import {
   "Nanaloveyuki/BitLogger/src/file_model",
   "Nanaloveyuki/BitLogger/src/formatting",
   "Nanaloveyuki/BitLogger/src/queue_model",
-  "maria/json_parser",
+  "moonbitlang/core/json",
   "moonbitlang/core/string",
 }

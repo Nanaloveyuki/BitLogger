@@ -66,7 +66,7 @@ In this example, compact JSON is produced without extra formatting logic.
 ### Error Case
 
 e.g.:
-- If callers need a `JsonValue` for composition rather than text, `file_sink_policy_to_json(...)` is the better API.
+- If callers need a `Json` for composition rather than text, `file_sink_policy_to_json(...)` is the better API.
 
 - If rotation is disabled, the output still includes `rotation` as `null`.
 

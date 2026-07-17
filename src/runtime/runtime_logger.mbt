@@ -55,9 +55,7 @@ pub struct RuntimeSinkProgress {
 }
 
 ///|
-pub fn runtime_file_state_to_json(
-  state : RuntimeFileState,
-) -> @json_parser.JsonValue {
+pub fn runtime_file_state_to_json(state : RuntimeFileState) -> Json {
   @file_model.runtime_file_state_to_json(state)
 }
 

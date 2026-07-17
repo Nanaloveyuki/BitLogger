@@ -13,12 +13,12 @@ key-word:
 
 ## File-rotation-config-to-json
 
-Convert `FileRotation` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
+Convert `FileRotation` into a `Json`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
 ```moonbit
-pub fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonValue {}
+pub fn file_rotation_config_to_json(config : FileRotation) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn file_rotation_config_to_json(config : FileRotation) -> @json_parser.JsonV
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the rotation policy.
+- `Json` - Structured JSON representation of the rotation policy.
 
 ### Explanation
 
@@ -82,7 +82,7 @@ e.g.:
 
 ### Notes
 
-1. Use this helper when downstream code expects `JsonValue` rather than a typed `FileRotation` value.
+1. Use this helper when downstream code expects `Json` rather than a typed `FileRotation` value.
 
 2. Pair it with `file_rotation(...)` when building rotation policy in code before export.
 

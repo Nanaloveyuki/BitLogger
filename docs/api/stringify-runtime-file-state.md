@@ -69,7 +69,7 @@ In this example, compact JSON is returned without extra formatting logic.
 ### Error Case
 
 e.g.:
-- If callers need a `JsonValue` rather than text, `runtime_file_state_to_json(...)` is the better API.
+- If callers need a `Json` rather than text, `runtime_file_state_to_json(...)` is the better API.
 
 - If queue wrapping is not relevant, `stringify_file_sink_state(...)` may be the simpler API.
 

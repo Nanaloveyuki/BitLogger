@@ -13,12 +13,12 @@ key-word:
 
 ## File-sink-state-to-json
 
-Convert `FileSinkState` into a `JsonValue`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
+Convert `FileSinkState` into a `Json`. On the root `src` facade, this helper forwards to the concrete serializer owned by `src/file_model`.
 
 ### Interface
 
 ```moonbit
-pub fn file_sink_state_to_json(state : FileSinkState) -> @json_parser.JsonValue {}
+pub fn file_sink_state_to_json(state : FileSinkState) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn file_sink_state_to_json(state : FileSinkState) -> @json_parser.JsonValue 
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the file sink state.
+- `Json` - Structured JSON representation of the file sink state.
 
 ### Explanation
 
@@ -72,7 +72,7 @@ e.g.:
 
 ### Notes
 
-1. Use this helper when diagnostics consumers expect `JsonValue`.
+1. Use this helper when diagnostics consumers expect `Json`.
 
 2. It pairs naturally with `FileSink::state()`, `RuntimeSink::file_state()`, and `ConfiguredLogger::file_state()`.
 

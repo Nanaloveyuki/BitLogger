@@ -10,7 +10,6 @@ import {
   "Nanaloveyuki/BitLogger/src/queue_model",
   "Nanaloveyuki/BitLogger/src/runtime",
   "Nanaloveyuki/BitLogger/src/sink_graph",
-  "maria/json_parser",
 }
 
 // Values
@@ -70,15 +69,15 @@ pub fn file(String, min_level? : @core.Level, target? : String, timestamp? : Boo
 
 pub fn file_rotation(Int, max_backups? : Int) -> @file_model.FileRotation
 
-pub fn file_rotation_config_to_json(@file_model.FileRotation) -> @json_parser.JsonValue
+pub fn file_rotation_config_to_json(@file_model.FileRotation) -> Json
 
 pub fn file_rotation_i64(Int64, max_backups? : Int) -> @file_model.FileRotation
 
 pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
 
-pub fn file_sink_policy_to_json(@file_model.FileSinkPolicy) -> @json_parser.JsonValue
+pub fn file_sink_policy_to_json(@file_model.FileSinkPolicy) -> Json
 
-pub fn file_sink_state_to_json(@file_model.FileSinkState) -> @json_parser.JsonValue
+pub fn file_sink_state_to_json(@file_model.FileSinkState) -> Json
 
 pub fn[S] filter_sink(S, (@core.Record) -> Bool) -> @sink_graph.FilterSink[S]
 
@@ -106,7 +105,7 @@ pub fn level_at_least(@core.Level) -> (@core.Record) -> Bool
 
 pub fn log(@core.Level, String, fields? : Array[@core.Field]) -> Unit
 
-pub fn logger_config_to_json(@config_model.LoggerConfig) -> @json_parser.JsonValue
+pub fn logger_config_to_json(@config_model.LoggerConfig) -> Json
 
 pub fn message_contains(String) -> (@core.Record) -> Bool
 
@@ -126,7 +125,7 @@ pub fn[S] patch_sink(S, (@core.Record) -> @core.Record) -> @sink_graph.PatchSink
 
 pub fn prefix_message(String) -> (@core.Record) -> @core.Record
 
-pub fn queue_config_to_json(@config_model.QueueConfig) -> @json_parser.JsonValue
+pub fn queue_config_to_json(@config_model.QueueConfig) -> Json
 
 pub fn[S] queued_sink(S, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @sink_graph.QueuedSink[S]
 
@@ -136,7 +135,7 @@ pub fn redact_fields(Array[String], placeholder? : String) -> (@core.Record) -> 
 
 pub fn reset_global_style_tag_registry() -> Unit
 
-pub fn runtime_file_state_to_json(@file_model.RuntimeFileState) -> @json_parser.JsonValue
+pub fn runtime_file_state_to_json(@file_model.RuntimeFileState) -> Json
 
 pub fn set_default_min_level(@core.Level) -> Unit
 
@@ -146,7 +145,7 @@ pub fn set_global_style_tag_registry(@formatting.StyleTagRegistry) -> Unit
 
 pub fn set_target(String) -> (@core.Record) -> @core.Record
 
-pub fn sink_config_to_json(@config_model.SinkConfig) -> @json_parser.JsonValue
+pub fn sink_config_to_json(@config_model.SinkConfig) -> Json
 
 pub fn[A, B] split_by_level(A, B, min_level? : @core.Level) -> @sink_graph.SplitSink[A, B]
 
@@ -182,7 +181,7 @@ pub fn text_console_sink(@formatting.TextFormatter) -> @sink_graph.FormattedCons
 
 pub fn text_formatter(show_timestamp? : Bool, show_level? : Bool, show_target? : Bool, show_fields? : Bool, separator? : String, field_separator? : String, template? : String, color_mode? : @formatting.ColorMode, color_support? : @formatting.ColorSupport, style_markup? : @formatting.StyleMarkupMode, target_style_markup? : @formatting.StyleMarkupMode, fields_style_markup? : @formatting.StyleMarkupMode, style_tags? : @formatting.StyleTagRegistry?) -> @formatting.TextFormatter
 
-pub fn text_formatter_config_to_json(@config_model.TextFormatterConfig) -> @json_parser.JsonValue
+pub fn text_formatter_config_to_json(@config_model.TextFormatterConfig) -> Json
 
 pub fn text_style(fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, italic? : Bool, underline? : Bool) -> @formatting.TextStyle
 

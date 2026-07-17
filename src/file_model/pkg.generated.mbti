@@ -1,22 +1,18 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Nanaloveyuki/BitLogger/src/file_model"
 
-import {
-  "maria/json_parser",
-}
-
 // Values
 pub fn file_rotation(Int, max_backups? : Int) -> FileRotation
 
-pub fn file_rotation_config_to_json(FileRotation) -> @json_parser.JsonValue
+pub fn file_rotation_config_to_json(FileRotation) -> Json
 
 pub fn file_rotation_i64(Int64, max_backups? : Int) -> FileRotation
 
-pub fn file_sink_policy_to_json(FileSinkPolicy) -> @json_parser.JsonValue
+pub fn file_sink_policy_to_json(FileSinkPolicy) -> Json
 
-pub fn file_sink_state_to_json(FileSinkState) -> @json_parser.JsonValue
+pub fn file_sink_state_to_json(FileSinkState) -> Json
 
-pub fn runtime_file_state_to_json(RuntimeFileState) -> @json_parser.JsonValue
+pub fn runtime_file_state_to_json(RuntimeFileState) -> Json
 
 pub fn stringify_file_sink_policy(FileSinkPolicy, pretty? : Bool) -> String
 

@@ -1,4 +1,4 @@
 import {
   "Nanaloveyuki/BitLogger/src" @bitlogger,
-  "maria/json_parser",
+  "moonbitlang/core/json",
 }

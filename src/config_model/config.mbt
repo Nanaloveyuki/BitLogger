@@ -170,102 +170,84 @@ pub fn default_logger_config() -> LoggerConfig {
 
 ///|
 fn expect_object(
-  value : @json_parser.JsonValue,
+  value : Json,
   context : String,
-) -> Map[String, @json_parser.JsonValue] raise ConfigError {
-  match value.as_object() {
-    Some(obj) => obj
-    None => raise ConfigError::InvalidConfig("Expected object at " + context)
+) -> Map[String, Json] raise ConfigError {
+  match value {
+    Json::Object(obj) => obj
+    _ => raise ConfigError::InvalidConfig("Expected object at " + context)
   }
 }
 
 ///|
 fn get_string(
-  obj : Map[String, @json_parser.JsonValue],
+  obj : Map[String, Json],
   key : String,
   default? : String = "",
 ) -> String raise ConfigError {
   match obj.get(key) {
     None => default
-    Some(value) =>
-      match value.as_string() {
-        Some(text) => text
-        None =>
-          raise ConfigError::InvalidConfig("Expected string at key " + key)
-      }
+    Some(Json::String(text)) => text
+    Some(_) => raise ConfigError::InvalidConfig("Expected string at key " + key)
   }
 }
 
 ///|
 fn get_optional_string(
-  obj : Map[String, @json_parser.JsonValue],
+  obj : Map[String, Json],
   key : String,
 ) -> String? raise ConfigError {
   match obj.get(key) {
     None => None
-    Some(value) =>
-      match value.as_string() {
-        Some(text) => Some(text)
-        None =>
-          raise ConfigError::InvalidConfig("Expected string at key " + key)
-      }
+    Some(Json::String(text)) => Some(text)
+    Some(_) => raise ConfigError::InvalidConfig("Expected string at key " + key)
   }
 }
 
 ///|
 fn get_bool(
-  obj : Map[String, @json_parser.JsonValue],
+  obj : Map[String, Json],
   key : String,
   default~ : Bool,
 ) -> Bool raise ConfigError {
   match obj.get(key) {
     None => default
-    Some(value) =>
-      match value.as_bool() {
-        Some(flag) => flag
-        None => raise ConfigError::InvalidConfig("Expected bool at key " + key)
-      }
+    Some(Json::True) => true
+    Some(Json::False) => false
+    Some(_) => raise ConfigError::InvalidConfig("Expected bool at key " + key)
   }
 }
 
 ///|
 fn get_int(
-  obj : Map[String, @json_parser.JsonValue],
+  obj : Map[String, Json],
   key : String,
   default~ : Int,
 ) -> Int raise ConfigError {
   match obj.get(key) {
     None => default
-    Some(value) =>
-      match value.as_number() {
-        Some(number) => number.to_int()
-        None =>
-          raise ConfigError::InvalidConfig("Expected number at key " + key)
-      }
+    Some(Json::Number(number, ..)) => number.to_int()
+    Some(_) => raise ConfigError::InvalidConfig("Expected number at key " + key)
   }
 }
 
 ///|
 fn get_optional_int64_string(
-  obj : Map[String, @json_parser.JsonValue],
+  obj : Map[String, Json],
   key : String,
 ) -> Int64? raise ConfigError {
   match obj.get(key) {
     None => None
-    Some(value) =>
-      match value.as_string() {
-        Some(text) =>
-          Some(
-            @string.parse_int64(text) catch {
-              _ =>
-                raise ConfigError::InvalidConfig(
-                  "Expected int64 string at key " + key,
-                )
-            },
-          )
-        None =>
-          raise ConfigError::InvalidConfig("Expected string at key " + key)
-      }
+    Some(Json::String(text)) =>
+      Some(
+        @string.parse_int64(text) catch {
+          _ =>
+            raise ConfigError::InvalidConfig(
+              "Expected int64 string at key " + key,
+            )
+        },
+      )
+    Some(_) => raise ConfigError::InvalidConfig("Expected string at key " + key)
   }
 }
 
@@ -355,7 +337,7 @@ fn sink_kind_label(kind : SinkKind) -> String {
 
 ///|
 fn parse_text_formatter_config(
-  value : @json_parser.JsonValue,
+  value : Json,
 ) -> TextFormatterConfig raise ConfigError {
   let obj = expect_object(value, "text_formatter")
   TextFormatterConfig::new(
@@ -388,7 +370,7 @@ fn parse_text_formatter_config(
 
 ///|
 fn parse_text_style_config(
-  value : @json_parser.JsonValue,
+  value : Json,
   context : String,
 ) -> @formatting.TextStyle raise ConfigError {
   let obj = expect_object(value, context)
@@ -404,7 +386,7 @@ fn parse_text_style_config(
 
 ///|
 fn parse_style_tags_config(
-  value : @json_parser.JsonValue,
+  value : Json,
 ) -> Map[String, @formatting.TextStyle] raise ConfigError {
   let obj = expect_object(value, "text_formatter.style_tags")
   let style_tags : Map[String, @formatting.TextStyle] = Map([])
@@ -418,9 +400,7 @@ fn parse_style_tags_config(
 }
 
 ///|
-fn parse_queue_config(
-  value : @json_parser.JsonValue,
-) -> QueueConfig raise ConfigError {
+fn parse_queue_config(value : Json) -> QueueConfig raise ConfigError {
   let obj = expect_object(value, "queue")
   QueueConfig::new(
     get_int(obj, "max_pending", default=0),
@@ -430,7 +410,7 @@ fn parse_queue_config(
 
 ///|
 fn parse_file_rotation_config(
-  value : @json_parser.JsonValue,
+  value : Json,
 ) -> @file_model.FileRotation raise ConfigError {
   let obj = expect_object(value, "sink.rotation")
   let max_backups = get_int(obj, "max_backups", default=1)
@@ -446,9 +426,7 @@ fn parse_file_rotation_config(
 }
 
 ///|
-fn parse_sink_config(
-  value : @json_parser.JsonValue,
-) -> SinkConfig raise ConfigError {
+fn parse_sink_config(value : Json) -> SinkConfig raise ConfigError {
   let obj = expect_object(value, "sink")
   let kind = parse_sink_kind(get_string(obj, "kind", default="console"))
   let formatter = match obj.get("text_formatter") {
@@ -480,7 +458,7 @@ fn parse_sink_config(
 pub fn parse_logger_config_text(
   input : String,
 ) -> LoggerConfig raise ConfigError {
-  let root = @json_parser.parse(input) catch {
+  let root = @json.parse(input) catch {
     e => raise ConfigError::InvalidConfig("Invalid JSON: " + e.to_string())
   }
   let obj = expect_object(root, "root")
@@ -500,10 +478,10 @@ pub fn parse_logger_config_text(
 }
 
 ///|
-pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {
-  @json_parser.JsonValue::Object({
-    "max_pending": @json_parser.JsonValue::Number(queue.max_pending.to_double()),
-    "overflow": @json_parser.JsonValue::String(
+pub fn queue_config_to_json(queue : QueueConfig) -> Json {
+  Json::object({
+    "max_pending": Json::number(queue.max_pending.to_double()),
+    "overflow": Json::string(
       match queue.overflow {
         @queue_model.QueueOverflowPolicy::DropNewest => "DropNewest"
         @queue_model.QueueOverflowPolicy::DropOldest => "DropOldest"
@@ -519,76 +497,70 @@ pub fn stringify_queue_config(
 ) -> String {
   let value = queue_config_to_json(queue)
   if pretty {
-    @json_parser.stringify_pretty(value, 2)
+    value.stringify(indent=2)
   } else {
-    @json_parser.stringify(value)
+    value.stringify()
   }
 }
 
 ///|
-pub fn text_formatter_config_to_json(
-  config : TextFormatterConfig,
-) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = {
-    "show_timestamp": @json_parser.JsonValue::Bool(config.show_timestamp),
-    "show_level": @json_parser.JsonValue::Bool(config.show_level),
-    "show_target": @json_parser.JsonValue::Bool(config.show_target),
-    "show_fields": @json_parser.JsonValue::Bool(config.show_fields),
-    "separator": @json_parser.JsonValue::String(config.separator),
-    "field_separator": @json_parser.JsonValue::String(config.field_separator),
-    "template": @json_parser.JsonValue::String(config.template),
-    "color_mode": @json_parser.JsonValue::String(
-      @formatting.color_mode_label(config.color_mode),
-    ),
-    "color_support": @json_parser.JsonValue::String(
+pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> Json {
+  let obj : Map[String, Json] = {
+    "show_timestamp": Json::boolean(config.show_timestamp),
+    "show_level": Json::boolean(config.show_level),
+    "show_target": Json::boolean(config.show_target),
+    "show_fields": Json::boolean(config.show_fields),
+    "separator": Json::string(config.separator),
+    "field_separator": Json::string(config.field_separator),
+    "template": Json::string(config.template),
+    "color_mode": Json::string(@formatting.color_mode_label(config.color_mode)),
+    "color_support": Json::string(
       @formatting.color_support_label(config.color_support),
     ),
-    "style_markup": @json_parser.JsonValue::String(
+    "style_markup": Json::string(
       @formatting.style_markup_mode_label(config.style_markup),
     ),
-    "target_style_markup": @json_parser.JsonValue::String(
+    "target_style_markup": Json::string(
       @formatting.style_markup_mode_label(config.target_style_markup),
     ),
-    "fields_style_markup": @json_parser.JsonValue::String(
+    "fields_style_markup": Json::string(
       @formatting.style_markup_mode_label(config.fields_style_markup),
     ),
   }
   if config.style_tags.length() != 0 {
     obj["style_tags"] = style_tags_config_to_json(config.style_tags)
   }
-  @json_parser.JsonValue::Object(obj)
+  Json::object(obj)
 }
 
 ///|
-fn text_style_config_to_json(
-  style : @formatting.TextStyle,
-) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = {
-    "bold": @json_parser.JsonValue::Bool(style.bold),
-    "dim": @json_parser.JsonValue::Bool(style.dim),
-    "italic": @json_parser.JsonValue::Bool(style.italic),
-    "underline": @json_parser.JsonValue::Bool(style.underline),
+fn text_style_config_to_json(style : @formatting.TextStyle) -> Json {
+  let obj : Map[String, Json] = {
+    "bold": Json::boolean(style.bold),
+    "dim": Json::boolean(style.dim),
+    "italic": Json::boolean(style.italic),
+    "underline": Json::boolean(style.underline),
   }
   match style.fg {
-    Some(value) => obj["fg"] = @json_parser.JsonValue::String(value)
+    Some(value) => obj["fg"] = Json::string(value)
     None => ()
   }
   match style.bg {
-    Some(value) => obj["bg"] = @json_parser.JsonValue::String(value)
+    Some(value) => obj["bg"] = Json::string(value)
     None => ()
   }
-  @json_parser.JsonValue::Object(obj)
+  Json::object(obj)
 }
 
 ///|
 fn style_tags_config_to_json(
   style_tags : Map[String, @formatting.TextStyle],
-) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = Map([])
+) -> Json {
+  let obj : Map[String, Json] = Map([])
   for name, style in style_tags {
     obj[name] = text_style_config_to_json(style)
   }
-  @json_parser.JsonValue::Object(obj)
+  Json::object(obj)
 }
 
 ///|
@@ -598,19 +570,19 @@ pub fn stringify_text_formatter_config(
 ) -> String {
   let value = text_formatter_config_to_json(config)
   if pretty {
-    @json_parser.stringify_pretty(value, 2)
+    value.stringify(indent=2)
   } else {
-    @json_parser.stringify(value)
+    value.stringify()
   }
 }
 
 ///|
-pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = {
-    "kind": @json_parser.JsonValue::String(sink_kind_label(config.kind)),
-    "path": @json_parser.JsonValue::String(config.path),
-    "append": @json_parser.JsonValue::Bool(config.append),
-    "auto_flush": @json_parser.JsonValue::Bool(config.auto_flush),
+pub fn sink_config_to_json(config : SinkConfig) -> Json {
+  let obj : Map[String, Json] = {
+    "kind": Json::string(sink_kind_label(config.kind)),
+    "path": Json::string(config.path),
+    "append": Json::boolean(config.append),
+    "auto_flush": Json::boolean(config.auto_flush),
     "text_formatter": text_formatter_config_to_json(config.text_formatter),
   }
   match config.rotation {
@@ -618,7 +590,7 @@ pub fn sink_config_to_json(config : SinkConfig) -> @json_parser.JsonValue {
     Some(rotation) =>
       obj["rotation"] = @file_model.file_rotation_config_to_json(rotation)
   }
-  @json_parser.JsonValue::Object(obj)
+  Json::object(obj)
 }
 
 ///|
@@ -628,25 +600,25 @@ pub fn stringify_sink_config(
 ) -> String {
   let value = sink_config_to_json(config)
   if pretty {
-    @json_parser.stringify_pretty(value, 2)
+    value.stringify(indent=2)
   } else {
-    @json_parser.stringify(value)
+    value.stringify()
   }
 }
 
 ///|
-pub fn logger_config_to_json(config : LoggerConfig) -> @json_parser.JsonValue {
-  let obj : Map[String, @json_parser.JsonValue] = {
-    "min_level": @json_parser.JsonValue::String(config.min_level.label()),
-    "target": @json_parser.JsonValue::String(config.target),
-    "timestamp": @json_parser.JsonValue::Bool(config.timestamp),
+pub fn logger_config_to_json(config : LoggerConfig) -> Json {
+  let obj : Map[String, Json] = {
+    "min_level": Json::string(config.min_level.label()),
+    "target": Json::string(config.target),
+    "timestamp": Json::boolean(config.timestamp),
     "sink": sink_config_to_json(config.sink),
   }
   match config.queue {
     None => ()
     Some(queue) => obj["queue"] = queue_config_to_json(queue)
   }
-  @json_parser.JsonValue::Object(obj)
+  Json::object(obj)
 }
 
 ///|
@@ -656,8 +628,8 @@ pub fn stringify_logger_config(
 ) -> String {
   let value = logger_config_to_json(config)
   if pretty {
-    @json_parser.stringify_pretty(value, 2)
+    value.stringify(indent=2)
   } else {
-    @json_parser.stringify(value)
+    value.stringify()
   }
 }

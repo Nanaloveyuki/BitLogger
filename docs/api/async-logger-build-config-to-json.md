@@ -13,14 +13,14 @@ key-word:
 
 ## Async-logger-build-config-to-json
 
-Convert `AsyncLoggerBuildConfig` into a `JsonValue`. This helper exports both the base synchronous logger config and the async runtime config as one structured payload.
+Convert `AsyncLoggerBuildConfig` into a `Json`. This helper exports both the base synchronous logger config and the async runtime config as one structured payload.
 
 ### Interface
 
 ```moonbit
 pub fn async_logger_build_config_to_json(
   config : AsyncLoggerBuildConfig,
-) -> @json_parser.JsonValue {}
+) -> Json {}
 ```
 
 #### input
@@ -29,7 +29,7 @@ pub fn async_logger_build_config_to_json(
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the full async build config.
+- `Json` - Structured JSON representation of the full async build config.
 
 ### Explanation
 

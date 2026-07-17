@@ -13,12 +13,12 @@ key-word:
 
 ## Queue-config-to-json
 
-Convert a typed `QueueConfig` into a `JsonValue`. This helper is the structured export path for synchronous queue wrapper configuration when callers want machine-readable config output.
+Convert a typed `QueueConfig` into a `Json`. This helper is the structured export path for synchronous queue wrapper configuration when callers want machine-readable config output.
 
 ### Interface
 
 ```moonbit
-pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {}
+pub fn queue_config_to_json(queue : QueueConfig) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn queue_config_to_json(queue : QueueConfig) -> @json_parser.JsonValue {}
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the queue config.
+- `Json` - Structured JSON representation of the queue config.
 
 ### Explanation
 
@@ -74,5 +74,5 @@ e.g.:
 
 1. Use this helper when you need a reusable JSON value rather than a final JSON string.
 
-2. Use `stringify_queue_config(...)` when the next consumer expects text instead of `JsonValue`.
+2. Use `stringify_queue_config(...)` when the next consumer expects text instead of `Json`.
 

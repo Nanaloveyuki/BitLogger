@@ -29,9 +29,7 @@ pub fn native_files_supported() -> Bool {
 }
 
 ///|
-pub fn file_sink_policy_to_json(
-  policy : FileSinkPolicy,
-) -> @json_parser.JsonValue {
+pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> Json {
   @file_model.file_sink_policy_to_json(policy)
 }
 
@@ -44,7 +42,7 @@ pub fn stringify_file_sink_policy(
 }
 
 ///|
-pub fn file_sink_state_to_json(state : FileSinkState) -> @json_parser.JsonValue {
+pub fn file_sink_state_to_json(state : FileSinkState) -> Json {
   @file_model.file_sink_state_to_json(state)
 }
 

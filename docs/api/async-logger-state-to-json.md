@@ -13,12 +13,12 @@ key-word:
 
 ## Async-logger-state-to-json
 
-Convert `AsyncLoggerState` into a `JsonValue`. This helper is the structured export path for async logger runtime snapshots or manually constructed state values when callers want machine-readable diagnostics instead of a plain string.
+Convert `AsyncLoggerState` into a `Json`. This helper is the structured export path for async logger runtime snapshots or manually constructed state values when callers want machine-readable diagnostics instead of a plain string.
 
 ### Interface
 
 ```moonbit
-pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.JsonValue {}
+pub fn async_logger_state_to_json(state : AsyncLoggerState) -> Json {}
 ```
 
 #### input
@@ -27,7 +27,7 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> @json_parser.Json
 
 #### output
 
-- `JsonValue` - Structured JSON representation of the async logger snapshot.
+- `Json` - Structured JSON representation of the async logger snapshot.
 
 ### Explanation
 
@@ -62,7 +62,7 @@ In this example, callers receive a structured value that can be composed into la
 When another serializer or pipeline expects a JSON value:
 ```moonbit
 let payload = async_logger_state_to_json(logger.state())
-println(@json_parser.stringify(payload))
+println(payload.stringify())
 ```
 
 In this example, the helper stays useful even outside the built-in stringify wrapper.

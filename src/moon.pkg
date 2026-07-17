@@ -9,7 +9,6 @@ import {
   "Nanaloveyuki/BitLogger/src/queue_model",
   "Nanaloveyuki/BitLogger/src/runtime",
   "Nanaloveyuki/BitLogger/src/sink_graph",
-  "maria/json_parser",
   "moonbitlang/core/array",
   "moonbitlang/core/builtin",
   "moonbitlang/core/env",

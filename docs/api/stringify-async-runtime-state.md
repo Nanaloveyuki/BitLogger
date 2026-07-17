@@ -40,7 +40,7 @@ Detailed rules explaining key parameters and behaviors
 - `pretty=false` returns compact JSON.
 - `pretty=true` returns indented JSON for human diagnostics.
 - This helper is built on top of `async_runtime_state_to_json(...)`.
-- Internally it serializes the `JsonValue` result with `@json_parser.stringify(...)` or `@json_parser.stringify_pretty(value, 2)`, so the text form stays aligned with the structured runtime-state export helper.
+- Internally it serializes the `Json` result with `value.stringify(...)` or `value.stringify(indent=2)`, so the text form stays aligned with the structured runtime-state export helper.
 - The compact form matches the tested snapshot shape such as `{"mode":"native_worker","background_worker":true}`.
 - It is well-suited for startup banners, support reports, and target capability logs.
 
@@ -79,5 +79,5 @@ e.g.:
 
 2. This helper is the direct text form of the same two-field runtime snapshot exported by `async_runtime_state_to_json(...)`.
 
-3. Use `async_runtime_state_to_json(...)` when the next consumer still needs a `JsonValue` for composition before final stringification.
+3. Use `async_runtime_state_to_json(...)` when the next consumer still needs a `Json` for composition before final stringification.
 
