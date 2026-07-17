@@ -17,6 +17,24 @@ type Record = @core.Record
 type RecordFormatter = @formatting.RecordFormatter
 
 ///|
+priv struct RotationFileOps {
+  file_exists : (String) -> Bool
+  remove_file : (String) -> Bool
+  rename_file : (String, String) -> Bool
+}
+
+///|
+fn default_rotation_file_ops() -> RotationFileOps {
+  {
+    file_exists: fn(path) { @utils.file_exists_internal(path) },
+    remove_file: fn(path) { @utils.remove_file_internal(path) },
+    rename_file: fn(from_path, to_path) {
+      @utils.rename_file_internal(from_path, to_path)
+    },
+  }
+}
+
+///|
 pub struct FileSink {
   priv path : String
   priv append : Ref[Bool]
@@ -31,6 +49,7 @@ pub struct FileSink {
   priv write_failures : Ref[Int]
   priv flush_failures : Ref[Int]
   priv rotation_failures : Ref[Int]
+  priv rotation_file_ops : Ref[RotationFileOps]
 }
 
 ///|
@@ -61,6 +80,7 @@ pub fn file_sink(
     write_failures: Ref(0),
     flush_failures: Ref(0),
     rotation_failures: Ref(0),
+    rotation_file_ops: Ref(default_rotation_file_ops()),
   }
 }
 
@@ -292,6 +312,28 @@ fn rotated_file_path(path : String, index : Int) -> String {
 }
 
 ///|
+fn remove_file_if_present(ops : RotationFileOps, path : String) -> Bool {
+  if !(ops.file_exists)(path) {
+    true
+  } else {
+    (ops.remove_file)(path) || !(ops.file_exists)(path)
+  }
+}
+
+///|
+fn rename_file_if_present(
+  ops : RotationFileOps,
+  from_path : String,
+  to_path : String,
+) -> Bool {
+  if !(ops.file_exists)(from_path) {
+    true
+  } else {
+    (ops.rename_file)(from_path, to_path) || !(ops.file_exists)(from_path)
+  }
+}
+
+///|
 fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
   let closed = match sink.handle.val {
     None => true
@@ -304,23 +346,27 @@ fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
   if !closed {
     return false
   }
+  let ops = sink.rotation_file_ops.val
   if rotation.max_backups > 0 {
-    ignore(
-      @utils.remove_file_internal(
+    if !remove_file_if_present(
+        ops,
         rotated_file_path(sink.path, rotation.max_backups),
-      ),
-    )
+      ) {
+      return false
+    }
     for index = rotation.max_backups - 1; index >= 1; {
       let from_path = rotated_file_path(sink.path, index)
       let to_path = rotated_file_path(sink.path, index + 1)
-      ignore(@utils.rename_file_internal(from_path, to_path))
+      if !rename_file_if_present(ops, from_path, to_path) {
+        return false
+      }
       continue index - 1
     }
-    ignore(
-      @utils.rename_file_internal(sink.path, rotated_file_path(sink.path, 1)),
-    )
-  } else {
-    ignore(@utils.remove_file_internal(sink.path))
+    if !rename_file_if_present(ops, sink.path, rotated_file_path(sink.path, 1)) {
+      return false
+    }
+  } else if !remove_file_if_present(ops, sink.path) {
+    return false
   }
   sink.handle.val = @utils.open_file_handle_internal(sink.path, false)
   sink.handle.val is Some(_)

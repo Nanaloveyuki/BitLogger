@@ -13,6 +13,12 @@ pub fn open_file_handle_internal(path : String, append : Bool) -> FileHandle? {
 }
 
 ///|
+pub fn file_exists_internal(path : String) -> Bool {
+  ignore(path)
+  false
+}
+
+///|
 pub fn write_file_handle_internal(
   handle : FileHandle,
   content : String,

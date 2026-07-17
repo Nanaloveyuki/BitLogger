@@ -2,7 +2,7 @@
 name: file-sink-rotation-failures
 group: api
 category: sink
-update-time: 20260707
+update-time: 20260717
 description: Read the number of rotation failures recorded by a FileSink.
 key-word:
     - file
@@ -36,6 +36,7 @@ Detailed rules explaining key parameters and behaviors
 - The sink reports its recorded rotation-failure count directly.
 - The counter increases when a rotation attempt cannot complete its critical file steps, such as removing the active file with zero backups, renaming a live file into `.1`, shifting an existing backup to a higher slot, or reopening the fresh active file afterward.
 - Missing optional backup slots do not count by themselves; only steps that fail while their source path still exists are treated as rotation failures.
+- When a critical rotation step fails, the triggering record is not written and the sink remains unavailable until an explicit reopen succeeds.
 - The counter is cumulative until reset.
 - This helper is observation-only and does not mutate sink state.
 
@@ -69,6 +70,8 @@ e.g.:
 - This counter alone does not identify which rename/remove/reopen step failed.
 
 - This counter alone does not say whether the sink is currently available.
+
+- After a recorded rotation failure, use `reopen_append()` only after the underlying filesystem condition has been resolved.
 
 ### Notes
 

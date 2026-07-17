@@ -25,6 +25,8 @@ pub fn default_style_tag_registry() -> @formatting.StyleTagRegistry
 
 pub fn field_equals(String, String) -> (@core.Record) -> Bool
 
+pub fn file_exists_internal(String) -> Bool
+
 pub fn file_size_i64_internal(FileHandle) -> Int64
 
 pub fn flush_file_handle_internal(FileHandle) -> Bool

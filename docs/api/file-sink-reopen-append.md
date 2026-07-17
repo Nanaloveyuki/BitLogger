@@ -2,7 +2,7 @@
 name: file-sink-reopen-append
 group: api
 category: sink
-update-time: 20260613
+update-time: 20260717
 description: Reopen a FileSink in append mode.
 key-word:
     - file
@@ -37,6 +37,7 @@ Detailed rules explaining key parameters and behaviors
 - Reopen behavior is fixed to append mode.
 - The stored append policy is updated to `true` as part of the reopen path.
 - On failure, the sink remains unavailable and `open_failures` is incremented.
+- After a rotation failure, this is the explicit recovery path once the underlying remove, rename, or open condition has been resolved.
 
 ### How to Use
 
