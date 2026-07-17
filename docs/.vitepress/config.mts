@@ -124,6 +124,84 @@ function buildExtendSidebar(): DefaultTheme.SidebarItem[] {
   ]
 }
 
+function buildChineseExamplesSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    { text: '概览', link: '/zh/examples/' },
+    { text: '控制台与结构化字段', link: '/zh/examples/console' },
+    { text: '文件输出与轮转', link: '/zh/examples/file-rotation' },
+    { text: '配置驱动构建', link: '/zh/examples/config' },
+    { text: '异步日志生命周期', link: '/zh/examples/async' },
+  ]
+}
+
+function buildChineseExtendSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    { text: '概览', link: '/zh/extend/' },
+    { text: '队列与溢出策略', link: '/zh/extend/queue' },
+    { text: 'Sink 组合', link: '/zh/extend/composition' },
+    { text: '文本格式与样式', link: '/zh/extend/formatting' },
+    { text: '目标平台边界', link: '/zh/extend/targets' },
+  ]
+}
+
+const englishThemeConfig: DefaultTheme.Config = {
+  siteTitle: 'BitLogger',
+  nav: [
+    { text: 'Home', link: '/' },
+    { text: 'Examples', link: '/examples/' },
+    { text: 'Extend', link: '/extend/' },
+    { text: 'API', link: '/api/' },
+    { text: 'Changes', link: '/changes/' },
+    { text: 'Mooncake', link: 'https://mooncakes.io/docs/Nanaloveyuki/BitLogger' },
+  ],
+  search: {
+    provider: 'local',
+  },
+  socialLinks: [{ icon: 'github', link: repository }],
+  editLink: {
+    pattern: `${repository}/edit/main/docs/:path`,
+    text: 'Edit this page on GitHub',
+  },
+  sidebar: {
+    '/examples/': buildExamplesSidebar(),
+    '/extend/': buildExtendSidebar(),
+    '/api/': buildApiSidebar(),
+    '/changes/': buildChangesSidebar(),
+  },
+  footer: {
+    message: 'Published from the repository docs folder with VitePress.',
+    copyright: 'MIT',
+  },
+}
+
+const chineseThemeConfig: DefaultTheme.Config = {
+  siteTitle: 'BitLogger',
+  nav: [
+    { text: '首页', link: '/zh/' },
+    { text: '示例', link: '/zh/examples/' },
+    { text: '扩展', link: '/zh/extend/' },
+    { text: 'API（英文）', link: '/api/' },
+    { text: '更新记录（英文）', link: '/changes/' },
+    { text: 'Mooncake', link: 'https://mooncakes.io/docs/Nanaloveyuki/BitLogger' },
+  ],
+  search: {
+    provider: 'local',
+  },
+  socialLinks: [{ icon: 'github', link: repository }],
+  editLink: {
+    pattern: `${repository}/edit/main/docs/:path`,
+    text: '在 GitHub 上编辑此页',
+  },
+  sidebar: {
+    '/zh/examples/': buildChineseExamplesSidebar(),
+    '/zh/extend/': buildChineseExtendSidebar(),
+  },
+  footer: {
+    message: '由仓库中的 VitePress 文档构建。',
+    copyright: 'MIT',
+  },
+}
+
 export default defineConfig({
   title: 'BitLogger',
   description: 'Structured logging library docs for MoonBit.',
@@ -134,33 +212,18 @@ export default defineConfig({
   markdown: {
     languages: [createMoonbitLanguageRegistration()],
   },
-  themeConfig: {
-    siteTitle: 'BitLogger',
-    nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/examples/' },
-      { text: 'Extend', link: '/extend/' },
-      { text: 'API', link: '/api/' },
-      { text: 'Changes', link: '/changes/' },
-      { text: 'Mooncake', link: 'https://mooncakes.io/docs/Nanaloveyuki/BitLogger' },
-    ],
-    search: {
-      provider: 'local',
+  themeConfig: englishThemeConfig,
+  locales: {
+    root: {
+      label: 'English',
+      lang: 'en-US',
+      themeConfig: englishThemeConfig,
     },
-    socialLinks: [{ icon: 'github', link: repository }],
-    editLink: {
-      pattern: `${repository}/edit/main/docs/:path`,
-      text: 'Edit this page on GitHub',
-    },
-    sidebar: {
-      '/examples/': buildExamplesSidebar(),
-      '/extend/': buildExtendSidebar(),
-      '/api/': buildApiSidebar(),
-      '/changes/': buildChangesSidebar(),
-    },
-    footer: {
-      message: 'Published from the repository docs folder with VitePress.',
-      copyright: 'MIT',
+    zh: {
+      label: '简体中文',
+      lang: 'zh-CN',
+      link: '/zh/',
+      themeConfig: chineseThemeConfig,
     },
   },
 })
