@@ -147,7 +147,7 @@ test "application logger parse-build matches parsed direct builder behavior" {
 ///|
 test "parsed application logger keeps direct runtime helper surface" {
   let logger : ApplicationLogger = parse_and_build_application_logger(
-    "{\"min_level\":\"warn\",\"target\":\"app.json.helpers\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"app-json-helpers.log\"}}",
+    "{\"min_level\":\"warn\",\"target\":\"app.json.helpers\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"logs/app-json-helpers.log\"}}",
   )
 
   logger.error("one")

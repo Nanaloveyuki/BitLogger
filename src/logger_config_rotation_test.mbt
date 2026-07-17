@@ -43,13 +43,13 @@ test "logger config stringify roundtrips file rotation fields" {
     LoggerConfig::new(
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="bitlogger.log",
+        path="logs/bitlogger.log",
         rotation=Some(file_rotation(256, max_backups=2)),
       ),
     ),
   )
   let config = parse_logger_config_text(text)
-  inspect(config.sink.path, content="bitlogger.log")
+  inspect(config.sink.path, content="logs/bitlogger.log")
   match config.sink.rotation {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="256")
@@ -66,13 +66,13 @@ test "logger config stringify roundtrips file rotation i64 metadata" {
     LoggerConfig::new(
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="bitlogger.log",
+        path="logs/bitlogger.log",
         rotation=Some(file_rotation_i64(4294967296L, max_backups=2)),
       ),
     ),
   )
   let config = parse_logger_config_text(text)
-  inspect(config.sink.path, content="bitlogger.log")
+  inspect(config.sink.path, content="logs/bitlogger.log")
   match config.sink.rotation {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="2147483647")

@@ -40,7 +40,7 @@ test "logger config presets use expected defaults" {
 
 ///|
 test "file preset uses file sink defaults" {
-  let config = file("bitlogger.log")
+  let config = file("logs/bitlogger.log")
   inspect(config.min_level.label(), content="INFO")
   inspect(config.target, content="")
   inspect(config.timestamp, content="false")
@@ -51,7 +51,7 @@ test "file preset uses file sink defaults" {
     },
     content="File",
   )
-  inspect(config.sink.path, content="bitlogger.log")
+  inspect(config.sink.path, content="logs/bitlogger.log")
   inspect(config.sink.append, content="true")
   inspect(config.sink.auto_flush, content="true")
   inspect(config.sink.rotation is None, content="true")
@@ -86,7 +86,7 @@ test "preset helpers compose queue and file rotation without losing config" {
     separator=" | ",
   )
   let config = file(
-    "service.log",
+    "logs/service.log",
     min_level=Level::Warn,
     target="svc.worker",
     timestamp=true,
@@ -102,7 +102,7 @@ test "preset helpers compose queue and file rotation without losing config" {
   inspect(config.min_level.label(), content="WARN")
   inspect(config.target, content="svc.worker")
   inspect(config.timestamp, content="true")
-  inspect(config.sink.path, content="service.log")
+  inspect(config.sink.path, content="logs/service.log")
   inspect(config.sink.append, content="false")
   inspect(config.sink.auto_flush, content="false")
   inspect(config.sink.text_formatter.show_timestamp, content="false")
@@ -132,11 +132,15 @@ test "preset helpers compose queue and file rotation without losing config" {
 ///|
 test "queue helper preserves file rotation when applied after rotation" {
   let config = with_queue(
-    with_file_rotation(file("service.log", append=false), 256, max_backups=2),
+    with_file_rotation(
+      file("logs/service.log", append=false),
+      256,
+      max_backups=2,
+    ),
     max_pending=8,
     overflow=QueueOverflowPolicy::DropNewest,
   )
-  inspect(config.sink.path, content="service.log")
+  inspect(config.sink.path, content="logs/service.log")
   inspect(config.sink.append, content="false")
   match config.queue {
     Some(queue) => {
@@ -163,11 +167,11 @@ test "queue helper preserves file rotation when applied after rotation" {
 ///|
 test "file rotation i64 helper preserves file preset shape" {
   let config = with_file_rotation_i64(
-    with_queue(file("service.log", append=false), max_pending=8),
+    with_queue(file("logs/service.log", append=false), max_pending=8),
     4294967296L,
     max_backups=2,
   )
-  inspect(config.sink.path, content="service.log")
+  inspect(config.sink.path, content="logs/service.log")
   inspect(config.sink.append, content="false")
   match config.sink.rotation {
     Some(rotation) => {

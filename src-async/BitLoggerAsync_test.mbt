@@ -2404,7 +2404,7 @@ async test "library async parse-build unwrap matches parsed direct async builder
 
 ///|
 async test "library async parse-build unwrap preserves file-backed runtime helpers" {
-  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"async-lib-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
+  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.lib.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"logs/async-lib-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let logger = parse_and_build_library_async_logger(raw)
   let full = logger.to_async_logger()
   let direct = build_async_logger(parse_async_logger_build_config_text(raw))
@@ -2920,7 +2920,7 @@ test "library async text logger ignores sink kind and still uses text formatter"
         target="async.lib.text.kind",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::File,
-          path="ignored.log",
+          path="logs/ignored.log",
           text_formatter=@bitlogger.TextFormatterConfig::new(
             show_timestamp=false,
             separator=" | ",
@@ -3233,7 +3233,7 @@ async test "async logger projection preserves file-backed runtime helpers throug
         target="async.projected.file",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::File,
-          path="async-projected-file.log",
+          path="logs/async-projected-file.log",
         ),
         queue=Some(
           @bitlogger.QueueConfig::new(
@@ -3530,7 +3530,7 @@ async test "application async builder preserves file-backed runtime helpers" {
       target="async.app.file.same-build",
       sink=@bitlogger.SinkConfig::new(
         kind=@bitlogger.SinkKind::File,
-        path="async-app-file-same-build.log",
+        path="logs/async-app-file-same-build.log",
       ),
       queue=Some(
         @bitlogger.QueueConfig::new(
@@ -4384,7 +4384,7 @@ test "application text async logger ignores sink kind and still uses text format
         target="async.app.text.kind.alias",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::File,
-          path="ignored.log",
+          path="logs/ignored.log",
           text_formatter=@bitlogger.TextFormatterConfig::new(
             show_timestamp=false,
             separator=" | ",
@@ -4462,7 +4462,7 @@ test "build async text logger ignores sink kind and still uses text formatter" {
         target="async.text.kind",
         sink=@bitlogger.SinkConfig::new(
           kind=@bitlogger.SinkKind::File,
-          path="ignored.log",
+          path="logs/ignored.log",
           text_formatter=@bitlogger.TextFormatterConfig::new(
             show_timestamp=false,
             separator=" | ",
@@ -4959,7 +4959,7 @@ async test "application async parse-build matches parsed direct async builder be
 
 ///|
 async test "application async parse-build preserves file-backed runtime helpers" {
-  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"async-app-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
+  let raw = "{\"logger\":{\"min_level\":\"warn\",\"target\":\"async.app.json.file.same-build\",\"queue\":{\"max_pending\":3,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"logs/async-app-json-file-same-build.log\"}},\"async_config\":{\"max_pending\":2,\"overflow\":\"DropOldest\",\"max_batch\":1,\"linger_ms\":0,\"flush\":\"Shutdown\"}}"
   let application = parse_and_build_application_async_logger(raw)
   let direct = build_async_logger(parse_async_logger_build_config_text(raw))
 

@@ -143,7 +143,7 @@ test "library logger parse-build unwrap matches parsed direct builder behavior" 
 
 ///|
 test "library logger parse-build unwrap preserves file runtime helpers" {
-  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.file.same-build\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"lib-json-file-same-build.log\"}}"
+  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.file.same-build\",\"queue\":{\"max_pending\":2,\"overflow\":\"DropOldest\"},\"sink\":{\"kind\":\"file\",\"path\":\"logs/lib-json-file-same-build.log\"}}"
   let logger = parse_and_build_library_logger(raw)
   let full = logger.to_logger()
   let configured = parse_and_build_logger(raw)
@@ -208,7 +208,7 @@ test "library logger parse-build unwrap preserves file runtime helpers" {
 
 ///|
 test "library logger parse-build unwrap preserves file controls" {
-  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.file.controls.same-build\",\"sink\":{\"kind\":\"file\",\"path\":\"lib-json-file-controls-same-build.log\"}}"
+  let raw = "{\"min_level\":\"warn\",\"target\":\"lib.json.file.controls.same-build\",\"sink\":{\"kind\":\"file\",\"path\":\"logs/lib-json-file-controls-same-build.log\"}}"
   let logger = parse_and_build_library_logger(raw)
   let full = logger.to_logger()
   let configured = parse_and_build_logger(raw)

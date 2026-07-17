@@ -7,7 +7,7 @@ test "runtime sink plain variants use documented fallback counts" {
   inspect(console_sink.drain(), content="0")
 
   let file_sink = RuntimeSink::File(
-    file_sink("runtime-direct.log", auto_flush=false),
+    file_sink("logs/runtime-direct.log", auto_flush=false),
   )
   inspect(file_sink.pending_count(), content="0")
   inspect(file_sink.dropped_count(), content="0")
@@ -81,17 +81,17 @@ test "runtime sink non-file variants expose documented file fallbacks" {
 test "runtime sink plain file helpers expose direct file state and policy" {
   let sink = RuntimeSink::File(
     file_sink(
-      "runtime-file-helpers.log",
+      "logs/runtime-file-helpers.log",
       auto_flush=false,
       rotation=Some(file_rotation(40, max_backups=2)),
     ),
   )
   inspect(sink.file_available() == native_files_supported(), content="true")
   match sink.file_path_or_none() {
-    Some(path) => inspect(path, content="runtime-file-helpers.log")
+    Some(path) => inspect(path, content="logs/runtime-file-helpers.log")
     None => inspect(false, content="true")
   }
-  inspect(sink.file_path(), content="runtime-file-helpers.log")
+  inspect(sink.file_path(), content="logs/runtime-file-helpers.log")
   inspect(sink.file_append_mode(), content="true")
   inspect(sink.file_auto_flush(), content="false")
   inspect(sink.file_rotation_enabled(), content="true")
@@ -125,14 +125,14 @@ test "runtime sink plain file helpers expose direct file state and policy" {
   }
   match sink.file_state_or_none() {
     Some(snapshot) => {
-      inspect(snapshot.path, content="runtime-file-helpers.log")
+      inspect(snapshot.path, content="logs/runtime-file-helpers.log")
       inspect(snapshot.append, content="true")
       inspect(snapshot.auto_flush, content="false")
     }
     None => inspect(false, content="true")
   }
   let state = sink.file_state()
-  inspect(state.path, content="runtime-file-helpers.log")
+  inspect(state.path, content="logs/runtime-file-helpers.log")
   inspect(state.available == sink.file_available(), content="true")
   inspect(state.append, content="true")
   inspect(state.auto_flush, content="false")
@@ -141,7 +141,7 @@ test "runtime sink plain file helpers expose direct file state and policy" {
       inspect(snapshot.queued, content="false")
       inspect(snapshot.pending_count, content="0")
       inspect(snapshot.dropped_count, content="0")
-      inspect(snapshot.file.path, content="runtime-file-helpers.log")
+      inspect(snapshot.file.path, content="logs/runtime-file-helpers.log")
     }
     None => inspect(false, content="true")
   }
@@ -170,7 +170,7 @@ test "runtime sink plain file helpers expose direct file state and policy" {
 test "runtime sink queued file helpers preserve queue-aware file runtime state" {
   let sink = RuntimeSink::QueuedFile(
     queued_sink(
-      file_sink("runtime-queued-file.log", auto_flush=false),
+      file_sink("logs/runtime-queued-file.log", auto_flush=false),
       max_pending=2,
       overflow=QueueOverflowPolicy::DropNewest,
     ),
@@ -185,10 +185,10 @@ test "runtime sink queued file helpers preserve queue-aware file runtime state" 
   logger.info("three")
   inspect(sink.file_available() == native_files_supported(), content="true")
   match sink.file_path_or_none() {
-    Some(path) => inspect(path, content="runtime-queued-file.log")
+    Some(path) => inspect(path, content="logs/runtime-queued-file.log")
     None => inspect(false, content="true")
   }
-  inspect(sink.file_path(), content="runtime-queued-file.log")
+  inspect(sink.file_path(), content="logs/runtime-queued-file.log")
   inspect(sink.file_policy_or_none() is None, content="false")
   inspect(sink.file_default_policy_or_none() is None, content="false")
   inspect(sink.file_state_or_none() is None, content="false")
@@ -199,7 +199,7 @@ test "runtime sink queued file helpers preserve queue-aware file runtime state" 
       inspect(snapshot.queued, content="true")
       inspect(snapshot.pending_count, content="2")
       inspect(snapshot.dropped_count, content="1")
-      inspect(snapshot.file.path, content="runtime-queued-file.log")
+      inspect(snapshot.file.path, content="logs/runtime-queued-file.log")
     }
     None => inspect(false, content="true")
   }

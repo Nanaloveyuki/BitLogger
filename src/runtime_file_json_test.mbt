@@ -29,7 +29,7 @@ test "file state json helpers stringify stable snapshots" {
 
   let plain = file_sink_state_to_json(
     FileSinkState::new(
-      "demo.log",
+      "logs/demo.log",
       available=true,
       append=false,
       auto_flush=true,
@@ -48,11 +48,11 @@ test "file state json helpers stringify stable snapshots" {
     .unwrap()
   inspect(
     @json_parser.stringify(plain),
-    content="{\"path\":\"demo.log\",\"available\":true,\"append\":false,\"auto_flush\":true,\"open_failures\":1,\"write_failures\":2,\"flush_failures\":3,\"rotation_failures\":4,\"rotation\":{\"max_bytes\":64,\"max_backups\":2}}",
+    content="{\"path\":\"logs/demo.log\",\"available\":true,\"append\":false,\"auto_flush\":true,\"open_failures\":1,\"write_failures\":2,\"flush_failures\":3,\"rotation_failures\":4,\"rotation\":{\"max_bytes\":64,\"max_backups\":2}}",
   )
   inspect(
     plain_obj.get("path").unwrap().as_string().unwrap(),
-    content="demo.log",
+    content="logs/demo.log",
   )
   inspect(
     plain_obj.get("available").unwrap().as_bool().unwrap(),
@@ -90,7 +90,7 @@ test "file state json helpers stringify stable snapshots" {
 
   let wide = file_sink_state_to_json(
     FileSinkState::new(
-      "wide.log",
+      "logs/wide.log",
       available=true,
       append=true,
       auto_flush=false,
@@ -132,7 +132,7 @@ test "file state json helpers stringify stable snapshots" {
   inspect(
     stringify_file_sink_state(
       FileSinkState::new(
-        "plain.log",
+        "logs/plain.log",
         available=false,
         append=true,
         auto_flush=false,
@@ -143,7 +143,7 @@ test "file state json helpers stringify stable snapshots" {
         rotation_failures=0,
       ),
     ),
-    content="{\"path\":\"plain.log\",\"available\":false,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":0,\"flush_failures\":0,\"rotation_failures\":0,\"rotation\":null}",
+    content="{\"path\":\"logs/plain.log\",\"available\":false,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":0,\"flush_failures\":0,\"rotation_failures\":0,\"rotation\":null}",
   )
 }
 
@@ -152,7 +152,7 @@ test "runtime file state json helpers stringify queue snapshots" {
   let runtime_json = runtime_file_state_to_json(
     RuntimeFileState::new(
       FileSinkState::new(
-        "queue.log",
+        "logs/queue.log",
         available=true,
         append=true,
         auto_flush=false,
@@ -180,7 +180,7 @@ test "runtime file state json helpers stringify queue snapshots" {
   )
   inspect(
     runtime_file_obj.get("path").unwrap().as_string().unwrap(),
-    content="queue.log",
+    content="logs/queue.log",
   )
   inspect(
     runtime_file_obj.get("available").unwrap().as_bool().unwrap(),
@@ -194,7 +194,7 @@ test "runtime file state json helpers stringify queue snapshots" {
   let json = stringify_runtime_file_state(
     RuntimeFileState::new(
       FileSinkState::new(
-        "queue.log",
+        "logs/queue.log",
         available=true,
         append=true,
         auto_flush=false,
@@ -211,13 +211,13 @@ test "runtime file state json helpers stringify queue snapshots" {
   )
   inspect(
     json,
-    content="{\"file\":{\"path\":\"queue.log\",\"available\":true,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":1,\"flush_failures\":2,\"rotation_failures\":3,\"rotation\":null},\"queued\":true,\"pending_count\":7,\"dropped_count\":5}",
+    content="{\"file\":{\"path\":\"logs/queue.log\",\"available\":true,\"append\":true,\"auto_flush\":false,\"open_failures\":0,\"write_failures\":1,\"flush_failures\":2,\"rotation_failures\":3,\"rotation\":null},\"queued\":true,\"pending_count\":7,\"dropped_count\":5}",
   )
 
   let wide_runtime_json = runtime_file_state_to_json(
     RuntimeFileState::new(
       FileSinkState::new(
-        "wide-queue.log",
+        "logs/wide-queue.log",
         available=true,
         append=true,
         auto_flush=true,

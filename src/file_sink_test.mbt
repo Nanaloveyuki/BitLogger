@@ -8,11 +8,11 @@ test "native file support flag is queryable" {
 
 ///|
 test "file sink availability reflects backend support" {
-  let sink = file_sink("bitlogger-test.log")
+  let sink = file_sink("logs/bitlogger-test.log")
   let state = sink.state()
-  inspect(sink.path(), content="bitlogger-test.log")
+  inspect(sink.path(), content="logs/bitlogger-test.log")
   inspect(sink.is_available() == native_files_supported(), content="true")
-  inspect(state.path, content="bitlogger-test.log")
+  inspect(state.path, content="logs/bitlogger-test.log")
   inspect(state.available == sink.is_available(), content="true")
   inspect(state.append == sink.append_mode(), content="true")
   inspect(state.auto_flush == sink.auto_flush_enabled(), content="true")
@@ -42,7 +42,7 @@ test "file sink availability reflects backend support" {
 ///|
 test "file sink unavailable backend keeps stable fallback state" {
   let sink = file_sink(
-    "bitlogger-unavailable.log",
+    "logs/bitlogger-unavailable.log",
     rotation=Some(file_rotation(64, max_backups=2)),
   )
   if sink.is_available() {
@@ -73,7 +73,10 @@ test "file sink rotation config normalizes invalid inputs" {
   let rotation = file_rotation(0, max_backups=0)
   inspect(rotation.max_bytes, content="1")
   inspect(rotation.max_backups, content="1")
-  let sink = file_sink("bitlogger-rotation-config.log", rotation=Some(rotation))
+  let sink = file_sink(
+    "logs/bitlogger-rotation-config.log",
+    rotation=Some(rotation),
+  )
   inspect(sink.rotation_enabled(), content="true")
   match sink.rotation_config() {
     Some(config) => {
@@ -97,7 +100,7 @@ test "file rotation i64 preserves wide threshold metadata" {
 
 ///|
 test "file sink setters update auto flush and rotation state" {
-  let sink = file_sink("bitlogger-setters.log")
+  let sink = file_sink("logs/bitlogger-setters.log")
   let default_policy = sink.default_policy()
   inspect(sink.append_mode(), content="true")
   inspect(sink.auto_flush_enabled(), content="true")
@@ -146,7 +149,7 @@ test "file sink setters update auto flush and rotation state" {
 ///|
 test "file sink reset policy restores configured defaults" {
   let sink = file_sink(
-    "bitlogger-reset-policy.log",
+    "logs/bitlogger-reset-policy.log",
     append=false,
     auto_flush=false,
     rotation=Some(file_rotation(24, max_backups=3)),
@@ -173,7 +176,7 @@ test "file sink reset policy restores configured defaults" {
 
 ///|
 test "file sink set policy applies bundled runtime policy" {
-  let sink = file_sink("bitlogger-set-policy.log")
+  let sink = file_sink("logs/bitlogger-set-policy.log")
   let default_policy = sink.default_policy()
   sink.set_policy(
     FileSinkPolicy::new(

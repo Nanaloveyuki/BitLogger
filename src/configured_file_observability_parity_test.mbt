@@ -3,7 +3,10 @@ test "configured logger file observation helpers stay aligned with runtime sink 
   let file_logger = build_logger(
     LoggerConfig::new(
       target="config.file.delegate",
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-file-delegate.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-file-delegate.log",
+      ),
     ),
   )
   let file_sink = file_logger.sink
@@ -74,7 +77,7 @@ test "configured logger file policy helpers stay aligned with runtime sink helpe
       target="config.file.policy.delegate",
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-file-policy-delegate.log",
+        path="logs/config-file-policy-delegate.log",
         append=false,
         auto_flush=true,
         rotation=Some(file_rotation(64, max_backups=2)),
@@ -213,7 +216,7 @@ test "configured logger file flush and close stay aligned with runtime sink help
   let file_config = LoggerConfig::new(
     sink=SinkConfig::new(
       kind=SinkKind::File,
-      path="config-file-helper-delegate.log",
+      path="logs/config-file-helper-delegate.log",
     ),
   )
   let file_logger = build_logger(file_config)
@@ -245,7 +248,7 @@ test "configured logger file state helpers stay aligned with runtime sink helper
       target="config.file.state.delegate",
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-file-state-delegate.log",
+        path="logs/config-file-state-delegate.log",
       ),
     ),
   )
@@ -297,7 +300,7 @@ test "configured logger file state helpers stay aligned with runtime sink helper
       target="config.file.runtime.delegate",
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-file-runtime-delegate.log",
+        path="logs/config-file-runtime-delegate.log",
       ),
       queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
     ),

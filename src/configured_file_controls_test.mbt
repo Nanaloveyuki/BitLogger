@@ -2,7 +2,7 @@
 test "configured logger file setters update file sink policy state" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-setters.log"),
+      sink=SinkConfig::new(kind=SinkKind::File, path="logs/config-setters.log"),
       queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropNewest)),
     ),
   )
@@ -61,7 +61,7 @@ test "configured logger reset policy restores configured file defaults" {
     LoggerConfig::new(
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-reset-policy.log",
+        path="logs/config-reset-policy.log",
         append=false,
         auto_flush=false,
         rotation=Some(file_rotation(36, max_backups=2)),
@@ -93,7 +93,10 @@ test "configured logger reset policy restores configured file defaults" {
 test "configured logger set policy applies bundled runtime file policy" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-set-policy.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-set-policy.log",
+      ),
     ),
   )
   let default_policy = logger.file_default_policy()
@@ -140,7 +143,7 @@ test "configured non-file logger cannot reset file policy" {
 test "configured logger can reopen built file sink" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-reopen.log"),
+      sink=SinkConfig::new(kind=SinkKind::File, path="logs/config-reopen.log"),
     ),
   )
   if logger.file_available() {
@@ -199,7 +202,7 @@ test "configured non-file logger cannot reset file failure counters" {
 test "configured logger exposes file flush and close helpers" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-control.log"),
+      sink=SinkConfig::new(kind=SinkKind::File, path="logs/config-control.log"),
     ),
   )
   if logger.file_available() {
@@ -218,7 +221,10 @@ test "configured logger exposes file flush and close helpers" {
 test "configured queued file logger flushes queue through file helper" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-queued-file.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-queued-file.log",
+      ),
       queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
     ),
   )
@@ -257,7 +263,10 @@ test "configured queued file logger flushes queue through file helper" {
 test "configured queued file logger blocks policy mutation while queue is pending" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-queued-policy.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-queued-policy.log",
+      ),
       queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
     ),
   )
@@ -293,7 +302,10 @@ test "configured queued file logger blocks policy mutation while queue is pendin
 test "configured queued file logger close drains queue before teardown" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-close-queued.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-close-queued.log",
+      ),
       queue=Some(QueueConfig::new(4, overflow=QueueOverflowPolicy::DropNewest)),
     ),
   )

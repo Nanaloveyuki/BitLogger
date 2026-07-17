@@ -111,7 +111,7 @@ test "runtime sink progress helpers expose queue and plain file steps separately
   inspect(queued_progress.file_backed, content="false")
 
   let file_sink = RuntimeSink::File(
-    file_sink("runtime-progress-direct.log", auto_flush=false),
+    file_sink("logs/runtime-progress-direct.log", auto_flush=false),
   )
   let file_progress = file_sink.flush_progress()
   inspect(file_progress.queue_advanced_count, content="0")

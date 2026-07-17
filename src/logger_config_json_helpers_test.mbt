@@ -30,7 +30,7 @@ test "config subtype json helpers stringify stable shapes" {
     stringify_sink_config(
       SinkConfig::new(
         kind=SinkKind::File,
-        path="demo.log",
+        path="logs/demo.log",
         append=false,
         auto_flush=false,
         rotation=Some(file_rotation(128, max_backups=2)),
@@ -40,7 +40,7 @@ test "config subtype json helpers stringify stable shapes" {
         ),
       ),
     ),
-    content="{\"kind\":\"file\",\"path\":\"demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\",\"color_support\":\"truecolor\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
+    content="{\"kind\":\"file\",\"path\":\"logs/demo.log\",\"append\":false,\"auto_flush\":false,\"text_formatter\":{\"show_timestamp\":false,\"show_level\":true,\"show_target\":true,\"show_fields\":true,\"separator\":\" \",\"field_separator\":\" \",\"template\":\"\",\"color_mode\":\"auto\",\"color_support\":\"truecolor\",\"style_markup\":\"full\",\"target_style_markup\":\"disabled\",\"fields_style_markup\":\"disabled\"},\"rotation\":{\"max_bytes\":128,\"max_backups\":2}}",
   )
   inspect(
     @json_parser.stringify(
@@ -141,7 +141,7 @@ test "config json helpers export stable structured shapes" {
   let sink_json = sink_config_to_json(
     SinkConfig::new(
       kind=SinkKind::File,
-      path="demo.log",
+      path="logs/demo.log",
       append=false,
       auto_flush=false,
       rotation=Some(file_rotation(128, max_backups=2)),
@@ -161,7 +161,7 @@ test "config json helpers export stable structured shapes" {
   inspect(sink_obj.get("kind").unwrap().as_string().unwrap(), content="file")
   inspect(
     sink_obj.get("path").unwrap().as_string().unwrap(),
-    content="demo.log",
+    content="logs/demo.log",
   )
   inspect(sink_obj.get("append").unwrap().as_bool().unwrap(), content="false")
   inspect(

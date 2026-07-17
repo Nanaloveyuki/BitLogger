@@ -16,7 +16,7 @@ test "configured logger close stays aligned with runtime sink close" {
 
   let file_config = LoggerConfig::new(
     target="config.close.file",
-    sink=SinkConfig::new(kind=SinkKind::File, path="config-close.log"),
+    sink=SinkConfig::new(kind=SinkKind::File, path="logs/config-close.log"),
   )
   let file_logger = build_logger(file_config)
   let file_sink = build_logger(file_config).sink
@@ -110,7 +110,7 @@ test "configured queued console close drains pending queue" {
 test "runtime sink queued file close drains queue before teardown" {
   let sink = RuntimeSink::QueuedFile(
     queued_sink(
-      file_sink("runtime-close-queued.log", auto_flush=false),
+      file_sink("logs/runtime-close-queued.log", auto_flush=false),
       max_pending=4,
     ),
   )

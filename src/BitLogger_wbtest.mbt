@@ -1,6 +1,6 @@
 ///|
 test "file sink tracks rotation failures on unavailable backend" {
-  let path = "bitlogger-rotate.log"
+  let path = "logs/bitlogger-rotate.log"
   ignore(@utils.remove_file_internal(path))
   ignore(@utils.remove_file_internal(path + ".1"))
   let sink = file_sink(path, rotation=Some(file_rotation(1, max_backups=1)))
@@ -19,7 +19,7 @@ test "file sink tracks rotation failures on unavailable backend" {
 
 ///|
 test "file sink reopen and failure counters reflect backend state" {
-  let sink = file_sink("bitlogger-reopen.log")
+  let sink = file_sink("logs/bitlogger-reopen.log")
   if sink.is_available() {
     inspect(sink.append_mode(), content="true")
     inspect(sink.open_failures(), content="0")
@@ -45,7 +45,7 @@ test "file sink reopen and failure counters reflect backend state" {
     inspect(sink.flush_failures(), content="0")
     inspect(sink.rotation_failures(), content="0")
     inspect(sink.close(), content="true")
-    ignore(@utils.remove_file_internal("bitlogger-reopen.log"))
+    ignore(@utils.remove_file_internal("logs/bitlogger-reopen.log"))
   } else {
     inspect(sink.append_mode(), content="true")
     inspect(sink.open_failures(), content="1")
@@ -71,7 +71,7 @@ test "file sink reopen and failure counters reflect backend state" {
 
 ///|
 test "file sink can rotate on native backend" {
-  let path = "bitlogger-rotate-native.log"
+  let path = "logs/bitlogger-rotate-native.log"
   ignore(@utils.remove_file_internal(path))
   ignore(@utils.remove_file_internal(path + ".1"))
   ignore(@utils.remove_file_internal(path + ".2"))
@@ -109,7 +109,7 @@ test "file sink can rotate on native backend" {
 ///|
 #cfg(platform="windows")
 test "file sink rotation failure counts partial backup-chain failure on native backend" {
-  let path = "bitlogger-rotate-partial-failure.log"
+  let path = "logs/bitlogger-rotate-partial-failure.log"
   ignore(@utils.remove_file_internal(path))
   ignore(@utils.remove_file_internal(path + ".1"))
   ignore(@utils.remove_file_internal(path + ".2"))

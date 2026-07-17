@@ -82,7 +82,10 @@ test "configured logger projection preserves file runtime helpers through unwrap
     LoggerConfig::new(
       min_level=Level::Warn,
       target="lib.projected.file",
-      sink=SinkConfig::new(kind=SinkKind::File, path="lib-projected-file.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/lib-projected-file.log",
+      ),
       queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
     ),
   )

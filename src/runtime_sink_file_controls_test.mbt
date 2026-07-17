@@ -1,6 +1,6 @@
 ///|
 test "runtime sink plain file reopen helpers and failure resets work directly" {
-  let sink = RuntimeSink::File(file_sink("runtime-reopen-direct.log"))
+  let sink = RuntimeSink::File(file_sink("logs/runtime-reopen-direct.log"))
   if sink.file_available() {
     inspect(sink.close(), content="true")
     inspect(sink.file_reopen_append(), content="true")
@@ -52,7 +52,7 @@ test "runtime sink plain file reopen helpers and failure resets work directly" {
 ///|
 test "runtime sink queued file reopen helpers and failure resets work directly" {
   let sink = RuntimeSink::QueuedFile(
-    queued_sink(file_sink("runtime-reopen-queued.log"), max_pending=2),
+    queued_sink(file_sink("logs/runtime-reopen-queued.log"), max_pending=2),
   )
   if sink.file_available() {
     inspect(sink.file_close(), content="true")

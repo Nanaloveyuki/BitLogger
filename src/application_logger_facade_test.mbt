@@ -81,7 +81,7 @@ test "application logger keeps configured runtime helper surface" {
     LoggerConfig::new(
       min_level=Level::Warn,
       target="app.alias.helpers",
-      sink=SinkConfig::new(kind=SinkKind::File, path="app-alias.log"),
+      sink=SinkConfig::new(kind=SinkKind::File, path="logs/app-alias.log"),
       queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
     ),
   )
@@ -229,7 +229,10 @@ test "application logger file helpers match direct configured builder behavior" 
   let config = LoggerConfig::new(
     min_level=Level::Warn,
     target="app.file.same-build",
-    sink=SinkConfig::new(kind=SinkKind::File, path="app-file-same-build.log"),
+    sink=SinkConfig::new(
+      kind=SinkKind::File,
+      path="logs/app-file-same-build.log",
+    ),
     queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
   )
   let application = build_application_logger(config)
@@ -344,7 +347,7 @@ test "application logger file controls match direct configured builder behavior"
     target="app.file.controls.same-build",
     sink=SinkConfig::new(
       kind=SinkKind::File,
-      path="app-file-controls-same-build.log",
+      path="logs/app-file-controls-same-build.log",
     ),
   )
   let application = build_application_logger(config)

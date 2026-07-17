@@ -5,7 +5,7 @@ test "configured logger file setters stay aligned with runtime sink setters" {
       target="config.file.setters.delegate",
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-file-setters-delegate.log",
+        path="logs/config-file-setters-delegate.log",
       ),
     ),
   )
@@ -100,7 +100,7 @@ test "configured logger file reopen helpers stay aligned with runtime sink helpe
     LoggerConfig::new(
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-reopen-delegate.log",
+        path="logs/config-reopen-delegate.log",
       ),
     ),
   )
@@ -174,7 +174,7 @@ test "configured logger file reset helpers stay aligned with runtime sink helper
     LoggerConfig::new(
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-reset-delegate.log",
+        path="logs/config-reset-delegate.log",
         append=false,
         auto_flush=false,
         rotation=Some(file_rotation(40, max_backups=2)),

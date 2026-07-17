@@ -45,7 +45,7 @@ test "logger config parser reads formatter and queue options" {
 ///|
 test "logger config parser reads file rotation options" {
   let config = parse_logger_config_text(
-    "{\"sink\":{\"kind\":\"file\",\"path\":\"bitlogger.log\",\"rotation\":{\"max_bytes\":128,\"max_backups\":3}}}",
+    "{\"sink\":{\"kind\":\"file\",\"path\":\"logs/bitlogger.log\",\"rotation\":{\"max_bytes\":128,\"max_backups\":3}}}",
   )
   inspect(
     match config.sink.kind {
@@ -54,7 +54,7 @@ test "logger config parser reads file rotation options" {
     },
     content="File",
   )
-  inspect(config.sink.path, content="bitlogger.log")
+  inspect(config.sink.path, content="logs/bitlogger.log")
   match config.sink.rotation {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="128")
@@ -68,9 +68,9 @@ test "logger config parser reads file rotation options" {
 ///|
 test "logger config parser prefers max_bytes_i64 when present" {
   let config = parse_logger_config_text(
-    "{\"sink\":{\"kind\":\"file\",\"path\":\"bitlogger.log\",\"rotation\":{\"max_bytes\":128,\"max_bytes_i64\":\"4294967296\",\"max_backups\":3}}}",
+    "{\"sink\":{\"kind\":\"file\",\"path\":\"logs/bitlogger.log\",\"rotation\":{\"max_bytes\":128,\"max_bytes_i64\":\"4294967296\",\"max_backups\":3}}}",
   )
-  inspect(config.sink.path, content="bitlogger.log")
+  inspect(config.sink.path, content="logs/bitlogger.log")
   match config.sink.rotation {
     Some(rotation) => {
       inspect(rotation.max_bytes, content="2147483647")

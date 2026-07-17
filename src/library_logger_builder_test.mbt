@@ -164,7 +164,10 @@ test "library logger builder unwrap preserves file runtime helpers" {
   let config = LoggerConfig::new(
     min_level=Level::Warn,
     target="lib.file.same-build",
-    sink=SinkConfig::new(kind=SinkKind::File, path="lib-file-same-build.log"),
+    sink=SinkConfig::new(
+      kind=SinkKind::File,
+      path="logs/lib-file-same-build.log",
+    ),
     queue=Some(QueueConfig::new(2, overflow=QueueOverflowPolicy::DropOldest)),
   )
   let logger = build_library_logger(config)
@@ -236,7 +239,7 @@ test "library logger builder unwrap preserves file controls" {
     target="lib.file.controls.same-build",
     sink=SinkConfig::new(
       kind=SinkKind::File,
-      path="lib-file-controls-same-build.log",
+      path="logs/lib-file-controls-same-build.log",
     ),
   )
   let logger = build_library_logger(config)

@@ -4,7 +4,7 @@ test "configured logger exposes file sink observability helpers" {
     LoggerConfig::new(
       sink=SinkConfig::new(
         kind=SinkKind::File,
-        path="config-file.log",
+        path="logs/config-file.log",
         auto_flush=false,
         rotation=Some(file_rotation(64, max_backups=3)),
       ),
@@ -13,8 +13,8 @@ test "configured logger exposes file sink observability helpers" {
   let state = logger.file_state()
   let runtime_state = logger.file_runtime_state()
   inspect(logger.file_available() == native_files_supported(), content="true")
-  inspect(logger.file_path(), content="config-file.log")
-  inspect(state.path, content="config-file.log")
+  inspect(logger.file_path(), content="logs/config-file.log")
+  inspect(state.path, content="logs/config-file.log")
   inspect(state.available == logger.file_available(), content="true")
   inspect(state.append == logger.file_append_mode(), content="true")
   inspect(state.auto_flush == logger.file_auto_flush(), content="true")
@@ -25,7 +25,7 @@ test "configured logger exposes file sink observability helpers" {
       inspect(snapshot.queued, content="false")
       inspect(snapshot.pending_count, content="0")
       inspect(snapshot.dropped_count, content="0")
-      inspect(snapshot.file.path, content="config-file.log")
+      inspect(snapshot.file.path, content="logs/config-file.log")
     }
     None => inspect(false, content="true")
   }
@@ -51,7 +51,10 @@ test "configured logger exposes file sink observability helpers" {
 test "configured logger reports disabled rotation when file sink has none" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-no-rotation.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-no-rotation.log",
+      ),
     ),
   )
   inspect(logger.file_rotation_enabled(), content="false")
@@ -79,12 +82,15 @@ test "configured non-file logger has no file runtime state" {
 test "configured file logger mirrors backend file capability" {
   let logger = build_logger(
     LoggerConfig::new(
-      sink=SinkConfig::new(kind=SinkKind::File, path="config-capability.log"),
+      sink=SinkConfig::new(
+        kind=SinkKind::File,
+        path="logs/config-capability.log",
+      ),
     ),
   )
   inspect(logger.file_available() == native_files_supported(), content="true")
   match logger.file_path_or_none() {
-    Some(path) => inspect(path, content="config-capability.log")
+    Some(path) => inspect(path, content="logs/config-capability.log")
     None => inspect(false, content="true")
   }
   inspect(logger.file_policy_or_none() is None, content="false")
