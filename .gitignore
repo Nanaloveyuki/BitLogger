@@ -26,5 +26,8 @@ docs/.vitepress/cache/
 docs/.vitepress/dist/
 docs/.vitepress/generated/
 
+# Benchmark package has no public API; moon info emits an empty snapshot.
+benchmarks/pkg.generated.mbti
+
 # vibecoding
 AGENTS/
