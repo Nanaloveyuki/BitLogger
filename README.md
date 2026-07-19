@@ -54,9 +54,8 @@ fn main {
 
 ## 支持情况
 
-- `BitLogger` 当前在 CI 中检查/验证的目标是 `native`、`js`、`wasm-gc`
-- `bitlogger_async` 当前在 CI 中检查 `native`、`js`、`wasm-gc`，测试覆盖 `native`、`js`、`wasm-gc`
-- `wasm` 目标在源码 `moon.pkg` 中保留声明，但当前未纳入 CI 验证口径
+- `BitLogger` 当前在 CI 中检查/验证的目标是 `native`、`wasm`、`js`、`wasm-gc`
+- `bitlogger_async` 当前在 CI 中检查和测试 `native`、`wasm`、`js`、`wasm-gc`
 - `llvm` 目前按实验性目标处理，当前环境未完成验证
 - 文件输出是 native 能力；跨端代码里建议先判断 `native_files_supported()`
 - `src-async` 可用，但示例 `examples/async_basic` 目前仍按 native 入口提供
@@ -69,6 +68,7 @@ fn main {
 - 配置驱动构建：`build_logger(...)`、`build_async_logger(...)`
 - 组合能力：queue、filter、patch、fanout、split、callback
 - 异步日志：独立 `src-async` package
+- Trace context：标准 `trace_id`、`span_id`、`trace_flags`、`trace_state` 字段绑定
 
 ## 文档
 

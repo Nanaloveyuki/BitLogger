@@ -94,6 +94,14 @@ pub fn[S] LibraryAsyncLogger::bind(
 }
 
 ///|
+pub fn[S] LibraryAsyncLogger::with_trace_context(
+  self : LibraryAsyncLogger[S],
+  context : @bitlogger.TraceContext,
+) -> LibraryAsyncLogger[S] {
+  library_async_logger(self.inner.with_trace_context(context))
+}
+
+///|
 pub fn[S] LibraryAsyncLogger::is_enabled(
   self : LibraryAsyncLogger[S],
   level : @bitlogger.Level,

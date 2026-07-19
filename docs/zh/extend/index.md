@@ -10,5 +10,6 @@
 | 同时发送到多个位置或按 level 路由 | [Sink 组合](./composition.md) | 比 preset 更需要显式构造。 |
 | 调整终端可读性 | [文本格式](./formatting.md) | 格式只改变呈现，不改变记录结构。 |
 | 在 native 与 web 目标之间共享代码 | [目标平台边界](./targets.md) | 文件与异步运行时行为因后端而异。 |
+| 将日志关联到分布式请求 | [Trace context](./observability.md) | 传播与导出仍由应用负责。 |
 
 需要精确函数签名时，沿页面链接进入[英文 API 参考](../../api/index.md)。

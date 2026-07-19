@@ -275,6 +275,14 @@ pub fn[S] AsyncLogger::with_context_fields(
 }
 
 ///|
+pub fn[S] AsyncLogger::with_trace_context(
+  self : AsyncLogger[S],
+  context : @bitlogger.TraceContext,
+) -> AsyncLogger[S] {
+  self.with_context_fields(context.as_fields())
+}
+
+///|
 pub fn[S] AsyncLogger::with_filter(
   self : AsyncLogger[S],
   predicate : (@bitlogger.Record) -> Bool,

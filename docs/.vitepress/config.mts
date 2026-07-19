@@ -121,6 +121,7 @@ function buildExtendSidebar(): DefaultTheme.SidebarItem[] {
     { text: 'Sink Composition', link: '/extend/composition' },
     { text: 'Text Formatting', link: '/extend/formatting' },
     { text: 'Target Boundaries', link: '/extend/targets' },
+    { text: 'Trace Context', link: '/extend/observability' },
   ]
 }
 
@@ -141,6 +142,7 @@ function buildChineseExtendSidebar(): DefaultTheme.SidebarItem[] {
     { text: 'Sink 组合', link: '/zh/extend/composition' },
     { text: '文本格式与样式', link: '/zh/extend/formatting' },
     { text: '目标平台边界', link: '/zh/extend/targets' },
+    { text: 'Trace Context', link: '/zh/extend/observability' },
   ]
 }
 

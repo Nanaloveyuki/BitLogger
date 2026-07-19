@@ -58,6 +58,14 @@ pub fn[S] Logger::bind(
 }
 
 ///|
+pub fn[S] Logger::with_trace_context(
+  self : Logger[S],
+  context : TraceContext,
+) -> Logger[ContextSink[S]] {
+  self.with_context_fields(context.as_fields())
+}
+
+///|
 pub fn[S] Logger::with_filter(
   self : Logger[S],
   predicate : (Record) -> Bool,

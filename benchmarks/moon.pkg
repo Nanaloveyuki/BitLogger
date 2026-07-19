@@ -1,0 +1,4 @@
+import {
+  "Nanaloveyuki/BitLogger/src" @log,
+  "moonbitlang/core/bench",
+}

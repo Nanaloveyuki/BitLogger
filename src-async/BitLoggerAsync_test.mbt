@@ -456,6 +456,30 @@ async test "async logger with_context_fields prepends shared fields without muta
 }
 
 ///|
+test "async facades bind trace context through standard fields" {
+  let context = @bitlogger.trace_context("trace-async", "span-async")
+  let base = async_logger(
+    @bitlogger.callback_sink(fn(_) {  }),
+    config=AsyncLoggerConfig::new(max_pending=4),
+    min_level=@bitlogger.Level::Info,
+  )
+  let derived = base.with_trace_context(context)
+  inspect(base.context_fields.length(), content="0")
+  inspect(derived.context_fields.length(), content="3")
+  inspect(derived.context_fields[0].key, content="trace_id")
+  inspect(derived.context_fields[0].value, content="trace-async")
+  inspect(derived.context_fields[1].key, content="span_id")
+  inspect(derived.context_fields[2].value, content="01")
+
+  let library = LibraryAsyncLogger::new(@bitlogger.callback_sink(fn(_) {  })).with_trace_context(
+    context,
+  )
+  let full = library.to_async_logger()
+  inspect(full.context_fields.length(), content="3")
+  inspect(full.context_fields[1].value, content="span-async")
+}
+
+///|
 async test "async logger child composes target and preserves other state" {
   let written_target : Ref[String] = Ref("")
   let written_timestamp : Ref[UInt64] = Ref(0UL)

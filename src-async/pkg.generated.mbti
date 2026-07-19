@@ -114,6 +114,7 @@ pub fn[S] AsyncLogger::with_min_level(Self[S], @core.Level) -> Self[S]
 pub fn[S] AsyncLogger::with_patch(Self[S], (@core.Record) -> @core.Record) -> Self[S]
 pub fn[S] AsyncLogger::with_target(Self[S], String) -> Self[S]
 pub fn[S] AsyncLogger::with_timestamp(Self[S], enabled? : Bool) -> Self[S]
+pub fn[S] AsyncLogger::with_trace_context(Self[S], @core.TraceContext) -> Self[S]
 
 pub struct LibraryAsyncLogger[S] {
   inner : AsyncLogger[S]
@@ -131,6 +132,7 @@ pub fn[S] LibraryAsyncLogger::to_async_logger(Self[S]) -> AsyncLogger[S]
 pub async fn[S] LibraryAsyncLogger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn[S] LibraryAsyncLogger::with_context_fields(Self[S], Array[@core.Field]) -> Self[S]
 pub fn[S] LibraryAsyncLogger::with_target(Self[S], String) -> Self[S]
+pub fn[S] LibraryAsyncLogger::with_trace_context(Self[S], @core.TraceContext) -> Self[S]
 
 // Type aliases
 pub type ApplicationAsyncLogger = AsyncLogger[@runtime.RuntimeSink]

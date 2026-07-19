@@ -39,6 +39,15 @@ pub fn Record::with_fields(Self, Array[Field]) -> Self
 pub fn Record::with_message(Self, String) -> Self
 pub fn Record::with_target(Self, String) -> Self
 
+pub struct TraceContext {
+  trace_id : String
+  span_id : String
+  trace_flags : String
+  trace_state : String?
+}
+pub fn TraceContext::as_fields(Self) -> Array[Field]
+pub fn TraceContext::new(String, String, trace_flags? : String, trace_state? : String) -> Self
+
 // Type aliases
 
 // Traits

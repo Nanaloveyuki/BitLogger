@@ -44,7 +44,7 @@ Continue with the [Examples guide](./examples/index.md): console fields, file ro
 
 ## Support Status
 
-- Current local verification covers `native`, `js`, `wasm`, and `wasm-gc` for the main `src` package and `src-async`
+- CI checks and tests `native`, `wasm`, `js`, and `wasm-gc` for the main `src` package and `src-async`
 - `llvm` is still treated as experimental in the current release context and was not locally re-verified in the current environment
 - The source packages still declare `wasm` support alongside `native`, `llvm`, `js`, and `wasm-gc`; see [`target-verification.md`](./api/target-verification.md) for the current release-facing verification boundary
 - File output is a native capability; check `native_files_supported()` in cross-target code
@@ -58,6 +58,7 @@ Continue with the [Examples guide](./examples/index.md): console fields, file ro
 - Config-based builders: `build_logger(...)` and `build_async_logger(...)`
 - Composition helpers: queue, filter, patch, fanout, split, callback
 - Separate async package under `src-async`
+- Trace-context binding through standard `trace_id`, `span_id`, `trace_flags`, and `trace_state` fields
 
 ## Documentation
 

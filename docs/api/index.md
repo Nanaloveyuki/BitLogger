@@ -31,6 +31,7 @@ BitLogger API navigation.
 - [logger-with-timestamp.md](./logger-with-timestamp.md)
 - [logger-with-context-fields.md](./logger-with-context-fields.md)
 - [logger-bind.md](./logger-bind.md)
+- [logger-with-trace-context.md](./logger-with-trace-context.md)
 - [logger-with-filter.md](./logger-with-filter.md)
 - [logger-with-patch.md](./logger-with-patch.md)
 - [logger-with-queue.md](./logger-with-queue.md)
@@ -98,6 +99,10 @@ BitLogger API navigation.
 - [color-mode-label.md](./color-mode-label.md)
 - [fields.md](./fields.md)
 - [text-formatter-config-type.md](./text-formatter-config-type.md)
+
+## Observability
+
+- [trace-context.md](./trace-context.md)
 
 ## Record and level
 
@@ -266,6 +271,7 @@ BitLogger API navigation.
 - [async-logger-with-min-level.md](./async-logger-with-min-level.md)
 - [async-logger-with-timestamp.md](./async-logger-with-timestamp.md)
 - [async-logger-with-context-fields.md](./async-logger-with-context-fields.md)
+- [async-logger-with-trace-context.md](./async-logger-with-trace-context.md)
 - [async-logger-with-filter.md](./async-logger-with-filter.md)
 - [async-logger-with-patch.md](./async-logger-with-patch.md)
 
@@ -322,6 +328,7 @@ BitLogger API navigation.
 - [library-logger-child.md](./library-logger-child.md)
 - [library-logger-with-context-fields.md](./library-logger-with-context-fields.md)
 - [library-logger-bind.md](./library-logger-bind.md)
+- [library-logger-with-trace-context.md](./library-logger-with-trace-context.md)
 - [library-logger-is-enabled.md](./library-logger-is-enabled.md)
 - [library-logger-log.md](./library-logger-log.md)
 - [library-logger-info.md](./library-logger-info.md)
@@ -341,6 +348,7 @@ BitLogger API navigation.
 - [library-async-logger-child.md](./library-async-logger-child.md)
 - [library-async-logger-with-context-fields.md](./library-async-logger-with-context-fields.md)
 - [library-async-logger-bind.md](./library-async-logger-bind.md)
+- [library-async-logger-with-trace-context.md](./library-async-logger-with-trace-context.md)
 - [library-async-logger-is-enabled.md](./library-async-logger-is-enabled.md)
 - [library-async-logger-log.md](./library-async-logger-log.md)
 - [library-async-logger-info.md](./library-async-logger-info.md)

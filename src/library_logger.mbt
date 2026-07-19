@@ -81,6 +81,14 @@ pub fn[S] LibraryLogger::bind(
 }
 
 ///|
+pub fn[S] LibraryLogger::with_trace_context(
+  self : LibraryLogger[S],
+  context : TraceContext,
+) -> LibraryLogger[ContextSink[S]] {
+  library_logger(self.inner.with_trace_context(context))
+}
+
+///|
 pub fn[S] LibraryLogger::is_enabled(
   self : LibraryLogger[S],
   level : Level,

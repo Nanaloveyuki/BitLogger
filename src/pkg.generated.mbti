@@ -187,6 +187,8 @@ pub fn text_style(fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, itali
 
 pub fn trace(String, fields? : Array[@core.Field]) -> Unit
 
+pub fn trace_context(String, String, trace_flags? : String, trace_state? : String) -> @core.TraceContext
+
 pub fn warn(String, fields? : Array[@core.Field]) -> Unit
 
 pub fn with_file_rotation(@config_model.LoggerConfig, Int, max_backups? : Int) -> @config_model.LoggerConfig
@@ -212,6 +214,7 @@ pub fn[S] LibraryLogger::to_logger(Self[S]) -> Logger[S]
 pub fn[S : @sink_graph.Sink] LibraryLogger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn[S] LibraryLogger::with_context_fields(Self[S], Array[@core.Field]) -> Self[@sink_graph.ContextSink[S]]
 pub fn[S] LibraryLogger::with_target(Self[S], String) -> Self[S]
+pub fn[S] LibraryLogger::with_trace_context(Self[S], @core.TraceContext) -> Self[@sink_graph.ContextSink[S]]
 
 pub struct Logger[S] {
   min_level : @core.Level
@@ -276,6 +279,7 @@ pub fn[S] Logger::with_patch(Self[S], (@core.Record) -> @core.Record) -> Self[@s
 pub fn[S] Logger::with_queue(Self[S], max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> Self[@sink_graph.QueuedSink[S]]
 pub fn[S] Logger::with_target(Self[S], String) -> Self[S]
 pub fn[S] Logger::with_timestamp(Self[S], enabled? : Bool) -> Self[S]
+pub fn[S] Logger::with_trace_context(Self[S], @core.TraceContext) -> Self[@sink_graph.ContextSink[S]]
 
 // Type aliases
 pub type ApplicationLogger = Logger[@runtime.RuntimeSink]
@@ -357,6 +361,8 @@ pub using @formatting {type TextFormatter}
 pub using @config_model {type TextFormatterConfig}
 
 pub using @formatting {type TextStyle}
+
+pub using @core {type TraceContext}
 
 pub using @sink_graph {trait Sink}
 

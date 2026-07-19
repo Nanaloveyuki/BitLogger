@@ -67,8 +67,14 @@ jobs:
           moon check --deny-warn
           moon test --deny-warn
           moon check --target native --deny-warn
+          moon check --target wasm --deny-warn
           moon check --target wasm-gc --deny-warn
           moon check --target js --deny-warn
+
+      - name: Test wasm path
+        shell: bash
+        run: |
+          moon test --target wasm --deny-warn
 
       - name: Run sync example
         shell: bash
@@ -105,15 +111,17 @@ jobs:
         run: |
           moon update
 
-      - name: Check async package on wasm-gc and js
+      - name: Check async package on wasm, wasm-gc and js
         shell: bash
         run: |
+          moon check src-async --target wasm --deny-warn
           moon check src-async --target wasm-gc --deny-warn
           moon check src-async --target js --deny-warn
 
-      - name: Test async package on wasm-gc and js
+      - name: Test async package on wasm, wasm-gc and js
         shell: bash
         run: |
+          moon test src-async --target wasm --deny-warn
           moon test src-async --target wasm-gc --deny-warn
           moon test src-async --target js --deny-warn
 

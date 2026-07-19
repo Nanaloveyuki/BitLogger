@@ -10,5 +10,6 @@ Start from an [Example flow](../examples/index.md), then add one extension at a 
 | Send records to multiple destinations or route by level | [Sink composition](./composition.md) | More explicit construction than presets. |
 | Control terminal appearance | [Text formatting](./formatting.md) | Formatting affects presentation, not record structure. |
 | Share code across native and web targets | [Target boundaries](./targets.md) | File and async runtime behavior differ by backend. |
+| Correlate logs with distributed requests | [Trace context](./observability.md) | Propagation and export stay application-owned. |
 
 For exact function signatures, follow each page's links into the [API reference](../api/index.md).
