@@ -93,4 +93,3 @@ pub struct TextStyle {
 pub type RecordFormatter = (@core.Record) -> String
 
 // Traits
-

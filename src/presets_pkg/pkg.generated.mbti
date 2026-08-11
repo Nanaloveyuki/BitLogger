@@ -30,4 +30,3 @@ pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int, overflow? : @q
 // Type aliases
 
 // Traits
-

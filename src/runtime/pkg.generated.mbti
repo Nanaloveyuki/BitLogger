@@ -83,4 +83,3 @@ pub struct RuntimeSinkProgress {
 pub using @file_model {type RuntimeFileState}
 
 // Traits
-

@@ -92,4 +92,3 @@ pub fn TextFormatterConfig::to_formatter(Self) -> @formatting.TextFormatter
 // Type aliases
 
 // Traits
-

@@ -51,4 +51,3 @@ pub fn TraceContext::new(String, String, trace_flags? : String, trace_state? : S
 // Type aliases
 
 // Traits
-

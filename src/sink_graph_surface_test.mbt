@@ -16,6 +16,40 @@ test "callback sink receives record" {
 }
 
 ///|
+test "history sink retains the newest copied records" {
+  let sink = history_sink(capacity=2)
+  let logger = Logger::new(sink, min_level=Level::Info, target="history")
+  logger.info("one", fields=[field("position", "first")])
+  logger.info("two")
+  logger.info("three")
+
+  inspect(sink.capacity(), content="2")
+  inspect(sink.count(), content="2")
+  inspect(sink.dropped_count(), content="1")
+  let snapshot = sink.snapshot()
+  inspect(snapshot.length(), content="2")
+  inspect(snapshot[0].message, content="two")
+  inspect(snapshot[1].message, content="three")
+  snapshot[0].fields.push(field("mutated", "outside"))
+  inspect(sink.snapshot()[0].fields.length(), content="0")
+}
+
+///|
+test "history sink normalizes capacity and clear resets its session" {
+  let sink = history_sink(capacity=0)
+  let logger = Logger::new(sink, min_level=Level::Info, target="history")
+  logger.info("one")
+  logger.info("two")
+
+  inspect(sink.capacity(), content="1")
+  inspect(sink.count(), content="1")
+  inspect(sink.dropped_count(), content="1")
+  sink.clear()
+  inspect(sink.count(), content="0")
+  inspect(sink.dropped_count(), content="0")
+}
+
+///|
 test "split sink routes records by predicate" {
   let left_messages : Ref[Array[String]] = Ref([])
   let right_messages : Ref[Array[String]] = Ref([])

@@ -50,4 +50,3 @@ pub impl @sink_graph.Sink for FileSink
 // Type aliases
 
 // Traits
-
