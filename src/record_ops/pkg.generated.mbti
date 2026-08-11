@@ -48,4 +48,3 @@ pub type RecordPatch = (@core.Record) -> @core.Record
 pub type RecordPredicate = (@core.Record) -> Bool
 
 // Traits
-

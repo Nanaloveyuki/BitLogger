@@ -100,6 +100,14 @@ pub fn callback_sink(callback : (Record) -> Unit) -> CallbackSink {
 }
 
 ///|
+pub type HistorySink = @sink_graph.HistorySink
+
+///|
+pub fn history_sink(capacity? : Int = 128) -> HistorySink {
+  @sink_graph.history_sink(capacity~)
+}
+
+///|
 pub type BufferedSink[S] = @sink_graph.BufferedSink[S]
 
 ///|

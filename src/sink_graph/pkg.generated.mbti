@@ -26,6 +26,8 @@ pub fn formatted_callback_sink((@core.Record) -> String, (String) -> Unit) -> Fo
 
 pub fn formatted_console_sink((@core.Record) -> String) -> FormattedConsoleSink
 
+pub fn history_sink(capacity? : Int) -> HistorySink
+
 pub fn json_console_sink() -> JsonConsoleSink
 
 pub fn[S] patch_sink(S, (@core.Record) -> @core.Record) -> PatchSink[S]
@@ -91,6 +93,18 @@ pub struct FormattedConsoleSink {
 }
 pub impl Sink for FormattedConsoleSink
 
+pub struct HistorySink {
+  records : @ref.Ref[Array[@core.Record]]
+  capacity : Int
+  dropped_count : @ref.Ref[Int]
+}
+pub fn HistorySink::capacity(Self) -> Int
+pub fn HistorySink::clear(Self) -> Unit
+pub fn HistorySink::count(Self) -> Int
+pub fn HistorySink::dropped_count(Self) -> Int
+pub fn HistorySink::snapshot(Self) -> Array[@core.Record]
+pub impl Sink for HistorySink
+
 pub struct JsonConsoleSink {
   _dummy : Unit
 }
@@ -129,4 +143,3 @@ pub using @queue_model {type QueueOverflowPolicy}
 pub(open) trait Sink {
   fn write(Self, @core.Record) -> Unit
 }
-

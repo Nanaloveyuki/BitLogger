@@ -60,4 +60,3 @@ pub fn RuntimeFileState::new(FileSinkState, queued? : Bool, pending_count? : Int
 // Type aliases
 
 // Traits
-

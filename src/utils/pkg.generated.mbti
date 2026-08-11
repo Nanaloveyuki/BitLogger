@@ -110,4 +110,3 @@ pub using @formatting {type TextFormatter}
 pub using @formatting {type TextStyle}
 
 // Traits
-

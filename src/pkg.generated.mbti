@@ -93,6 +93,8 @@ pub fn global_style_tag_registry() -> @formatting.StyleTagRegistry
 
 pub fn has_field(String) -> (@core.Record) -> Bool
 
+pub fn history_sink(capacity? : Int) -> @sink_graph.HistorySink
+
 pub fn identity_patch() -> (@core.Record) -> @core.Record
 
 pub fn info(String, fields? : Array[@core.Field]) -> Unit
@@ -318,6 +320,8 @@ pub using @sink_graph {type FormattedCallbackSink}
 
 pub using @sink_graph {type FormattedConsoleSink}
 
+pub using @sink_graph {type HistorySink}
+
 pub using @sink_graph {type JsonConsoleSink}
 
 pub using @core {type Level}
@@ -367,4 +371,3 @@ pub using @core {type TraceContext}
 pub using @sink_graph {trait Sink}
 
 // Traits
-

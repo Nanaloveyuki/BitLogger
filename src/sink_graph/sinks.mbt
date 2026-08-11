@@ -198,6 +198,69 @@ pub impl Sink for CallbackSink with fn write(self, rec) {
 }
 
 ///|
+pub struct HistorySink {
+  records : Ref[Array[Record]]
+  capacity : Int
+  dropped_count : Ref[Int]
+}
+
+///|
+pub fn history_sink(capacity? : Int = 128) -> HistorySink {
+  let capacity = if capacity <= 0 { 1 } else { capacity }
+  { records: Ref([]), capacity, dropped_count: Ref(0) }
+}
+
+///|
+pub fn HistorySink::capacity(self : HistorySink) -> Int {
+  self.capacity
+}
+
+///|
+pub fn HistorySink::count(self : HistorySink) -> Int {
+  self.records.val.length()
+}
+
+///|
+pub fn HistorySink::dropped_count(self : HistorySink) -> Int {
+  self.dropped_count.val
+}
+
+///|
+fn copy_record(record : Record) -> Record {
+  Record::new(
+    record.level,
+    record.message,
+    timestamp_ms=record.timestamp_ms,
+    target=record.target,
+    fields=record.fields.map(field => Field::with_value(field, field.value)),
+  )
+}
+
+///|
+pub fn HistorySink::snapshot(self : HistorySink) -> Array[Record] {
+  self.records.val.map(copy_record)
+}
+
+///|
+pub fn HistorySink::clear(self : HistorySink) -> Unit {
+  self.records.val = []
+  self.dropped_count.val = 0
+}
+
+///|
+pub impl Sink for HistorySink with fn write(self, rec) {
+  let records = self.records.val
+  if records.length() >= self.capacity {
+    self.dropped_count.val += 1
+    let retained = records[1:].to_owned()
+    retained.push(copy_record(rec))
+    self.records.val = retained
+  } else {
+    records.push(copy_record(rec))
+  }
+}
+
+///|
 pub struct BufferedSink[S] {
   sink : S
   buffer : Ref[Array[Record]]
