@@ -916,7 +916,7 @@ fn parse_inline_markup(
   formatter : TextFormatter,
 ) -> Array[StyledSegment] {
   let segments : Array[StyledSegment] = []
-  let buffer = StringBuilder::new()
+  let buffer = StringBuilder()
   let stack : Array[StyleFrame] = [{ tag: "", style: default_inline_style() }]
   let chars = input.to_array()
   let current_style = fn() { stack[stack.length() - 1].style }
@@ -990,7 +990,7 @@ fn render_styled_text(
   let enabled = use_ansi_color(formatter.color_mode)
   let scoped = formatter.with_style_markup(mode)
   let segments = parse_inline_markup(text, scoped)
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for segment in segments {
     out.write_string(ansi_wrap_with_style(segment.text, segment.style, enabled))
   }
