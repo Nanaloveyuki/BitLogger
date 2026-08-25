@@ -20,3 +20,7 @@ import {
 import {
   "Nanaloveyuki/BitLogger/src/utils",
 } for "wbtest"
+
+import {
+  "moonbitlang/core/quickcheck",
+} for "test"
