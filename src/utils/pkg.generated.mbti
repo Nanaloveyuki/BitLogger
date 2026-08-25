@@ -23,11 +23,19 @@ pub fn compose_patches(Array[(@core.Record) -> @core.Record]) -> (@core.Record) 
 
 pub fn default_style_tag_registry() -> @formatting.StyleTagRegistry
 
+pub fn deferred_file_handle_internal(String, Bool) -> FileHandle?
+
 pub fn field_equals(String, String) -> (@core.Record) -> Bool
+
+pub async fn file_exists_async_internal(String) -> Bool
 
 pub fn file_exists_internal(String) -> Bool
 
+pub async fn file_size_i64_async_internal(FileHandle) -> Int64
+
 pub fn file_size_i64_internal(FileHandle) -> Int64
+
+pub async fn flush_file_handle_async_internal(FileHandle) -> Bool
 
 pub fn flush_file_handle_internal(FileHandle) -> Bool
 
@@ -49,6 +57,8 @@ pub fn native_files_supported_internal() -> Bool
 
 pub fn not_((@core.Record) -> Bool) -> (@core.Record) -> Bool
 
+pub async fn open_file_handle_async_internal(String, Bool) -> FileHandle?
+
 pub fn open_file_handle_internal(String, Bool) -> FileHandle?
 
 pub fn prefix_message(String) -> (@core.Record) -> @core.Record
@@ -57,7 +67,11 @@ pub fn redact_field(String, placeholder? : String) -> (@core.Record) -> @core.Re
 
 pub fn redact_fields(Array[String], placeholder? : String) -> (@core.Record) -> @core.Record
 
+pub async fn remove_file_async_internal(String) -> Bool
+
 pub fn remove_file_internal(String) -> Bool
+
+pub async fn rename_file_async_internal(String, String) -> Bool
 
 pub fn rename_file_internal(String, String) -> Bool
 
@@ -81,13 +95,15 @@ pub fn text_formatter(show_timestamp? : Bool, show_level? : Bool, show_target? :
 
 pub fn text_style(fg? : String?, bg? : String?, bold? : Bool, dim? : Bool, italic? : Bool, underline? : Bool) -> @formatting.TextStyle
 
+pub async fn write_file_handle_async_internal(FileHandle, String) -> Bool
+
 pub fn write_file_handle_internal(FileHandle, String) -> Bool
 
 // Errors
 
 // Types and methods
 pub struct FileHandle {
-  path : String
+  // private fields
 }
 
 // Type aliases

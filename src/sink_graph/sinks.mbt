@@ -19,6 +19,12 @@ type RecordPatch = @record_ops.RecordPatch
 ///|
 pub(open) trait Sink {
   fn write(Self, Record) -> Unit
+  async fn write_async(Self, Record) -> Unit = _
+}
+
+///|
+impl Sink with fn write_async(self : Self, rec : Record) {
+  self.write(rec)
 }
 
 ///|
@@ -61,6 +67,18 @@ pub impl[S : Sink] Sink for ContextSink[S] with fn write(self, rec) {
     self.context_fields + rec.fields
   }
   self.sink.write(rec.with_fields(merged))
+}
+
+///|
+pub impl[S : Sink] Sink for ContextSink[S] with fn write_async(self, rec) {
+  let merged = if self.context_fields.length() == 0 {
+    rec.fields
+  } else if rec.fields.length() == 0 {
+    self.context_fields
+  } else {
+    self.context_fields + rec.fields
+  }
+  self.sink.write_async(rec.with_fields(merged))
 }
 
 ///|
@@ -149,6 +167,15 @@ pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B] with fn write(self, rec) 
 }
 
 ///|
+pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B] with fn write_async(
+  self,
+  rec,
+) {
+  self.left.write_async(rec)
+  self.right.write_async(rec.copy())
+}
+
+///|
 pub struct SplitSink[A, B] {
   left : A
   right : B
@@ -179,6 +206,18 @@ pub impl[A : Sink, B : Sink] Sink for SplitSink[A, B] with fn write(self, rec) {
     self.left.write(rec)
   } else {
     self.right.write(rec)
+  }
+}
+
+///|
+pub impl[A : Sink, B : Sink] Sink for SplitSink[A, B] with fn write_async(
+  self,
+  rec,
+) {
+  if (self.predicate)(rec) {
+    self.left.write_async(rec)
+  } else {
+    self.right.write_async(rec)
   }
 }
 
@@ -300,6 +339,29 @@ pub impl[S : Sink] Sink for BufferedSink[S] with fn write(self, rec) {
 }
 
 ///|
+pub async fn[S : Sink] BufferedSink::flush_async(
+  self : BufferedSink[S],
+) -> Unit {
+  if self.buffer.val.length() == 0 {
+    ()
+  } else {
+    let pending = self.buffer.val
+    self.buffer.val = []
+    for rec in pending {
+      self.sink.write_async(rec)
+    }
+  }
+}
+
+///|
+pub impl[S : Sink] Sink for BufferedSink[S] with fn write_async(self, rec) {
+  self.buffer.val.push(rec)
+  if self.buffer.val.length() >= self.flush_limit {
+    self.flush_async()
+  }
+}
+
+///|
 pub type QueueOverflowPolicy = @queue_model.QueueOverflowPolicy
 
 ///|
@@ -359,8 +421,35 @@ pub fn[S : Sink] QueuedSink::drain(
 }
 
 ///|
+pub async fn[S : Sink] QueuedSink::drain_async(
+  self : QueuedSink[S],
+  max_items? : Int = -1,
+) -> Int {
+  if max_items == 0 {
+    return 0
+  }
+  let limit = if max_items < 0 { self.pending_count() } else { max_items }
+  for drained = 0; drained < limit; {
+    match self.queue.pop() {
+      None => break drained
+      Some(rec) => {
+        self.sink.write_async(rec)
+        continue drained + 1
+      }
+    }
+  } nobreak {
+    limit
+  }
+}
+
+///|
 pub fn[S : Sink] QueuedSink::flush(self : QueuedSink[S]) -> Int {
   self.drain()
+}
+
+///|
+pub async fn[S : Sink] QueuedSink::flush_async(self : QueuedSink[S]) -> Int {
+  self.drain_async()
 }
 
 ///|
@@ -399,6 +488,13 @@ pub impl[S : Sink] Sink for FilterSink[S] with fn write(self, rec) {
 }
 
 ///|
+pub impl[S : Sink] Sink for FilterSink[S] with fn write_async(self, rec) {
+  if (self.predicate)(rec) {
+    self.sink.write_async(rec)
+  }
+}
+
+///|
 pub struct PatchSink[S] {
   sink : S
   patch : RecordPatch
@@ -412,4 +508,9 @@ pub fn[S] patch_sink(sink : S, patch : RecordPatch) -> PatchSink[S] {
 ///|
 pub impl[S : Sink] Sink for PatchSink[S] with fn write(self, rec) {
   self.sink.write((self.patch)(rec))
+}
+
+///|
+pub impl[S : Sink] Sink for PatchSink[S] with fn write_async(self, rec) {
+  self.sink.write_async((self.patch)(rec))
 }

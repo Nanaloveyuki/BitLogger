@@ -45,6 +45,7 @@ pub struct FileSink {
   priv default_auto_flush : Bool
   priv rotation : Ref[FileRotation?]
   priv default_rotation : FileRotation?
+  priv deferred : Bool
   priv open_failures : Ref[Int]
   priv write_failures : Ref[Int]
   priv flush_failures : Ref[Int]
@@ -65,7 +66,64 @@ pub fn file_sink(
   rotation? : FileRotation? = None,
   formatter? : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
 ) -> FileSink {
-  let handle = @utils.open_file_handle_internal(path, append)
+  new_file_sink_internal(
+    path,
+    append,
+    auto_flush,
+    rotation,
+    formatter,
+    @utils.open_file_handle_internal(path, append),
+  )
+}
+
+///|
+pub async fn file_sink_async(
+  path : String,
+  append? : Bool = true,
+  auto_flush? : Bool = true,
+  rotation? : FileRotation? = None,
+  formatter? : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
+) -> FileSink {
+  new_file_sink_internal(
+    path,
+    append,
+    auto_flush,
+    rotation,
+    formatter,
+    @utils.open_file_handle_async_internal(path, append),
+  )
+}
+
+///|
+#doc(hidden)
+pub fn file_sink_deferred(
+  path : String,
+  append? : Bool = true,
+  auto_flush? : Bool = true,
+  rotation? : FileRotation? = None,
+  formatter? : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
+) -> FileSink {
+  new_file_sink_internal(
+    path,
+    append,
+    auto_flush,
+    rotation,
+    formatter,
+    @utils.deferred_file_handle_internal(path, append),
+    deferred=true,
+  )
+}
+
+///|
+fn new_file_sink_internal(
+  path : String,
+  append : Bool,
+  auto_flush : Bool,
+  rotation : FileRotation?,
+  formatter : RecordFormatter,
+  handle : FileHandle?,
+  deferred? : Bool = false,
+) -> FileSink {
   {
     path,
     append: Ref(append),
@@ -76,6 +134,7 @@ pub fn file_sink(
     default_auto_flush: auto_flush,
     rotation: Ref(rotation),
     default_rotation: rotation,
+    deferred,
     open_failures: Ref(if handle is Some(_) { 0 } else { 1 }),
     write_failures: Ref(0),
     flush_failures: Ref(0),
@@ -95,6 +154,20 @@ pub fn FileSink::flush(self : FileSink) -> Bool {
     None => false
     Some(handle) => {
       let ok = @utils.flush_file_handle_internal(handle)
+      if !ok {
+        self.flush_failures.val += 1
+      }
+      ok
+    }
+  }
+}
+
+///|
+pub async fn FileSink::flush_async(self : FileSink) -> Bool {
+  match self.handle.val {
+    None => false
+    Some(handle) => {
+      let ok = @utils.flush_file_handle_async_internal(handle)
       if !ok {
         self.flush_failures.val += 1
       }
@@ -274,20 +347,38 @@ pub fn FileSink::state(self : FileSink) -> FileSinkState {
 pub fn FileSink::reopen(self : FileSink, append? : Bool? = None) -> Bool {
   let append_mode = append.unwrap_or(self.append.val)
   self.append.val = append_mode
-  match self.handle.val {
-    None => ()
-    Some(handle) => {
-      ignore(@utils.close_file_handle_internal(handle))
-      self.handle.val = None
+  if self.deferred {
+    match self.handle.val {
+      None => ()
+      Some(handle) => {
+        ignore(@utils.close_file_handle_internal(handle))
+        self.handle.val = None
+      }
     }
-  }
-  let reopened = @utils.open_file_handle_internal(self.path, append_mode)
-  self.handle.val = reopened
-  if reopened is Some(_) {
-    true
+    let reopened = @utils.deferred_file_handle_internal(self.path, append_mode)
+    self.handle.val = reopened
+    if reopened is Some(_) {
+      true
+    } else {
+      self.open_failures.val += 1
+      false
+    }
   } else {
-    self.open_failures.val += 1
-    false
+    match self.handle.val {
+      None => ()
+      Some(handle) => {
+        ignore(@utils.close_file_handle_internal(handle))
+        self.handle.val = None
+      }
+    }
+    let reopened = @utils.open_file_handle_internal(self.path, append_mode)
+    self.handle.val = reopened
+    if reopened is Some(_) {
+      true
+    } else {
+      self.open_failures.val += 1
+      false
+    }
   }
 }
 
@@ -330,6 +421,29 @@ fn rename_file_if_present(
     true
   } else {
     (ops.rename_file)(from_path, to_path) || !(ops.file_exists)(from_path)
+  }
+}
+
+///|
+async fn remove_file_if_present_async(path : String) -> Bool {
+  if !@utils.file_exists_async_internal(path) {
+    true
+  } else {
+    @utils.remove_file_async_internal(path) ||
+    !@utils.file_exists_async_internal(path)
+  }
+}
+
+///|
+async fn rename_file_if_present_async(
+  from_path : String,
+  to_path : String,
+) -> Bool {
+  if !@utils.file_exists_async_internal(from_path) {
+    true
+  } else {
+    @utils.rename_file_async_internal(from_path, to_path) ||
+    !@utils.file_exists_async_internal(from_path)
   }
 }
 
@@ -397,6 +511,73 @@ fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
 }
 
 ///|
+async fn rotate_file_sink_async_internal(
+  sink : FileSink,
+  rotation : FileRotation,
+) -> Bool {
+  let closed = match sink.handle.val {
+    None => true
+    Some(handle) => {
+      let ok = @utils.close_file_handle_internal(handle)
+      sink.handle.val = None
+      ok
+    }
+  }
+  if !closed {
+    return false
+  }
+  if rotation.max_backups > 0 {
+    if !remove_file_if_present_async(
+        rotated_file_path(sink.path, rotation.max_backups),
+      ) {
+      return false
+    }
+    for index = rotation.max_backups - 1; index >= 1; {
+      let from_path = rotated_file_path(sink.path, index)
+      let to_path = rotated_file_path(sink.path, index + 1)
+      if !rename_file_if_present_async(from_path, to_path) {
+        return false
+      }
+      continue index - 1
+    }
+    if !rename_file_if_present_async(sink.path, rotated_file_path(sink.path, 1)) {
+      return false
+    }
+  } else if !remove_file_if_present_async(sink.path) {
+    return false
+  }
+  sink.handle.val = @utils.open_file_handle_async_internal(sink.path, false)
+  sink.handle.val is Some(_)
+}
+
+///|
+async fn rotate_if_needed_async_internal(
+  sink : FileSink,
+  next_line_bytes : Int,
+) -> Bool {
+  match sink.rotation.val {
+    None => true
+    Some(rotation) =>
+      match sink.handle.val {
+        None => false
+        Some(handle) => {
+          let size = @utils.file_size_i64_async_internal(handle)
+          let next_line = next_line_bytes.to_int64()
+          if size + next_line <= rotation_max_bytes_internal(rotation) {
+            true
+          } else {
+            let rotated = rotate_file_sink_async_internal(sink, rotation)
+            if !rotated {
+              sink.rotation_failures.val += 1
+            }
+            rotated
+          }
+        }
+      }
+  }
+}
+
+///|
 pub impl @sink_graph.Sink for FileSink with fn write(self, rec : Record) {
   match self.handle.val {
     None => self.write_failures.val += 1
@@ -414,6 +595,40 @@ pub impl @sink_graph.Sink for FileSink with fn write(self, rec : Record) {
             if wrote {
               if self.auto_flush.val {
                 let flushed = @utils.flush_file_handle_internal(active)
+                if !flushed {
+                  self.flush_failures.val += 1
+                }
+              }
+            } else {
+              self.write_failures.val += 1
+            }
+          }
+        }
+      } else {
+        self.write_failures.val += 1
+      }
+    }
+  }
+}
+
+///|
+pub impl @sink_graph.Sink for FileSink with fn write_async(self, rec : Record) {
+  match self.handle.val {
+    None => self.write_failures.val += 1
+    Some(_) => {
+      let line = "\{(self.formatter)(rec)}\n"
+      let can_write = rotate_if_needed_async_internal(
+        self,
+        @utils.string_byte_length_internal(line),
+      )
+      if can_write {
+        match self.handle.val {
+          None => self.write_failures.val += 1
+          Some(active) => {
+            let wrote = @utils.write_file_handle_async_internal(active, line)
+            if wrote {
+              if self.auto_flush.val {
+                let flushed = @utils.flush_file_handle_async_internal(active)
                 if !flushed {
                   self.flush_failures.val += 1
                 }

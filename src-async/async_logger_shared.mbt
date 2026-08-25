@@ -132,6 +132,7 @@ pub struct AsyncLogger[S] {
   flush_policy : AsyncFlushPolicy
   sink : S
   flush_callback : (S) -> Unit raise
+  flush_async_callback : (async (S) -> Unit)?
   context_fields : Array[@bitlogger.Field]
   filter : (@bitlogger.Record) -> Bool
   patch : @bitlogger.RecordPatch
@@ -160,6 +161,7 @@ pub fn[S] async_logger(
     flush_policy: config.flush,
     sink,
     flush_callback: flush,
+    flush_async_callback: None,
     context_fields: [],
     filter: fn(_) { true },
     patch: @bitlogger.identity_patch(),
@@ -169,6 +171,14 @@ pub fn[S] async_logger(
     phase: Ref(AsyncLifecyclePhase::Ready),
     last_error: Ref(""),
   }
+}
+
+///|
+fn[S] with_async_flush_callback_internal(
+  logger : AsyncLogger[S],
+  callback : async (S) -> Unit,
+) -> AsyncLogger[S] {
+  { ..logger, flush_async_callback: Some(callback) }
 }
 
 ///|
@@ -535,8 +545,11 @@ pub async fn[S] AsyncLogger::shutdown(
 }
 
 ///|
-fn[S] run_flush_callback(logger : AsyncLogger[S]) -> Unit raise {
-  (logger.flush_callback)(logger.sink)
+async fn[S] run_flush_callback(logger : AsyncLogger[S]) -> Unit {
+  match logger.flush_async_callback {
+    Some(callback) => callback(logger.sink)
+    None => (logger.flush_callback)(logger.sink)
+  }
 }
 
 ///|
@@ -546,7 +559,7 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
       err if err is AsyncLoggerClosed => break
       err => raise err
     }
-    logger.sink.write(rec)
+    logger.sink.write_async(rec)
     if logger.pending_count.val > 0 {
       logger.pending_count.val -= 1
     }
@@ -557,7 +570,7 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
       }
       match next {
         Some(next) => {
-          logger.sink.write(next)
+          logger.sink.write_async(next)
           if logger.pending_count.val > 0 {
             logger.pending_count.val -= 1
           }
@@ -575,7 +588,7 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
           }
           match waited {
             Some(next) => {
-              logger.sink.write(next)
+              logger.sink.write_async(next)
               if logger.pending_count.val > 0 {
                 logger.pending_count.val -= 1
               }
@@ -598,6 +611,7 @@ async fn[S : @bitlogger.Sink] run_worker(logger : AsyncLogger[S]) -> Unit {
 }
 
 ///|
+#warnings("-fragile_catch_all")
 pub async fn[S : @bitlogger.Sink] AsyncLogger::run(
   self : AsyncLogger[S],
 ) -> Unit {
@@ -619,14 +633,20 @@ pub async fn[S : @bitlogger.Sink] AsyncLogger::run(
 pub fn build_async_logger(
   config : AsyncLoggerBuildConfig,
 ) -> AsyncLogger[@bitlogger.RuntimeSink] {
-  let logger = @bitlogger.build_logger(config.logger)
-  async_logger(
+  let logger = @bitlogger.build_logger_for_async(config.logger)
+  let logger = async_logger(
     logger.sink,
     config=config.async_config,
     min_level=logger.min_level,
     target=logger.target,
     flush=fn(sink) { ignore(sink.flush_progress()) },
-  ).with_timestamp(enabled=logger.timestamp)
+  )
+  let flush_async : async (@bitlogger.RuntimeSink) -> Unit = sink => {
+    sink.flush_async()
+  }
+  with_async_flush_callback_internal(logger, flush_async).with_timestamp(
+    enabled=logger.timestamp,
+  )
 }
 
 ///|

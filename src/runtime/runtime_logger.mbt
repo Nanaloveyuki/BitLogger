@@ -82,6 +82,20 @@ pub impl @sink_graph.Sink for RuntimeSink with fn write(self, rec) {
 }
 
 ///|
+pub impl @sink_graph.Sink for RuntimeSink with fn write_async(self, rec) {
+  match self {
+    Console(sink) => sink.write(rec)
+    JsonConsole(sink) => sink.write(rec)
+    TextConsole(sink) => sink.write(rec)
+    File(sink) => sink.write_async(rec)
+    QueuedConsole(sink) => sink.write(rec)
+    QueuedJsonConsole(sink) => sink.write(rec)
+    QueuedTextConsole(sink) => sink.write(rec)
+    QueuedFile(sink) => sink.write(rec)
+  }
+}
+
+///|
 fn[S : @sink_graph.Sink] queued_sink_close_internal(
   sink : QueuedSink[S],
 ) -> Bool {
@@ -200,6 +214,23 @@ pub fn RuntimeSink::flush_progress(self : RuntimeSink) -> RuntimeSinkProgress {
 ///|
 pub fn RuntimeSink::flush(self : RuntimeSink) -> Int {
   runtime_sink_progress_compat_count(self.flush_progress())
+}
+
+///|
+pub async fn RuntimeSink::flush_async(self : RuntimeSink) -> Unit {
+  match self {
+    Console(_) => ()
+    JsonConsole(_) => ()
+    TextConsole(_) => ()
+    File(sink) => ignore(sink.flush_async())
+    QueuedConsole(sink) => ignore(sink.flush_async())
+    QueuedJsonConsole(sink) => ignore(sink.flush_async())
+    QueuedTextConsole(sink) => ignore(sink.flush_async())
+    QueuedFile(sink) => {
+      ignore(sink.flush_async())
+      ignore(sink.sink.flush_async())
+    }
+  }
 }
 
 ///|
@@ -671,7 +702,10 @@ pub fn RuntimeSink::file_runtime_state(self : RuntimeSink) -> RuntimeFileState? 
 }
 
 ///|
-pub fn build_runtime_sink(config : SinkConfig) -> RuntimeSink {
+fn build_runtime_sink_internal(
+  config : SinkConfig,
+  defer_file_open : Bool,
+) -> RuntimeSink {
   match config.kind {
     SinkKind::Console => RuntimeSink::Console(@sink_graph.console_sink())
     SinkKind::JsonConsole =>
@@ -682,20 +716,46 @@ pub fn build_runtime_sink(config : SinkConfig) -> RuntimeSink {
       )
     SinkKind::File =>
       RuntimeSink::File(
-        @file_runtime.file_sink(
-          config.path,
-          append=config.append,
-          auto_flush=config.auto_flush,
-          rotation=config.rotation,
-          formatter=fn(rec) {
-            @formatting.format_text(
-              rec,
-              formatter=config.text_formatter.to_formatter(),
-            )
-          },
-        ),
+        if defer_file_open {
+          @file_runtime.file_sink_deferred(
+            config.path,
+            append=config.append,
+            auto_flush=config.auto_flush,
+            rotation=config.rotation,
+            formatter=fn(rec) {
+              @formatting.format_text(
+                rec,
+                formatter=config.text_formatter.to_formatter(),
+              )
+            },
+          )
+        } else {
+          @file_runtime.file_sink(
+            config.path,
+            append=config.append,
+            auto_flush=config.auto_flush,
+            rotation=config.rotation,
+            formatter=fn(rec) {
+              @formatting.format_text(
+                rec,
+                formatter=config.text_formatter.to_formatter(),
+              )
+            },
+          )
+        },
       )
   }
+}
+
+///|
+pub fn build_runtime_sink(config : SinkConfig) -> RuntimeSink {
+  build_runtime_sink_internal(config, false)
+}
+
+///|
+#doc(hidden)
+pub fn build_runtime_sink_for_async(config : SinkConfig) -> RuntimeSink {
+  build_runtime_sink_internal(config, true)
 }
 
 ///|

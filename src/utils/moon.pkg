@@ -2,14 +2,16 @@ import {
   "Nanaloveyuki/BitLogger/src/core",
   "Nanaloveyuki/BitLogger/src/formatting",
   "Nanaloveyuki/BitLogger/src/record_ops",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
   "moonbitlang/core/env",
+  "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/json",
   "moonbitlang/core/ref",
   "moonbitlang/core/string",
 }
 
 options(
-  "native-stub": [ "stub.c" ],
   targets: {
     "file_backend_native.mbt": [ "native", "llvm" ],
     "file_backend_stub.mbt": [ "js", "wasm", "wasm-gc" ],

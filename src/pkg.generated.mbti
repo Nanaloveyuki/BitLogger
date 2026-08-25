@@ -75,6 +75,8 @@ pub fn file_rotation_i64(Int64, max_backups? : Int) -> @file_model.FileRotation
 
 pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
 
+pub async fn file_sink_async(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
+
 pub fn file_sink_policy_to_json(@file_model.FileSinkPolicy) -> Json
 
 pub fn file_sink_state_to_json(@file_model.FileSinkState) -> Json
