@@ -153,6 +153,7 @@ BitLogger API navigation.
 - [patch-sink.md](./patch-sink.md)
 - [patch-sink-type.md](./patch-sink-type.md)
 - [file-sink.md](./file-sink.md)
+- [file-sink-async.md](./file-sink-async.md)
 - [file-sink-available.md](./file-sink-available.md)
 - [file-sink-flush.md](./file-sink-flush.md)
 - [file-sink-close.md](./file-sink-close.md)

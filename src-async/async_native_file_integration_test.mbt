@@ -5,7 +5,7 @@ async test "native async file lifecycle flushes rotates and restarts" {
   } else {
     let path = "logs/bitlogger-async-native-e2e.log"
     let first_flushes : Ref[Int] = Ref(0)
-    let first_sink = @bitlogger.file_sink(
+    let first_sink = @bitlogger.file_sink_async(
       path,
       append=false,
       auto_flush=false,
@@ -47,7 +47,7 @@ async test "native async file lifecycle flushes rotates and restarts" {
     inspect(first_sink.close(), content="true")
 
     let restart_flushes : Ref[Int] = Ref(0)
-    let restarted_sink = @bitlogger.file_sink(
+    let restarted_sink = @bitlogger.file_sink_async(
       path,
       append=true,
       auto_flush=false,

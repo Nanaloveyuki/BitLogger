@@ -10,6 +10,8 @@ import {
 // Values
 pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> FileSink
 
+pub async fn file_sink_async(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> FileSink
+
 pub fn native_files_supported() -> Bool
 
 // Errors
@@ -24,6 +26,7 @@ pub fn FileSink::clear_rotation(Self) -> Unit
 pub fn FileSink::close(Self) -> Bool
 pub fn FileSink::default_policy(Self) -> @file_model.FileSinkPolicy
 pub fn FileSink::flush(Self) -> Bool
+pub async fn FileSink::flush_async(Self) -> Bool
 pub fn FileSink::flush_failures(Self) -> Int
 pub fn FileSink::is_available(Self) -> Bool
 pub fn FileSink::open_failures(Self) -> Int

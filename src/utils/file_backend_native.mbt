@@ -1,106 +1,137 @@
 ///|
-fn string_to_c_bytes(str : String) -> Bytes {
-  let res : Array[Byte] = []
-  let len = str.length()
-  let mut i = 0
-  while i < len {
-    let mut c = str.code_unit_at(i).to_int()
-    if 0xD800 <= c && c <= 0xDBFF {
-      c -= 0xD800
-      i = i + 1
-      let l = str.code_unit_at(i).to_int() - 0xDC00
-      c = (c << 10) + l + 0x10000
-    }
-    if c < 0x80 {
-      res.push(c.to_byte())
-    } else if c < 0x800 {
-      res.push((0xc0 + (c >> 6)).to_byte())
-      res.push((0x80 + (c & 0x3f)).to_byte())
-    } else if c < 0x10000 {
-      res.push((0xe0 + (c >> 12)).to_byte())
-      res.push((0x80 + ((c >> 6) & 0x3f)).to_byte())
-      res.push((0x80 + (c & 0x3f)).to_byte())
-    } else {
-      res.push((0xf0 + (c >> 18)).to_byte())
-      res.push((0x80 + ((c >> 12) & 0x3f)).to_byte())
-      res.push((0x80 + ((c >> 6) & 0x3f)).to_byte())
-      res.push((0x80 + (c & 0x3f)).to_byte())
-    }
-    i = i + 1
-  }
-  res.push((0).to_byte())
-  Bytes::from_array(res)
+pub struct FileHandle {
+  priv path : String
+  priv append : Bool
+  priv initialized : Ref[Bool]
+  priv position : Ref[Int64]
+  priv closed : Ref[Bool]
 }
 
 ///|
-#external
-type NativeFileHandle
+fn run_async_bool_internal(operation : async () -> Bool) -> Bool {
+  let result = Ref(false)
+  @async.run_async_main(() => result.val = operation())
+  result.val
+}
 
 ///|
-#borrow(path, mode)
-extern "C" fn file_open_ffi(path : Bytes, mode : Bytes) -> NativeFileHandle = "bitlogger_file_open"
+fn run_async_i64_internal(operation : async () -> Int64) -> Int64 {
+  let result = Ref(0L)
+  @async.run_async_main(() => result.val = operation())
+  result.val
+}
 
 ///|
-extern "C" fn file_is_null_ffi(handle : NativeFileHandle) -> Bool = "bitlogger_pointer_is_null"
+fn new_file_handle_internal(
+  path : String,
+  append : Bool,
+  initialized : Bool,
+) -> FileHandle {
+  {
+    path,
+    append,
+    initialized: Ref(initialized),
+    position: Ref(0L),
+    closed: Ref(false),
+  }
+}
 
 ///|
-#borrow(buffer)
-extern "C" fn file_write_ffi(
-  buffer : Bytes,
-  size : Int,
-  count : Int,
-  handle : NativeFileHandle,
-) -> Int = "bitlogger_file_write"
+async fn probe_open_file_handle_async_internal(
+  path : String,
+  append : Bool,
+) -> Bool {
+  try {
+    let create_mode = if append {
+      @fs.OpenOrCreate
+    } else {
+      @fs.CreateOrTruncate
+    }
+    let file = @fs.open(path, mode=@fs.WriteOnly, append~, create_mode~)
+    file.close()
+    true
+  } catch {
+    _ => false
+  }
+}
 
 ///|
-extern "C" fn file_flush_ffi(handle : NativeFileHandle) -> Int = "bitlogger_file_flush"
-
-///|
-extern "C" fn file_close_ffi(handle : NativeFileHandle) -> Int = "bitlogger_file_close"
-
-///|
-extern "C" fn file_seek_ffi(
-  handle : NativeFileHandle,
-  offset : Int,
-  origin : Int,
-) -> Int = "bitlogger_file_seek"
-
-///|
-extern "C" fn file_tell_i64_ffi(handle : NativeFileHandle) -> Int64 = "bitlogger_file_tell_i64"
-
-///|
-#borrow(from_path, to_path)
-extern "C" fn file_rename_ffi(from_path : Bytes, to_path : Bytes) -> Int = "bitlogger_file_rename"
-
-///|
-#borrow(path)
-extern "C" fn file_remove_ffi(path : Bytes) -> Int = "bitlogger_file_remove"
-
-///|
-pub struct FileHandle {
-  path : String
-  raw : NativeFileHandle
+pub async fn open_file_handle_async_internal(
+  path : String,
+  append : Bool,
+) -> FileHandle? {
+  if probe_open_file_handle_async_internal(path, append) {
+    Some(new_file_handle_internal(path, append, true))
+  } else {
+    None
+  }
 }
 
 ///|
 pub fn open_file_handle_internal(path : String, append : Bool) -> FileHandle? {
-  let mode = if append { "ab" } else { "wb" }
-  let raw = file_open_ffi(string_to_c_bytes(path), string_to_c_bytes(mode))
-  if file_is_null_ffi(raw) {
-    None
+  let opened = run_async_bool_internal(() => {
+    probe_open_file_handle_async_internal(path, append)
+  })
+  if opened {
+    Some(new_file_handle_internal(path, append, true))
   } else {
-    Some({ raw, path })
+    None
+  }
+}
+
+///|
+pub fn deferred_file_handle_internal(
+  path : String,
+  append : Bool,
+) -> FileHandle? {
+  Some(new_file_handle_internal(path, append, false))
+}
+
+///|
+pub async fn write_file_handle_async_internal(
+  handle : FileHandle,
+  content : String,
+) -> Bool {
+  if handle.closed.val {
+    return false
+  }
+  let bytes = @utf8.encode(content)
+  try {
+    let file = @fs.open(
+      handle.path,
+      mode=@fs.WriteOnly,
+      append=handle.append,
+      create_mode=if handle.initialized.val {
+        @fs.OpenOrCreate
+      } else if handle.append {
+        @fs.OpenOrCreate
+      } else {
+        @fs.CreateOrTruncate
+      },
+    )
+    defer file.close()
+    if handle.append {
+      file.write(bytes)
+    } else {
+      file.write_at(bytes[:], position=handle.position.val)
+      handle.position.val += bytes.length().to_int64()
+    }
+    handle.initialized.val = true
+    true
+  } catch {
+    _ => false
   }
 }
 
 ///|
 pub fn file_exists_internal(path : String) -> Bool {
-  let raw = file_open_ffi(string_to_c_bytes(path), string_to_c_bytes("rb"))
-  if file_is_null_ffi(raw) {
-    false
-  } else {
-    ignore(file_close_ffi(raw))
-    true
+  run_async_bool_internal(() => @fs.exists(path))
+}
+
+///|
+pub async fn file_exists_async_internal(path : String) -> Bool {
+  @fs.exists(path) catch {
+    _ => false
   }
 }
 
@@ -109,45 +140,102 @@ pub fn write_file_handle_internal(
   handle : FileHandle,
   content : String,
 ) -> Bool {
-  let bytes = string_to_c_bytes(content)
-  let written = file_write_ffi(bytes, 1, bytes.length() - 1, handle.raw)
-  written == bytes.length() - 1
+  run_async_bool_internal(() => {
+    write_file_handle_async_internal(handle, content)
+  })
+}
+
+///|
+pub async fn flush_file_handle_async_internal(handle : FileHandle) -> Bool {
+  if handle.closed.val {
+    return false
+  }
+  try {
+    let file = @fs.open(handle.path, mode=@fs.WriteOnly)
+    file.sync()
+    file.close()
+    true
+  } catch {
+    _ => false
+  }
 }
 
 ///|
 pub fn flush_file_handle_internal(handle : FileHandle) -> Bool {
-  file_flush_ffi(handle.raw) == 0
+  if handle.closed.val {
+    false
+  } else {
+    // Each write owns and closes its File, so there is no buffered handle to flush here.
+    true
+  }
 }
 
 ///|
 pub fn close_file_handle_internal(handle : FileHandle) -> Bool {
-  file_close_ffi(handle.raw) == 0
+  if handle.closed.val {
+    false
+  } else {
+    handle.closed.val = true
+    true
+  }
+}
+
+///|
+pub async fn file_size_i64_async_internal(handle : FileHandle) -> Int64 {
+  if handle.closed.val {
+    return 0L
+  }
+  try {
+    let file = @fs.open(handle.path, mode=@fs.ReadOnly)
+    let size = file.size()
+    file.close()
+    size
+  } catch {
+    _ => 0L
+  }
 }
 
 ///|
 pub fn file_size_i64_internal(handle : FileHandle) -> Int64 {
-  ignore(file_seek_ffi(handle.raw, 0, 2))
-  let size = file_tell_i64_ffi(handle.raw)
-  if size < 0L {
-    0L
-  } else {
-    size
+  run_async_i64_internal(() => file_size_i64_async_internal(handle))
+}
+
+///|
+pub async fn rename_file_async_internal(
+  from_path : String,
+  to_path : String,
+) -> Bool {
+  try {
+    @fs.rename(from_path, to_path)
+    true
+  } catch {
+    _ => false
   }
 }
 
 ///|
 pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
-  file_rename_ffi(string_to_c_bytes(from_path), string_to_c_bytes(to_path)) == 0
+  run_async_bool_internal(() => rename_file_async_internal(from_path, to_path))
+}
+
+///|
+pub async fn remove_file_async_internal(path : String) -> Bool {
+  try {
+    @fs.remove(path)
+    true
+  } catch {
+    _ => false
+  }
 }
 
 ///|
 pub fn remove_file_internal(path : String) -> Bool {
-  file_remove_ffi(string_to_c_bytes(path)) == 0
+  run_async_bool_internal(() => remove_file_async_internal(path))
 }
 
 ///|
 pub fn string_byte_length_internal(content : String) -> Int {
-  string_to_c_bytes(content).length() - 1
+  @utf8.encode(content).length()
 }
 
 ///|

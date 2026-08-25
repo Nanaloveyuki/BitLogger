@@ -12,8 +12,14 @@ test "file sink counts an injected partial backup-chain failure" {
     rec.message
   })
   if seed.is_available() {
-    seed.write(@core.Record::new(@core.Level::Info, "1234567890"))
-    seed.write(@core.Record::new(@core.Level::Info, "abcdefghij"))
+    @sink_graph.Sink::write(
+      seed,
+      @core.Record::new(@core.Level::Info, "1234567890"),
+    )
+    @sink_graph.Sink::write(
+      seed,
+      @core.Record::new(@core.Level::Info, "abcdefghij"),
+    )
     inspect(seed.rotation_failures(), content="0")
     inspect(seed.close(), content="true")
 
@@ -33,7 +39,10 @@ test "file sink counts an injected partial backup-chain failure" {
         }
       },
     }
-    sink.write(@core.Record::new(@core.Level::Info, "klmnopqrst"))
+    @sink_graph.Sink::write(
+      sink,
+      @core.Record::new(@core.Level::Info, "klmnopqrst"),
+    )
 
     inspect(sink.rotation_failures(), content="1")
     inspect(sink.state().rotation_failures, content="1")
@@ -65,8 +74,14 @@ test "file sink counts an injected oldest-backup removal failure" {
     rec.message
   })
   if seed.is_available() {
-    seed.write(@core.Record::new(@core.Level::Info, "1234567890"))
-    seed.write(@core.Record::new(@core.Level::Info, "abcdefghij"))
+    @sink_graph.Sink::write(
+      seed,
+      @core.Record::new(@core.Level::Info, "1234567890"),
+    )
+    @sink_graph.Sink::write(
+      seed,
+      @core.Record::new(@core.Level::Info, "abcdefghij"),
+    )
     inspect(seed.close(), content="true")
 
     let oldest = @utils.open_file_handle_internal(test_path + ".2", true)
@@ -95,7 +110,10 @@ test "file sink counts an injected oldest-backup removal failure" {
         @utils.rename_file_internal(from_path, to_path)
       },
     }
-    sink.write(@core.Record::new(@core.Level::Info, "klmnopqrst"))
+    @sink_graph.Sink::write(
+      sink,
+      @core.Record::new(@core.Level::Info, "klmnopqrst"),
+    )
 
     inspect(sink.rotation_failures(), content="1")
     inspect(sink.write_failures(), content="1")

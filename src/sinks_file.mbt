@@ -64,3 +64,20 @@ pub fn file_sink(
 ) -> FileSink {
   @file_runtime.file_sink(path, append~, auto_flush~, rotation~, formatter~)
 }
+
+///|
+pub async fn file_sink_async(
+  path : String,
+  append? : Bool = true,
+  auto_flush? : Bool = true,
+  rotation? : FileRotation? = None,
+  formatter? : RecordFormatter = fn(rec) { format_text(rec) },
+) -> FileSink {
+  @file_runtime.file_sink_async(
+    path,
+    append~,
+    auto_flush~,
+    rotation~,
+    formatter~,
+  )
+}

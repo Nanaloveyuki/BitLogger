@@ -68,6 +68,7 @@ pub fn RuntimeSink::file_state(Self) -> @file_model.FileSinkState
 pub fn RuntimeSink::file_state_or_none(Self) -> @file_model.FileSinkState?
 pub fn RuntimeSink::file_write_failures(Self) -> Int
 pub fn RuntimeSink::flush(Self) -> Int
+pub async fn RuntimeSink::flush_async(Self) -> Unit
 pub fn RuntimeSink::flush_progress(Self) -> RuntimeSinkProgress
 pub fn RuntimeSink::pending_count(Self) -> Int
 pub impl @sink_graph.Sink for RuntimeSink

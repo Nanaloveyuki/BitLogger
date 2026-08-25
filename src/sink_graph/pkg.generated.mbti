@@ -51,6 +51,7 @@ pub struct BufferedSink[S] {
   flush_limit : Int
 }
 pub fn[S : Sink] BufferedSink::flush(Self[S]) -> Unit
+pub async fn[S : Sink] BufferedSink::flush_async(Self[S]) -> Unit
 pub fn[S] BufferedSink::pending_count(Self[S]) -> Int
 pub impl[S : Sink] Sink for BufferedSink[S]
 
@@ -124,8 +125,10 @@ pub struct QueuedSink[S] {
   dropped_count : @ref.Ref[Int]
 }
 pub fn[S : Sink] QueuedSink::drain(Self[S], max_items? : Int) -> Int
+pub async fn[S : Sink] QueuedSink::drain_async(Self[S], max_items? : Int) -> Int
 pub fn[S] QueuedSink::dropped_count(Self[S]) -> Int
 pub fn[S : Sink] QueuedSink::flush(Self[S]) -> Int
+pub async fn[S : Sink] QueuedSink::flush_async(Self[S]) -> Int
 pub fn[S] QueuedSink::pending_count(Self[S]) -> Int
 pub impl[S] Sink for QueuedSink[S]
 
@@ -142,4 +145,5 @@ pub using @queue_model {type QueueOverflowPolicy}
 // Traits
 pub(open) trait Sink {
   fn write(Self, @core.Record) -> Unit
+  async fn write_async(Self, @core.Record) -> Unit = _
 }
