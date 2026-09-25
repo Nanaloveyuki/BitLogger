@@ -6,7 +6,7 @@ pub struct Field {
 
 ///|
 pub fn field(key : String, value : String) -> Field {
-  { key, value }
+  { key, value, }
 }
 
 ///|
@@ -31,7 +31,7 @@ pub fn Record::new(
   target? : String = "",
   fields? : Array[Field] = [],
 ) -> Record {
-  { level, timestamp_ms, target, message, fields }
+  { level, timestamp_ms, target, message, fields, }
 }
 
 ///|

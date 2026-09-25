@@ -13,7 +13,7 @@ pub fn TraceContext::new(
   trace_flags? : String = "01",
   trace_state? : String,
 ) -> TraceContext {
-  { trace_id, span_id, trace_flags, trace_state }
+  { trace_id, span_id, trace_flags, trace_state, }
 }
 
 ///|

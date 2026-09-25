@@ -4,12 +4,10 @@ import {
   "Nanaloveyuki/BitLogger/src/record_ops",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-  "moonbitlang/core/env",
   "moonbitlang/core/encoding/utf8",
-  "moonbitlang/core/json",
-  "moonbitlang/core/ref",
-  "moonbitlang/core/string",
 }
+
+warnings = "-29"
 
 options(
   targets: {

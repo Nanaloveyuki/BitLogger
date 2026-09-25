@@ -13,7 +13,7 @@ pub fn RuntimeFileState::new(
   pending_count? : Int = 0,
   dropped_count? : Int = 0,
 ) -> RuntimeFileState {
-  { file, queued, pending_count, dropped_count }
+  { file, queued, pending_count, dropped_count, }
 }
 
 ///|

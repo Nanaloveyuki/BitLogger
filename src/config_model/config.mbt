@@ -108,7 +108,7 @@ pub fn QueueConfig::new(
   max_pending : Int,
   overflow? : @queue_model.QueueOverflowPolicy = @queue_model.QueueOverflowPolicy::DropNewest,
 ) -> QueueConfig {
-  { max_pending, overflow }
+  { max_pending, overflow, }
 }
 
 ///|
@@ -130,7 +130,7 @@ pub fn SinkConfig::new(
   rotation? : @file_model.FileRotation? = None,
   text_formatter? : TextFormatterConfig = default_text_formatter_config(),
 ) -> SinkConfig {
-  { kind, path, append, auto_flush, rotation, text_formatter }
+  { kind, path, append, auto_flush, rotation, text_formatter, }
 }
 
 ///|
@@ -150,7 +150,7 @@ pub fn LoggerConfig::new(
   sink? : SinkConfig = default_sink_config(),
   queue? : QueueConfig? = None,
 ) -> LoggerConfig {
-  { min_level, target, timestamp, sink, queue }
+  { min_level, target, timestamp, sink, queue, }
 }
 
 ///|

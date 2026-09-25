@@ -9,12 +9,8 @@ import {
   "Nanaloveyuki/BitLogger/src/queue_model",
   "Nanaloveyuki/BitLogger/src/runtime",
   "Nanaloveyuki/BitLogger/src/sink_graph",
-  "moonbitlang/core/array",
   "moonbitlang/core/builtin",
   "moonbitlang/core/env",
-  "moonbitlang/core/json",
-  "moonbitlang/core/queue",
-  "moonbitlang/core/ref",
 }
 
 import {
@@ -24,3 +20,5 @@ import {
 import {
   "moonbitlang/core/quickcheck",
 } for "test"
+
+warnings = "-25"

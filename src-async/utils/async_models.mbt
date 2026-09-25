@@ -47,7 +47,7 @@ pub fn AsyncRuntimeState::new(
   mode : AsyncRuntimeMode,
   background_worker : Bool,
 ) -> AsyncRuntimeState {
-  { mode, background_worker }
+  { mode, background_worker, }
 }
 
 ///|
@@ -369,7 +369,7 @@ pub fn AsyncLoggerBuildConfig::new(
   logger? : @bitlogger.LoggerConfig = @bitlogger.default_logger_config(),
   async_config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
 ) -> AsyncLoggerBuildConfig {
-  { logger, async_config }
+  { logger, async_config, }
 }
 
 ///|

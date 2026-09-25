@@ -644,3 +644,6 @@ pub impl @sink_graph.Sink for FileSink with fn write_async(self, rec : Record) {
     }
   }
 }
+
+///|
+pub extend FileSink with @sink_graph.Sink::{write, write_async}

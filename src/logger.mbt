@@ -12,7 +12,7 @@ pub fn[S] Logger::new(
   min_level? : Level = Level::Info,
   target? : String = "",
 ) -> Logger[S] {
-  { min_level, sink, target, timestamp: false }
+  { min_level, sink, target, timestamp: false, }
 }
 
 ///|
@@ -33,7 +33,7 @@ fn combine_targets(parent : String, child : String) -> String {
 
 ///|
 pub fn[S] Logger::child(self : Logger[S], target : String) -> Logger[S] {
-  { ..self, target: combine_targets(self.target, target) }
+  { ..self, target: combine_targets(self.target, target), }
 }
 
 ///|
@@ -118,7 +118,7 @@ pub fn[S] Logger::with_timestamp(
   self : Logger[S],
   enabled? : Bool = true,
 ) -> Logger[S] {
-  { ..self, timestamp: enabled }
+  { ..self, timestamp: enabled, }
 }
 
 ///|

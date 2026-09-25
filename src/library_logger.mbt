@@ -5,7 +5,7 @@ pub struct LibraryLogger[S] {
 
 ///|
 fn[S] library_logger(logger : Logger[S]) -> LibraryLogger[S] {
-  { inner: logger }
+  { inner: logger, }
 }
 
 ///|

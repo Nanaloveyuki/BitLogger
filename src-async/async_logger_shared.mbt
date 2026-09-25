@@ -178,7 +178,7 @@ fn[S] with_async_flush_callback_internal(
   logger : AsyncLogger[S],
   callback : async (S) -> Unit,
 ) -> AsyncLogger[S] {
-  { ..logger, flush_async_callback: Some(callback) }
+  { ..logger, flush_async_callback: Some(callback), }
 }
 
 ///|
@@ -265,7 +265,7 @@ pub fn[S] AsyncLogger::with_timestamp(
   self : AsyncLogger[S],
   enabled? : Bool = true,
 ) -> AsyncLogger[S] {
-  { ..self, timestamp: enabled }
+  { ..self, timestamp: enabled, }
 }
 
 ///|
@@ -281,7 +281,7 @@ pub fn[S] AsyncLogger::with_context_fields(
   self : AsyncLogger[S],
   fields : Array[@bitlogger.Field],
 ) -> AsyncLogger[S] {
-  { ..self, context_fields: fields }
+  { ..self, context_fields: fields, }
 }
 
 ///|
@@ -298,7 +298,7 @@ pub fn[S] AsyncLogger::with_filter(
   predicate : (@bitlogger.Record) -> Bool,
 ) -> AsyncLogger[S] {
   let current = self.filter
-  { ..self, filter: fn(rec) { current(rec) && predicate(rec) } }
+  { ..self, filter: fn(rec) { current(rec) && predicate(rec) }, }
 }
 
 ///|
@@ -307,7 +307,7 @@ pub fn[S] AsyncLogger::with_patch(
   patch : @bitlogger.RecordPatch,
 ) -> AsyncLogger[S] {
   let current = self.patch
-  { ..self, patch: fn(rec) { patch(current(rec)) } }
+  { ..self, patch: fn(rec) { patch(current(rec)) }, }
 }
 
 ///|
@@ -334,7 +334,7 @@ pub fn[S] AsyncLogger::child(
   self : AsyncLogger[S],
   target : String,
 ) -> AsyncLogger[S] {
-  { ..self, target: combine_targets(self.target, target) }
+  { ..self, target: combine_targets(self.target, target), }
 }
 
 ///|

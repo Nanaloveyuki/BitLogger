@@ -96,6 +96,9 @@ pub impl @sink_graph.Sink for RuntimeSink with fn write_async(self, rec) {
 }
 
 ///|
+pub extend RuntimeSink with @sink_graph.Sink::{write, write_async}
+
+///|
 fn[S : @sink_graph.Sink] queued_sink_close_internal(
   sink : QueuedSink[S],
 ) -> Bool {

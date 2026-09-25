@@ -1,12 +1,12 @@
 import {
   "Nanaloveyuki/BitLogger/src" @bitlogger,
   "Nanaloveyuki/BitLogger/src-async/utils",
-  "moonbitlang/core/json",
   "moonbitlang/async",
   "moonbitlang/async/aqueue",
   "moonbitlang/core/env",
-  "moonbitlang/core/ref",
 }
+
+warnings = "-25"
 
 options(
   targets: {

@@ -1,4 +1,3 @@
 import {
   "Nanaloveyuki/BitLogger/src/core",
-  "moonbitlang/core/string",
 }

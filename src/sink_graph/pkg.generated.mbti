@@ -53,45 +53,61 @@ pub struct BufferedSink[S] {
 pub fn[S : Sink] BufferedSink::flush(Self[S]) -> Unit
 pub async fn[S : Sink] BufferedSink::flush_async(Self[S]) -> Unit
 pub fn[S] BufferedSink::pending_count(Self[S]) -> Int
+pub fn[S : Sink] BufferedSink::write(Self[S], @core.Record) -> Unit
+pub async fn[S : Sink] BufferedSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S : Sink] Sink for BufferedSink[S]
 
 pub struct CallbackSink {
   callback : (@core.Record) -> Unit
 }
+pub fn CallbackSink::write(Self, @core.Record) -> Unit
+pub async fn CallbackSink::write_async(Self, @core.Record) -> Unit
 pub impl Sink for CallbackSink
 
 pub struct ConsoleSink {
   _dummy : Unit
 }
+pub fn ConsoleSink::write(Self, @core.Record) -> Unit
+pub async fn ConsoleSink::write_async(Self, @core.Record) -> Unit
 pub impl Sink for ConsoleSink
 
 pub struct ContextSink[S] {
   sink : S
   context_fields : Array[@core.Field]
 }
+pub fn[S : Sink] ContextSink::write(Self[S], @core.Record) -> Unit
+pub async fn[S : Sink] ContextSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S : Sink] Sink for ContextSink[S]
 
 pub struct FanoutSink[A, B] {
   left : A
   right : B
 }
+pub fn[A : Sink, B : Sink] FanoutSink::write(Self[A, B], @core.Record) -> Unit
+pub async fn[A : Sink, B : Sink] FanoutSink::write_async(Self[A, B], @core.Record) -> Unit
 pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B]
 
 pub struct FilterSink[S] {
   sink : S
   predicate : (@core.Record) -> Bool
 }
+pub fn[S : Sink] FilterSink::write(Self[S], @core.Record) -> Unit
+pub async fn[S : Sink] FilterSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S : Sink] Sink for FilterSink[S]
 
 pub struct FormattedCallbackSink {
   formatter : (@core.Record) -> String
   callback : (String) -> Unit
 }
+pub fn FormattedCallbackSink::write(Self, @core.Record) -> Unit
+pub async fn FormattedCallbackSink::write_async(Self, @core.Record) -> Unit
 pub impl Sink for FormattedCallbackSink
 
 pub struct FormattedConsoleSink {
   formatter : (@core.Record) -> String
 }
+pub fn FormattedConsoleSink::write(Self, @core.Record) -> Unit
+pub async fn FormattedConsoleSink::write_async(Self, @core.Record) -> Unit
 pub impl Sink for FormattedConsoleSink
 
 pub struct HistorySink {
@@ -104,17 +120,23 @@ pub fn HistorySink::clear(Self) -> Unit
 pub fn HistorySink::count(Self) -> Int
 pub fn HistorySink::dropped_count(Self) -> Int
 pub fn HistorySink::snapshot(Self) -> Array[@core.Record]
+pub fn HistorySink::write(Self, @core.Record) -> Unit
+pub async fn HistorySink::write_async(Self, @core.Record) -> Unit
 pub impl Sink for HistorySink
 
 pub struct JsonConsoleSink {
   _dummy : Unit
 }
+pub fn JsonConsoleSink::write(Self, @core.Record) -> Unit
+pub async fn JsonConsoleSink::write_async(Self, @core.Record) -> Unit
 pub impl Sink for JsonConsoleSink
 
 pub struct PatchSink[S] {
   sink : S
   patch : (@core.Record) -> @core.Record
 }
+pub fn[S : Sink] PatchSink::write(Self[S], @core.Record) -> Unit
+pub async fn[S : Sink] PatchSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S : Sink] Sink for PatchSink[S]
 
 pub struct QueuedSink[S] {
@@ -130,6 +152,8 @@ pub fn[S] QueuedSink::dropped_count(Self[S]) -> Int
 pub fn[S : Sink] QueuedSink::flush(Self[S]) -> Int
 pub async fn[S : Sink] QueuedSink::flush_async(Self[S]) -> Int
 pub fn[S] QueuedSink::pending_count(Self[S]) -> Int
+pub fn[S] QueuedSink::write(Self[S], @core.Record) -> Unit
+pub async fn[S] QueuedSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S] Sink for QueuedSink[S]
 
 pub struct SplitSink[A, B] {
@@ -137,6 +161,8 @@ pub struct SplitSink[A, B] {
   right : B
   predicate : (@core.Record) -> Bool
 }
+pub fn[A : Sink, B : Sink] SplitSink::write(Self[A, B], @core.Record) -> Unit
+pub async fn[A : Sink, B : Sink] SplitSink::write_async(Self[A, B], @core.Record) -> Unit
 pub impl[A : Sink, B : Sink] Sink for SplitSink[A, B]
 
 // Type aliases

@@ -5,7 +5,7 @@ pub struct LibraryAsyncLogger[S] {
 
 ///|
 fn[S] library_async_logger(logger : AsyncLogger[S]) -> LibraryAsyncLogger[S] {
-  { inner: logger }
+  { inner: logger, }
 }
 
 ///|

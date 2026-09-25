@@ -47,6 +47,8 @@ pub fn FileSink::set_auto_flush(Self, Bool) -> Unit
 pub fn FileSink::set_policy(Self, @file_model.FileSinkPolicy) -> Unit
 pub fn FileSink::set_rotation(Self, @file_model.FileRotation?) -> Unit
 pub fn FileSink::state(Self) -> @file_model.FileSinkState
+pub fn FileSink::write(Self, @core.Record) -> Unit
+pub async fn FileSink::write_async(Self, @core.Record) -> Unit
 pub fn FileSink::write_failures(Self) -> Int
 pub impl @sink_graph.Sink for FileSink
 

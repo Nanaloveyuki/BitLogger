@@ -40,7 +40,7 @@ pub fn text_style(
   italic? : Bool = false,
   underline? : Bool = false,
 ) -> TextStyle {
-  { fg, bg, bold, dim, italic, underline }
+  { fg, bg, bold, dim, italic, underline, }
 }
 
 ///|
@@ -55,7 +55,7 @@ fn normalize_style_tag_name(name : String) -> String {
 
 ///|
 pub fn style_tag_registry() -> StyleTagRegistry {
-  { entries: Map([]) }
+  { entries: Map([]), }
 }
 
 ///|
@@ -874,7 +874,7 @@ fn push_plain_segment(
 ) -> Unit {
   let text = buffer.to_string()
   if text != "" {
-    segments.push({ text, style })
+    segments.push({ text, style, })
     buffer.reset()
   }
 }
@@ -917,7 +917,7 @@ fn parse_inline_markup(
 ) -> Array[StyledSegment] {
   let segments : Array[StyledSegment] = []
   let buffer = StringBuilder()
-  let stack : Array[StyleFrame] = [{ tag: "", style: default_inline_style() }]
+  let stack : Array[StyleFrame] = [{ tag: "", style: default_inline_style(), }]
   let chars = input.to_array()
   let current_style = fn() { stack[stack.length() - 1].style }
   let flush = fn() { push_plain_segment(segments, buffer, current_style()) }
@@ -967,7 +967,7 @@ fn parse_inline_markup(
     match apply_inline_tag(current_style(), tag, formatter) {
       Some(next_style) => {
         flush()
-        stack.push({ tag: normalize_style_tag_name(tag), style: next_style })
+        stack.push({ tag: normalize_style_tag_name(tag), style: next_style, })
       }
       None => append_raw(i, end + 1)
     }

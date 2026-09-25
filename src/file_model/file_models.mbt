@@ -31,7 +31,7 @@ pub fn FileSinkPolicy::new(
   auto_flush? : Bool = true,
   rotation? : FileRotation? = None,
 ) -> FileSinkPolicy {
-  { append, auto_flush, rotation }
+  { append, auto_flush, rotation, }
 }
 
 ///|

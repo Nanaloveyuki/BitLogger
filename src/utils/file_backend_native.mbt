@@ -41,12 +41,8 @@ async fn probe_open_file_handle_async_internal(
   path : String,
   append : Bool,
 ) -> Bool {
+  let create_mode = if append { @fs.OpenOrCreate } else { @fs.CreateOrTruncate }
   try {
-    let create_mode = if append {
-      @fs.OpenOrCreate
-    } else {
-      @fs.CreateOrTruncate
-    }
     let file = @fs.open(path, mode=@fs.WriteOnly, append~, create_mode~)
     file.close()
     true
@@ -220,11 +216,16 @@ pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
 
 ///|
 pub async fn remove_file_async_internal(path : String) -> Bool {
-  try {
-    @fs.remove(path)
+  let present = @fs.exists(path) catch { _ => false }
+  if present {
+    try {
+      @fs.remove(path)
+      true
+    } catch {
+      _ => false
+    }
+  } else {
     true
-  } catch {
-    _ => false
   }
 }
 

@@ -1,9 +1,9 @@
 name = "Nanaloveyuki/BitLogger"
 
-version = "0.8.1"
+version = "0.8.2"
 
 import {
-  "moonbitlang/async@0.21.0",
+  "moonbitlang/async@0.22.4",
 }
 
 readme = "src/README.mbt.md"

@@ -7,7 +7,7 @@ pub struct FileHandle {
 pub fn open_file_handle_internal(path : String, append : Bool) -> FileHandle? {
   ignore(append)
   ignore(path)
-  let _unused : FileHandle = { dummy: () }
+  let _unused : FileHandle = { dummy: (), }
   ignore(_unused)
   None
 }
@@ -30,7 +30,7 @@ pub fn file_exists_internal(path : String) -> Bool {
 
 ///|
 async fn stub_async_noop_internal() -> Unit {
-  ignore(@fs.unimplemented)
+  @async.pause()
   @async.pause()
 }
 

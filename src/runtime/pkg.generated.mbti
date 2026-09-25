@@ -71,6 +71,8 @@ pub fn RuntimeSink::flush(Self) -> Int
 pub async fn RuntimeSink::flush_async(Self) -> Unit
 pub fn RuntimeSink::flush_progress(Self) -> RuntimeSinkProgress
 pub fn RuntimeSink::pending_count(Self) -> Int
+pub fn RuntimeSink::write(Self, @core.Record) -> Unit
+pub async fn RuntimeSink::write_async(Self, @core.Record) -> Unit
 pub impl @sink_graph.Sink for RuntimeSink
 
 pub struct RuntimeSinkProgress {

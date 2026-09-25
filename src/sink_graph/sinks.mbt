@@ -34,7 +34,7 @@ pub struct ConsoleSink {
 
 ///|
 pub fn console_sink() -> ConsoleSink {
-  { _dummy: () }
+  { _dummy: (), }
 }
 
 ///|
@@ -42,6 +42,9 @@ pub impl Sink for ConsoleSink with fn write(self, rec) {
   ignore(self)
   println(@formatting.format_text(rec))
 }
+
+///|
+pub extend ConsoleSink with Sink::{write, write_async}
 
 ///|
 pub struct ContextSink[S] {
@@ -54,7 +57,7 @@ pub fn[S] context_sink(
   sink : S,
   context_fields : Array[Field],
 ) -> ContextSink[S] {
-  { sink, context_fields }
+  { sink, context_fields, }
 }
 
 ///|
@@ -82,13 +85,16 @@ pub impl[S : Sink] Sink for ContextSink[S] with fn write_async(self, rec) {
 }
 
 ///|
+pub extend ContextSink with Sink::{write, write_async}
+
+///|
 pub struct JsonConsoleSink {
   _dummy : Unit
 }
 
 ///|
 pub fn json_console_sink() -> JsonConsoleSink {
-  { _dummy: () }
+  { _dummy: (), }
 }
 
 ///|
@@ -96,6 +102,9 @@ pub impl Sink for JsonConsoleSink with fn write(self, rec) {
   ignore(self)
   println(@formatting.format_json(rec))
 }
+
+///|
+pub extend JsonConsoleSink with Sink::{write, write_async}
 
 ///|
 pub struct FormattedConsoleSink {
@@ -120,6 +129,9 @@ pub impl Sink for FormattedConsoleSink with fn write(self, rec) {
 }
 
 ///|
+pub extend FormattedConsoleSink with Sink::{write, write_async}
+
+///|
 pub struct FormattedCallbackSink {
   formatter : RecordFormatter
   callback : (String) -> Unit
@@ -130,7 +142,7 @@ pub fn formatted_callback_sink(
   formatter : RecordFormatter,
   callback : (String) -> Unit,
 ) -> FormattedCallbackSink {
-  { formatter, callback }
+  { formatter, callback, }
 }
 
 ///|
@@ -150,6 +162,9 @@ pub impl Sink for FormattedCallbackSink with fn write(self, rec) {
 }
 
 ///|
+pub extend FormattedCallbackSink with Sink::{write, write_async}
+
+///|
 pub struct FanoutSink[A, B] {
   left : A
   right : B
@@ -157,7 +172,7 @@ pub struct FanoutSink[A, B] {
 
 ///|
 pub fn[A, B] fanout_sink(left : A, right : B) -> FanoutSink[A, B] {
-  { left, right }
+  { left, right, }
 }
 
 ///|
@@ -176,6 +191,9 @@ pub impl[A : Sink, B : Sink] Sink for FanoutSink[A, B] with fn write_async(
 }
 
 ///|
+pub extend FanoutSink with Sink::{write, write_async}
+
+///|
 pub struct SplitSink[A, B] {
   left : A
   right : B
@@ -188,7 +206,7 @@ pub fn[A, B] split_sink(
   right : B,
   predicate : (Record) -> Bool,
 ) -> SplitSink[A, B] {
-  { left, right, predicate }
+  { left, right, predicate, }
 }
 
 ///|
@@ -222,6 +240,9 @@ pub impl[A : Sink, B : Sink] Sink for SplitSink[A, B] with fn write_async(
 }
 
 ///|
+pub extend SplitSink with Sink::{write, write_async}
+
+///|
 pub struct CallbackSink {
   callback : (Record) -> Unit
 }
@@ -237,6 +258,9 @@ pub impl Sink for CallbackSink with fn write(self, rec) {
 }
 
 ///|
+pub extend CallbackSink with Sink::{write, write_async}
+
+///|
 pub struct HistorySink {
   records : Ref[Array[Record]]
   capacity : Int
@@ -246,7 +270,7 @@ pub struct HistorySink {
 ///|
 pub fn history_sink(capacity? : Int = 128) -> HistorySink {
   let capacity = if capacity <= 0 { 1 } else { capacity }
-  { records: Ref([]), capacity, dropped_count: Ref(0) }
+  { records: Ref([]), capacity, dropped_count: Ref(0), }
 }
 
 ///|
@@ -300,6 +324,9 @@ pub impl Sink for HistorySink with fn write(self, rec) {
 }
 
 ///|
+pub extend HistorySink with Sink::{write, write_async}
+
+///|
 pub struct BufferedSink[S] {
   sink : S
   buffer : Ref[Array[Record]]
@@ -309,7 +336,7 @@ pub struct BufferedSink[S] {
 ///|
 pub fn[S] buffered_sink(sink : S, flush_limit? : Int = 1) -> BufferedSink[S] {
   let actual_limit = if flush_limit <= 0 { 1 } else { flush_limit }
-  { sink, buffer: Ref([]), flush_limit: actual_limit }
+  { sink, buffer: Ref([]), flush_limit: actual_limit, }
 }
 
 ///|
@@ -360,6 +387,9 @@ pub impl[S : Sink] Sink for BufferedSink[S] with fn write_async(self, rec) {
     self.flush_async()
   }
 }
+
+///|
+pub extend BufferedSink with Sink::{write, write_async}
 
 ///|
 pub type QueueOverflowPolicy = @queue_model.QueueOverflowPolicy
@@ -470,6 +500,9 @@ pub impl[S] Sink for QueuedSink[S] with fn write(self, rec) {
 }
 
 ///|
+pub extend QueuedSink with Sink::{write, write_async}
+
+///|
 pub struct FilterSink[S] {
   sink : S
   predicate : (Record) -> Bool
@@ -477,7 +510,7 @@ pub struct FilterSink[S] {
 
 ///|
 pub fn[S] filter_sink(sink : S, predicate : (Record) -> Bool) -> FilterSink[S] {
-  { sink, predicate }
+  { sink, predicate, }
 }
 
 ///|
@@ -495,6 +528,9 @@ pub impl[S : Sink] Sink for FilterSink[S] with fn write_async(self, rec) {
 }
 
 ///|
+pub extend FilterSink with Sink::{write, write_async}
+
+///|
 pub struct PatchSink[S] {
   sink : S
   patch : RecordPatch
@@ -502,7 +538,7 @@ pub struct PatchSink[S] {
 
 ///|
 pub fn[S] patch_sink(sink : S, patch : RecordPatch) -> PatchSink[S] {
-  { sink, patch }
+  { sink, patch, }
 }
 
 ///|
@@ -514,3 +550,6 @@ pub impl[S : Sink] Sink for PatchSink[S] with fn write(self, rec) {
 pub impl[S : Sink] Sink for PatchSink[S] with fn write_async(self, rec) {
   self.sink.write_async((self.patch)(rec))
 }
+
+///|
+pub extend PatchSink with Sink::{write, write_async}
