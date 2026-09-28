@@ -10,4 +10,6 @@ let request_logger = logger.with_trace_context(
 
 派生 logger 的每条记录都会带有 `trace_id`、`span_id`、`trace_flags`，以及传入时的 `trace_state`。原 logger 不会被修改，避免请求上下文泄漏到无关任务。
 
+合法的十六进制标识会经过 OpenTelemetry 的 `TraceId`、`SpanId`、`TraceFlags` 和 `TraceState` 规范化。不是合法 W3C 十六进制的标识保持原样，仍作为字段绑定。
+
 `context.as_fields()` 可用于自定义 facade。`traceparent` 解析、span 创建、采样与 OTLP 导出仍由应用选用的 tracing 实现负责。

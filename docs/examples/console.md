@@ -5,7 +5,7 @@ Use this flow for command-line tools and services that need a human-readable sta
 ## Install And Import
 
 ```bash
-moon add Nanaloveyuki/BitLogger@0.8.2
+moon add Nanaloveyuki/BitLogger@0.9.0
 ```
 
 ```moonbit

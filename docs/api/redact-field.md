@@ -2,8 +2,8 @@
 name: redact-field
 group: api
 category: patching
-update-time: 20260512
-description: Create a reusable record patch that redacts one field key.
+update-time: 20260928
+description: Create a reusable record patch that redacts one field, including secrets inside its value.
 key-word:
     - patch
     - redact
@@ -13,7 +13,7 @@ key-word:
 
 ## Redact-field
 
-Create a `RecordPatch` that replaces the value of every field whose key matches the given key. Use it when one sensitive field must be masked before records reach sinks.
+Create a `RecordPatch` that rewrites every field whose key matches the given key. A plain value is replaced by `placeholder`. If `sujy123456/lunasieve` finds a secret inside the value, only that secret span is replaced and the surrounding text stays.
 
 ### Interface
 
@@ -35,9 +35,9 @@ pub fn redact_field(key : String, placeholder~ : String = "***") -> RecordPatch 
 Detailed rules explaining key parameters and behaviors
 
 - The patch maps over the full field list and rewrites each field whose key equals `key`.
-- Non-matching fields are preserved unchanged.
-- All matching entries are redacted, not just the first one.
-- The default placeholder is `"***"`, but callers can provide a different mask string.
+- A value with no detected secret is replaced entirely by `placeholder`.
+- A value that contains a detected secret is passed to lunasieve `redact`, using `placeholder` as the replacement for each secret span.
+- Non-matching fields and the message body are preserved unchanged.
 
 ### How to Use
 

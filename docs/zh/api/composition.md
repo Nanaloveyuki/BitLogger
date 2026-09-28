@@ -44,6 +44,10 @@ pub fn callback_sink(
 
 将完整结构化 `Record` 交给应用回调。适合测试、自定义桥接与集成；它不自动格式化记录。
 
+## `redact_field(...)` 与 `redact_fields(...)`
+
+命中的字段会先交给 `sujy123456/lunasieve` 扫描。没有检出密钥时，整个字段值替换为 `placeholder`（默认 `"***"`）。检出密钥时只替换密钥片段，字段里的其余文本保留。消息正文不参与扫描。
+
 ## 英文原始 API
 
 - [`Logger::new(...)`](../../api/logger-new.md)

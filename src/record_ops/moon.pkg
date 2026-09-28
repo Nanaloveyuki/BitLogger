@@ -1,3 +1,4 @@
 import {
   "Nanaloveyuki/BitLogger/src/core",
+  "sujy123456/lunasieve" @sieve,
 }

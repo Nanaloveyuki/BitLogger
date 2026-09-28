@@ -1,6 +1,6 @@
 # 配置与队列 API
 
-这一组 API 将外部 JSON 或 typed config 变成同步 Logger，并明确规定满队列和关闭时的处理方式。
+这一组 API 将外部 JSON、YAML 或 typed config 变成同步 Logger，并明确规定满队列和关闭时的处理方式。
 
 ## `parse_logger_config_text(...)`
 
@@ -8,7 +8,7 @@
 pub fn parse_logger_config_text(input : String) -> LoggerConfig raise ConfigError
 ```
 
-解析并验证 JSON，但不构建运行时 Logger。缺省字段使用构造器默认值；无效 JSON、错误类型、未知枚举值或空文件路径都会抛出 `ConfigError`。
+解析并验证配置文本，但不构建运行时 Logger。以 `{` 或 `[` 开头的文本按 JSON 解析，其余文本按 YAML 1.2 解析。缺省字段使用构造器默认值；无效 JSON、被拒绝的 YAML、错误类型、未知枚举值或空文件路径都会抛出 `ConfigError`。
 
 ```moonbit
 let config = @log.parse_logger_config_text(raw) catch {

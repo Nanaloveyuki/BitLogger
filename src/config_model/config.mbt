@@ -458,8 +458,14 @@ fn parse_sink_config(value : Json) -> SinkConfig raise ConfigError {
 pub fn parse_logger_config_text(
   input : String,
 ) -> LoggerConfig raise ConfigError {
-  let root = @json.parse(input) catch {
-    e => raise ConfigError::InvalidConfig("Invalid JSON: " + e.to_string())
+  let root = if input.trim().has_prefix("{") || input.trim().has_prefix("[") {
+    @json.parse(input) catch {
+      e => raise ConfigError::InvalidConfig("Invalid JSON: " + e.to_string())
+    }
+  } else {
+    @yaml.loads(input) catch {
+      e => raise ConfigError::InvalidConfig("Invalid config: " + e.to_string())
+    }
   }
   let obj = expect_object(root, "root")
   LoggerConfig::new(

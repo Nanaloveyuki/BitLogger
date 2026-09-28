@@ -18,7 +18,7 @@ The documentation is organized around complete usage flows. Start with an execut
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.8.2
+moon add Nanaloveyuki/BitLogger@0.9.0
 ```
 
 ### 2. Import And Log
@@ -40,7 +40,7 @@ fn main {
 }
 ```
 
-Continue with the [Examples guide](./examples/index.md): console fields, file rotation, JSON configuration, and async lifecycle are each documented as a complete path.
+Continue with the [Examples guide](./examples/index.md): console fields, file rotation, JSON or YAML configuration, and async lifecycle are each documented as a complete path.
 
 ## Support Status
 
@@ -55,10 +55,10 @@ Continue with the [Examples guide](./examples/index.md): console fields, file ro
 - Structured logs with levels, targets, messages, and fields
 - Multiple outputs: console, JSON console, text console, and file
 - Custom text formatting with templates, style tags, and color control
-- Config-based builders: `build_logger(...)` and `build_async_logger(...)`
+- Config-based builders: `build_logger(...)` and `build_async_logger(...)` accept JSON and YAML text
 - Composition helpers: queue, filter, patch, fanout, split, callback
 - Separate async package under `src-async`
-- Trace-context binding through standard `trace_id`, `span_id`, `trace_flags`, and `trace_state` fields
+- Trace-context binding through OpenTelemetry-normalized `trace_id`, `span_id`, `trace_flags`, and `trace_state` fields
 
 ## Documentation
 

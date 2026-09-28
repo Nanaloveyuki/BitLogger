@@ -30,12 +30,26 @@ pub fn append_fields(extra_fields : Array[@core.Field]) -> RecordPatch {
 }
 
 ///|
+fn sieve_value(value : String, placeholder : String) -> String {
+  let findings = @sieve.find(value)
+  if findings.length() == 0 {
+    placeholder
+  } else {
+    @sieve.redact(
+      value,
+      findings,
+      policy=@sieve.Policy::new([], fallback=Replace(placeholder)),
+    )
+  }
+}
+
+///|
 pub fn redact_field(key : String, placeholder? : String = "***") -> RecordPatch {
   fn(rec) {
     rec.with_fields(
       rec.fields.map(fn(field) {
         if field.key == key {
-          field.with_value(placeholder)
+          field.with_value(sieve_value(field.value, placeholder))
         } else {
           field
         }
@@ -53,7 +67,7 @@ pub fn redact_fields(
     rec.with_fields(
       rec.fields.map(fn(field) {
         if keys.contains(field.key) {
-          field.with_value(placeholder)
+          field.with_value(sieve_value(field.value, placeholder))
         } else {
           field
         }

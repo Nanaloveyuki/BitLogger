@@ -22,6 +22,26 @@ ignore(logger.flush())
 
 Parsing validates the data before runtime construction. Keep the raw configuration outside application code in a real deployment, but handle parsing errors at the boundary where configuration enters the process.
 
+The same parser accepts YAML when the text does not start with `{` or `[`:
+
+```moonbit
+let raw =
+  #|min_level: info
+  #|target: service
+  #|sink:
+  #|  kind: text_console
+  
+let config = @log.parse_logger_config_text(raw) catch {
+  err => {
+    ignore(err)
+    println("invalid logger configuration")
+    return
+  }
+}
+```
+
+JSON input keeps the existing `Invalid JSON:` error prefix. YAML parse failures use `Invalid config:`.
+
 ## Run The Repository Example
 
 ```bash

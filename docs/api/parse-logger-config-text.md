@@ -2,8 +2,8 @@
 name: parse-logger-config-text
 group: api
 category: config
-update-time: 20260512
-description: Parse raw JSON text into a typed LoggerConfig without building the runtime logger yet.
+update-time: 20260928
+description: Parse JSON or YAML text into a typed LoggerConfig without building the runtime logger yet.
 key-word:
     - parse
     - config
@@ -13,7 +13,7 @@ key-word:
 
 ## Parse-logger-config-text
 
-Parse JSON text into a typed `LoggerConfig`. This API is useful when you want validation and inspection of config data before turning it into a runtime logger.
+Parse JSON or YAML text into a typed `LoggerConfig`. Text that starts with `{` or `[` is parsed as JSON. Any other text is parsed as YAML 1.2 through `moonbitstack/moonyaml` and then validated against the same schema.
 
 At the public `src` layer, this parser is a facade over the concrete config parser owned by `src/config_model`, and the returned config object is the shared `@config_model.LoggerConfig` model.
 
@@ -25,7 +25,7 @@ pub fn parse_logger_config_text(input : String) -> LoggerConfig raise ConfigErro
 
 #### input
 
-- `input : String` - Raw JSON text matching the supported logger config schema.
+- `input : String` - Raw JSON or YAML text matching the supported logger config schema.
 
 #### output
 
@@ -75,11 +75,12 @@ In this example, the parsed object can be inspected or rewritten before runtime 
 ### Error Case
 
 e.g.:
-- If `input` is invalid JSON, parsing raises `ConfigError`.
+- If JSON text is invalid, parsing raises `ConfigError` and the message starts with `Invalid JSON:`.
 
 - If supported fields have wrong types or unsupported enum text, parsing raises `ConfigError`.
 
 - If `sink.kind` is `File` but `sink.path` is empty, parsing raises `ConfigError` before runtime construction.
+- If YAML text is refused by the YAML reader, parsing raises `ConfigError` and the message starts with `Invalid config:`.
 
 ### Notes
 

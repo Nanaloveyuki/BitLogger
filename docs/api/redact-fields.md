@@ -2,7 +2,7 @@
 name: redact-fields
 group: api
 category: patching
-update-time: 20260512
+update-time: 20260928
 description: Create a reusable record patch that redacts multiple field keys.
 key-word:
     - patch
@@ -13,7 +13,7 @@ key-word:
 
 ## Redact-fields
 
-Create a `RecordPatch` that replaces the value of every field whose key appears in a provided key list. Use it for shared masking rules across several sensitive fields.
+Create a `RecordPatch` that rewrites every field whose key appears in a provided key list. Plain values become `placeholder`. Secret spans detected by `sujy123456/lunasieve` are replaced in place, leaving the rest of the field value intact.
 
 ### Interface
 
@@ -35,8 +35,8 @@ pub fn redact_fields(keys : Array[String], placeholder~ : String = "***") -> Rec
 Detailed rules explaining key parameters and behaviors
 
 - The patch maps over the record field list and rewrites any field whose key is contained in `keys`.
-- Non-matching fields are preserved.
-- The same placeholder is applied to every matching key in the set.
+- Values with no detected secret are replaced entirely by `placeholder`.
+- Detected secret spans are redacted through lunasieve while surrounding text in the same field is kept.
 - This helper is useful for masking bundles such as `token`, `password`, and `secret` with one patch.
 
 ### How to Use

@@ -15,4 +15,6 @@ let request_logger = logger.with_trace_context(
 
 Every record from `request_logger` receives `trace_id`, `span_id`, `trace_flags`, and, when supplied, `trace_state`. The base logger is unchanged, so a child request cannot leak identifiers into unrelated work.
 
+Valid hexadecimal identifiers are canonicalized with OpenTelemetry `TraceId`, `SpanId`, `TraceFlags`, and `TraceState`. Identifiers that are not valid W3C hex are stored as given.
+
 Use `context.as_fields()` for a custom logger facade. BitLogger intentionally does not parse `traceparent` headers, create spans, make sampling decisions, or export OTLP data; those concerns remain with the application tracing implementation.

@@ -22,6 +22,26 @@ ignore(logger.flush())
 
 解析先验证数据，再构造运行时 Logger。真实部署应将原始配置放在应用代码之外，并在配置进入进程的边界处理错误。
 
+不以 `{` 或 `[` 开头的文本按 YAML 解析，字段和校验规则与 JSON 相同：
+
+```moonbit
+let raw =
+  #|min_level: info
+  #|target: service
+  #|sink:
+  #|  kind: text_console
+  
+let config = @log.parse_logger_config_text(raw) catch {
+  err => {
+    ignore(err)
+    println("invalid logger configuration")
+    return
+  }
+}
+```
+
+JSON 解析失败的消息以 `Invalid JSON:` 开头，YAML 解析失败以 `Invalid config:` 开头。
+
 ## 运行仓库示例
 
 ```bash

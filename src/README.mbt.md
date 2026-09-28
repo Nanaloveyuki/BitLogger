@@ -12,8 +12,8 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 - 支持 sink、filter、patch、queue 包装等组合能力
 - configurable text formatting with template and style tags
 - 支持 template、style tag 与彩色输出的文本格式化能力
-- config-driven logger assembly and JSON export / parse helpers
-- 支持配置驱动组装以及 JSON 解析 / 导出能力
+- config-driven logger assembly from JSON or YAML, plus JSON export helpers
+- 支持 JSON / YAML 配置驱动组装以及 JSON 导出能力
 - native file sink support with rotation and runtime observability
 - 支持 native file sink、基础 rotation 与运行时可观测性
 

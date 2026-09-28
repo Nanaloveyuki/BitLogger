@@ -1,9 +1,12 @@
 name = "Nanaloveyuki/BitLogger"
 
-version = "0.8.2"
+version = "0.9.0"
 
 import {
   "moonbitlang/async@0.22.4",
+  "moonbit-community/opentelemetry@0.1.7",
+  "moonbitstack/moonyaml@0.1.1",
+  "sujy123456/lunasieve@0.1.0",
 }
 
 readme = "src/README.mbt.md"

@@ -2,7 +2,7 @@
 name: config-error
 group: api
 category: config
-update-time: 20260707
+update-time: 20260928
 description: Public config parsing error re-exported from config_model for synchronous config-loading helpers.
 key-word:
     - config
@@ -33,7 +33,7 @@ Detailed rules explaining key parameters and behaviors
 - The concrete error lives in `@config_model.ConfigError`, not in `@utils`.
 - The current public error case is `ConfigError::InvalidConfig(message)`.
 - The alias is used by parsing helpers such as `parse_logger_config_text(...)` and by lower-level config parsing routines beneath it.
-- Error messages describe concrete schema problems such as invalid JSON, wrong value types, unsupported enum text, or missing required values for a chosen sink kind.
+- Error messages describe concrete schema problems such as invalid JSON, refused YAML, wrong value types, unsupported enum text, or missing required values for a chosen sink kind.
 
 ### How to Use
 
@@ -67,7 +67,7 @@ In this example, the error carries a concrete message instead of failing silentl
 ### Error Case
 
 e.g.:
-- Invalid JSON input raises `ConfigError::InvalidConfig(...)`.
+- Invalid JSON input raises `ConfigError::InvalidConfig(...)` with a message that starts with `Invalid JSON:`. Refused YAML input uses `Invalid config:`.
 
 - Wrong field types, unsupported level text, unsupported sink kinds, or an empty `path` for a file sink also raise `ConfigError::InvalidConfig(...)`.
 

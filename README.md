@@ -17,7 +17,7 @@ BitLogger 的文档按使用路径组织：先完成一个可运行的日志输�
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.8.2
+moon add Nanaloveyuki/BitLogger@0.9.0
 ```
 
 ### 2. 写入第一条结构化日志
@@ -49,7 +49,7 @@ fn main {
 
 - [控制台与结构化字段](./docs/examples/console.md)
 - [文件输出与轮转](./docs/examples/file-rotation.md)
-- [JSON 配置构建](./docs/examples/config.md)
+- [配置构建](./docs/examples/config.md)
 - [异步日志生命周期](./docs/examples/async.md)
 
 ## 支持情况
@@ -65,10 +65,10 @@ fn main {
 - 结构化日志：level、target、message、fields
 - 多种输出方式：console、json console、text console、file
 - 可定制文本格式：模板、style tag、颜色控制
-- 配置驱动构建：`build_logger(...)`、`build_async_logger(...)`
+- 配置驱动构建：JSON 与 YAML 都进入 `build_logger(...)`、`build_async_logger(...)`
 - 组合能力：queue、filter、patch、fanout、split、callback
 - 异步日志：独立 `src-async` package
-- Trace context：标准 `trace_id`、`span_id`、`trace_flags`、`trace_state` 字段绑定
+- Trace context：用 OpenTelemetry 标识规范化 `trace_id`、`span_id`、`trace_flags`、`trace_state`，再绑定为字段
 
 ## 文档
 

@@ -196,3 +196,20 @@ test "logger config parser rejects malformed sync config input" {
 }
 
 ///|
+test "logger config parser reads yaml documents" {
+  let raw =
+    #|min_level: debug
+    #|target: service
+    #|timestamp: true
+    #|sink:
+    #|  kind: file
+    #|  path: logs/bitlogger.log
+
+  let config = parse_logger_config_text(raw)
+  inspect(config.min_level.label(), content="DEBUG")
+  inspect(config.target, content="service")
+  inspect(config.timestamp, content="true")
+  inspect(config.sink.path, content="logs/bitlogger.log")
+}
+
+///|

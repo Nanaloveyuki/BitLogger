@@ -286,6 +286,26 @@ test "patch helpers can redact multiple fields" {
 }
 
 ///|
+test "redaction scans secret text inside a matched field" {
+  let captured_fields : Ref[Array[Field]] = Ref([])
+  let logger = Logger::new(
+    callback_sink(fn(rec) { captured_fields.val = rec.fields }),
+    min_level=Level::Info,
+    target="audit",
+  ).with_patch(redact_field("note"))
+  logger.info("credentials", fields=[
+    field("note", "mail alice@example.com"),
+    field("user", "alice"),
+  ])
+  inspect(
+    captured_fields.val[0].value.contains("alice@example.com"),
+    content="false",
+  )
+  inspect(captured_fields.val[0].value.contains("mail"), content="true")
+  inspect(captured_fields.val[1].value, content="alice")
+}
+
+///|
 test "queued sink drains in order" {
   let flushed_messages : Ref[Array[String]] = Ref([])
   let sink = queued_sink(

@@ -4,5 +4,6 @@ import {
   "Nanaloveyuki/BitLogger/src/formatting",
   "Nanaloveyuki/BitLogger/src/queue_model",
   "moonbitlang/core/json",
+  "moonbitstack/moonyaml" @yaml,
   "moonbitlang/core/string",
 }
