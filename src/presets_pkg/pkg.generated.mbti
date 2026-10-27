@@ -17,11 +17,11 @@ pub fn json_console(min_level? : @core.Level, target? : String, timestamp? : Boo
 
 pub fn text_console(min_level? : @core.Level, target? : String, timestamp? : Bool, text_formatter? : @config_model.TextFormatterConfig) -> @config_model.LoggerConfig
 
-pub fn with_file_rotation(@config_model.LoggerConfig, Int, max_backups? : Int) -> @config_model.LoggerConfig
+pub fn with_file_rotation(@config_model.LoggerConfig, Int32, max_backups? : Int32) -> @config_model.LoggerConfig
 
-pub fn with_file_rotation_i64(@config_model.LoggerConfig, Int64, max_backups? : Int) -> @config_model.LoggerConfig
+pub fn with_file_rotation_i64(@config_model.LoggerConfig, Int64, max_backups? : Int32) -> @config_model.LoggerConfig
 
-pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @config_model.LoggerConfig
+pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int32, overflow? : @queue_model.QueueOverflowPolicy) -> @config_model.LoggerConfig
 
 // Errors
 

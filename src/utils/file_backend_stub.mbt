@@ -138,7 +138,7 @@ pub fn remove_file_internal(path : String) -> Bool {
 }
 
 ///|
-pub fn string_byte_length_internal(content : String) -> Int {
+pub fn string_byte_length_internal(content : String) -> Int32 {
   content.length()
 }
 

@@ -10,7 +10,7 @@ pub struct TraceContext {
 pub fn TraceContext::new(
   trace_id : String,
   span_id : String,
-  trace_flags? : String = "01",
+  trace_flags~ : String = "01",
   trace_state? : String,
 ) -> TraceContext {
   let trace_id = match @otel.TraceId::from_hex(trace_id) {

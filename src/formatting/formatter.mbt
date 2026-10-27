@@ -33,12 +33,12 @@ pub struct TextStyle {
 
 ///|
 pub fn text_style(
-  fg? : String? = None,
-  bg? : String? = None,
-  bold? : Bool = false,
-  dim? : Bool = false,
-  italic? : Bool = false,
-  underline? : Bool = false,
+  fg~ : String? = None,
+  bg~ : String? = None,
+  bold~ : Bool = false,
+  dim~ : Bool = false,
+  italic~ : Bool = false,
+  underline~ : Bool = false,
 ) -> TextStyle {
   { fg, bg, bold, dim, italic, underline, }
 }
@@ -80,13 +80,13 @@ fn merge_text_style(base : TextStyle, overlay : TextStyle) -> TextStyle {
 pub fn StyleTagRegistry::set_tag(
   self : StyleTagRegistry,
   name : String,
-  style? : TextStyle = text_style(),
-  fg? : String? = None,
-  bg? : String? = None,
-  bold? : Bool = false,
-  dim? : Bool = false,
-  italic? : Bool = false,
-  underline? : Bool = false,
+  style~ : TextStyle = text_style(),
+  fg~ : String? = None,
+  bg~ : String? = None,
+  bold~ : Bool = false,
+  dim~ : Bool = false,
+  italic~ : Bool = false,
+  underline~ : Bool = false,
 ) -> StyleTagRegistry {
   let overlay = text_style(fg~, bg~, bold~, dim~, italic~, underline~)
   self.entries[normalize_style_tag_name(name)] = merge_text_style(
@@ -207,12 +207,12 @@ priv struct StyleFrame {
 }
 
 ///|
-fn code_unit(ch : Char) -> Int {
+fn code_unit(ch : Char) -> Int32 {
   ch.to_int()
 }
 
 ///|
-fn code_unit16(ch : UInt16) -> Int {
+fn code_unit16(ch : UInt16) -> Int32 {
   ch.to_int()
 }
 
@@ -235,19 +235,19 @@ pub struct TextFormatter {
 
 ///|
 pub fn text_formatter(
-  show_timestamp? : Bool = true,
-  show_level? : Bool = true,
-  show_target? : Bool = true,
-  show_fields? : Bool = true,
-  separator? : String = " ",
-  field_separator? : String = " ",
-  template? : String = "",
-  color_mode? : ColorMode = ColorMode::Never,
-  color_support? : ColorSupport = ColorSupport::TrueColor,
-  style_markup? : StyleMarkupMode = StyleMarkupMode::Full,
-  target_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
-  fields_style_markup? : StyleMarkupMode = StyleMarkupMode::Disabled,
-  style_tags? : StyleTagRegistry? = None,
+  show_timestamp~ : Bool = true,
+  show_level~ : Bool = true,
+  show_target~ : Bool = true,
+  show_fields~ : Bool = true,
+  separator~ : String = " ",
+  field_separator~ : String = " ",
+  template~ : String = "",
+  color_mode~ : ColorMode = ColorMode::Never,
+  color_support~ : ColorSupport = ColorSupport::TrueColor,
+  style_markup~ : StyleMarkupMode = StyleMarkupMode::Full,
+  target_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
+  fields_style_markup~ : StyleMarkupMode = StyleMarkupMode::Disabled,
+  style_tags~ : StyleTagRegistry? = None,
 ) -> TextFormatter {
   {
     show_timestamp,
@@ -639,7 +639,7 @@ fn is_hex_color(value : String) -> Bool {
 }
 
 ///|
-fn hex_to_int(ch : UInt16) -> Int {
+fn hex_to_int(ch : UInt16) -> Int32 {
   let code = code_unit16(ch)
   if code >= code_unit('0') && code <= code_unit('9') {
     code_unit16(ch) - code_unit('0')
@@ -651,7 +651,7 @@ fn hex_to_int(ch : UInt16) -> Int {
 }
 
 ///|
-fn hex_pair_to_int(high : UInt16, low : UInt16) -> Int {
+fn hex_pair_to_int(high : UInt16, low : UInt16) -> Int32 {
   hex_to_int(high) * 16 + hex_to_int(low)
 }
 
@@ -921,12 +921,12 @@ fn parse_inline_markup(
   let chars = input.to_array()
   let current_style = fn() { stack[stack.length() - 1].style }
   let flush = fn() { push_plain_segment(segments, buffer, current_style()) }
-  let append_raw = fn(start : Int, finish : Int) {
+  let append_raw = fn(start : Int32, finish : Int32) {
     for i = start; i < finish; i = i + 1 {
       buffer.write_char(chars.unsafe_get(i))
     }
   }
-  let find_tag_end = fn(start : Int) -> Int {
+  let find_tag_end = fn(start : Int32) -> Int32 {
     for i = start; i < chars.length(); i = i + 1 {
       if chars.unsafe_get(i) == '>' {
         return i
@@ -1103,7 +1103,7 @@ fn render_template(rec : @core.Record, formatter : TextFormatter) -> String {
 ///|
 pub fn format_text(
   rec : @core.Record,
-  formatter? : TextFormatter = text_formatter(),
+  formatter~ : TextFormatter = text_formatter(),
 ) -> String {
   if formatter.template != "" {
     return render_template(rec, formatter)
@@ -1136,7 +1136,7 @@ pub fn format_json(rec : @core.Record) -> String {
     "fields": fields_to_json(rec.fields),
   }
   if rec.timestamp_ms != 0UL {
-    obj["timestamp_ms"] = rec.timestamp_ms.to_json()
+    obj["timestamp_ms"] = Json(rec.timestamp_ms)
   }
   if rec.target == "" {
     Json::object(obj).stringify()

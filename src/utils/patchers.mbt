@@ -22,14 +22,14 @@ pub fn append_fields(extra_fields : Array[@core.Field]) -> RecordPatch {
 }
 
 ///|
-pub fn redact_field(key : String, placeholder? : String = "***") -> RecordPatch {
+pub fn redact_field(key : String, placeholder~ : String = "***") -> RecordPatch {
   @record_ops.redact_field(key, placeholder~)
 }
 
 ///|
 pub fn redact_fields(
   keys : Array[String],
-  placeholder? : String = "***",
+  placeholder~ : String = "***",
 ) -> RecordPatch {
   @record_ops.redact_fields(keys, placeholder~)
 }

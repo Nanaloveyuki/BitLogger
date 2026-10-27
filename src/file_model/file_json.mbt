@@ -27,7 +27,7 @@ pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> Json {
 ///|
 pub fn stringify_file_sink_policy(
   policy : FileSinkPolicy,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = file_sink_policy_to_json(policy)
   if pretty {
@@ -59,7 +59,7 @@ pub fn file_sink_state_to_json(state : FileSinkState) -> Json {
 ///|
 pub fn stringify_file_sink_state(
   state : FileSinkState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = file_sink_state_to_json(state)
   if pretty {

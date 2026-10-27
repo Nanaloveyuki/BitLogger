@@ -2,11 +2,11 @@
 package "Nanaloveyuki/BitLogger/src/file_model"
 
 // Values
-pub fn file_rotation(Int, max_backups? : Int) -> FileRotation
+pub fn file_rotation(Int32, max_backups? : Int32) -> FileRotation
 
 pub fn file_rotation_config_to_json(FileRotation) -> Json
 
-pub fn file_rotation_i64(Int64, max_backups? : Int) -> FileRotation
+pub fn file_rotation_i64(Int64, max_backups? : Int32) -> FileRotation
 
 pub fn file_sink_policy_to_json(FileSinkPolicy) -> Json
 
@@ -24,8 +24,8 @@ pub fn stringify_runtime_file_state(RuntimeFileState, pretty? : Bool) -> String
 
 // Types and methods
 pub struct FileRotation {
-  max_bytes : Int
-  max_backups : Int
+  max_bytes : Int32
+  max_backups : Int32
   native_wide_max_bytes : Int64?
 }
 
@@ -42,20 +42,20 @@ pub struct FileSinkState {
   append : Bool
   auto_flush : Bool
   rotation : FileRotation?
-  open_failures : Int
-  write_failures : Int
-  flush_failures : Int
-  rotation_failures : Int
+  open_failures : Int32
+  write_failures : Int32
+  flush_failures : Int32
+  rotation_failures : Int32
 }
-pub fn FileSinkState::new(String, available? : Bool, append? : Bool, auto_flush? : Bool, rotation? : FileRotation?, open_failures? : Int, write_failures? : Int, flush_failures? : Int, rotation_failures? : Int) -> Self
+pub fn FileSinkState::new(String, available? : Bool, append? : Bool, auto_flush? : Bool, rotation? : FileRotation?, open_failures? : Int32, write_failures? : Int32, flush_failures? : Int32, rotation_failures? : Int32) -> Self
 
 pub struct RuntimeFileState {
   file : FileSinkState
   queued : Bool
-  pending_count : Int
-  dropped_count : Int
+  pending_count : Int32
+  dropped_count : Int32
 }
-pub fn RuntimeFileState::new(FileSinkState, queued? : Bool, pending_count? : Int, dropped_count? : Int) -> Self
+pub fn RuntimeFileState::new(FileSinkState, queued? : Bool, pending_count? : Int32, dropped_count? : Int32) -> Self
 
 // Type aliases
 

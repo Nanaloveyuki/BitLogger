@@ -110,8 +110,8 @@ fn async_lifecycle_phase_can_rerun(phase : AsyncLifecyclePhase) -> Bool {
 pub struct AsyncLoggerState {
   runtime : AsyncRuntimeState
   phase : AsyncLifecyclePhase
-  pending_count : Int
-  dropped_count : Int
+  pending_count : Int32
+  dropped_count : Int32
   is_closed : Bool
   is_running : Bool
   has_failed : Bool
@@ -126,8 +126,8 @@ pub struct AsyncLoggerState {
 pub fn AsyncLoggerState::new(
   runtime : AsyncRuntimeState,
   phase : AsyncLifecyclePhase,
-  pending_count : Int,
-  dropped_count : Int,
+  pending_count : Int32,
+  dropped_count : Int32,
   last_error : String,
   flush_policy : AsyncFlushPolicy,
 ) -> AsyncLoggerState {
@@ -164,7 +164,7 @@ pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> Json {
 ///|
 pub fn stringify_async_runtime_state(
   state : AsyncRuntimeState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = async_runtime_state_to_json(state)
   if pretty {
@@ -209,7 +209,7 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> Json {
 ///|
 pub fn stringify_async_logger_state(
   state : AsyncLoggerState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = async_logger_state_to_json_value(state)
   if pretty {
@@ -221,20 +221,20 @@ pub fn stringify_async_logger_state(
 
 ///|
 pub struct AsyncLoggerConfig {
-  max_pending : Int
+  max_pending : Int32
   overflow : AsyncOverflowPolicy
-  max_batch : Int
-  linger_ms : Int
+  max_batch : Int32
+  linger_ms : Int32
   flush : AsyncFlushPolicy
 }
 
 ///|
 pub fn AsyncLoggerConfig::new(
-  max_pending? : Int = 0,
-  overflow? : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
-  max_batch? : Int = 1,
-  linger_ms? : Int = 0,
-  flush? : AsyncFlushPolicy = AsyncFlushPolicy::Never,
+  max_pending~ : Int32 = 0,
+  overflow~ : AsyncOverflowPolicy = AsyncOverflowPolicy::Blocking,
+  max_batch~ : Int32 = 1,
+  linger_ms~ : Int32 = 0,
+  flush~ : AsyncFlushPolicy = AsyncFlushPolicy::Never,
 ) -> AsyncLoggerConfig {
   {
     max_pending,
@@ -348,7 +348,7 @@ pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> Json {
 ///|
 pub fn stringify_async_logger_config(
   config : AsyncLoggerConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = async_logger_config_to_json(config)
   if pretty {
@@ -366,8 +366,8 @@ pub struct AsyncLoggerBuildConfig {
 
 ///|
 pub fn AsyncLoggerBuildConfig::new(
-  logger? : @bitlogger.LoggerConfig = @bitlogger.default_logger_config(),
-  async_config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
+  logger~ : @bitlogger.LoggerConfig = @bitlogger.default_logger_config(),
+  async_config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
 ) -> AsyncLoggerBuildConfig {
   { logger, async_config, }
 }
@@ -408,7 +408,7 @@ pub fn async_logger_build_config_to_json(
 ///|
 pub fn stringify_async_logger_build_config(
   config : AsyncLoggerBuildConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = async_logger_build_config_to_json(config)
   if pretty {

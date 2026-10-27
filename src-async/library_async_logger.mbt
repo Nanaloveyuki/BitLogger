@@ -18,10 +18,10 @@ pub fn[S] AsyncLogger::to_library_async_logger(
 ///|
 pub fn[S] LibraryAsyncLogger::new(
   sink : S,
-  config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
-  min_level? : @bitlogger.Level = @bitlogger.Level::Info,
-  target? : String = "",
-  flush? : (S) -> Unit raise = fn(_) { () },
+  config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
+  min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
+  target~ : String = "",
+  flush~ : (S) -> Unit raise = fn(_) { () },
 ) -> LibraryAsyncLogger[S] {
   library_async_logger(async_logger(sink, config~, min_level~, target~, flush~))
 }
@@ -114,8 +114,8 @@ pub async fn[S] LibraryAsyncLogger::log(
   self : LibraryAsyncLogger[S],
   level : @bitlogger.Level,
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
-  target? : String = "",
+  fields~ : Array[@bitlogger.Field] = [],
+  target~ : String = "",
 ) -> Unit {
   self.inner.log(level, message, fields~, target~)
 }
@@ -124,7 +124,7 @@ pub async fn[S] LibraryAsyncLogger::log(
 pub async fn[S] LibraryAsyncLogger::info(
   self : LibraryAsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.inner.info(message, fields~)
 }
@@ -133,7 +133,7 @@ pub async fn[S] LibraryAsyncLogger::info(
 pub async fn[S] LibraryAsyncLogger::warn(
   self : LibraryAsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.inner.warn(message, fields~)
 }
@@ -142,7 +142,7 @@ pub async fn[S] LibraryAsyncLogger::warn(
 pub async fn[S] LibraryAsyncLogger::error(
   self : LibraryAsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.inner.error(message, fields~)
 }
@@ -157,7 +157,7 @@ pub async fn[S : @bitlogger.Sink] LibraryAsyncLogger::run(
 ///|
 pub async fn[S] LibraryAsyncLogger::shutdown(
   self : LibraryAsyncLogger[S],
-  clear? : Bool = false,
+  clear~ : Bool = false,
 ) -> Unit {
   self.inner.shutdown(clear~)
 }

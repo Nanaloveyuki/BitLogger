@@ -9,8 +9,8 @@ pub struct Logger[S] {
 ///|
 pub fn[S] Logger::new(
   sink : S,
-  min_level? : Level = Level::Info,
-  target? : String = "",
+  min_level~ : Level = Level::Info,
+  target~ : String = "",
 ) -> Logger[S] {
   { min_level, sink, target, timestamp: false, }
 }
@@ -94,8 +94,8 @@ pub fn[S] Logger::with_patch(
 ///|
 pub fn[S] Logger::with_queue(
   self : Logger[S],
-  max_pending? : Int = 0,
-  overflow? : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
+  max_pending~ : Int32 = 0,
+  overflow~ : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
 ) -> Logger[QueuedSink[S]] {
   {
     min_level: self.min_level,
@@ -116,7 +116,7 @@ pub fn[S] Logger::with_min_level(
 ///|
 pub fn[S] Logger::with_timestamp(
   self : Logger[S],
-  enabled? : Bool = true,
+  enabled~ : Bool = true,
 ) -> Logger[S] {
   { ..self, timestamp: enabled, }
 }

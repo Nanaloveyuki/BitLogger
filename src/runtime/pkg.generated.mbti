@@ -32,9 +32,9 @@ pub(all) enum RuntimeSink {
   QueuedFile(@sink_graph.QueuedSink[@file_runtime.FileSink])
 }
 pub fn RuntimeSink::close(Self) -> Bool
-pub fn RuntimeSink::drain(Self, max_items? : Int) -> Int
-pub fn RuntimeSink::drain_progress(Self, max_items? : Int) -> RuntimeSinkProgress
-pub fn RuntimeSink::dropped_count(Self) -> Int
+pub fn RuntimeSink::drain(Self, max_items? : Int32) -> Int32
+pub fn RuntimeSink::drain_progress(Self, max_items? : Int32) -> RuntimeSinkProgress
+pub fn RuntimeSink::dropped_count(Self) -> Int32
 pub fn RuntimeSink::file_append_mode(Self) -> Bool
 pub fn RuntimeSink::file_auto_flush(Self) -> Bool
 pub fn RuntimeSink::file_available(Self) -> Bool
@@ -43,8 +43,8 @@ pub fn RuntimeSink::file_close(Self) -> Bool
 pub fn RuntimeSink::file_default_policy(Self) -> @file_model.FileSinkPolicy
 pub fn RuntimeSink::file_default_policy_or_none(Self) -> @file_model.FileSinkPolicy?
 pub fn RuntimeSink::file_flush(Self) -> Bool
-pub fn RuntimeSink::file_flush_failures(Self) -> Int
-pub fn RuntimeSink::file_open_failures(Self) -> Int
+pub fn RuntimeSink::file_flush_failures(Self) -> Int32
+pub fn RuntimeSink::file_open_failures(Self) -> Int32
 pub fn RuntimeSink::file_path(Self) -> String
 pub fn RuntimeSink::file_path_or_none(Self) -> String?
 pub fn RuntimeSink::file_policy(Self) -> @file_model.FileSinkPolicy
@@ -58,7 +58,7 @@ pub fn RuntimeSink::file_reset_failure_counters(Self) -> Bool
 pub fn RuntimeSink::file_reset_policy(Self) -> Bool
 pub fn RuntimeSink::file_rotation_config(Self) -> @file_model.FileRotation?
 pub fn RuntimeSink::file_rotation_enabled(Self) -> Bool
-pub fn RuntimeSink::file_rotation_failures(Self) -> Int
+pub fn RuntimeSink::file_rotation_failures(Self) -> Int32
 pub fn RuntimeSink::file_runtime_state(Self) -> @file_model.RuntimeFileState?
 pub fn RuntimeSink::file_set_append_mode(Self, Bool) -> Bool
 pub fn RuntimeSink::file_set_auto_flush(Self, Bool) -> Bool
@@ -66,18 +66,18 @@ pub fn RuntimeSink::file_set_policy(Self, @file_model.FileSinkPolicy) -> Bool
 pub fn RuntimeSink::file_set_rotation(Self, @file_model.FileRotation?) -> Bool
 pub fn RuntimeSink::file_state(Self) -> @file_model.FileSinkState
 pub fn RuntimeSink::file_state_or_none(Self) -> @file_model.FileSinkState?
-pub fn RuntimeSink::file_write_failures(Self) -> Int
-pub fn RuntimeSink::flush(Self) -> Int
+pub fn RuntimeSink::file_write_failures(Self) -> Int32
+pub fn RuntimeSink::flush(Self) -> Int32
 pub async fn RuntimeSink::flush_async(Self) -> Unit
 pub fn RuntimeSink::flush_progress(Self) -> RuntimeSinkProgress
-pub fn RuntimeSink::pending_count(Self) -> Int
+pub fn RuntimeSink::pending_count(Self) -> Int32
 pub fn RuntimeSink::write(Self, @core.Record) -> Unit
 pub async fn RuntimeSink::write_async(Self, @core.Record) -> Unit
 pub impl @sink_graph.Sink for RuntimeSink
 
 pub struct RuntimeSinkProgress {
-  queue_advanced_count : Int
-  file_flush_step_count : Int
+  queue_advanced_count : Int32
+  file_flush_step_count : Int32
   queue_backed : Bool
   file_backed : Bool
 }

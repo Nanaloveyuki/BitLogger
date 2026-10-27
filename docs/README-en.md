@@ -70,3 +70,29 @@ Continue with the [Examples guide](./examples/index.md): console fields, file ro
 - `docs/dev/`: developer reference material kept in the repository, intentionally excluded from the public static docs site
 
 Common entry points: `text_console(...)`, `file(...)`, `with_queue(...)`, `build_logger(...)`, `build_async_logger(...)`
+
+## Development
+
+`.moonbit-toolchain` pins the compiler archive to `0.10.17+d971670cd` for local development and all MoonBit CI installations, including Windows. It installs the matching compiler, CLI, and core: `moonc v0.10.17+d971670cd (2026-10-23)` and `moon 0.1.20261023 (3778465 2026-10-23)`. The compiler and CLI have separate version numbers. Installation fails if the archive is unavailable; it does not fall back to latest.
+
+Install from the repository root:
+
+```bash
+set -eo pipefail
+curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$(cat .moonbit-toolchain)"
+export PATH="${MOON_HOME:-$HOME/.moon}/bin:$PATH"
+moon version --all
+moonc -v
+moon update
+```
+
+For PowerShell, set `$env:MOONBIT_INSTALL_VERSION = (Get-Content .moonbit-toolchain -Raw).Trim()` before running the [official Windows installer](https://cli.moonbitlang.com/install/powershell.ps1).
+
+Native builds require a C toolchain; Windows CI installs MSYS2 UCRT64 GCC and OpenSSL. JavaScript tests require Node.js; wasm and wasm-gc tests use the toolchain's moonrun. Native async tests and the async example run on Linux/macOS in the existing CI matrix. Native integration tests write to the repository's `logs/`; the file-rotation example creates `bitlogger-example.log` and rotated backups in the working directory. Both directories must be writable.
+
+See the [root README development section](https://github.com/Nanaloveyuki/BitLogger/blob/main/README.md#开发) for native/cross-target/async verification and runnable example commands, and [CI](https://github.com/Nanaloveyuki/BitLogger/blob/main/.github/workflows/ci.yml) for the full workflow. These commands describe the new toolchain validation procedure, not a claim that validation has already run; historical release verification remains unchanged.
+
+### Unreleased
+
+- Pin development and CI to compiler `0.10.17+d971670cd` and CLI `0.1.20261023`. Package versions and third-party dependencies, including `moonbitlang/async@0.22.4`, are unchanged.
+- Replace deprecated timestamp conversion with `Json(value)`, preserving the UInt64 JSON string representation.

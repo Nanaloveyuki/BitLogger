@@ -23,7 +23,7 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$(cat .moonbit-toolchain)"
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
       - name: Setup MoonBit (Windows)
@@ -31,6 +31,7 @@ jobs:
         shell: pwsh
         run: |
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+          $env:MOONBIT_INSTALL_VERSION = (Get-Content .moonbit-toolchain -Raw).Trim()
           irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
           "$HOME/.moon/bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
@@ -48,6 +49,7 @@ jobs:
         shell: bash
         run: |
           moon version --all
+          moonc -v
 
       - name: Update Moon registry
         shell: bash
@@ -98,13 +100,14 @@ jobs:
       - name: Setup MoonBit
         shell: bash
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$(cat .moonbit-toolchain)"
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
       - name: Show tool versions
         shell: bash
         run: |
           moon version --all
+          moonc -v
 
       - name: Update Moon registry
         shell: bash
@@ -140,13 +143,14 @@ jobs:
       - name: Setup MoonBit
         shell: bash
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$(cat .moonbit-toolchain)"
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
       - name: Show tool versions
         shell: bash
         run: |
           moon version --all
+          moonc -v
 
       - name: Update Moon registry
         shell: bash
@@ -174,13 +178,14 @@ jobs:
       - name: Setup MoonBit
         shell: bash
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$(cat .moonbit-toolchain)"
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
       - name: Show tool versions
         shell: bash
         run: |
           moon version --all
+          moonc -v
 
       - name: Update Moon registry
         shell: bash

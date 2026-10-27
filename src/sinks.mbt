@@ -86,7 +86,7 @@ pub fn[A, B] split_sink(
 pub fn[A, B] split_by_level(
   left : A,
   right : B,
-  min_level? : Level = Level::Warn,
+  min_level~ : Level = Level::Warn,
 ) -> SplitSink[A, B] {
   @sink_graph.split_by_level(left, right, min_level~)
 }
@@ -103,7 +103,7 @@ pub fn callback_sink(callback : (Record) -> Unit) -> CallbackSink {
 pub type HistorySink = @sink_graph.HistorySink
 
 ///|
-pub fn history_sink(capacity? : Int = 128) -> HistorySink {
+pub fn history_sink(capacity~ : Int32 = 128) -> HistorySink {
   @sink_graph.history_sink(capacity~)
 }
 
@@ -111,7 +111,7 @@ pub fn history_sink(capacity? : Int = 128) -> HistorySink {
 pub type BufferedSink[S] = @sink_graph.BufferedSink[S]
 
 ///|
-pub fn[S] buffered_sink(sink : S, flush_limit? : Int = 1) -> BufferedSink[S] {
+pub fn[S] buffered_sink(sink : S, flush_limit~ : Int32 = 1) -> BufferedSink[S] {
   @sink_graph.buffered_sink(sink, flush_limit~)
 }
 
@@ -124,8 +124,8 @@ pub type QueuedSink[S] = @sink_graph.QueuedSink[S]
 ///|
 pub fn[S] queued_sink(
   sink : S,
-  max_pending? : Int = 0,
-  overflow? : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
+  max_pending~ : Int32 = 0,
+  overflow~ : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
 ) -> QueuedSink[S] {
   @sink_graph.queued_sink(sink, max_pending~, overflow~)
 }

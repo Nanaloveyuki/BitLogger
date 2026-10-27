@@ -46,7 +46,7 @@ pub fn queue_config_to_json(queue : QueueConfig) -> Json {
 ///|
 pub fn stringify_queue_config(
   queue : QueueConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @config_model.stringify_queue_config(queue, pretty~)
 }
@@ -59,7 +59,7 @@ pub fn text_formatter_config_to_json(config : TextFormatterConfig) -> Json {
 ///|
 pub fn stringify_text_formatter_config(
   config : TextFormatterConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @config_model.stringify_text_formatter_config(config, pretty~)
 }
@@ -77,7 +77,7 @@ pub fn sink_config_to_json(config : SinkConfig) -> Json {
 ///|
 pub fn stringify_sink_config(
   config : SinkConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @config_model.stringify_sink_config(config, pretty~)
 }
@@ -90,7 +90,7 @@ pub fn logger_config_to_json(config : LoggerConfig) -> Json {
 ///|
 pub fn stringify_logger_config(
   config : LoggerConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @config_model.stringify_logger_config(config, pretty~)
 }

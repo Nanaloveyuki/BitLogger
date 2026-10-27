@@ -1,5 +1,5 @@
 ///|
-fn pbt_level(seed : Int) -> Level {
+fn pbt_level(seed : Int32) -> Level {
   match (seed & 0x3fffffff) % 5 {
     0 => Level::Trace
     1 => Level::Debug
@@ -10,12 +10,12 @@ fn pbt_level(seed : Int) -> Level {
 }
 
 ///|
-fn pbt_nonnegative(seed : Int, modulus : Int) -> Int {
+fn pbt_nonnegative(seed : Int32, modulus : Int32) -> Int32 {
   (seed & 0x3fffffff) % modulus
 }
 
 ///|
-fn pbt_bit(seed : Int, bit : Int) -> Bool {
+fn pbt_bit(seed : Int32, bit : Int32) -> Bool {
   (seed & bit) != 0
 }
 
@@ -43,7 +43,7 @@ fn pbt_records_equal(left : Record, right : Record) -> Bool {
 fn pbt_history_matches(
   sink : HistorySink,
   expected : Array[(String, String)],
-  expected_dropped : Int,
+  expected_dropped : Int32,
 ) -> Bool {
   guard sink.count() == expected.length() else { return false }
   guard sink.dropped_count() == expected_dropped else { return false }
@@ -68,7 +68,7 @@ fn pbt_history_matches(
 ///|
 test "quickcheck: history sink agrees with a bounded model" {
   @quickcheck.check(
-    (input : (Int, Array[(Int, Int)])) => {
+    (input : (Int32, Array[(Int32, Int32)])) => {
       let (capacity_seed, operations) = input
       let requested_capacity = capacity_seed % 8
       let capacity = if requested_capacity <= 0 {
@@ -112,7 +112,7 @@ test "quickcheck: history sink agrees with a bounded model" {
 }
 
 ///|
-fn pbt_queue_limit(seed : Int) -> Int {
+fn pbt_queue_limit(seed : Int32) -> Int32 {
   match seed & 3 {
     0 => -1
     1 => 0
@@ -125,8 +125,8 @@ fn pbt_queue_limit(seed : Int) -> Int {
 fn pbt_drain_model(
   expected : Array[String],
   delivered : Array[String],
-  max_items : Int,
-) -> Int {
+  max_items : Int32,
+) -> Int32 {
   if max_items == 0 {
     return 0
   }
@@ -142,7 +142,7 @@ fn pbt_drain_model(
 fn pbt_queue_matches(
   sink : QueuedSink[CallbackSink],
   expected : Array[String],
-  expected_dropped : Int,
+  expected_dropped : Int32,
   delivered : Ref[Array[String]],
   expected_delivered : Array[String],
 ) -> Bool {
@@ -154,7 +154,7 @@ fn pbt_queue_matches(
 ///|
 test "quickcheck: queued sink agrees with an overflow and drain model" {
   @quickcheck.check(
-    (input : (Int, Int, Array[(Int, Int)])) => {
+    (input : (Int32, Int32, Array[(Int32, Int32)])) => {
       let (max_pending_seed, policy_seed, operations) = input
       let max_pending = pbt_nonnegative(max_pending_seed, 8)
       let policy = if pbt_bit(policy_seed, 1) {
@@ -232,7 +232,7 @@ test "quickcheck: queued sink agrees with an overflow and drain model" {
 }
 
 ///|
-fn pbt_patch_for(operation : (Int, String)) -> RecordPatch {
+fn pbt_patch_for(operation : (Int32, String)) -> RecordPatch {
   let (kind, value) = operation
   match kind & 7 {
     0 => identity_patch()
@@ -247,7 +247,7 @@ fn pbt_patch_for(operation : (Int, String)) -> RecordPatch {
 ///|
 test "quickcheck: composed patches match sequential application" {
   @quickcheck.check(
-    (input : (Array[(Int, String)], (Int, String, Array[(String, String)]))) => {
+    (input : (Array[(Int32, String)], (Int32, String, Array[(String, String)]))) => {
       let (operations, record_input) = input
       let (level_seed, message, raw_fields) = record_input
       let base = Record::new(
@@ -273,7 +273,7 @@ test "quickcheck: composed patches match sequential application" {
 }
 
 ///|
-fn pbt_color_mode(seed : Int) -> ColorMode {
+fn pbt_color_mode(seed : Int32) -> ColorMode {
   match pbt_nonnegative(seed, 3) {
     0 => ColorMode::Never
     1 => ColorMode::Auto
@@ -282,7 +282,7 @@ fn pbt_color_mode(seed : Int) -> ColorMode {
 }
 
 ///|
-fn pbt_color_support(seed : Int) -> ColorSupport {
+fn pbt_color_support(seed : Int32) -> ColorSupport {
   if pbt_bit(seed, 1) {
     ColorSupport::Basic
   } else {
@@ -291,7 +291,7 @@ fn pbt_color_support(seed : Int) -> ColorSupport {
 }
 
 ///|
-fn pbt_markup_mode(seed : Int) -> StyleMarkupMode {
+fn pbt_markup_mode(seed : Int32) -> StyleMarkupMode {
   match pbt_nonnegative(seed, 3) {
     0 => StyleMarkupMode::Disabled
     1 => StyleMarkupMode::Builtin
@@ -300,7 +300,7 @@ fn pbt_markup_mode(seed : Int) -> StyleMarkupMode {
 }
 
 ///|
-fn pbt_sink_kind(seed : Int) -> SinkKind {
+fn pbt_sink_kind(seed : Int32) -> SinkKind {
   match pbt_nonnegative(seed, 4) {
     0 => SinkKind::Console
     1 => SinkKind::JsonConsole
@@ -312,7 +312,7 @@ fn pbt_sink_kind(seed : Int) -> SinkKind {
 ///|
 test "quickcheck: serialized logger configs parse to the same canonical text" {
   @quickcheck.check(
-    (input : (Int, String, Bool, (Int, Int, Int, String))) => {
+    (input : (Int32, String, Bool, (Int32, Int32, Int32, String))) => {
       let (seed, target, timestamp, sink_input) = input
       let (sink_seed, queue_seed, flags, suffix) = sink_input
       let kind = pbt_sink_kind(sink_seed)

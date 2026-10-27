@@ -11,7 +11,7 @@ async test "shutdown drains pending records" {
     content="true",
   )
   let written : Ref[Array[String]] = Ref([])
-  let flushes : Ref[Int] = Ref(0)
+  let flushes : Ref[Int32] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(rec) { written.val.push(rec.message) }),
     config=AsyncLoggerConfig::new(
@@ -120,7 +120,7 @@ async test "closed blocking logger does not add pending count on later log attem
 
 ///|
 async test "closed logger runtime determines whether later log reaches patch path" {
-  let patched : Ref[Int] = Ref(0)
+  let patched : Ref[Int32] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
@@ -148,7 +148,7 @@ async test "closed logger runtime determines whether later log reaches patch pat
 
 ///|
 async test "closed logger does not enter filter path on later log attempts" {
-  let filtered : Ref[Int] = Ref(0)
+  let filtered : Ref[Int32] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) {  }),
     config=AsyncLoggerConfig::new(
@@ -1330,7 +1330,7 @@ async test "run drains queued records in compatibility backends too" {
 
 ///|
 async test "async logger records worker failures and wait_idle stops early" {
-  let writes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
@@ -1374,8 +1374,8 @@ async test "async logger records worker failures and wait_idle stops early" {
 
 ///|
 async test "later started run resets async failure state before draining remaining backlog" {
-  let writes : Ref[Int] = Ref(0)
-  let flushes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
+  let flushes : Ref[Int32] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
@@ -1445,7 +1445,7 @@ async test "later started run resets async failure state before draining remaini
 
 ///|
 async test "shutdown after worker failure clears remaining pending backlog" {
-  let writes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
   let logger = async_logger(
     @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
@@ -1533,7 +1533,7 @@ async test "shutdown clear reaches terminal closed phase without worker startup"
 async test "library async logger keeps a smaller async facade" {
   let written_targets : Ref[Array[String]] = Ref([])
   let written_messages : Ref[Array[String]] = Ref([])
-  let written_field_counts : Ref[Array[Int]] = Ref([])
+  let written_field_counts : Ref[Array[Int32]] = Ref([])
   let logger = LibraryAsyncLogger::new(
       @bitlogger.callback_sink(fn(rec) {
         written_targets.val.push(rec.target)
@@ -1561,8 +1561,8 @@ async test "library async logger keeps a smaller async facade" {
 
 ///|
 async test "library async new preserves config and flush failure contract" {
-  let writes : Ref[Int] = Ref(0)
-  let flushes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
+  let flushes : Ref[Int32] = Ref(0)
   let logger = LibraryAsyncLogger::new(
     @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(
@@ -1893,7 +1893,7 @@ async test "library async severity helpers use stored target without override" {
 
 ///|
 async test "library async shutdown preserves wrapped failure cleanup semantics" {
-  let writes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
   let logger = LibraryAsyncLogger::new(
     @bitlogger.callback_sink(fn(_) { writes.val += 1 }),
     config=AsyncLoggerConfig::new(

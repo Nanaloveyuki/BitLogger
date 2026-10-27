@@ -24,7 +24,7 @@ pub(all) enum Level {
 }
 pub fn Level::enabled(Self, Self) -> Bool
 pub fn Level::label(Self) -> String
-pub fn Level::priority(Self) -> Int
+pub fn Level::priority(Self) -> Int32
 
 pub struct Record {
   level : Level

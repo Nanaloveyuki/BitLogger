@@ -8,7 +8,7 @@ pub(all) enum Level {
 }
 
 ///|
-pub fn Level::priority(self : Level) -> Int {
+pub fn Level::priority(self : Level) -> Int32 {
   match self {
     Level::Trace => 10
     Level::Debug => 20

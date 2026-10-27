@@ -18,7 +18,7 @@ pub fn fields(entries : Array[(String, String)]) -> Array[Field] {
 pub fn trace_context(
   trace_id : String,
   span_id : String,
-  trace_flags? : String = "01",
+  trace_flags~ : String = "01",
   trace_state? : String,
 ) -> TraceContext {
   match trace_state {
@@ -40,9 +40,9 @@ pub type Record = @core.Record
 fn record(
   level : Level,
   message : String,
-  timestamp_ms? : UInt64 = 0UL,
-  target? : String = "",
-  fields? : Array[Field] = [],
+  timestamp_ms~ : UInt64 = 0UL,
+  target~ : String = "",
+  fields~ : Array[Field] = [],
 ) -> Record {
   @core.Record::new(level, message, timestamp_ms~, target~, fields~)
 }

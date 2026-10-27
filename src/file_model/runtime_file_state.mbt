@@ -2,16 +2,16 @@
 pub struct RuntimeFileState {
   file : FileSinkState
   queued : Bool
-  pending_count : Int
-  dropped_count : Int
+  pending_count : Int32
+  dropped_count : Int32
 }
 
 ///|
 pub fn RuntimeFileState::new(
   file : FileSinkState,
-  queued? : Bool = false,
-  pending_count? : Int = 0,
-  dropped_count? : Int = 0,
+  queued~ : Bool = false,
+  pending_count~ : Int32 = 0,
+  dropped_count~ : Int32 = 0,
 ) -> RuntimeFileState {
   { file, queued, pending_count, dropped_count, }
 }
@@ -29,7 +29,7 @@ pub fn runtime_file_state_to_json(state : RuntimeFileState) -> Json {
 ///|
 pub fn stringify_runtime_file_state(
   state : RuntimeFileState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = runtime_file_state_to_json(state)
   if pretty {

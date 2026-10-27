@@ -27,9 +27,9 @@ pub fn FileSink::close(Self) -> Bool
 pub fn FileSink::default_policy(Self) -> @file_model.FileSinkPolicy
 pub fn FileSink::flush(Self) -> Bool
 pub async fn FileSink::flush_async(Self) -> Bool
-pub fn FileSink::flush_failures(Self) -> Int
+pub fn FileSink::flush_failures(Self) -> Int32
 pub fn FileSink::is_available(Self) -> Bool
-pub fn FileSink::open_failures(Self) -> Int
+pub fn FileSink::open_failures(Self) -> Int32
 pub fn FileSink::path(Self) -> String
 pub fn FileSink::policy(Self) -> @file_model.FileSinkPolicy
 pub fn FileSink::policy_matches_default(Self) -> Bool
@@ -41,7 +41,7 @@ pub fn FileSink::reset_failure_counters(Self) -> Unit
 pub fn FileSink::reset_policy(Self) -> Unit
 pub fn FileSink::rotation_config(Self) -> @file_model.FileRotation?
 pub fn FileSink::rotation_enabled(Self) -> Bool
-pub fn FileSink::rotation_failures(Self) -> Int
+pub fn FileSink::rotation_failures(Self) -> Int32
 pub fn FileSink::set_append_mode(Self, Bool) -> Unit
 pub fn FileSink::set_auto_flush(Self, Bool) -> Unit
 pub fn FileSink::set_policy(Self, @file_model.FileSinkPolicy) -> Unit
@@ -49,7 +49,7 @@ pub fn FileSink::set_rotation(Self, @file_model.FileRotation?) -> Unit
 pub fn FileSink::state(Self) -> @file_model.FileSinkState
 pub fn FileSink::write(Self, @core.Record) -> Unit
 pub async fn FileSink::write_async(Self, @core.Record) -> Unit
-pub fn FileSink::write_failures(Self) -> Int
+pub fn FileSink::write_failures(Self) -> Int32
 pub impl @sink_graph.Sink for FileSink
 
 // Type aliases

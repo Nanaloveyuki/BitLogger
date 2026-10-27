@@ -10,7 +10,7 @@ import {
 }
 
 // Values
-pub fn[S] buffered_sink(S, flush_limit? : Int) -> BufferedSink[S]
+pub fn[S] buffered_sink(S, flush_limit? : Int32) -> BufferedSink[S]
 
 pub fn callback_sink((@core.Record) -> Unit) -> CallbackSink
 
@@ -26,13 +26,13 @@ pub fn formatted_callback_sink((@core.Record) -> String, (String) -> Unit) -> Fo
 
 pub fn formatted_console_sink((@core.Record) -> String) -> FormattedConsoleSink
 
-pub fn history_sink(capacity? : Int) -> HistorySink
+pub fn history_sink(capacity? : Int32) -> HistorySink
 
 pub fn json_console_sink() -> JsonConsoleSink
 
 pub fn[S] patch_sink(S, (@core.Record) -> @core.Record) -> PatchSink[S]
 
-pub fn[S] queued_sink(S, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> QueuedSink[S]
+pub fn[S] queued_sink(S, max_pending? : Int32, overflow? : @queue_model.QueueOverflowPolicy) -> QueuedSink[S]
 
 pub fn[A, B] split_by_level(A, B, min_level? : @core.Level) -> SplitSink[A, B]
 
@@ -48,11 +48,11 @@ pub fn text_console_sink(@formatting.TextFormatter) -> FormattedConsoleSink
 pub struct BufferedSink[S] {
   sink : S
   buffer : @ref.Ref[Array[@core.Record]]
-  flush_limit : Int
+  flush_limit : Int32
 }
 pub fn[S : Sink] BufferedSink::flush(Self[S]) -> Unit
 pub async fn[S : Sink] BufferedSink::flush_async(Self[S]) -> Unit
-pub fn[S] BufferedSink::pending_count(Self[S]) -> Int
+pub fn[S] BufferedSink::pending_count(Self[S]) -> Int32
 pub fn[S : Sink] BufferedSink::write(Self[S], @core.Record) -> Unit
 pub async fn[S : Sink] BufferedSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S : Sink] Sink for BufferedSink[S]
@@ -112,13 +112,13 @@ pub impl Sink for FormattedConsoleSink
 
 pub struct HistorySink {
   records : @ref.Ref[Array[@core.Record]]
-  capacity : Int
-  dropped_count : @ref.Ref[Int]
+  capacity : Int32
+  dropped_count : @ref.Ref[Int32]
 }
-pub fn HistorySink::capacity(Self) -> Int
+pub fn HistorySink::capacity(Self) -> Int32
 pub fn HistorySink::clear(Self) -> Unit
-pub fn HistorySink::count(Self) -> Int
-pub fn HistorySink::dropped_count(Self) -> Int
+pub fn HistorySink::count(Self) -> Int32
+pub fn HistorySink::dropped_count(Self) -> Int32
 pub fn HistorySink::snapshot(Self) -> Array[@core.Record]
 pub fn HistorySink::write(Self, @core.Record) -> Unit
 pub async fn HistorySink::write_async(Self, @core.Record) -> Unit
@@ -142,16 +142,16 @@ pub impl[S : Sink] Sink for PatchSink[S]
 pub struct QueuedSink[S] {
   sink : S
   queue : @queue.Queue[@core.Record]
-  max_pending : Int
+  max_pending : Int32
   overflow : @queue_model.QueueOverflowPolicy
-  dropped_count : @ref.Ref[Int]
+  dropped_count : @ref.Ref[Int32]
 }
-pub fn[S : Sink] QueuedSink::drain(Self[S], max_items? : Int) -> Int
-pub async fn[S : Sink] QueuedSink::drain_async(Self[S], max_items? : Int) -> Int
-pub fn[S] QueuedSink::dropped_count(Self[S]) -> Int
-pub fn[S : Sink] QueuedSink::flush(Self[S]) -> Int
-pub async fn[S : Sink] QueuedSink::flush_async(Self[S]) -> Int
-pub fn[S] QueuedSink::pending_count(Self[S]) -> Int
+pub fn[S : Sink] QueuedSink::drain(Self[S], max_items? : Int32) -> Int32
+pub async fn[S : Sink] QueuedSink::drain_async(Self[S], max_items? : Int32) -> Int32
+pub fn[S] QueuedSink::dropped_count(Self[S]) -> Int32
+pub fn[S : Sink] QueuedSink::flush(Self[S]) -> Int32
+pub async fn[S : Sink] QueuedSink::flush_async(Self[S]) -> Int32
+pub fn[S] QueuedSink::pending_count(Self[S]) -> Int32
 pub fn[S] QueuedSink::write(Self[S], @core.Record) -> Unit
 pub async fn[S] QueuedSink::write_async(Self[S], @core.Record) -> Unit
 pub impl[S] Sink for QueuedSink[S]

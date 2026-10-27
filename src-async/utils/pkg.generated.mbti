@@ -57,19 +57,19 @@ pub struct AsyncLoggerBuildConfig {
 pub fn AsyncLoggerBuildConfig::new(logger? : @config_model.LoggerConfig, async_config? : AsyncLoggerConfig) -> Self
 
 pub struct AsyncLoggerConfig {
-  max_pending : Int
+  max_pending : Int32
   overflow : AsyncOverflowPolicy
-  max_batch : Int
-  linger_ms : Int
+  max_batch : Int32
+  linger_ms : Int32
   flush : AsyncFlushPolicy
 }
-pub fn AsyncLoggerConfig::new(max_pending? : Int, overflow? : AsyncOverflowPolicy, max_batch? : Int, linger_ms? : Int, flush? : AsyncFlushPolicy) -> Self
+pub fn AsyncLoggerConfig::new(max_pending? : Int32, overflow? : AsyncOverflowPolicy, max_batch? : Int32, linger_ms? : Int32, flush? : AsyncFlushPolicy) -> Self
 
 pub struct AsyncLoggerState {
   runtime : AsyncRuntimeState
   phase : AsyncLifecyclePhase
-  pending_count : Int
-  dropped_count : Int
+  pending_count : Int32
+  dropped_count : Int32
   is_closed : Bool
   is_running : Bool
   has_failed : Bool
@@ -79,7 +79,7 @@ pub struct AsyncLoggerState {
   last_error : String
   flush_policy : AsyncFlushPolicy
 }
-pub fn AsyncLoggerState::new(AsyncRuntimeState, AsyncLifecyclePhase, Int, Int, String, AsyncFlushPolicy) -> Self
+pub fn AsyncLoggerState::new(AsyncRuntimeState, AsyncLifecyclePhase, Int32, Int32, String, AsyncFlushPolicy) -> Self
 
 pub(all) enum AsyncOverflowPolicy {
   Blocking

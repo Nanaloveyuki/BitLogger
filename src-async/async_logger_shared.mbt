@@ -55,7 +55,7 @@ pub fn async_runtime_state_to_json(state : AsyncRuntimeState) -> Json {
 ///|
 pub fn stringify_async_runtime_state(
   state : AsyncRuntimeState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @utils.stringify_async_runtime_state(state, pretty~)
 }
@@ -68,7 +68,7 @@ pub fn async_logger_state_to_json(state : AsyncLoggerState) -> Json {
 ///|
 pub fn stringify_async_logger_state(
   state : AsyncLoggerState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @utils.stringify_async_logger_state(state, pretty~)
 }
@@ -91,7 +91,7 @@ pub fn async_logger_config_to_json(config : AsyncLoggerConfig) -> Json {
 ///|
 pub fn stringify_async_logger_config(
   config : AsyncLoggerConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @utils.stringify_async_logger_config(config, pretty~)
 }
@@ -116,7 +116,7 @@ pub fn async_logger_build_config_to_json(
 ///|
 pub fn stringify_async_logger_build_config(
   config : AsyncLoggerBuildConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @utils.stringify_async_logger_build_config(config, pretty~)
 }
@@ -127,8 +127,8 @@ pub struct AsyncLogger[S] {
   target : String
   timestamp : Bool
   overflow : AsyncOverflowPolicy
-  max_batch : Int
-  linger_ms : Int
+  max_batch : Int32
+  linger_ms : Int32
   flush_policy : AsyncFlushPolicy
   sink : S
   flush_callback : (S) -> Unit raise
@@ -137,8 +137,8 @@ pub struct AsyncLogger[S] {
   filter : (@bitlogger.Record) -> Bool
   patch : @bitlogger.RecordPatch
   queue : @async.Queue[@bitlogger.Record]
-  pending_count : Ref[Int]
-  dropped_count : Ref[Int]
+  pending_count : Ref[Int32]
+  dropped_count : Ref[Int32]
   phase : Ref[AsyncLifecyclePhase]
   last_error : Ref[String]
 }
@@ -146,10 +146,10 @@ pub struct AsyncLogger[S] {
 ///|
 pub fn[S] async_logger(
   sink : S,
-  config? : AsyncLoggerConfig = AsyncLoggerConfig::new(),
-  min_level? : @bitlogger.Level = @bitlogger.Level::Info,
-  target? : String = "",
-  flush? : (S) -> Unit raise = fn(_) { () },
+  config~ : AsyncLoggerConfig = AsyncLoggerConfig::new(),
+  min_level~ : @bitlogger.Level = @bitlogger.Level::Info,
+  target~ : String = "",
+  flush~ : (S) -> Unit raise = fn(_) { () },
 ) -> AsyncLogger[S] {
   {
     min_level,
@@ -263,7 +263,7 @@ fn queue_kind_of(config : AsyncLoggerConfig) -> @aqueue.Kind {
 ///|
 pub fn[S] AsyncLogger::with_timestamp(
   self : AsyncLogger[S],
-  enabled? : Bool = true,
+  enabled~ : Bool = true,
 ) -> AsyncLogger[S] {
   { ..self, timestamp: enabled, }
 }
@@ -364,8 +364,8 @@ pub async fn[S] AsyncLogger::log(
   self : AsyncLogger[S],
   level : @bitlogger.Level,
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
-  target? : String = "",
+  fields~ : Array[@bitlogger.Field] = [],
+  target~ : String = "",
 ) -> Unit {
   guard !self.is_closed() else { () }
   guard self.is_enabled(level) else { () }
@@ -410,7 +410,7 @@ pub async fn[S] AsyncLogger::log(
 pub async fn[S] AsyncLogger::trace(
   self : AsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.log(@bitlogger.Level::Trace, message, fields~)
 }
@@ -419,7 +419,7 @@ pub async fn[S] AsyncLogger::trace(
 pub async fn[S] AsyncLogger::debug(
   self : AsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.log(@bitlogger.Level::Debug, message, fields~)
 }
@@ -428,7 +428,7 @@ pub async fn[S] AsyncLogger::debug(
 pub async fn[S] AsyncLogger::info(
   self : AsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.log(@bitlogger.Level::Info, message, fields~)
 }
@@ -437,7 +437,7 @@ pub async fn[S] AsyncLogger::info(
 pub async fn[S] AsyncLogger::warn(
   self : AsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.log(@bitlogger.Level::Warn, message, fields~)
 }
@@ -446,18 +446,18 @@ pub async fn[S] AsyncLogger::warn(
 pub async fn[S] AsyncLogger::error(
   self : AsyncLogger[S],
   message : String,
-  fields? : Array[@bitlogger.Field] = [],
+  fields~ : Array[@bitlogger.Field] = [],
 ) -> Unit {
   self.log(@bitlogger.Level::Error, message, fields~)
 }
 
 ///|
-pub fn[S] AsyncLogger::pending_count(self : AsyncLogger[S]) -> Int {
+pub fn[S] AsyncLogger::pending_count(self : AsyncLogger[S]) -> Int32 {
   self.pending_count.val
 }
 
 ///|
-pub fn[S] AsyncLogger::dropped_count(self : AsyncLogger[S]) -> Int {
+pub fn[S] AsyncLogger::dropped_count(self : AsyncLogger[S]) -> Int32 {
   self.dropped_count.val
 }
 
@@ -501,7 +501,7 @@ pub fn[S] AsyncLogger::state(self : AsyncLogger[S]) -> AsyncLoggerState {
 ///|
 pub fn[S] AsyncLogger::close(
   self : AsyncLogger[S],
-  clear? : Bool = false,
+  clear~ : Bool = false,
 ) -> Unit {
   self.phase.val = async_logger_phase_after_close(self.phase())
   if clear {
@@ -527,7 +527,7 @@ pub async fn[S] AsyncLogger::wait_idle(self : AsyncLogger[S]) -> Unit {
 ///|
 pub async fn[S] AsyncLogger::shutdown(
   self : AsyncLogger[S],
-  clear? : Bool = false,
+  clear~ : Bool = false,
 ) -> Unit {
   if clear {
     self.close(clear=true)

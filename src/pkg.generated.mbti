@@ -19,7 +19,7 @@ pub fn any_of(Array[(@core.Record) -> Bool]) -> (@core.Record) -> Bool
 
 pub fn append_fields(Array[@core.Field]) -> (@core.Record) -> @core.Record
 
-pub fn[S] buffered_sink(S, flush_limit? : Int) -> @sink_graph.BufferedSink[S]
+pub fn[S] buffered_sink(S, flush_limit? : Int32) -> @sink_graph.BufferedSink[S]
 
 pub fn build_application_logger(@config_model.LoggerConfig) -> Logger[@runtime.RuntimeSink]
 
@@ -67,11 +67,11 @@ pub fn fields(Array[(String, String)]) -> Array[@core.Field]
 
 pub fn file(String, min_level? : @core.Level, target? : String, timestamp? : Bool, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, text_formatter? : @config_model.TextFormatterConfig) -> @config_model.LoggerConfig raise @config_model.ConfigError
 
-pub fn file_rotation(Int, max_backups? : Int) -> @file_model.FileRotation
+pub fn file_rotation(Int32, max_backups? : Int32) -> @file_model.FileRotation
 
 pub fn file_rotation_config_to_json(@file_model.FileRotation) -> Json
 
-pub fn file_rotation_i64(Int64, max_backups? : Int) -> @file_model.FileRotation
+pub fn file_rotation_i64(Int64, max_backups? : Int32) -> @file_model.FileRotation
 
 pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
 
@@ -95,7 +95,7 @@ pub fn global_style_tag_registry() -> @formatting.StyleTagRegistry
 
 pub fn has_field(String) -> (@core.Record) -> Bool
 
-pub fn history_sink(capacity? : Int) -> @sink_graph.HistorySink
+pub fn history_sink(capacity? : Int32) -> @sink_graph.HistorySink
 
 pub fn identity_patch() -> (@core.Record) -> @core.Record
 
@@ -131,7 +131,7 @@ pub fn prefix_message(String) -> (@core.Record) -> @core.Record
 
 pub fn queue_config_to_json(@config_model.QueueConfig) -> Json
 
-pub fn[S] queued_sink(S, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @sink_graph.QueuedSink[S]
+pub fn[S] queued_sink(S, max_pending? : Int32, overflow? : @queue_model.QueueOverflowPolicy) -> @sink_graph.QueuedSink[S]
 
 pub fn redact_field(String, placeholder? : String) -> (@core.Record) -> @core.Record
 
@@ -195,11 +195,11 @@ pub fn trace_context(String, String, trace_flags? : String, trace_state? : Strin
 
 pub fn warn(String, fields? : Array[@core.Field]) -> Unit
 
-pub fn with_file_rotation(@config_model.LoggerConfig, Int, max_backups? : Int) -> @config_model.LoggerConfig
+pub fn with_file_rotation(@config_model.LoggerConfig, Int32, max_backups? : Int32) -> @config_model.LoggerConfig
 
-pub fn with_file_rotation_i64(@config_model.LoggerConfig, Int64, max_backups? : Int) -> @config_model.LoggerConfig
+pub fn with_file_rotation_i64(@config_model.LoggerConfig, Int64, max_backups? : Int32) -> @config_model.LoggerConfig
 
-pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> @config_model.LoggerConfig
+pub fn with_queue(@config_model.LoggerConfig, max_pending? : Int32, overflow? : @queue_model.QueueOverflowPolicy) -> @config_model.LoggerConfig
 
 // Errors
 
@@ -230,9 +230,9 @@ pub fn[S] Logger::bind(Self[S], Array[@core.Field]) -> Self[@sink_graph.ContextS
 pub fn[S] Logger::child(Self[S], String) -> Self[S]
 pub fn Logger::close(Self[@runtime.RuntimeSink]) -> Bool
 pub fn[S : @sink_graph.Sink] Logger::debug(Self[S], String, fields? : Array[@core.Field]) -> Unit
-pub fn Logger::drain(Self[@runtime.RuntimeSink], max_items? : Int) -> Int
-pub fn Logger::drain_progress(Self[@runtime.RuntimeSink], max_items? : Int) -> @runtime.RuntimeSinkProgress
-pub fn Logger::dropped_count(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::drain(Self[@runtime.RuntimeSink], max_items? : Int32) -> Int32
+pub fn Logger::drain_progress(Self[@runtime.RuntimeSink], max_items? : Int32) -> @runtime.RuntimeSinkProgress
+pub fn Logger::dropped_count(Self[@runtime.RuntimeSink]) -> Int32
 pub fn[S : @sink_graph.Sink] Logger::error(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn Logger::file_append_mode(Self[@runtime.RuntimeSink]) -> Bool
 pub fn Logger::file_auto_flush(Self[@runtime.RuntimeSink]) -> Bool
@@ -242,8 +242,8 @@ pub fn Logger::file_close(Self[@runtime.RuntimeSink]) -> Bool
 pub fn Logger::file_default_policy(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy
 pub fn Logger::file_default_policy_or_none(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy?
 pub fn Logger::file_flush(Self[@runtime.RuntimeSink]) -> Bool
-pub fn Logger::file_flush_failures(Self[@runtime.RuntimeSink]) -> Int
-pub fn Logger::file_open_failures(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::file_flush_failures(Self[@runtime.RuntimeSink]) -> Int32
+pub fn Logger::file_open_failures(Self[@runtime.RuntimeSink]) -> Int32
 pub fn Logger::file_path(Self[@runtime.RuntimeSink]) -> String
 pub fn Logger::file_path_or_none(Self[@runtime.RuntimeSink]) -> String?
 pub fn Logger::file_policy(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkPolicy
@@ -257,7 +257,7 @@ pub fn Logger::file_reset_failure_counters(Self[@runtime.RuntimeSink]) -> Bool
 pub fn Logger::file_reset_policy(Self[@runtime.RuntimeSink]) -> Bool
 pub fn Logger::file_rotation_config(Self[@runtime.RuntimeSink]) -> @file_model.FileRotation?
 pub fn Logger::file_rotation_enabled(Self[@runtime.RuntimeSink]) -> Bool
-pub fn Logger::file_rotation_failures(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::file_rotation_failures(Self[@runtime.RuntimeSink]) -> Int32
 pub fn Logger::file_runtime_state(Self[@runtime.RuntimeSink]) -> @file_model.RuntimeFileState?
 pub fn Logger::file_set_append_mode(Self[@runtime.RuntimeSink], Bool) -> Bool
 pub fn Logger::file_set_auto_flush(Self[@runtime.RuntimeSink], Bool) -> Bool
@@ -265,14 +265,14 @@ pub fn Logger::file_set_policy(Self[@runtime.RuntimeSink], @file_model.FileSinkP
 pub fn Logger::file_set_rotation(Self[@runtime.RuntimeSink], @file_model.FileRotation?) -> Bool
 pub fn Logger::file_state(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkState
 pub fn Logger::file_state_or_none(Self[@runtime.RuntimeSink]) -> @file_model.FileSinkState?
-pub fn Logger::file_write_failures(Self[@runtime.RuntimeSink]) -> Int
-pub fn Logger::flush(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::file_write_failures(Self[@runtime.RuntimeSink]) -> Int32
+pub fn Logger::flush(Self[@runtime.RuntimeSink]) -> Int32
 pub fn Logger::flush_progress(Self[@runtime.RuntimeSink]) -> @runtime.RuntimeSinkProgress
 pub fn[S : @sink_graph.Sink] Logger::info(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn[S] Logger::is_enabled(Self[S], @core.Level) -> Bool
 pub fn[S : @sink_graph.Sink] Logger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
 pub fn[S] Logger::new(S, min_level? : @core.Level, target? : String) -> Self[S]
-pub fn Logger::pending_count(Self[@runtime.RuntimeSink]) -> Int
+pub fn Logger::pending_count(Self[@runtime.RuntimeSink]) -> Int32
 pub fn[S] Logger::to_library_logger(Self[S]) -> LibraryLogger[S]
 pub fn[S : @sink_graph.Sink] Logger::trace(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn[S : @sink_graph.Sink] Logger::warn(Self[S], String, fields? : Array[@core.Field]) -> Unit
@@ -280,7 +280,7 @@ pub fn[S] Logger::with_context_fields(Self[S], Array[@core.Field]) -> Self[@sink
 pub fn[S] Logger::with_filter(Self[S], (@core.Record) -> Bool) -> Self[@sink_graph.FilterSink[S]]
 pub fn[S] Logger::with_min_level(Self[S], @core.Level) -> Self[S]
 pub fn[S] Logger::with_patch(Self[S], (@core.Record) -> @core.Record) -> Self[@sink_graph.PatchSink[S]]
-pub fn[S] Logger::with_queue(Self[S], max_pending? : Int, overflow? : @queue_model.QueueOverflowPolicy) -> Self[@sink_graph.QueuedSink[S]]
+pub fn[S] Logger::with_queue(Self[S], max_pending? : Int32, overflow? : @queue_model.QueueOverflowPolicy) -> Self[@sink_graph.QueuedSink[S]]
 pub fn[S] Logger::with_target(Self[S], String) -> Self[S]
 pub fn[S] Logger::with_timestamp(Self[S], enabled? : Bool) -> Self[S]
 pub fn[S] Logger::with_trace_context(Self[S], @core.TraceContext) -> Self[@sink_graph.ContextSink[S]]

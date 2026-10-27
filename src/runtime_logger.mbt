@@ -15,7 +15,7 @@ pub fn runtime_file_state_to_json(state : RuntimeFileState) -> Json {
 ///|
 pub fn stringify_runtime_file_state(
   state : RuntimeFileState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @file_model.stringify_runtime_file_state(state, pretty~)
 }
@@ -31,20 +31,23 @@ pub fn Logger::flush_progress(
 }
 
 ///|
-pub fn Logger::flush(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::flush(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::flush(self.sink)
 }
 
 ///|
 pub fn Logger::drain_progress(
   self : Logger[RuntimeSink],
-  max_items? : Int = -1,
+  max_items~ : Int32 = -1,
 ) -> RuntimeSinkProgress {
   @runtime.RuntimeSink::drain_progress(self.sink, max_items~)
 }
 
 ///|
-pub fn Logger::drain(self : Logger[RuntimeSink], max_items? : Int = -1) -> Int {
+pub fn Logger::drain(
+  self : Logger[RuntimeSink],
+  max_items~ : Int32 = -1,
+) -> Int32 {
   @runtime.RuntimeSink::drain(self.sink, max_items~)
 }
 
@@ -54,12 +57,12 @@ pub fn Logger::close(self : Logger[RuntimeSink]) -> Bool {
 }
 
 ///|
-pub fn Logger::pending_count(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::pending_count(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::pending_count(self.sink)
 }
 
 ///|
-pub fn Logger::dropped_count(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::dropped_count(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::dropped_count(self.sink)
 }
 

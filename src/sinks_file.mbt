@@ -11,14 +11,17 @@ pub type FileSinkState = @file_model.FileSinkState
 pub type FileSinkPolicy = @file_model.FileSinkPolicy
 
 ///|
-pub fn file_rotation(max_bytes : Int, max_backups? : Int = 1) -> FileRotation {
+pub fn file_rotation(
+  max_bytes : Int32,
+  max_backups~ : Int32 = 1,
+) -> FileRotation {
   @file_model.file_rotation(max_bytes, max_backups~)
 }
 
 ///|
 pub fn file_rotation_i64(
   max_bytes : Int64,
-  max_backups? : Int = 1,
+  max_backups~ : Int32 = 1,
 ) -> FileRotation {
   @file_model.file_rotation_i64(max_bytes, max_backups~)
 }
@@ -36,7 +39,7 @@ pub fn file_sink_policy_to_json(policy : FileSinkPolicy) -> Json {
 ///|
 pub fn stringify_file_sink_policy(
   policy : FileSinkPolicy,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @file_model.stringify_file_sink_policy(policy, pretty~)
 }
@@ -49,7 +52,7 @@ pub fn file_sink_state_to_json(state : FileSinkState) -> Json {
 ///|
 pub fn stringify_file_sink_state(
   state : FileSinkState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @file_model.stringify_file_sink_state(state, pretty~)
 }
@@ -57,10 +60,10 @@ pub fn stringify_file_sink_state(
 ///|
 pub fn file_sink(
   path : String,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
-  formatter? : RecordFormatter = fn(rec) { format_text(rec) },
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  formatter~ : RecordFormatter = fn(rec) { format_text(rec) },
 ) -> FileSink {
   @file_runtime.file_sink(path, append~, auto_flush~, rotation~, formatter~)
 }
@@ -68,10 +71,10 @@ pub fn file_sink(
 ///|
 pub async fn file_sink_async(
   path : String,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
-  formatter? : RecordFormatter = fn(rec) { format_text(rec) },
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  formatter~ : RecordFormatter = fn(rec) { format_text(rec) },
 ) -> FileSink {
   @file_runtime.file_sink_async(
     path,

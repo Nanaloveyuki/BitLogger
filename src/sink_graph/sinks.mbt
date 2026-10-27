@@ -213,7 +213,7 @@ pub fn[A, B] split_sink(
 pub fn[A, B] split_by_level(
   left : A,
   right : B,
-  min_level? : Level = Level::Warn,
+  min_level~ : Level = Level::Warn,
 ) -> SplitSink[A, B] {
   split_sink(left, right, fn(rec) { rec.level.enabled(min_level) })
 }
@@ -263,28 +263,28 @@ pub extend CallbackSink with Sink::{write, write_async}
 ///|
 pub struct HistorySink {
   records : Ref[Array[Record]]
-  capacity : Int
-  dropped_count : Ref[Int]
+  capacity : Int32
+  dropped_count : Ref[Int32]
 }
 
 ///|
-pub fn history_sink(capacity? : Int = 128) -> HistorySink {
+pub fn history_sink(capacity~ : Int32 = 128) -> HistorySink {
   let capacity = if capacity <= 0 { 1 } else { capacity }
   { records: Ref([]), capacity, dropped_count: Ref(0), }
 }
 
 ///|
-pub fn HistorySink::capacity(self : HistorySink) -> Int {
+pub fn HistorySink::capacity(self : HistorySink) -> Int32 {
   self.capacity
 }
 
 ///|
-pub fn HistorySink::count(self : HistorySink) -> Int {
+pub fn HistorySink::count(self : HistorySink) -> Int32 {
   self.records.val.length()
 }
 
 ///|
-pub fn HistorySink::dropped_count(self : HistorySink) -> Int {
+pub fn HistorySink::dropped_count(self : HistorySink) -> Int32 {
   self.dropped_count.val
 }
 
@@ -330,17 +330,17 @@ pub extend HistorySink with Sink::{write, write_async}
 pub struct BufferedSink[S] {
   sink : S
   buffer : Ref[Array[Record]]
-  flush_limit : Int
+  flush_limit : Int32
 }
 
 ///|
-pub fn[S] buffered_sink(sink : S, flush_limit? : Int = 1) -> BufferedSink[S] {
+pub fn[S] buffered_sink(sink : S, flush_limit~ : Int32 = 1) -> BufferedSink[S] {
   let actual_limit = if flush_limit <= 0 { 1 } else { flush_limit }
   { sink, buffer: Ref([]), flush_limit: actual_limit, }
 }
 
 ///|
-pub fn[S] BufferedSink::pending_count(self : BufferedSink[S]) -> Int {
+pub fn[S] BufferedSink::pending_count(self : BufferedSink[S]) -> Int32 {
   self.buffer.val.length()
 }
 
@@ -398,16 +398,16 @@ pub type QueueOverflowPolicy = @queue_model.QueueOverflowPolicy
 pub struct QueuedSink[S] {
   sink : S
   queue : @queue.Queue[Record]
-  max_pending : Int
+  max_pending : Int32
   overflow : QueueOverflowPolicy
-  dropped_count : Ref[Int]
+  dropped_count : Ref[Int32]
 }
 
 ///|
 pub fn[S] queued_sink(
   sink : S,
-  max_pending? : Int = 0,
-  overflow? : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
+  max_pending~ : Int32 = 0,
+  overflow~ : QueueOverflowPolicy = QueueOverflowPolicy::DropNewest,
 ) -> QueuedSink[S] {
   {
     sink,
@@ -419,20 +419,20 @@ pub fn[S] queued_sink(
 }
 
 ///|
-pub fn[S] QueuedSink::pending_count(self : QueuedSink[S]) -> Int {
+pub fn[S] QueuedSink::pending_count(self : QueuedSink[S]) -> Int32 {
   self.queue.length()
 }
 
 ///|
-pub fn[S] QueuedSink::dropped_count(self : QueuedSink[S]) -> Int {
+pub fn[S] QueuedSink::dropped_count(self : QueuedSink[S]) -> Int32 {
   self.dropped_count.val
 }
 
 ///|
 pub fn[S : Sink] QueuedSink::drain(
   self : QueuedSink[S],
-  max_items? : Int = -1,
-) -> Int {
+  max_items~ : Int32 = -1,
+) -> Int32 {
   if max_items == 0 {
     return 0
   }
@@ -453,8 +453,8 @@ pub fn[S : Sink] QueuedSink::drain(
 ///|
 pub async fn[S : Sink] QueuedSink::drain_async(
   self : QueuedSink[S],
-  max_items? : Int = -1,
-) -> Int {
+  max_items~ : Int32 = -1,
+) -> Int32 {
   if max_items == 0 {
     return 0
   }
@@ -473,12 +473,12 @@ pub async fn[S : Sink] QueuedSink::drain_async(
 }
 
 ///|
-pub fn[S : Sink] QueuedSink::flush(self : QueuedSink[S]) -> Int {
+pub fn[S : Sink] QueuedSink::flush(self : QueuedSink[S]) -> Int32 {
   self.drain()
 }
 
 ///|
-pub async fn[S : Sink] QueuedSink::flush_async(self : QueuedSink[S]) -> Int {
+pub async fn[S : Sink] QueuedSink::flush_async(self : QueuedSink[S]) -> Int32 {
   self.drain_async()
 }
 

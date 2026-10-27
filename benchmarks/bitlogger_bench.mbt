@@ -8,7 +8,7 @@ let benchmark_record : @log.Record = @log.Record::new(
 
 ///|
 test "bench callback logger emission" (it : @bench.T) {
-  let writes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
   let logger = @log.Logger::new(@log.callback_sink(fn(_) { writes.val += 1 }))
   it.bench(fn() {
     logger.info("benchmark record", fields=[
@@ -20,7 +20,7 @@ test "bench callback logger emission" (it : @bench.T) {
 
 ///|
 test "bench trace context field binding" (it : @bench.T) {
-  let writes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
   let context = @log.trace_context("trace-bench", "span-bench")
   let logger = @log.Logger::new(@log.callback_sink(fn(_) { writes.val += 1 })).with_trace_context(
     context,
@@ -33,7 +33,7 @@ test "bench trace context field binding" (it : @bench.T) {
 
 ///|
 test "bench queued logger enqueue and flush" (it : @bench.T) {
-  let writes : Ref[Int] = Ref(0)
+  let writes : Ref[Int32] = Ref(0)
   let logger = @log.Logger::new(@log.callback_sink(fn(_) { writes.val += 1 })).with_queue(
     max_pending=8,
   )

@@ -72,8 +72,8 @@ pub struct AsyncLogger[S] {
   target : String
   timestamp : Bool
   overflow : @utils.AsyncOverflowPolicy
-  max_batch : Int
-  linger_ms : Int
+  max_batch : Int32
+  linger_ms : Int32
   flush_policy : @utils.AsyncFlushPolicy
   sink : S
   flush_callback : (S) -> Unit raise
@@ -82,15 +82,15 @@ pub struct AsyncLogger[S] {
   filter : (@core.Record) -> Bool
   patch : (@core.Record) -> @core.Record
   queue : @aqueue.Queue[@core.Record]
-  pending_count : @ref.Ref[Int]
-  dropped_count : @ref.Ref[Int]
+  pending_count : @ref.Ref[Int32]
+  dropped_count : @ref.Ref[Int32]
   phase : @ref.Ref[@utils.AsyncLifecyclePhase]
   last_error : @ref.Ref[String]
 }
 pub fn[S] AsyncLogger::child(Self[S], String) -> Self[S]
 pub fn[S] AsyncLogger::close(Self[S], clear? : Bool) -> Unit
 pub async fn[S] AsyncLogger::debug(Self[S], String, fields? : Array[@core.Field]) -> Unit
-pub fn[S] AsyncLogger::dropped_count(Self[S]) -> Int
+pub fn[S] AsyncLogger::dropped_count(Self[S]) -> Int32
 pub async fn[S] AsyncLogger::error(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn[S] AsyncLogger::flush_policy(Self[S]) -> @utils.AsyncFlushPolicy
 pub fn[S] AsyncLogger::has_failed(Self[S]) -> Bool
@@ -100,7 +100,7 @@ pub fn[S] AsyncLogger::is_enabled(Self[S], @core.Level) -> Bool
 pub fn[S] AsyncLogger::is_running(Self[S]) -> Bool
 pub fn[S] AsyncLogger::last_error(Self[S]) -> String
 pub async fn[S] AsyncLogger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
-pub fn[S] AsyncLogger::pending_count(Self[S]) -> Int
+pub fn[S] AsyncLogger::pending_count(Self[S]) -> Int32
 pub fn[S] AsyncLogger::phase(Self[S]) -> @utils.AsyncLifecyclePhase
 pub async fn[S : @sink_graph.Sink] AsyncLogger::run(Self[S]) -> Unit
 pub async fn[S] AsyncLogger::shutdown(Self[S], clear? : Bool) -> Unit

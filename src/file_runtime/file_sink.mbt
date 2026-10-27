@@ -46,10 +46,10 @@ pub struct FileSink {
   priv rotation : Ref[FileRotation?]
   priv default_rotation : FileRotation?
   priv deferred : Bool
-  priv open_failures : Ref[Int]
-  priv write_failures : Ref[Int]
-  priv flush_failures : Ref[Int]
-  priv rotation_failures : Ref[Int]
+  priv open_failures : Ref[Int32]
+  priv write_failures : Ref[Int32]
+  priv flush_failures : Ref[Int32]
+  priv rotation_failures : Ref[Int32]
   priv rotation_file_ops : Ref[RotationFileOps]
 }
 
@@ -61,10 +61,10 @@ pub fn native_files_supported() -> Bool {
 ///|
 pub fn file_sink(
   path : String,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
-  formatter? : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  formatter~ : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
 ) -> FileSink {
   new_file_sink_internal(
     path,
@@ -79,10 +79,10 @@ pub fn file_sink(
 ///|
 pub async fn file_sink_async(
   path : String,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
-  formatter? : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  formatter~ : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
 ) -> FileSink {
   new_file_sink_internal(
     path,
@@ -98,10 +98,10 @@ pub async fn file_sink_async(
 #doc(hidden)
 pub fn file_sink_deferred(
   path : String,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
-  formatter? : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  formatter~ : RecordFormatter = fn(rec) { @formatting.format_text(rec) },
 ) -> FileSink {
   new_file_sink_internal(
     path,
@@ -122,7 +122,7 @@ fn new_file_sink_internal(
   rotation : FileRotation?,
   formatter : RecordFormatter,
   handle : FileHandle?,
-  deferred? : Bool = false,
+  deferred~ : Bool = false,
 ) -> FileSink {
   {
     path,
@@ -244,22 +244,22 @@ pub fn FileSink::close(self : FileSink) -> Bool {
 }
 
 ///|
-pub fn FileSink::rotation_failures(self : FileSink) -> Int {
+pub fn FileSink::rotation_failures(self : FileSink) -> Int32 {
   self.rotation_failures.val
 }
 
 ///|
-pub fn FileSink::open_failures(self : FileSink) -> Int {
+pub fn FileSink::open_failures(self : FileSink) -> Int32 {
   self.open_failures.val
 }
 
 ///|
-pub fn FileSink::write_failures(self : FileSink) -> Int {
+pub fn FileSink::write_failures(self : FileSink) -> Int32 {
   self.write_failures.val
 }
 
 ///|
-pub fn FileSink::flush_failures(self : FileSink) -> Int {
+pub fn FileSink::flush_failures(self : FileSink) -> Int32 {
   self.flush_failures.val
 }
 
@@ -344,7 +344,7 @@ pub fn FileSink::state(self : FileSink) -> FileSinkState {
 }
 
 ///|
-pub fn FileSink::reopen(self : FileSink, append? : Bool? = None) -> Bool {
+pub fn FileSink::reopen(self : FileSink, append~ : Bool? = None) -> Bool {
   let append_mode = append.unwrap_or(self.append.val)
   self.append.val = append_mode
   if self.deferred {
@@ -398,7 +398,7 @@ pub fn FileSink::reopen_truncate(self : FileSink) -> Bool {
 }
 
 ///|
-fn rotated_file_path(path : String, index : Int) -> String {
+fn rotated_file_path(path : String, index : Int32) -> String {
   "\{path}.\{index}"
 }
 
@@ -487,7 +487,7 @@ fn rotate_file_sink_internal(sink : FileSink, rotation : FileRotation) -> Bool {
 }
 
 ///|
-fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int) -> Bool {
+fn rotate_if_needed_internal(sink : FileSink, next_line_bytes : Int32) -> Bool {
   match sink.rotation.val {
     None => true
     Some(rotation) =>
@@ -553,7 +553,7 @@ async fn rotate_file_sink_async_internal(
 ///|
 async fn rotate_if_needed_async_internal(
   sink : FileSink,
-  next_line_bytes : Int,
+  next_line_bytes : Int32,
 ) -> Bool {
   match sink.rotation.val {
     None => true

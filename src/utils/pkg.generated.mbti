@@ -81,7 +81,7 @@ pub fn set_global_style_tag_registry(@formatting.StyleTagRegistry) -> Unit
 
 pub fn set_target(String) -> (@core.Record) -> @core.Record
 
-pub fn string_byte_length_internal(String) -> Int
+pub fn string_byte_length_internal(String) -> Int32
 
 pub fn style_markup_mode_label(@formatting.StyleMarkupMode) -> String
 

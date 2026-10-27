@@ -16,8 +16,8 @@ pub fn[S] Logger::to_library_logger(self : Logger[S]) -> LibraryLogger[S] {
 ///|
 pub fn[S] LibraryLogger::new(
   sink : S,
-  min_level? : Level = Level::Info,
-  target? : String = "",
+  min_level~ : Level = Level::Info,
+  target~ : String = "",
 ) -> LibraryLogger[S] {
   library_logger(Logger::new(sink, min_level~, target~))
 }
@@ -101,8 +101,8 @@ pub fn[S : Sink] LibraryLogger::log(
   self : LibraryLogger[S],
   level : Level,
   message : String,
-  fields? : Array[Field] = [],
-  target? : String = "",
+  fields~ : Array[Field] = [],
+  target~ : String = "",
 ) -> Unit {
   self.inner.log(level, message, fields~, target~)
 }
@@ -111,7 +111,7 @@ pub fn[S : Sink] LibraryLogger::log(
 pub fn[S : Sink] LibraryLogger::info(
   self : LibraryLogger[S],
   message : String,
-  fields? : Array[Field] = [],
+  fields~ : Array[Field] = [],
 ) -> Unit {
   self.inner.info(message, fields~)
 }
@@ -120,7 +120,7 @@ pub fn[S : Sink] LibraryLogger::info(
 pub fn[S : Sink] LibraryLogger::warn(
   self : LibraryLogger[S],
   message : String,
-  fields? : Array[Field] = [],
+  fields~ : Array[Field] = [],
 ) -> Unit {
   self.inner.warn(message, fields~)
 }
@@ -129,7 +129,7 @@ pub fn[S : Sink] LibraryLogger::warn(
 pub fn[S : Sink] LibraryLogger::error(
   self : LibraryLogger[S],
   message : String,
-  fields? : Array[Field] = [],
+  fields~ : Array[Field] = [],
 ) -> Unit {
   self.inner.error(message, fields~)
 }

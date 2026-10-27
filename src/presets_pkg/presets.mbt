@@ -1,8 +1,8 @@
 ///|
 pub fn console(
-  min_level? : @core.Level = @core.Level::Info,
-  target? : String = "",
-  timestamp? : Bool = false,
+  min_level~ : @core.Level = @core.Level::Info,
+  target~ : String = "",
+  timestamp~ : Bool = false,
 ) -> @config_model.LoggerConfig {
   @config_model.LoggerConfig::new(
     min_level~,
@@ -14,9 +14,9 @@ pub fn console(
 
 ///|
 pub fn json_console(
-  min_level? : @core.Level = @core.Level::Info,
-  target? : String = "",
-  timestamp? : Bool = false,
+  min_level~ : @core.Level = @core.Level::Info,
+  target~ : String = "",
+  timestamp~ : Bool = false,
 ) -> @config_model.LoggerConfig {
   @config_model.LoggerConfig::new(
     min_level~,
@@ -28,10 +28,10 @@ pub fn json_console(
 
 ///|
 pub fn text_console(
-  min_level? : @core.Level = @core.Level::Info,
-  target? : String = "",
-  timestamp? : Bool = false,
-  text_formatter? : @config_model.TextFormatterConfig = @config_model.default_text_formatter_config(),
+  min_level~ : @core.Level = @core.Level::Info,
+  target~ : String = "",
+  timestamp~ : Bool = false,
+  text_formatter~ : @config_model.TextFormatterConfig = @config_model.default_text_formatter_config(),
 ) -> @config_model.LoggerConfig {
   @config_model.LoggerConfig::new(
     min_level~,
@@ -47,13 +47,13 @@ pub fn text_console(
 ///|
 pub fn file(
   path : String,
-  min_level? : @core.Level = @core.Level::Info,
-  target? : String = "",
-  timestamp? : Bool = false,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : @file_model.FileRotation? = None,
-  text_formatter? : @config_model.TextFormatterConfig = @config_model.default_text_formatter_config(),
+  min_level~ : @core.Level = @core.Level::Info,
+  target~ : String = "",
+  timestamp~ : Bool = false,
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : @file_model.FileRotation? = None,
+  text_formatter~ : @config_model.TextFormatterConfig = @config_model.default_text_formatter_config(),
 ) -> @config_model.LoggerConfig raise @config_model.ConfigError {
   if path == "" {
     raise @config_model.ConfigError::InvalidConfig(
@@ -78,8 +78,8 @@ pub fn file(
 ///|
 pub fn with_queue(
   config : @config_model.LoggerConfig,
-  max_pending? : Int = 0,
-  overflow? : @queue_model.QueueOverflowPolicy = @queue_model.QueueOverflowPolicy::DropNewest,
+  max_pending~ : Int32 = 0,
+  overflow~ : @queue_model.QueueOverflowPolicy = @queue_model.QueueOverflowPolicy::DropNewest,
 ) -> @config_model.LoggerConfig {
   @config_model.LoggerConfig::new(
     min_level=config.min_level,
@@ -93,8 +93,8 @@ pub fn with_queue(
 ///|
 pub fn with_file_rotation(
   config : @config_model.LoggerConfig,
-  max_bytes : Int,
-  max_backups? : Int = 1,
+  max_bytes : Int32,
+  max_backups~ : Int32 = 1,
 ) -> @config_model.LoggerConfig {
   match config.sink.kind {
     @config_model.SinkKind::File =>
@@ -120,7 +120,7 @@ pub fn with_file_rotation(
 pub fn with_file_rotation_i64(
   config : @config_model.LoggerConfig,
   max_bytes : Int64,
-  max_backups? : Int = 1,
+  max_backups~ : Int32 = 1,
 ) -> @config_model.LoggerConfig {
   match config.sink.kind {
     @config_model.SinkKind::File =>

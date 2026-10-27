@@ -48,8 +48,8 @@ pub type RuntimeFileState = @file_model.RuntimeFileState
 
 ///|
 pub struct RuntimeSinkProgress {
-  queue_advanced_count : Int
-  file_flush_step_count : Int
+  queue_advanced_count : Int32
+  file_flush_step_count : Int32
   queue_backed : Bool
   file_backed : Bool
 }
@@ -62,7 +62,7 @@ pub fn runtime_file_state_to_json(state : RuntimeFileState) -> Json {
 ///|
 pub fn stringify_runtime_file_state(
   state : RuntimeFileState,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   @file_model.stringify_runtime_file_state(state, pretty~)
 }
@@ -144,7 +144,7 @@ fn queued_file_close_internal(sink : QueuedSink[FileSink]) -> Bool {
 }
 
 ///|
-fn runtime_sink_progress_compat_count(progress : RuntimeSinkProgress) -> Int {
+fn runtime_sink_progress_compat_count(progress : RuntimeSinkProgress) -> Int32 {
   progress.queue_advanced_count + progress.file_flush_step_count
 }
 
@@ -215,7 +215,7 @@ pub fn RuntimeSink::flush_progress(self : RuntimeSink) -> RuntimeSinkProgress {
 }
 
 ///|
-pub fn RuntimeSink::flush(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::flush(self : RuntimeSink) -> Int32 {
   runtime_sink_progress_compat_count(self.flush_progress())
 }
 
@@ -239,7 +239,7 @@ pub async fn RuntimeSink::flush_async(self : RuntimeSink) -> Unit {
 ///|
 pub fn RuntimeSink::drain_progress(
   self : RuntimeSink,
-  max_items? : Int = -1,
+  max_items~ : Int32 = -1,
 ) -> RuntimeSinkProgress {
   match self {
     Console(_) =>
@@ -306,7 +306,7 @@ pub fn RuntimeSink::drain_progress(
 }
 
 ///|
-pub fn RuntimeSink::drain(self : RuntimeSink, max_items? : Int = -1) -> Int {
+pub fn RuntimeSink::drain(self : RuntimeSink, max_items~ : Int32 = -1) -> Int32 {
   runtime_sink_progress_compat_count(self.drain_progress(max_items~))
 }
 
@@ -325,7 +325,7 @@ pub fn RuntimeSink::close(self : RuntimeSink) -> Bool {
 }
 
 ///|
-pub fn RuntimeSink::pending_count(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::pending_count(self : RuntimeSink) -> Int32 {
   match self {
     Console(_) => 0
     JsonConsole(_) => 0
@@ -339,7 +339,7 @@ pub fn RuntimeSink::pending_count(self : RuntimeSink) -> Int {
 }
 
 ///|
-pub fn RuntimeSink::dropped_count(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::dropped_count(self : RuntimeSink) -> Int32 {
   match self {
     Console(_) => 0
     JsonConsole(_) => 0
@@ -364,7 +364,7 @@ pub fn RuntimeSink::file_available(self : RuntimeSink) -> Bool {
 ///|
 pub fn RuntimeSink::file_reopen(
   self : RuntimeSink,
-  append? : Bool? = None,
+  append~ : Bool? = None,
 ) -> Bool {
   match self {
     File(sink) => sink.reopen(append~)
@@ -560,7 +560,7 @@ pub fn RuntimeSink::file_close(self : RuntimeSink) -> Bool {
 }
 
 ///|
-pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int32 {
   match self {
     File(sink) => sink.open_failures()
     QueuedFile(sink) => sink.sink.open_failures()
@@ -569,7 +569,7 @@ pub fn RuntimeSink::file_open_failures(self : RuntimeSink) -> Int {
 }
 
 ///|
-pub fn RuntimeSink::file_write_failures(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::file_write_failures(self : RuntimeSink) -> Int32 {
   match self {
     File(sink) => sink.write_failures()
     QueuedFile(sink) => sink.sink.write_failures()
@@ -578,7 +578,7 @@ pub fn RuntimeSink::file_write_failures(self : RuntimeSink) -> Int {
 }
 
 ///|
-pub fn RuntimeSink::file_flush_failures(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::file_flush_failures(self : RuntimeSink) -> Int32 {
   match self {
     File(sink) => sink.flush_failures()
     QueuedFile(sink) => sink.sink.flush_failures()
@@ -587,7 +587,7 @@ pub fn RuntimeSink::file_flush_failures(self : RuntimeSink) -> Int {
 }
 
 ///|
-pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int {
+pub fn RuntimeSink::file_rotation_failures(self : RuntimeSink) -> Int32 {
   match self {
     File(sink) => sink.rotation_failures()
     QueuedFile(sink) => sink.sink.rotation_failures()

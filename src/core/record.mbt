@@ -27,9 +27,9 @@ pub struct Record {
 pub fn Record::new(
   level : Level,
   message : String,
-  timestamp_ms? : UInt64 = 0UL,
-  target? : String = "",
-  fields? : Array[Field] = [],
+  timestamp_ms~ : UInt64 = 0UL,
+  target~ : String = "",
+  fields~ : Array[Field] = [],
 ) -> Record {
   { level, timestamp_ms, target, message, fields, }
 }

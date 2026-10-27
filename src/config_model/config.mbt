@@ -30,19 +30,19 @@ pub struct TextFormatterConfig {
 
 ///|
 pub fn TextFormatterConfig::new(
-  show_timestamp? : Bool = true,
-  show_level? : Bool = true,
-  show_target? : Bool = true,
-  show_fields? : Bool = true,
-  separator? : String = " ",
-  field_separator? : String = " ",
-  template? : String = "",
-  color_mode? : @formatting.ColorMode = @formatting.ColorMode::Never,
-  color_support? : @formatting.ColorSupport = @formatting.ColorSupport::TrueColor,
-  style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Full,
-  target_style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
-  fields_style_markup? : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
-  style_tags? : Map[String, @formatting.TextStyle] = Map([]),
+  show_timestamp~ : Bool = true,
+  show_level~ : Bool = true,
+  show_target~ : Bool = true,
+  show_fields~ : Bool = true,
+  separator~ : String = " ",
+  field_separator~ : String = " ",
+  template~ : String = "",
+  color_mode~ : @formatting.ColorMode = @formatting.ColorMode::Never,
+  color_support~ : @formatting.ColorSupport = @formatting.ColorSupport::TrueColor,
+  style_markup~ : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Full,
+  target_style_markup~ : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
+  fields_style_markup~ : @formatting.StyleMarkupMode = @formatting.StyleMarkupMode::Disabled,
+  style_tags~ : Map[String, @formatting.TextStyle] = Map([]),
 ) -> TextFormatterConfig {
   {
     show_timestamp,
@@ -99,14 +99,14 @@ pub fn TextFormatterConfig::to_formatter(
 
 ///|
 pub struct QueueConfig {
-  max_pending : Int
+  max_pending : Int32
   overflow : @queue_model.QueueOverflowPolicy
 }
 
 ///|
 pub fn QueueConfig::new(
-  max_pending : Int,
-  overflow? : @queue_model.QueueOverflowPolicy = @queue_model.QueueOverflowPolicy::DropNewest,
+  max_pending : Int32,
+  overflow~ : @queue_model.QueueOverflowPolicy = @queue_model.QueueOverflowPolicy::DropNewest,
 ) -> QueueConfig {
   { max_pending, overflow, }
 }
@@ -123,12 +123,12 @@ pub struct SinkConfig {
 
 ///|
 pub fn SinkConfig::new(
-  kind? : SinkKind = SinkKind::Console,
-  path? : String = "",
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : @file_model.FileRotation? = None,
-  text_formatter? : TextFormatterConfig = default_text_formatter_config(),
+  kind~ : SinkKind = SinkKind::Console,
+  path~ : String = "",
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : @file_model.FileRotation? = None,
+  text_formatter~ : TextFormatterConfig = default_text_formatter_config(),
 ) -> SinkConfig {
   { kind, path, append, auto_flush, rotation, text_formatter, }
 }
@@ -144,11 +144,11 @@ pub struct LoggerConfig {
 
 ///|
 pub fn LoggerConfig::new(
-  min_level? : @core.Level = @core.Level::Info,
-  target? : String = "",
-  timestamp? : Bool = false,
-  sink? : SinkConfig = default_sink_config(),
-  queue? : QueueConfig? = None,
+  min_level~ : @core.Level = @core.Level::Info,
+  target~ : String = "",
+  timestamp~ : Bool = false,
+  sink~ : SinkConfig = default_sink_config(),
+  queue~ : QueueConfig? = None,
 ) -> LoggerConfig {
   { min_level, target, timestamp, sink, queue, }
 }
@@ -183,7 +183,7 @@ fn expect_object(
 fn get_string(
   obj : Map[String, Json],
   key : String,
-  default? : String = "",
+  default~ : String = "",
 ) -> String raise ConfigError {
   match obj.get(key) {
     None => default
@@ -222,8 +222,8 @@ fn get_bool(
 fn get_int(
   obj : Map[String, Json],
   key : String,
-  default~ : Int,
-) -> Int raise ConfigError {
+  default~ : Int32,
+) -> Int32 raise ConfigError {
   match obj.get(key) {
     None => default
     Some(Json::Number(number, ..)) => number.to_int()
@@ -499,7 +499,7 @@ pub fn queue_config_to_json(queue : QueueConfig) -> Json {
 ///|
 pub fn stringify_queue_config(
   queue : QueueConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = queue_config_to_json(queue)
   if pretty {
@@ -572,7 +572,7 @@ fn style_tags_config_to_json(
 ///|
 pub fn stringify_text_formatter_config(
   config : TextFormatterConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = text_formatter_config_to_json(config)
   if pretty {
@@ -602,7 +602,7 @@ pub fn sink_config_to_json(config : SinkConfig) -> Json {
 ///|
 pub fn stringify_sink_config(
   config : SinkConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = sink_config_to_json(config)
   if pretty {
@@ -630,7 +630,7 @@ pub fn logger_config_to_json(config : LoggerConfig) -> Json {
 ///|
 pub fn stringify_logger_config(
   config : LoggerConfig,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String {
   let value = logger_config_to_json(config)
   if pretty {

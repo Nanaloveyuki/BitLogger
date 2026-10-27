@@ -1,7 +1,7 @@
 ///|
 pub struct FileRotation {
-  max_bytes : Int
-  max_backups : Int
+  max_bytes : Int32
+  max_backups : Int32
   native_wide_max_bytes : Int64?
 }
 
@@ -12,10 +12,10 @@ pub struct FileSinkState {
   append : Bool
   auto_flush : Bool
   rotation : FileRotation?
-  open_failures : Int
-  write_failures : Int
-  flush_failures : Int
-  rotation_failures : Int
+  open_failures : Int32
+  write_failures : Int32
+  flush_failures : Int32
+  rotation_failures : Int32
 }
 
 ///|
@@ -27,9 +27,9 @@ pub struct FileSinkPolicy {
 
 ///|
 pub fn FileSinkPolicy::new(
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
 ) -> FileSinkPolicy {
   { append, auto_flush, rotation, }
 }
@@ -37,14 +37,14 @@ pub fn FileSinkPolicy::new(
 ///|
 pub fn FileSinkState::new(
   path : String,
-  available? : Bool = false,
-  append? : Bool = true,
-  auto_flush? : Bool = true,
-  rotation? : FileRotation? = None,
-  open_failures? : Int = 0,
-  write_failures? : Int = 0,
-  flush_failures? : Int = 0,
-  rotation_failures? : Int = 0,
+  available~ : Bool = false,
+  append~ : Bool = true,
+  auto_flush~ : Bool = true,
+  rotation~ : FileRotation? = None,
+  open_failures~ : Int32 = 0,
+  write_failures~ : Int32 = 0,
+  flush_failures~ : Int32 = 0,
+  rotation_failures~ : Int32 = 0,
 ) -> FileSinkState {
   {
     path,
@@ -60,7 +60,10 @@ pub fn FileSinkState::new(
 }
 
 ///|
-pub fn file_rotation(max_bytes : Int, max_backups? : Int = 1) -> FileRotation {
+pub fn file_rotation(
+  max_bytes : Int32,
+  max_backups~ : Int32 = 1,
+) -> FileRotation {
   {
     max_bytes: if max_bytes <= 0 {
       1
@@ -79,7 +82,7 @@ pub fn file_rotation(max_bytes : Int, max_backups? : Int = 1) -> FileRotation {
 ///|
 pub fn file_rotation_i64(
   max_bytes : Int64,
-  max_backups? : Int = 1,
+  max_backups~ : Int32 = 1,
 ) -> FileRotation {
   let normalized = if max_bytes <= 0L { 1L } else { max_bytes }
   let clamped_max_bytes = if normalized > 2147483647L {

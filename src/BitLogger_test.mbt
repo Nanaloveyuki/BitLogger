@@ -171,7 +171,7 @@ test "logger severity helpers use stored target without override" {
 test "callback sink sees child target and context logger shape" {
   let captured_target : Ref[String] = Ref("")
   let captured_message : Ref[String] = Ref("")
-  let captured_field_count : Ref[Int] = Ref(0)
+  let captured_field_count : Ref[Int32] = Ref(0)
   let captured_timestamp : Ref[UInt64] = Ref(0UL)
   let logger = Logger::new(
       callback_sink(fn(rec) {

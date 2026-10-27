@@ -6,7 +6,7 @@ pub fn Logger::file_available(self : Logger[RuntimeSink]) -> Bool {
 ///|
 pub fn Logger::file_reopen(
   self : Logger[RuntimeSink],
-  append? : Bool? = None,
+  append~ : Bool? = None,
 ) -> Bool {
   @runtime.RuntimeSink::file_reopen(self.sink, append~)
 }
@@ -108,22 +108,22 @@ pub fn Logger::file_close(self : Logger[RuntimeSink]) -> Bool {
 }
 
 ///|
-pub fn Logger::file_open_failures(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::file_open_failures(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::file_open_failures(self.sink)
 }
 
 ///|
-pub fn Logger::file_write_failures(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::file_write_failures(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::file_write_failures(self.sink)
 }
 
 ///|
-pub fn Logger::file_flush_failures(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::file_flush_failures(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::file_flush_failures(self.sink)
 }
 
 ///|
-pub fn Logger::file_rotation_failures(self : Logger[RuntimeSink]) -> Int {
+pub fn Logger::file_rotation_failures(self : Logger[RuntimeSink]) -> Int32 {
   @runtime.RuntimeSink::file_rotation_failures(self.sink)
 }
 

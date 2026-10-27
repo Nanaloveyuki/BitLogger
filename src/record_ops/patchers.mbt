@@ -44,7 +44,7 @@ fn sieve_value(value : String, placeholder : String) -> String {
 }
 
 ///|
-pub fn redact_field(key : String, placeholder? : String = "***") -> RecordPatch {
+pub fn redact_field(key : String, placeholder~ : String = "***") -> RecordPatch {
   fn(rec) {
     rec.with_fields(
       rec.fields.map(fn(field) {
@@ -61,7 +61,7 @@ pub fn redact_field(key : String, placeholder? : String = "***") -> RecordPatch 
 ///|
 pub fn redact_fields(
   keys : Array[String],
-  placeholder? : String = "***",
+  placeholder~ : String = "***",
 ) -> RecordPatch {
   fn(rec) {
     rec.with_fields(
