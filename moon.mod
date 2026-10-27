@@ -1,6 +1,7 @@
 name = "Nanaloveyuki/BitLogger"
 
 version = "0.9.1"
+
 import {
   "moonbitlang/async@0.22.4",
   "moonbit-community/opentelemetry@0.1.7",
