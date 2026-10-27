@@ -17,7 +17,7 @@ BitLogger 的文档按使用路径组织：先完成一个可运行的日志输�
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.0
+moon add Nanaloveyuki/BitLogger@0.9.1
 ```
 
 ### 2. 写入第一条结构化日志
@@ -121,7 +121,7 @@ done
 
 native 集成测试会写入仓库内的 `logs/`；文件轮转示例会在工作目录生成 `bitlogger-example.log` 及轮转备份，因此这两个目录需要可写。完整 CI 流程见 [ci.yml](.github/workflows/ci.yml)。上述命令用于验证新工具链，不代表已经执行或通过；历史发布验证记录保持原样。
 
-### Unreleased
+### 0.9.1 - 2026-10-27
 
-- 开发和所有 MoonBit CI 安装（包括 Windows）固定到编译器 `0.10.17+d971670cd`，对应 CLI `0.1.20261023`；不变更包版本或依赖版本。
+- 开发和所有 MoonBit CI 安装（包括 Windows）固定到编译器 `0.10.17+d971670cd`，对应 CLI `0.1.20261023`；第三方依赖版本不变。
 - JSON 时间戳转换改用 `Json(value)`，兼容新工具链且保持 UInt64 的字符串表示不变。

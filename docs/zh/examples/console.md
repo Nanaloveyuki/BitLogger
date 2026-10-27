@@ -7,7 +7,7 @@
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.0
+moon add Nanaloveyuki/BitLogger@0.9.1
 ```
 
 在应用的 `moon.pkg` 中加入：

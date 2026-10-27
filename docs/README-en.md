@@ -18,7 +18,7 @@ The documentation is organized around complete usage flows. Start with an execut
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.0
+moon add Nanaloveyuki/BitLogger@0.9.1
 ```
 
 ### 2. Import And Log
@@ -92,7 +92,7 @@ Native builds require a C toolchain; Windows CI installs MSYS2 UCRT64 GCC and Op
 
 See the [root README development section](https://github.com/Nanaloveyuki/BitLogger/blob/main/README.md#开发) for native/cross-target/async verification and runnable example commands, and [CI](https://github.com/Nanaloveyuki/BitLogger/blob/main/.github/workflows/ci.yml) for the full workflow. These commands describe the new toolchain validation procedure, not a claim that validation has already run; historical release verification remains unchanged.
 
-### Unreleased
+### 0.9.1 - 2026-10-27
 
-- Pin development and CI to compiler `0.10.17+d971670cd` and CLI `0.1.20261023`. Package versions and third-party dependencies, including `moonbitlang/async@0.22.4`, are unchanged.
+- Pin development and CI to compiler `0.10.17+d971670cd` and CLI `0.1.20261023`. Third-party dependencies, including `moonbitlang/async@0.22.4`, are unchanged.
 - Replace deprecated timestamp conversion with `Json(value)`, preserving the UInt64 JSON string representation.
