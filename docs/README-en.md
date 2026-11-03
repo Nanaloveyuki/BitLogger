@@ -18,7 +18,7 @@ The documentation is organized around complete usage flows. Start with an execut
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.1
+moon add Nanaloveyuki/BitLogger@0.9.2
 ```
 
 ### 2. Import And Log
@@ -73,7 +73,7 @@ Common entry points: `text_console(...)`, `file(...)`, `with_queue(...)`, `build
 
 ## Development
 
-`.moonbit-toolchain` pins the compiler archive to `0.10.17+d971670cd` for local development and all MoonBit CI installations, including Windows. It installs the matching compiler, CLI, and core: `moonc v0.10.17+d971670cd (2026-10-23)` and `moon 0.1.20261023 (3778465 2026-10-23)`. The compiler and CLI have separate version numbers. Installation fails if the archive is unavailable; it does not fall back to latest.
+`.moonbit-toolchain` pins the compiler archive to `0.10.19+97801ee1b` for local development and all MoonBit CI installations, including Windows. It installs the matching compiler, CLI, and core: `moonc v0.10.19+97801ee1b (2026-10-30)` and `moon 0.1.20261029`. The compiler and CLI have separate version numbers. Installation fails if the archive is unavailable; it does not fall back to latest.
 
 Install from the repository root:
 
@@ -91,6 +91,11 @@ For PowerShell, set `$env:MOONBIT_INSTALL_VERSION = (Get-Content .moonbit-toolch
 Native builds require a C toolchain; Windows CI installs MSYS2 UCRT64 GCC and OpenSSL. JavaScript tests require Node.js; wasm and wasm-gc tests use the toolchain's moonrun. Native async tests and the async example run on Linux/macOS in the existing CI matrix. Native integration tests write to the repository's `logs/`; the file-rotation example creates `bitlogger-example.log` and rotated backups in the working directory. Both directories must be writable.
 
 See the [root README development section](https://github.com/Nanaloveyuki/BitLogger/blob/main/README.md#开发) for native/cross-target/async verification and runnable example commands, and [CI](https://github.com/Nanaloveyuki/BitLogger/blob/main/.github/workflows/ci.yml) for the full workflow. These commands describe the new toolchain validation procedure, not a claim that validation has already run; historical release verification remains unchanged.
+
+### 0.9.2 - 2026-11-03
+
+- Update development and MoonBit CI to compiler `0.10.19+97801ee1b` and CLI `0.1.20261029`.
+- Keep third-party dependencies, including `moonbitlang/async@0.22.4`, unchanged. Public APIs, logging behavior, and target support are unchanged.
 
 ### 0.9.1 - 2026-10-27
 

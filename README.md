@@ -17,7 +17,7 @@ BitLogger 的文档按使用路径组织：先完成一个可运行的日志输�
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.1
+moon add Nanaloveyuki/BitLogger@0.9.2
 ```
 
 ### 2. 写入第一条结构化日志
@@ -81,7 +81,7 @@ fn main {
 
 ## 开发
 
-本地开发与 CI 由 `.moonbit-toolchain` 固定工具链归档 `0.10.17+d971670cd`，安装对应的编译器、CLI 和 core：`moonc v0.10.17+d971670cd (2026-10-23)`、`moon 0.1.20261023 (3778465 2026-10-23)`。CLI 与编译器版本号不同；归档不可用时安装失败，不回退到 latest。
+本地开发与 CI 由 `.moonbit-toolchain` 固定工具链归档 `0.10.19+97801ee1b`，安装对应的编译器、CLI 和 core：`moonc v0.10.19+97801ee1b (2026-10-30)`、`moon 0.1.20261029`。CLI 与编译器版本号不同；归档不可用时安装失败，不回退到 latest。
 
 在仓库根目录安装：
 
@@ -120,6 +120,11 @@ done
 ```
 
 native 集成测试会写入仓库内的 `logs/`；文件轮转示例会在工作目录生成 `bitlogger-example.log` 及轮转备份，因此这两个目录需要可写。完整 CI 流程见 [ci.yml](.github/workflows/ci.yml)。上述命令用于验证新工具链，不代表已经执行或通过；历史发布验证记录保持原样。
+
+### 0.9.2 - 2026-11-03
+
+- 开发和 MoonBit CI 工具链更新到编译器 `0.10.19+97801ee1b`、CLI `0.1.20261029`。
+- 第三方依赖保持不变，包括 `moonbitlang/async@0.22.4`；公开 API、日志行为和目标支持范围不变。
 
 ### 0.9.1 - 2026-10-27
 
