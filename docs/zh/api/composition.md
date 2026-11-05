@@ -14,6 +14,12 @@ pub fn Logger::new(
 
 从任意 `Sink` 实现创建 typed Logger。`min_level` 在任何 sink 写入前生效；`target` 是默认值，之后可由 `with_target(...)`、`child(...)` 或单次 `log(..., target=...)` 覆盖。
 
+## `Logger::log_with(...)`
+
+通过调用方提供的 `(S, Record) -> Result[Unit, E]` writer 写入可失败输出，并原样返回结果。`S` 无需实现 `Sink`。低于最小级别时返回 `Ok(())`，不创建记录、不调用 writer；启用时保留 target 覆盖、fields 和可选时间戳。
+
+此方法直接调用 writer；context、filter、patch、fanout、queue 等包装需要 writer 自行支持。现有 `Sink::write` 和 `Logger::log` 保持不抛错。完整签名与用法见 [`Logger::log_with`](../../api/logger-log-with.md)。
+
 ## `fanout_sink(...)`
 
 ```moonbit
@@ -43,6 +49,10 @@ pub fn callback_sink(
 ```
 
 将完整结构化 `Record` 交给应用回调。适合测试、自定义桥接与集成；它不自动格式化记录。
+
+## 异步文件 sink
+
+异步文件构造器属于 `Nanaloveyuki/BitLogger/src-async`：使用 `file_sink_async(...)` 创建 `AsyncFileSink`，不要将根 `Nanaloveyuki/BitLogger/src.file_sink(...) -> FileSink` 当作异步文件入口。其 `write_async(...)` 与 `flush_async()` 使用异步文件后端。
 
 ## `redact_field(...)` 与 `redact_fields(...)`
 

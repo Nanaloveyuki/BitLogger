@@ -3,7 +3,7 @@ name: application-async-logger
 group: api
 category: facade
 update-time: 20260614
-description: Application-facing alias for the runtime-sink async logger surface, preserving the same async calling semantics as AsyncLogger.
+description: Application-facing alias for the async runtime-sink async logger surface, preserving the same async calling semantics as AsyncLogger.
 key-word:
     - application
     - async
@@ -13,17 +13,17 @@ key-word:
 
 ## Application-async-logger
 
-`ApplicationAsyncLogger` is the application-facing async logger alias. It currently maps directly to `AsyncLogger[@bitlogger.RuntimeSink]` and keeps the same async lifecycle, state, and queue helper surface.
+`ApplicationAsyncLogger` is the application-facing async logger alias. It maps directly to `AsyncLogger[AsyncRuntimeSink]` and keeps the same async lifecycle, state, and queue helper surface. Config builders use the `AsyncRuntimeSink` wrapper; they do not return the root synchronous `RuntimeSink`.
 
 ### Interface
 
 ```moonbit
-pub type ApplicationAsyncLogger = AsyncLogger[@bitlogger.RuntimeSink]
+pub type ApplicationAsyncLogger = AsyncLogger[AsyncRuntimeSink]
 ```
 
 #### output
 
-- `ApplicationAsyncLogger` - Application-facing name for the runtime-sink async logger shape.
+- `ApplicationAsyncLogger` - Application-facing name for the async runtime-sink async logger shape.
 
 ### Explanation
 
@@ -31,16 +31,16 @@ Detailed rules explaining key parameters and behaviors
 
 - This alias does not introduce a new runtime type or wrapper layer.
 - It preserves the same async lifecycle helpers such as `run()`, `shutdown()`, `pending_count()`, and `state()`.
-- Because it is `AsyncLogger[@bitlogger.RuntimeSink]`, the alias also keeps ordinary async logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
+- Because it is `AsyncLogger[AsyncRuntimeSink]`, the alias also keeps ordinary async logger composition and target behavior such as `with_target(...)`, `child(...)`, and per-call `log(..., target=...)` overrides.
 - In particular, `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless code derives another logger first with `with_target(...)` or `child(...)`.
 - Unlike the synchronous application alias, async `with_context_fields(...)` and `bind(...)` preserve the visible `ApplicationAsyncLogger` shape because shared fields are stored directly on the async logger value instead of being modeled as a separate sink wrapper.
-- Because this is only an alias, methods that are async on `AsyncLogger[@bitlogger.RuntimeSink]` remain async here as well.
-- The alias therefore keeps the same runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[@bitlogger.RuntimeSink]`.
-- In the current direct alias coverage, values built through `build_application_async_logger(...)` keep the same serialized state snapshot shape, queue counters, lifecycle flags, failure fields, and runtime-sink helper surface that the underlying runtime-sink async logger exposes directly.
-- When the value is built through `build_application_async_logger(...)`, the sync-first builder route also stays visible through the alias: any optional `LoggerConfig.queue` was already applied before async wrapping, and `logger.sink.kind` had already selected the concrete `RuntimeSink` variant before the application alias reused that value.
-- That includes queued runtime-sink behavior and file-backed runtime helpers when the configured sink path supports them.
-- Those helpers remain directly callable on `ApplicationAsyncLogger` itself; callers do not need an unwrap step to reach queue counters, lifecycle state, or `RuntimeSink` file helpers.
-- The alias exists to give application boot code a clearer public type name for the standard runtime-sink async logger.
+- Because this is only an alias, methods that are async on `AsyncLogger[AsyncRuntimeSink]` remain async here as well.
+- The alias therefore keeps the same async runtime-sink lifecycle, queue, failure-state, and runtime-dependent post-close semantics already documented on `AsyncLogger[AsyncRuntimeSink]`.
+- In the current direct alias coverage, values built through `build_application_async_logger(...)` keep the same serialized state snapshot, queue counters, lifecycle flags, failure fields, and `AsyncRuntimeSink` helper surface as the underlying async logger.
+- For config-built values, the sync config path applies any optional queue and selects the runtime variant before the shared state is wrapped by `AsyncRuntimeSink`; `logger.sink_kind()` reports the selected variant.
+- Queued async behavior and file-backed runtime helpers remain available through `AsyncRuntimeSink` when the configured sink path supports them.
+- Those helpers are directly available on `ApplicationAsyncLogger`; callers do not need an unwrap step to reach queue counters, lifecycle state, or the wrapped async runtime sink's file controls.
+- The alias exists to give application boot code a clearer public type name for the standard async runtime-sink async logger.
 - Builders such as `build_application_async_logger(...)` and `parse_and_build_application_async_logger(...)` return this alias.
 
 ### How to Use
@@ -49,7 +49,7 @@ Here are some specific examples provided.
 
 #### When Need An App-level Name For The Standard Async Runtime Logger
 
-When application code wants a stable public type name for the runtime-sink async logger:
+When application code wants a stable public type name for the async runtime-sink async logger:
 ```moonbit
 let logger : ApplicationAsyncLogger = build_application_async_logger(
   AsyncLoggerBuildConfig::new(logger=LoggerConfig::new(target="app.async")),
@@ -81,7 +81,7 @@ ignore(logger.state())
 
 In this example, lifecycle and queue helpers are called directly on `ApplicationAsyncLogger`.
 
-And unlike `LibraryAsyncLogger[@bitlogger.RuntimeSink]`, no `to_async_logger()` unwrap is required first.
+And unlike `LibraryAsyncLogger[@bitlogger.AsyncRuntimeSink]`, no `to_async_logger()` unwrap is required first.
 
 #### When Need A One-call Target Override Without Rebuilding The Alias
 
@@ -108,13 +108,13 @@ And that shape preservation is intentional because async context binding updates
 ### Error Case
 
 e.g.:
-- Because this is only an alias, any runtime-sink limitations or target-specific async behavior still apply unchanged.
+- Because this is only an alias, any async runtime-sink limitations or target-specific async behavior still apply unchanged.
 
-- If the value came from `build_application_async_logger(...)` or `parse_and_build_application_async_logger(...)`, the alias also does not undo the underlying sync-first sink selection; queued and file-backed runtime behavior still depend on the already-built `RuntimeSink` variant.
+- If the value came from `build_application_async_logger(...)` or `parse_and_build_application_async_logger(...)`, the alias preserves sync-first sink selection and queue setup inside the `AsyncRuntimeSink` wrapper.
 
 - If code needs a narrower public surface than the full async logger API, `LibraryAsyncLogger` is the better facade.
 
-- If callers need queued runtime-sink helpers or file-backed runtime helpers, they remain directly available on this alias because no wrapper layer strips them away.
+- If callers need queued async runtime-sink helpers or file-backed runtime helpers, they remain available through the alias's `AsyncRuntimeSink` because no library narrowing wrapper is added.
 
 ### Notes
 
@@ -124,4 +124,4 @@ e.g.:
 
 3. Use `build_application_async_logger(...)` or `parse_and_build_application_async_logger(...)` for the usual construction paths.
 
-4. Use `ApplicationTextAsyncLogger` or `build_application_text_async_logger(...)` when application code should keep the narrower text-console sink type instead of the broader runtime-sink alias.
+4. Use `ApplicationTextAsyncLogger` or `build_application_text_async_logger(...)` when application code should keep the narrower text-console sink type instead of the broader async runtime-sink alias.

@@ -2,8 +2,6 @@ import {
   "Nanaloveyuki/BitLogger/src/core",
   "Nanaloveyuki/BitLogger/src/formatting",
   "Nanaloveyuki/BitLogger/src/record_ops",
-  "moonbitlang/async",
-  "moonbitlang/async/fs",
   "moonbitlang/core/encoding/utf8",
 }
 

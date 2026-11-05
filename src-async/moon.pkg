@@ -1,25 +1,25 @@
 import {
   "Nanaloveyuki/BitLogger/src" @bitlogger,
+  "Nanaloveyuki/BitLogger/src/file_runtime",
+  "Nanaloveyuki/BitLogger/src/utils" @file_utils,
   "Nanaloveyuki/BitLogger/src-async/utils",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/env",
   "moonbitlang/async",
   "moonbitlang/async/aqueue",
-  "moonbitlang/core/env",
+  "moonbitlang/async/fs",
 }
 
-warnings = "-25"
+warnings = "-25-29"
 
 options(
   targets: {
-    "async_logger_shared.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
-    "application_async_logger.mbt": [
-      "native",
-      "llvm",
-      "js",
-      "wasm",
-      "wasm-gc",
-    ],
-    "library_async_logger.mbt": [ "native", "llvm", "js", "wasm", "wasm-gc" ],
     "async_logger_native.mbt": [ "native", "llvm" ],
     "async_logger_stub.mbt": [ "js", "wasm", "wasm-gc" ],
+    "file_backend_native.mbt": [ "native", "llvm" ],
+    "file_backend_stub.mbt": [ "js", "wasm", "wasm-gc" ],
+    "async_native_file_integration_test.mbt": [ "native", "llvm" ],
+    "async_file_sink_test.mbt": [ "native", "llvm" ],
+    "sync_file_regression_test.mbt": [ "native", "llvm" ],
   },
 )

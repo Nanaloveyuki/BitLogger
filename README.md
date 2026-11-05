@@ -17,7 +17,7 @@ BitLogger 的文档按使用路径组织：先完成一个可运行的日志输�
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.2
+moon add Nanaloveyuki/BitLogger@0.11.0
 ```
 
 ### 2. 写入第一条结构化日志
@@ -68,6 +68,7 @@ fn main {
 - 配置驱动构建：JSON 与 YAML 都进入 `build_logger(...)`、`build_async_logger(...)`
 - 组合能力：queue、filter、patch、fanout、split、callback
 - 异步日志：独立 `src-async` package
+- 独立异步文件写入使用 `src-async.file_sink_async(...) -> AsyncFileSink`；配置构建器及 parse/build 变体通过 `AsyncRuntimeSink` 包装配置生成的同步运行时状态，并在异步文件路径中使用异步文件后端。根 `src.file_sink(...) -> FileSink` 是同步 API。
 - Trace context：用 OpenTelemetry 标识规范化 `trace_id`、`span_id`、`trace_flags`、`trace_state`，再绑定为字段
 
 ## 文档

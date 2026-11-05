@@ -3,7 +3,7 @@ name: parse-and-build-application-async-logger
 group: api
 category: facade
 update-time: 20260614
-description: Parse JSON async build config text and build the application-facing runtime-sink async logger alias through the sync-first async builder path.
+description: Parse JSON async build config text and build the application-facing async runtime-sink async logger alias through the sync-first async builder path.
 key-word:
     - application
     - async
@@ -38,16 +38,14 @@ Detailed rules explaining key parameters and behaviors
 - This API parses async build config text first, then builds the application async logger through `build_application_async_logger(...)`.
 - Both the embedded sync logger config and async queue/runtime config are validated by the parser layer.
 - The embedded `LoggerConfig` is then built through the normal synchronous config path before the outer async layer is applied.
-- Any optional synchronous queue layer and runtime-sink controls from the parsed `logger` section remain active under the returned async logger.
-- That includes preserving a parsed sync queue configuration inside the resulting `RuntimeSink` variant rather than collapsing it away during application-alias construction.
-- It also means the parsed `logger.sink.kind` had already selected the concrete `RuntimeSink` variant before the application alias reused that built async logger value.
-- Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[@bitlogger.RuntimeSink]`, this parse-and-build path returns the same underlying async logger value that `parse_async_logger_build_config_text(...)` plus `build_async_logger(...)` would produce, without narrowing the helper surface.
-- That preserved async helper surface also remains directly exposed on the returned alias rather than being rebuilt or hidden behind an unwrap step.
+- Any optional synchronous queue layer and configured runtime controls remain active inside the returned `AsyncRuntimeSink` wrapper.
+- The sync config path applies a parsed queue setting and selects the underlying `RuntimeSink` variant before `AsyncRuntimeSink` wraps that shared state.
+- Because the result is the `ApplicationAsyncLogger` alias over `AsyncLogger[AsyncRuntimeSink]`, this path returns the same async logger as `parse_async_logger_build_config_text(...)` followed by `build_async_logger(...)`, without narrowing the helper surface.
+- The async helper surface remains directly exposed on the returned alias; file-backed runtime controls are provided through its `AsyncRuntimeSink`.
 - The returned logger keeps the full async lifecycle and state helpers directly.
 - The returned logger also keeps the ordinary async logger target rules unchanged: `log(..., target=...)` can override the target for one call, while severity helpers such as `info(...)`, `warn(...)`, and `error(...)` continue to use the stored logger target unless a derived logger was created first with `with_target(...)` or `child(...)`.
-- In the current parsed-builder coverage, that direct equivalence also holds for serialized async state snapshots, runtime-sink variant choice, queue counters, lifecycle flags, and later failure fields after worker execution.
-- Parsed file-backed runtime helpers remain available on the returned logger with the same behavior as the direct `build_async_logger(parse_async_logger_build_config_text(input))` path.
-- Use `parse_and_build_library_async_logger(...)` instead when the same parsed runtime-sink result should be wrapped and narrowed for a library boundary.
+- In the current parsed-builder coverage, that direct equivalence also holds for serialized async state snapshots, async sink-kind choice, queue counters, lifecycle flags, and later failure fields after worker execution.
+- Parsed file-backed runtime helpers remain available through the returned logger's `AsyncRuntimeSink`, matching the direct `build_async_logger(parse_async_logger_build_config_text(input))` path.
 
 ### How to Use
 
@@ -64,9 +62,9 @@ let logger = parse_and_build_application_async_logger(
 
 In this example, text parsing and async logger construction happen in one facade call.
 
-And any configured synchronous runtime sink controls remain available through the returned `RuntimeSink`-backed async logger.
+Configured synchronous runtime controls remain available through the returned `AsyncRuntimeSink`-backed async logger.
 
-And unlike `parse_and_build_library_async_logger(...)`, no `to_async_logger()` unwrap is required to reach queue, lifecycle, or file-backed runtime helpers.
+And unlike `parse_and_build_library_async_logger(...)`, no `to_async_logger()` unwrap is required to reach async queue and lifecycle helpers or the `AsyncRuntimeSink` file controls.
 
 #### When Need Async State Helpers After JSON-driven App Construction
 
@@ -102,9 +100,9 @@ e.g.:
 
 - If the embedded config is invalid, parsing raises before the async facade is returned.
 
-- If callers depend on file-backed runtime helpers, they can use them directly on the returned logger because this parse/build alias does not replace the underlying runtime-sink helper surface.
+- If callers depend on file-backed runtime helpers, they can use them through the returned logger's `AsyncRuntimeSink` wrapper.
 
-- If callers depend on queued or file-backed runtime behavior, they should read this facade as preserving the already-built `RuntimeSink` result from the parsed sync-first builder path, not as recomputing sink selection at the alias layer.
+- If callers depend on queued or file-backed runtime behavior, this facade preserves the sync-first sink selection and queue setup inside `AsyncRuntimeSink`; it does not expose a root `RuntimeSink` directly.
 
 ### Notes
 

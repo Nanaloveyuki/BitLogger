@@ -632,21 +632,27 @@ pub async fn[S : @bitlogger.Sink] AsyncLogger::run(
 ///|
 pub fn build_async_logger(
   config : AsyncLoggerBuildConfig,
-) -> AsyncLogger[@bitlogger.RuntimeSink] {
+) -> AsyncLogger[AsyncRuntimeSink] {
   let logger = @bitlogger.build_logger_for_async(config.logger)
+  let async_sink : AsyncRuntimeSink = { inner: logger.sink, }
   let logger = async_logger(
-    logger.sink,
+    async_sink,
     config=config.async_config,
     min_level=logger.min_level,
     target=logger.target,
     flush=fn(sink) { ignore(sink.flush_progress()) },
   )
-  let flush_async : async (@bitlogger.RuntimeSink) -> Unit = sink => {
+  let flush_async : async (AsyncRuntimeSink) -> Unit = sink => {
     sink.flush_async()
   }
   with_async_flush_callback_internal(logger, flush_async).with_timestamp(
     enabled=logger.timestamp,
   )
+}
+
+///|
+pub fn AsyncLogger::sink_kind(self : AsyncLogger[AsyncRuntimeSink]) -> String {
+  self.sink.kind()
 }
 
 ///|

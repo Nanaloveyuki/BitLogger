@@ -17,6 +17,8 @@ BitLogger 是一个使用 MoonBit 编写的结构化日志库.
 - native file sink support with rotation and runtime observability
 - 支持 native file sink、基础 rotation 与运行时可观测性
 
+Fallible outputs can use `Logger::log_with(...)` to return `Result[Unit, E]`. The logger applies its level filter, target override, timestamp, and per-call fields before invoking the supplied writer with the stored sink and record. Writer errors are returned unchanged; filtered calls return `Ok(())` without invoking the writer. Sink wrappers such as context, fanout, and queue still require a writer that understands the stored wrapper; `log_with` does not traverse a sink graph automatically. Existing `Sink` and `Logger::log(...)` remain non-raising for ordinary sinks.
+
 ## Example / 示例
 
 ```moonbit nocheck
@@ -94,6 +96,10 @@ Project command note / 项目命令说明:
   - `build_library_logger(...)`
   - `async_logger(...)`
   - `build_async_logger(...)`
+  - `src-async.file_sink_async(...)` returns `AsyncFileSink` for async file operations
+  - config-built async loggers use `AsyncRuntimeSink` to wrap sync-configured runtime state while providing async file writes and flushes
+  - `file_sink(...)` in the root `src` package remains synchronous and returns `FileSink`
+- 独立异步文件写入使用 `src-async.file_sink_async(...)` 并返回 `AsyncFileSink`；配置构建的异步 logger 使用 `AsyncRuntimeSink` 包装同步配置 runtime state，同时提供异步文件写入和刷新。根 `src.file_sink(...)` 仍为同步 API，返回 `FileSink`。
 
 ## Notes / 说明
 

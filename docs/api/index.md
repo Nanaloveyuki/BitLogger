@@ -40,6 +40,7 @@ BitLogger API navigation.
 
 - [logger-is-enabled.md](./logger-is-enabled.md)
 - [logger-log.md](./logger-log.md)
+- [logger-log-with.md](./logger-log-with.md)
 - [logger-trace.md](./logger-trace.md)
 - [logger-debug.md](./logger-debug.md)
 - [logger-info.md](./logger-info.md)

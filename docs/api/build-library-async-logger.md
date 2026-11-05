@@ -12,15 +12,14 @@ key-word:
 ---
 
 ## Build-library-async-logger
-
-Build a `LibraryAsyncLogger[RuntimeSink]` from `AsyncLoggerBuildConfig`. This is the library-facing async facade over the general config-driven async builder.
+Build a `LibraryAsyncLogger[AsyncRuntimeSink]` from `AsyncLoggerBuildConfig`. This is the library-facing async facade over the general config-driven async builder.
 
 ### Interface
 
 ```moonbit
 pub fn build_library_async_logger(
   config : AsyncLoggerBuildConfig,
-) -> LibraryAsyncLogger[RuntimeSink] {
+) -> LibraryAsyncLogger[AsyncRuntimeSink] {
 ```
 
 #### input
@@ -29,22 +28,22 @@ pub fn build_library_async_logger(
 
 #### output
 
-- `LibraryAsyncLogger[RuntimeSink]` - Library-facing async logger wrapper.
+- `LibraryAsyncLogger[AsyncRuntimeSink]` - Library-facing async logger wrapper.
 
 ### Explanation
 
 Detailed rules explaining key parameters and behaviors
 
-- This API builds the general async runtime logger and then wraps it in the narrower `LibraryAsyncLogger[@bitlogger.RuntimeSink]` facade.
-- The embedded `LoggerConfig` still goes through the normal synchronous config path first, so sink shape and any optional synchronous queue layer are already applied before the outer async layer is wrapped and then narrowed.
-- The returned facade wraps the same underlying `AsyncLogger[@bitlogger.RuntimeSink]` value that `build_async_logger(...)` would produce directly.
+- This API builds the general async runtime logger and then wraps it in the narrower `LibraryAsyncLogger[AsyncRuntimeSink]` facade.
+- The embedded `LoggerConfig` first goes through the sync config path, which selects a `RuntimeSink` variant and applies any optional sync queue. `AsyncRuntimeSink` then wraps that shared state before the library facade narrows the logger surface.
+- The returned facade wraps the same underlying `AsyncLogger[AsyncRuntimeSink]` value that `build_async_logger(...)` produces directly.
 - The result keeps async lifecycle operations such as `run()` and `shutdown()` while narrowing the public shape.
 - The broader async helper surface is preserved rather than rebuilt, but it is intentionally not directly exposed on the returned facade. Queue counters, lifecycle state, idle-wait helpers, and file-backed runtime helpers stay behind `to_async_logger()` instead of disappearing.
 - The narrower facade does not change the underlying runtime-sink queue counters, failure state, sink shape, or runtime-dependent post-close behavior; it only hides the broader helper surface until `to_async_logger()` is used.
-- Because this facade starts from `build_async_logger(...)`, the wrapped async logger also keeps the runtime-sink flush wiring: `Batch` and `Shutdown` use the built sink's real `flush()` path instead of the default no-op callback used by the text-specific builder line.
+- Because this facade starts from `build_async_logger(...)`, the wrapped async logger also keeps the runtime-sink flush wiring: `Batch` and `Shutdown` use the built sink's real async file flush path instead of the default no-op callback used by the text-specific builder line.
 - The facade still preserves the underlying async target rules on its exposed write methods: `log(..., target=...)` can override the target for one call, while `info(...)`, `warn(...)`, and `error(...)` continue using the stored logger target unless the facade first derived another logger with `with_target(...)` or `child(...)`.
-- In the current direct builder coverage, unwrapping this facade produces the same async state snapshot, runtime-sink variant, queue counters, lifecycle flags, and failure fields as calling `build_async_logger(config)` directly.
-- That same unwrap also preserves file-backed runtime helpers on `RuntimeSink` values rather than replacing them with facade-specific behavior.
+- In the current direct builder coverage, unwrapping this facade produces the same async state snapshot, async sink-kind choice, queue counters, lifecycle flags, and failure fields as calling `build_async_logger(config)` directly.
+- That same unwrap also preserves the `AsyncRuntimeSink` file-backed runtime helpers rather than replacing them with facade-specific behavior.
 - Async state helpers such as `pending_count()`, `dropped_count()`, `state()`, `wait_idle()`, and failure-status inspection remain on the underlying `AsyncLogger`, not on the returned facade itself.
 - `to_async_logger()` can be used to recover the underlying full async logger.
 - Use this builder when the boundary should preserve the runtime-sink async build path but still hide broader async inspection helpers from downstream callers.
@@ -99,9 +98,9 @@ e.g.:
 
 - If callers need async state, failure-status, or idle-wait helpers outside the library facade, they must unwrap with `to_async_logger()`.
 
-- If callers need file-backed runtime helpers such as file-state or queued runtime inspection, they must unwrap first, but the helper behavior itself stays aligned with the direct `build_async_logger(config)` result.
+- If callers need async state helpers, they must unwrap first. File-backed runtime controls belong to the `AsyncRuntimeSink` wrapped by the facade and remain available through the unwrapped async logger.
 
-- If callers instead want the text-console builder path where `Batch` and `Shutdown` keep the default no-op flush callback, they should use `build_library_async_text_logger(...)`; this runtime-sink facade preserves the real sink `flush()` behavior from `build_async_logger(...)`.
+- If callers instead want the text-console builder path where `Batch` and `Shutdown` keep the default no-op flush callback, they should use `build_library_async_text_logger(...)`; this runtime-sink facade preserves the async file flush path from `build_async_logger(...)`.
 
 ### Notes
 
@@ -109,4 +108,4 @@ e.g.:
 
 2. Use `parse_and_build_library_async_logger(...)` when starting from JSON text.
 
-3. Use `build_library_async_text_logger(...)` instead when the library-facing async type should preserve the narrower `FormattedConsoleSink` shape rather than `RuntimeSink`.
+3. Use `build_library_async_text_logger(...)` instead when the library-facing async type should preserve the narrower `FormattedConsoleSink` shape rather than `AsyncRuntimeSink`.

@@ -18,7 +18,7 @@ The documentation is organized around complete usage flows. Start with an execut
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.9.2
+moon add Nanaloveyuki/BitLogger@0.11.0
 ```
 
 ### 2. Import And Log
@@ -58,6 +58,7 @@ Continue with the [Examples guide](./examples/index.md): console fields, file ro
 - Config-based builders: `build_logger(...)` and `build_async_logger(...)` accept JSON and YAML text
 - Composition helpers: queue, filter, patch, fanout, split, callback
 - Separate async package under `src-async`
+- Independent async file writes use `Nanaloveyuki/BitLogger/src-async.file_sink_async(...) -> AsyncFileSink`; config-built loggers use `AsyncRuntimeSink` over sync-configured runtime state with asynchronous file writes and flushes. Root `Nanaloveyuki/BitLogger/src.file_sink(...) -> FileSink` remains synchronous.
 - Trace-context binding through OpenTelemetry-normalized `trace_id`, `span_id`, `trace_flags`, and `trace_state` fields
 
 ## Documentation

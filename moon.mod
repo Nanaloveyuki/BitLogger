@@ -1,6 +1,6 @@
 name = "Nanaloveyuki/BitLogger"
 
-version = "0.9.2"
+version = "0.11.0"
 
 import {
   "moonbitlang/async@0.22.4",

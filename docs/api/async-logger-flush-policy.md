@@ -39,7 +39,7 @@ Detailed rules explaining key parameters and behaviors
 - `Never` leaves that explicit callback path unused and relies entirely on sink behavior or external control.
 - This helper reports callback timing policy, not a progress count contract.
 - The callback is now treated as an attempted flush action with optional failure, not as a meaningful returned item count.
-- Builder routes that wrap `RuntimeSink` align with the sync/runtime facade by calling `RuntimeSink::flush_progress()` inside that callback and discarding the returned progress details.
+- Config-built runtime-sink routes wrap configured state in `AsyncRuntimeSink`; the callback calls its `flush_async()` method so file-backed flushes use the async filesystem backend.
 - Text-specific async builder paths still keep the default no-op flush callback even when the visible policy is `Batch` or `Shutdown`, so the reported policy can describe when the callback would run without implying extra sink work actually happens on that path.
 
 ### How to Use

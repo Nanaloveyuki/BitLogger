@@ -1,4 +1,41 @@
 ///|
+suberror FallibleWriteError {
+  Failed(String)
+} derive(Debug)
+
+///|
+test "logger log_with returns writer errors unchanged" {
+  let logger = Logger::new("sink", min_level=Level::Info, target="runtime")
+  let result = logger.log_with(
+    Level::Error,
+    "failed write",
+    (sink, rec) => {
+      if sink == "sink" &&
+        rec.level.label() == "ERROR" &&
+        rec.target == "override" &&
+        rec.message == "failed write" &&
+        rec.fields.length() == 1 &&
+        rec.fields[0].key == "resource" &&
+        rec.fields[0].value == "index" {
+        Err(FallibleWriteError::Failed("write rejected"))
+      } else {
+        Err(FallibleWriteError::Failed("record context was lost"))
+      }
+    },
+    target="override",
+    fields=[field("resource", "index")],
+  )
+  assert_true(result is Err(FallibleWriteError::Failed("write rejected")))
+
+  let filtered = logger
+    .with_min_level(Level::Error)
+    .log_with(Level::Info, "filtered", (_, _) => {
+      Err(FallibleWriteError::Failed("must not write"))
+    })
+  assert_true(filtered is Ok(_))
+}
+
+///|
 test "level filter works" {
   let logger = Logger::new(console_sink(), min_level=Level::Warn, target="test")
   inspect(logger.is_enabled(Level::Error), content="true")

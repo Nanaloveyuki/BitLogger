@@ -2006,26 +2006,8 @@ async test "library async builder unwrap matches direct async builder behavior" 
     stringify_async_logger_state(direct_state),
     content="true",
   )
-  let full_sink_kind = match full.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
-  let direct_sink_kind = match direct.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
+  let full_sink_kind = full.sink_kind()
+  let direct_sink_kind = direct.sink_kind()
   inspect(full_sink_kind == direct_sink_kind, content="true")
 
   logger.info("skip")
@@ -2365,26 +2347,8 @@ async test "library async parse-build unwrap matches parsed direct async builder
     stringify_async_logger_state(direct_state),
     content="true",
   )
-  let full_sink_kind = match full.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
-  let direct_sink_kind = match direct.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
+  let full_sink_kind = full.sink_kind()
+  let direct_sink_kind = direct.sink_kind()
   inspect(full_sink_kind == direct_sink_kind, content="true")
 
   logger.info("skip")
@@ -2569,16 +2533,7 @@ test "library async logger parse-and-build preserves parsed sync queue layer" {
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(full.target, content="async.lib.config.queued")
-  inspect(
-    match full.sink {
-      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-      _ => "Other"
-    },
-    content="QueuedConsole",
-  )
+  inspect(full.sink_kind(), content="QueuedConsole")
 }
 
 ///|
@@ -3024,16 +2979,7 @@ async test "build async logger keeps direct helper surface and runtime sink path
     },
     content="Shutdown",
   )
-  inspect(
-    match logger.sink {
-      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-      _ => "Other"
-    },
-    content="QueuedConsole",
-  )
+  inspect(logger.sink_kind(), content="QueuedConsole")
 
   logger.info("skip")
   logger.error("one")
@@ -3485,26 +3431,8 @@ async test "application async logger builder matches direct async builder behavi
     stringify_async_logger_state(direct_state),
     content="true",
   )
-  let application_sink_kind = match application.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
-  let direct_sink_kind = match direct.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
+  let application_sink_kind = application.sink_kind()
+  let direct_sink_kind = direct.sink_kind()
   inspect(application_sink_kind == direct_sink_kind, content="true")
 
   application.info("skip")
@@ -3979,16 +3907,7 @@ test "application async logger builder preserves sync queue-backed runtime sink"
   inspect(logger.target, content="async.app.queued")
   inspect(logger.sink.pending_count(), content="0")
   inspect(logger.sink.dropped_count(), content="0")
-  inspect(
-    match logger.sink {
-      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-      _ => "Other"
-    },
-    content="QueuedConsole",
-  )
+  inspect(logger.sink_kind(), content="QueuedConsole")
 }
 
 ///|
@@ -4920,26 +4839,8 @@ async test "application async parse-build matches parsed direct async builder be
     stringify_async_logger_state(direct_state),
     content="true",
   )
-  let application_sink_kind = match application.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
-  let direct_sink_kind = match direct.sink {
-    @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-    @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-    @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-    @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-    @bitlogger.RuntimeSink::Console(_) => "Console"
-    @bitlogger.RuntimeSink::JsonConsole(_) => "JsonConsole"
-    @bitlogger.RuntimeSink::TextConsole(_) => "TextConsole"
-    @bitlogger.RuntimeSink::File(_) => "File"
-  }
+  let application_sink_kind = application.sink_kind()
+  let direct_sink_kind = direct.sink_kind()
   inspect(application_sink_kind == direct_sink_kind, content="true")
 
   application.info("skip")
@@ -5289,16 +5190,7 @@ test "application async logger parse-and-build preserves parsed sync queue layer
   inspect(logger.is_enabled(@bitlogger.Level::Error), content="true")
   inspect(logger.is_enabled(@bitlogger.Level::Info), content="false")
   inspect(logger.target, content="async.app.json.queued")
-  inspect(
-    match logger.sink {
-      @bitlogger.RuntimeSink::QueuedConsole(_) => "QueuedConsole"
-      @bitlogger.RuntimeSink::QueuedJsonConsole(_) => "QueuedJsonConsole"
-      @bitlogger.RuntimeSink::QueuedTextConsole(_) => "QueuedTextConsole"
-      @bitlogger.RuntimeSink::QueuedFile(_) => "QueuedFile"
-      _ => "Other"
-    },
-    content="QueuedConsole",
-  )
+  inspect(logger.sink_kind(), content="QueuedConsole")
 }
 
 ///|

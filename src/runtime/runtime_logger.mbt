@@ -82,20 +82,6 @@ pub impl @sink_graph.Sink for RuntimeSink with fn write(self, rec) {
 }
 
 ///|
-pub impl @sink_graph.Sink for RuntimeSink with fn write_async(self, rec) {
-  match self {
-    Console(sink) => sink.write(rec)
-    JsonConsole(sink) => sink.write(rec)
-    TextConsole(sink) => sink.write(rec)
-    File(sink) => sink.write_async(rec)
-    QueuedConsole(sink) => sink.write(rec)
-    QueuedJsonConsole(sink) => sink.write(rec)
-    QueuedTextConsole(sink) => sink.write(rec)
-    QueuedFile(sink) => sink.write(rec)
-  }
-}
-
-///|
 pub extend RuntimeSink with @sink_graph.Sink::{write, write_async}
 
 ///|
@@ -217,23 +203,6 @@ pub fn RuntimeSink::flush_progress(self : RuntimeSink) -> RuntimeSinkProgress {
 ///|
 pub fn RuntimeSink::flush(self : RuntimeSink) -> Int32 {
   runtime_sink_progress_compat_count(self.flush_progress())
-}
-
-///|
-pub async fn RuntimeSink::flush_async(self : RuntimeSink) -> Unit {
-  match self {
-    Console(_) => ()
-    JsonConsole(_) => ()
-    TextConsole(_) => ()
-    File(sink) => ignore(sink.flush_async())
-    QueuedConsole(sink) => ignore(sink.flush_async())
-    QueuedJsonConsole(sink) => ignore(sink.flush_async())
-    QueuedTextConsole(sink) => ignore(sink.flush_async())
-    QueuedFile(sink) => {
-      ignore(sink.flush_async())
-      ignore(sink.sink.flush_async())
-    }
-  }
 }
 
 ///|

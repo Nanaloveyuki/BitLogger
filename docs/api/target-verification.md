@@ -2,7 +2,7 @@
 name: target-verification
 group: api
 category: verification
-update-time: 20260521
+update-time: 20261104
 description: Current release-facing local verification boundary for BitLogger multi-target support claims.
 key-word:
     - target
@@ -30,10 +30,9 @@ Detailed rules explaining key parameters and behaviors
 
 - `verified` here means a local verification command was re-run successfully in the current environment.
 - `not locally verified` means the release should not imply fresh local confirmation even if the package is still designed for that target.
-- The root `moon test` line now has fresh local evidence on `native`, `js`, `wasm`, and `wasm-gc` in this environment.
-- `llvm` is currently experimental in practice for this release context and did not complete local verification in this environment.
-- `src-async` now has fresh local test evidence on `native`, `js`, `wasm`, and `wasm-gc`, so async target notes may rely on more than compile-only confirmation for those targets.
-- `wasm` now has fresh local async test evidence as well as compile confirmation, and should be distinguished from the earlier state where only `wasm-gc` and `js` had been explicitly re-confirmed.
+- The 1.5.0(0.11.0) work re-ran strict `moon check` and `moon test` (`--deny-warn`) on `native`, `js`, `wasm`, and `wasm-gc`: root suite 319/312/230/312 and `src-async` 115/108/26/108.
+- `llvm` is currently experimental in practice for this release context and did not complete local verification in this environment; the toolchain is missing `prelude.mi` for that target.
+- Async file coverage is native-only by target gating, because `moonbitlang/async/fs` file operations are native. The `src-async` non-native runs confirm compile and unavailable-backend behavior, not real file I/O.
 - Example-level limitations, such as `async fn main` entry support, are separate from the library-level compile matrix above.
 
 ### Commands Used

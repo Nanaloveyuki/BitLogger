@@ -12,6 +12,7 @@ key-word:
 ---
 
 ## File-sink-type
+The synchronous `FileSink` type supports blocking file operations through the native `src/utils` backend. Async constructors and async flush/write APIs belong to `Nanaloveyuki/BitLogger/src-async` as `AsyncFileSink`; they are not exported from the synchronous root package.
 
 `FileSink` is the public file sink type used for file-backed synchronous logging. On the root `src` facade, it is re-exported from `src/file_runtime`, which is the real owner of the concrete sink behavior type.
 

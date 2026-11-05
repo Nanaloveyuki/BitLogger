@@ -1,5 +1,5 @@
 ///|
-pub type ApplicationAsyncLogger = AsyncLogger[@bitlogger.RuntimeSink]
+pub type ApplicationAsyncLogger = AsyncLogger[AsyncRuntimeSink]
 
 ///|
 pub type ApplicationTextAsyncLogger = AsyncLogger[

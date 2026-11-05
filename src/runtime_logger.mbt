@@ -67,15 +67,8 @@ pub fn Logger::dropped_count(self : Logger[RuntimeSink]) -> Int32 {
 }
 
 ///|
-fn build_logger_internal(
-  config : LoggerConfig,
-  defer_file_open : Bool,
-) -> Logger[RuntimeSink] {
-  let sink = if defer_file_open {
-    @runtime.build_runtime_sink_for_async(config.sink)
-  } else {
-    @runtime.build_runtime_sink(config.sink)
-  }
+fn build_logger_internal(config : LoggerConfig) -> Logger[RuntimeSink] {
+  let sink = @runtime.build_runtime_sink(config.sink)
   let actual_sink = match config.queue {
     None => sink
     Some(queue) => @runtime.apply_queue_config(sink, queue)
@@ -87,13 +80,20 @@ fn build_logger_internal(
 
 ///|
 pub fn build_logger(config : LoggerConfig) -> Logger[RuntimeSink] {
-  build_logger_internal(config, false)
+  build_logger_internal(config)
 }
 
 ///|
 #doc(hidden)
 pub fn build_logger_for_async(config : LoggerConfig) -> Logger[RuntimeSink] {
-  build_logger_internal(config, true)
+  let sink = @runtime.build_runtime_sink_for_async(config.sink)
+  let actual_sink = match config.queue {
+    None => sink
+    Some(queue) => @runtime.apply_queue_config(sink, queue)
+  }
+  Logger::new(actual_sink, min_level=config.min_level, target=config.target).with_timestamp(
+    enabled=config.timestamp,
+  )
 }
 
 ///|

@@ -43,7 +43,7 @@ fn[S] configured_library_async_logger(
 ///|
 pub fn build_library_async_logger(
   config : AsyncLoggerBuildConfig,
-) -> LibraryAsyncLogger[@bitlogger.RuntimeSink] {
+) -> LibraryAsyncLogger[AsyncRuntimeSink] {
   configured_library_async_logger(build_async_logger(config))
 }
 
@@ -57,7 +57,7 @@ pub fn build_library_async_text_logger(
 ///|
 pub fn parse_and_build_library_async_logger(
   input : String,
-) -> LibraryAsyncLogger[@bitlogger.RuntimeSink] raise {
+) -> LibraryAsyncLogger[AsyncRuntimeSink] raise {
   build_library_async_logger(parse_async_logger_build_config_text(input))
 }
 

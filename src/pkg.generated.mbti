@@ -75,8 +75,6 @@ pub fn file_rotation_i64(Int64, max_backups? : Int32) -> @file_model.FileRotatio
 
 pub fn file_sink(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
 
-pub async fn file_sink_async(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> @file_runtime.FileSink
-
 pub fn file_sink_policy_to_json(@file_model.FileSinkPolicy) -> Json
 
 pub fn file_sink_state_to_json(@file_model.FileSinkState) -> Json
@@ -271,6 +269,7 @@ pub fn Logger::flush_progress(Self[@runtime.RuntimeSink]) -> @runtime.RuntimeSin
 pub fn[S : @sink_graph.Sink] Logger::info(Self[S], String, fields? : Array[@core.Field]) -> Unit
 pub fn[S] Logger::is_enabled(Self[S], @core.Level) -> Bool
 pub fn[S : @sink_graph.Sink] Logger::log(Self[S], @core.Level, String, fields? : Array[@core.Field], target? : String) -> Unit
+pub fn[S, E] Logger::log_with(Self[S], @core.Level, String, (S, @core.Record) -> Result[Unit, E], fields? : Array[@core.Field], target? : String) -> Result[Unit, E]
 pub fn[S] Logger::new(S, min_level? : @core.Level, target? : String) -> Self[S]
 pub fn Logger::pending_count(Self[@runtime.RuntimeSink]) -> Int32
 pub fn[S] Logger::to_library_logger(Self[S]) -> LibraryLogger[S]

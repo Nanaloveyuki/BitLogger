@@ -54,7 +54,7 @@ Detailed rules explaining key parameters and behaviors
 - `phase` is the stronger internal lifecycle source of truth; helper reads such as `is_closed()`, `is_running()`, `has_failed()`, and the richer `state()` snapshot are derived from it.
 - The sink type parameter is preserved across async composition, which is why helpers such as `with_target(...)`, `with_context_fields(...)`, `with_filter(...)`, and `with_patch(...)` keep returning `AsyncLogger[S]`.
 - `async_logger(...)` constructs this type as the main asynchronous entry point.
-- This root type is also what sits underneath both async facade families: `ApplicationAsyncLogger` is a direct alias over the runtime-sink line, while `LibraryAsyncLogger[S]` is a narrowing wrapper around an `AsyncLogger[S]` value.
+- This root type is also what sits underneath both async facade families: `ApplicationAsyncLogger` is a direct alias over the `AsyncRuntimeSink` config-builder line, while `LibraryAsyncLogger[S]` is a narrowing wrapper around an `AsyncLogger[S]` value.
 
 ### How to Use
 

@@ -41,9 +41,9 @@ Detailed rules explaining key parameters and behaviors
 - If later facade-level `run()` or `shutdown()` calls record worker failure or perform shutdown cleanup, unwrapping later still exposes that same post-call state instead of a translated facade copy.
 - That includes states where delegated shutdown already finished with `is_closed=true` while retained `has_failed()` and `last_error()` remain on the wrapped logger, together with the same retained dropped-count cleanup outcome.
 - When `S` itself exposes richer runtime helpers, projecting to the library facade does not strip those capabilities from the wrapped logger; they are still reachable after `to_async_logger()`.
-- When `S` is `RuntimeSink`, projection also preserves queued runtime state and file-backed runtime helper behavior behind the facade instead of replacing them with a library-specific copy.
-- Unwrapping later with `to_async_logger()` therefore exposes the same queue counters, failure snapshots, file state, and runtime file controls that the original async logger already carried.
-- That also means runtime sink mutations still alias in both directions: changing file append mode, auto-flush, rotation, or other sink helper state through a later unwrapped logger changes the same live runtime sink that the original `AsyncLogger[S]` already held.
+- When `S` is `AsyncRuntimeSink`, as with config-built async loggers, projection preserves queued runtime state and file-backed helper behavior behind the facade instead of replacing them with a library-specific copy. `AsyncRuntimeSink` wraps shared `RuntimeSink` state while providing async file writes and flushes.
+- Unwrapping later with `to_async_logger()` exposes the same queue counters, failure snapshots, file state, and runtime file controls that the original async logger already carried.
+- Runtime sink mutations still alias in both directions: changing file append mode, auto-flush, rotation, or other helper state through a later unwrapped logger changes the same live wrapped state held by the original `AsyncLogger[S]`.
 
 ### How to Use
 

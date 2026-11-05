@@ -18,6 +18,28 @@ pub fn[S : Sink] Logger::log(
 }
 
 ///|
+/// Emits a record through a caller-supplied writer and returns its typed result.
+pub fn[S, E] Logger::log_with(
+  self : Logger[S],
+  level : Level,
+  message : String,
+  write : (S, Record) -> Result[Unit, E],
+  fields~ : Array[Field] = [],
+  target~ : String = "",
+) -> Result[Unit, E] {
+  if !self.is_enabled(level) {
+    Ok(())
+  } else {
+    let actual_target = if target == "" { self.target } else { target }
+    let timestamp_ms = if self.timestamp { @env.now() } else { 0UL }
+    write(
+      self.sink,
+      record(level, message, timestamp_ms~, target=actual_target, fields~),
+    )
+  }
+}
+
+///|
 pub fn[S : Sink] Logger::trace(
   self : Logger[S],
   message : String,

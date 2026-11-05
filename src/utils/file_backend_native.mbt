@@ -1,4 +1,5 @@
 ///|
+/// Logical file state; operations own and close their OS descriptor.
 pub struct FileHandle {
   priv path : String
   priv append : Bool
@@ -8,70 +9,156 @@ pub struct FileHandle {
 }
 
 ///|
-fn run_async_bool_internal(operation : async () -> Bool) -> Bool {
-  let result = Ref(false)
-  @async.run_async_main(() => result.val = operation())
-  result.val
-}
+#cfg(not(platform="windows"))
+#borrow(path)
+extern "C" fn open_native(path : Bytes, flags : Int32, mode : Int32) -> Int32 = "open"
 
 ///|
-fn run_async_i64_internal(operation : async () -> Int64) -> Int64 {
-  let result = Ref(0L)
-  @async.run_async_main(() => result.val = operation())
-  result.val
-}
+#cfg(platform="windows")
+#borrow(path)
+extern "C" fn open_native_windows(
+  path : String,
+  flags : Int32,
+  mode : Int32,
+) -> Int32 = "_wopen"
 
 ///|
-fn new_file_handle_internal(
+#cfg(not(platform="windows"))
+extern "C" fn close_native(fd : Int32) -> Int32 = "close"
+
+///|
+#cfg(platform="windows")
+extern "C" fn close_native(fd : Int32) -> Int32 = "_close"
+
+///|
+#cfg(not(platform="windows"))
+#borrow(content)
+extern "C" fn write_native(
+  fd : Int32,
+  content : Bytes,
+  length : UInt64,
+) -> Int64 = "write"
+
+///|
+#cfg(platform="windows")
+#borrow(content)
+extern "C" fn write_native_windows(
+  fd : Int32,
+  content : Bytes,
+  length : UInt32,
+) -> Int32 = "_write"
+
+///|
+#cfg(not(platform="windows"))
+extern "C" fn seek_native(fd : Int32, offset : Int64, whence : Int32) -> Int64 = "lseek"
+
+///|
+#cfg(platform="windows")
+extern "C" fn seek_native(fd : Int32, offset : Int64, whence : Int32) -> Int64 = "_lseeki64"
+
+///|
+#cfg(not(platform="windows"))
+#borrow(path)
+extern "C" fn stat_native(path : Bytes) -> Int32 = "moonbit_stat_ffi"
+
+///|
+#cfg(platform="windows")
+#borrow(path)
+extern "C" fn access_native_windows(path : String, mode : Int32) -> Int32 = "_waccess"
+
+///|
+#cfg(not(platform="windows"))
+#borrow(path)
+extern "C" fn remove_native(path : Bytes) -> Int32 = "moonbit_remove_file_ffi"
+
+///|
+#cfg(platform="windows")
+#borrow(path)
+extern "C" fn remove_native_windows(path : String) -> Int32 = "_wremove"
+
+///|
+#cfg(not(platform="windows"))
+#borrow(from_path, to_path)
+extern "C" fn rename_native(from_path : Bytes, to_path : Bytes) -> Int32 = "rename"
+
+///|
+#cfg(platform="windows")
+#borrow(from_path, to_path)
+extern "C" fn rename_native_windows(
+  from_path : String,
+  to_path : String,
+  flags : UInt32,
+) -> Int32 = "MoveFileExW"
+
+///|
+#cfg(platform="windows")
+fn open_path_internal(
   path : String,
   append : Bool,
-  initialized : Bool,
-) -> FileHandle {
-  {
-    path,
-    append,
-    initialized: Ref(initialized),
-    position: Ref(0L),
-    closed: Ref(false),
-  }
+  truncate : Bool,
+  create~ : Bool = true,
+  read_only~ : Bool = false,
+) -> Int32 {
+  open_native_windows(
+    path + "\u0000",
+    (if read_only { 0 } else { 1 }) |
+    (if create { 256 } else { 0 }) |
+    32768 |
+    (if append { 8 } else { 0 }) |
+    (if truncate { 512 } else { 0 }),
+    384,
+  )
 }
 
 ///|
-async fn probe_open_file_handle_async_internal(
+#cfg(platform="macos")
+fn open_path_internal(
   path : String,
   append : Bool,
-) -> Bool {
-  let create_mode = if append { @fs.OpenOrCreate } else { @fs.CreateOrTruncate }
-  try {
-    let file = @fs.open(path, mode=@fs.WriteOnly, append~, create_mode~)
-    file.close()
-    true
-  } catch {
-    _ => false
-  }
+  truncate : Bool,
+  create~ : Bool = true,
+  read_only~ : Bool = false,
+) -> Int32 {
+  open_native(
+    @utf8.encode(path),
+    (if read_only { 0 } else { 1 }) |
+    0x1000000 |
+    (if create { 512 } else { 0 }) |
+    (if append { 8 } else { 0 }) |
+    (if truncate { 1024 } else { 0 }),
+    420,
+  )
 }
 
 ///|
-pub async fn open_file_handle_async_internal(
+#cfg(all(not(platform="windows"), not(platform="macos")))
+fn open_path_internal(
   path : String,
   append : Bool,
-) -> FileHandle? {
-  if probe_open_file_handle_async_internal(path, append) {
-    Some(new_file_handle_internal(path, append, true))
-  } else {
-    None
-  }
+  truncate : Bool,
+  create~ : Bool = true,
+  read_only~ : Bool = false,
+) -> Int32 {
+  open_native(
+    @utf8.encode(path),
+    (if read_only { 0 } else { 1 }) |
+    0x80000 |
+    (if create { 64 } else { 0 }) |
+    (if append { 1024 } else { 0 }) |
+    (if truncate { 512 } else { 0 }),
+    420,
+  )
 }
 
 ///|
 pub fn open_file_handle_internal(path : String, append : Bool) -> FileHandle? {
-  let opened = run_async_bool_internal(() => {
-    probe_open_file_handle_async_internal(path, append)
-  })
-  if opened {
-    Some(new_file_handle_internal(path, append, true))
-  } else {
+  let fd = open_path_internal(path, append, !append)
+  if fd < 0 {
     None
+  } else if close_native(fd) != 0 {
+    None
+  } else {
+    Some(new_file_handle_internal(path, append, true))
   }
 }
 
@@ -84,51 +171,15 @@ pub fn deferred_file_handle_internal(
 }
 
 ///|
-pub async fn write_file_handle_async_internal(
-  handle : FileHandle,
-  content : String,
-) -> Bool {
-  if handle.closed.val {
-    return false
-  }
-  let bytes = @utf8.encode(content)
-  try {
-    let file = @fs.open(
-      handle.path,
-      mode=@fs.WriteOnly,
-      append=handle.append,
-      create_mode=if handle.initialized.val {
-        @fs.OpenOrCreate
-      } else if handle.append {
-        @fs.OpenOrCreate
-      } else {
-        @fs.CreateOrTruncate
-      },
-    )
-    defer file.close()
-    if handle.append {
-      file.write(bytes)
-    } else {
-      file.write_at(bytes[:], position=handle.position.val)
-      handle.position.val += bytes.length().to_int64()
-    }
-    handle.initialized.val = true
-    true
-  } catch {
-    _ => false
-  }
+#cfg(not(platform="windows"))
+fn write_bytes_internal(fd : Int32, content : Bytes) -> Int64 {
+  write_native(fd, content, content.length().to_uint64())
 }
 
 ///|
-pub fn file_exists_internal(path : String) -> Bool {
-  run_async_bool_internal(() => @fs.exists(path))
-}
-
-///|
-pub async fn file_exists_async_internal(path : String) -> Bool {
-  @fs.exists(path) catch {
-    _ => false
-  }
+#cfg(platform="windows")
+fn write_bytes_internal(fd : Int32, content : Bytes) -> Int64 {
+  write_native_windows(fd, content, content.length().to_uint()).to_int64()
 }
 
 ///|
@@ -136,34 +187,61 @@ pub fn write_file_handle_internal(
   handle : FileHandle,
   content : String,
 ) -> Bool {
-  run_async_bool_internal(() => {
-    write_file_handle_async_internal(handle, content)
-  })
-}
-
-///|
-pub async fn flush_file_handle_async_internal(handle : FileHandle) -> Bool {
   if handle.closed.val {
     return false
   }
-  try {
-    let file = @fs.open(handle.path, mode=@fs.WriteOnly)
-    file.sync()
-    file.close()
-    true
-  } catch {
-    _ => false
+  let fd = open_path_internal(
+    handle.path,
+    handle.append,
+    !handle.initialized.val && !handle.append,
+  )
+  if fd < 0 {
+    return false
   }
+  let positioned = handle.append ||
+    seek_native(fd, handle.position.val, 0) >= 0L
+  let bytes = @utf8.encode(content)
+  let mut offset = 0
+  let mut wrote = positioned
+  while wrote && offset < bytes.length() {
+    // The common path passes the original bytes without copying. A short
+    // syscall write resumes only its remaining suffix on the same descriptor.
+    let remaining = if offset == 0 { bytes } else { bytes[offset:].to_owned() }
+    let count = write_bytes_internal(fd, remaining)
+    if count <= 0L {
+      wrote = false
+    } else {
+      offset = offset + count.to_int()
+    }
+  }
+  let closed = close_native(fd) == 0
+  if wrote && closed {
+    if !handle.append {
+      handle.position.val += bytes.length().to_int64()
+    }
+    handle.initialized.val = true
+    true
+  } else {
+    false
+  }
+}
+
+///|
+#cfg(not(platform="windows"))
+pub fn file_exists_internal(path : String) -> Bool {
+  stat_native(@utf8.encode(path)) == 0
+}
+
+///|
+#cfg(platform="windows")
+pub fn file_exists_internal(path : String) -> Bool {
+  access_native_windows(path + "\u0000", 0) == 0
 }
 
 ///|
 pub fn flush_file_handle_internal(handle : FileHandle) -> Bool {
-  if handle.closed.val {
-    false
-  } else {
-    // Each write owns and closes its File, so there is no buffered handle to flush here.
-    true
-  }
+  // Writes close their descriptor; this is not an fsync durability request.
+  !handle.closed.val
 }
 
 ///|
@@ -177,61 +255,52 @@ pub fn close_file_handle_internal(handle : FileHandle) -> Bool {
 }
 
 ///|
-pub async fn file_size_i64_async_internal(handle : FileHandle) -> Int64 {
+pub fn file_size_i64_internal(handle : FileHandle) -> Int64 {
   if handle.closed.val {
     return 0L
   }
-  try {
-    let file = @fs.open(handle.path, mode=@fs.ReadOnly)
-    let size = file.size()
-    file.close()
+  // Size probes never create a missing path.
+  let fd = open_path_internal(
+    handle.path,
+    false,
+    false,
+    create=false,
+    read_only=true,
+  )
+  if fd < 0 {
+    return 0L
+  }
+  let size = seek_native(fd, 0L, 2)
+  let closed = close_native(fd) == 0
+  if size >= 0L && closed {
     size
-  } catch {
-    _ => 0L
-  }
-}
-
-///|
-pub fn file_size_i64_internal(handle : FileHandle) -> Int64 {
-  run_async_i64_internal(() => file_size_i64_async_internal(handle))
-}
-
-///|
-pub async fn rename_file_async_internal(
-  from_path : String,
-  to_path : String,
-) -> Bool {
-  try {
-    @fs.rename(from_path, to_path)
-    true
-  } catch {
-    _ => false
-  }
-}
-
-///|
-pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
-  run_async_bool_internal(() => rename_file_async_internal(from_path, to_path))
-}
-
-///|
-pub async fn remove_file_async_internal(path : String) -> Bool {
-  let present = @fs.exists(path) catch { _ => false }
-  if present {
-    try {
-      @fs.remove(path)
-      true
-    } catch {
-      _ => false
-    }
   } else {
-    true
+    0L
   }
 }
 
 ///|
+#cfg(not(platform="windows"))
+pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
+  rename_native(@utf8.encode(from_path), @utf8.encode(to_path)) == 0
+}
+
+///|
+#cfg(platform="windows")
+pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
+  rename_native_windows(from_path + "\u0000", to_path + "\u0000", 1U) != 0
+}
+
+///|
+#cfg(not(platform="windows"))
 pub fn remove_file_internal(path : String) -> Bool {
-  run_async_bool_internal(() => remove_file_async_internal(path))
+  !file_exists_internal(path) || remove_native(@utf8.encode(path)) == 0
+}
+
+///|
+#cfg(platform="windows")
+pub fn remove_file_internal(path : String) -> Bool {
+  !file_exists_internal(path) || remove_native_windows(path + "\u0000") == 0
 }
 
 ///|

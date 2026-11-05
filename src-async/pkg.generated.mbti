@@ -4,6 +4,7 @@ package "Nanaloveyuki/BitLogger/src-async"
 import {
   "Nanaloveyuki/BitLogger/src-async/utils",
   "Nanaloveyuki/BitLogger/src/core",
+  "Nanaloveyuki/BitLogger/src/file_model",
   "Nanaloveyuki/BitLogger/src/runtime",
   "Nanaloveyuki/BitLogger/src/sink_graph",
   "moonbitlang/async/aqueue",
@@ -29,21 +30,23 @@ pub fn async_runtime_state_to_json(@utils.AsyncRuntimeState) -> Json
 
 pub fn async_runtime_supports_background_worker() -> Bool
 
-pub fn build_application_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@runtime.RuntimeSink]
+pub fn build_application_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[AsyncRuntimeSink]
 
 pub fn build_application_text_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@sink_graph.FormattedConsoleSink]
 
-pub fn build_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@runtime.RuntimeSink]
+pub fn build_async_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[AsyncRuntimeSink]
 
 pub fn build_async_text_logger(@utils.AsyncLoggerBuildConfig) -> AsyncLogger[@sink_graph.FormattedConsoleSink]
 
-pub fn build_library_async_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@runtime.RuntimeSink]
+pub fn build_library_async_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[AsyncRuntimeSink]
 
 pub fn build_library_async_text_logger(@utils.AsyncLoggerBuildConfig) -> LibraryAsyncLogger[@sink_graph.FormattedConsoleSink]
 
-pub fn parse_and_build_application_async_logger(String) -> AsyncLogger[@runtime.RuntimeSink] raise
+pub async fn file_sink_async(String, append? : Bool, auto_flush? : Bool, rotation? : @file_model.FileRotation?, formatter? : (@core.Record) -> String) -> AsyncFileSink
 
-pub fn parse_and_build_library_async_logger(String) -> LibraryAsyncLogger[@runtime.RuntimeSink] raise
+pub fn parse_and_build_application_async_logger(String) -> AsyncLogger[AsyncRuntimeSink] raise
+
+pub fn parse_and_build_library_async_logger(String) -> LibraryAsyncLogger[AsyncRuntimeSink] raise
 
 pub fn parse_async_logger_build_config_text(String) -> @utils.AsyncLoggerBuildConfig raise
 
@@ -67,6 +70,41 @@ pub(all) suberror AsyncLoggerClosed {
 }
 
 // Types and methods
+pub struct AsyncFileSink {
+  // private fields
+}
+pub fn AsyncFileSink::append_mode(Self) -> Bool
+pub fn AsyncFileSink::auto_flush_enabled(Self) -> Bool
+pub fn AsyncFileSink::clear_rotation(Self) -> Unit
+pub fn AsyncFileSink::close(Self) -> Bool
+pub fn AsyncFileSink::default_policy(Self) -> @file_model.FileSinkPolicy
+pub fn AsyncFileSink::flush(Self) -> Bool
+pub async fn AsyncFileSink::flush_async(Self) -> Bool
+pub fn AsyncFileSink::flush_failures(Self) -> Int32
+pub fn AsyncFileSink::is_available(Self) -> Bool
+pub fn AsyncFileSink::open_failures(Self) -> Int32
+pub fn AsyncFileSink::path(Self) -> String
+pub fn AsyncFileSink::policy(Self) -> @file_model.FileSinkPolicy
+pub fn AsyncFileSink::policy_matches_default(Self) -> Bool
+pub fn AsyncFileSink::reopen(Self, append? : Bool?) -> Bool
+pub fn AsyncFileSink::reopen_append(Self) -> Bool
+pub fn AsyncFileSink::reopen_truncate(Self) -> Bool
+pub fn AsyncFileSink::reopen_with_current_policy(Self) -> Bool
+pub fn AsyncFileSink::reset_failure_counters(Self) -> Unit
+pub fn AsyncFileSink::reset_policy(Self) -> Unit
+pub fn AsyncFileSink::rotation_config(Self) -> @file_model.FileRotation?
+pub fn AsyncFileSink::rotation_enabled(Self) -> Bool
+pub fn AsyncFileSink::rotation_failures(Self) -> Int32
+pub fn AsyncFileSink::set_append_mode(Self, Bool) -> Unit
+pub fn AsyncFileSink::set_auto_flush(Self, Bool) -> Unit
+pub fn AsyncFileSink::set_policy(Self, @file_model.FileSinkPolicy) -> Unit
+pub fn AsyncFileSink::set_rotation(Self, @file_model.FileRotation?) -> Unit
+pub fn AsyncFileSink::state(Self) -> @file_model.FileSinkState
+pub fn AsyncFileSink::write(Self, @core.Record) -> Unit
+pub async fn AsyncFileSink::write_async(Self, @core.Record) -> Unit
+pub fn AsyncFileSink::write_failures(Self) -> Int32
+pub impl @sink_graph.Sink for AsyncFileSink
+
 pub struct AsyncLogger[S] {
   min_level : @core.Level
   target : String
@@ -104,6 +142,7 @@ pub fn[S] AsyncLogger::pending_count(Self[S]) -> Int32
 pub fn[S] AsyncLogger::phase(Self[S]) -> @utils.AsyncLifecyclePhase
 pub async fn[S : @sink_graph.Sink] AsyncLogger::run(Self[S]) -> Unit
 pub async fn[S] AsyncLogger::shutdown(Self[S], clear? : Bool) -> Unit
+pub fn AsyncLogger::sink_kind(Self[AsyncRuntimeSink]) -> String
 pub fn[S] AsyncLogger::state(Self[S]) -> @utils.AsyncLoggerState
 pub fn[S] AsyncLogger::to_library_async_logger(Self[S]) -> LibraryAsyncLogger[S]
 pub async fn[S] AsyncLogger::trace(Self[S], String, fields? : Array[@core.Field]) -> Unit
@@ -116,6 +155,54 @@ pub fn[S] AsyncLogger::with_patch(Self[S], (@core.Record) -> @core.Record) -> Se
 pub fn[S] AsyncLogger::with_target(Self[S], String) -> Self[S]
 pub fn[S] AsyncLogger::with_timestamp(Self[S], enabled? : Bool) -> Self[S]
 pub fn[S] AsyncLogger::with_trace_context(Self[S], @core.TraceContext) -> Self[S]
+
+pub struct AsyncRuntimeSink {
+  // private fields
+}
+pub fn AsyncRuntimeSink::close(Self) -> Bool
+pub fn AsyncRuntimeSink::drain(Self, max_items? : Int32) -> Int32
+pub fn AsyncRuntimeSink::drain_progress(Self, max_items? : Int32) -> @runtime.RuntimeSinkProgress
+pub fn AsyncRuntimeSink::dropped_count(Self) -> Int32
+pub fn AsyncRuntimeSink::file_append_mode(Self) -> Bool
+pub fn AsyncRuntimeSink::file_auto_flush(Self) -> Bool
+pub fn AsyncRuntimeSink::file_available(Self) -> Bool
+pub fn AsyncRuntimeSink::file_clear_rotation(Self) -> Bool
+pub fn AsyncRuntimeSink::file_close(Self) -> Bool
+pub fn AsyncRuntimeSink::file_default_policy(Self) -> @file_model.FileSinkPolicy
+pub fn AsyncRuntimeSink::file_default_policy_or_none(Self) -> @file_model.FileSinkPolicy?
+pub fn AsyncRuntimeSink::file_flush(Self) -> Bool
+pub fn AsyncRuntimeSink::file_flush_failures(Self) -> Int32
+pub fn AsyncRuntimeSink::file_open_failures(Self) -> Int32
+pub fn AsyncRuntimeSink::file_path(Self) -> String
+pub fn AsyncRuntimeSink::file_path_or_none(Self) -> String?
+pub fn AsyncRuntimeSink::file_policy(Self) -> @file_model.FileSinkPolicy
+pub fn AsyncRuntimeSink::file_policy_matches_default(Self) -> Bool
+pub fn AsyncRuntimeSink::file_policy_or_none(Self) -> @file_model.FileSinkPolicy?
+pub fn AsyncRuntimeSink::file_reopen(Self, append? : Bool?) -> Bool
+pub fn AsyncRuntimeSink::file_reopen_append(Self) -> Bool
+pub fn AsyncRuntimeSink::file_reopen_truncate(Self) -> Bool
+pub fn AsyncRuntimeSink::file_reopen_with_current_policy(Self) -> Bool
+pub fn AsyncRuntimeSink::file_reset_failure_counters(Self) -> Bool
+pub fn AsyncRuntimeSink::file_reset_policy(Self) -> Bool
+pub fn AsyncRuntimeSink::file_rotation_config(Self) -> @file_model.FileRotation?
+pub fn AsyncRuntimeSink::file_rotation_enabled(Self) -> Bool
+pub fn AsyncRuntimeSink::file_rotation_failures(Self) -> Int32
+pub fn AsyncRuntimeSink::file_runtime_state(Self) -> @file_model.RuntimeFileState?
+pub fn AsyncRuntimeSink::file_set_append_mode(Self, Bool) -> Bool
+pub fn AsyncRuntimeSink::file_set_auto_flush(Self, Bool) -> Bool
+pub fn AsyncRuntimeSink::file_set_policy(Self, @file_model.FileSinkPolicy) -> Bool
+pub fn AsyncRuntimeSink::file_set_rotation(Self, @file_model.FileRotation?) -> Bool
+pub fn AsyncRuntimeSink::file_state(Self) -> @file_model.FileSinkState
+pub fn AsyncRuntimeSink::file_state_or_none(Self) -> @file_model.FileSinkState?
+pub fn AsyncRuntimeSink::file_write_failures(Self) -> Int32
+pub fn AsyncRuntimeSink::flush(Self) -> Int32
+pub async fn AsyncRuntimeSink::flush_async(Self) -> Unit
+pub fn AsyncRuntimeSink::flush_progress(Self) -> @runtime.RuntimeSinkProgress
+pub fn AsyncRuntimeSink::kind(Self) -> String
+pub fn AsyncRuntimeSink::pending_count(Self) -> Int32
+pub fn AsyncRuntimeSink::write(Self, @core.Record) -> Unit
+pub async fn AsyncRuntimeSink::write_async(Self, @core.Record) -> Unit
+pub impl @sink_graph.Sink for AsyncRuntimeSink
 
 pub struct LibraryAsyncLogger[S] {
   inner : AsyncLogger[S]
@@ -136,7 +223,7 @@ pub fn[S] LibraryAsyncLogger::with_target(Self[S], String) -> Self[S]
 pub fn[S] LibraryAsyncLogger::with_trace_context(Self[S], @core.TraceContext) -> Self[S]
 
 // Type aliases
-pub type ApplicationAsyncLogger = AsyncLogger[@runtime.RuntimeSink]
+pub type ApplicationAsyncLogger = AsyncLogger[AsyncRuntimeSink]
 
 pub type ApplicationTextAsyncLogger = AsyncLogger[@sink_graph.FormattedConsoleSink]
 

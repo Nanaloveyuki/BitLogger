@@ -99,4 +99,4 @@ e.g.:
 
 4. See [target-verification.md](./target-verification.md) for the current verification boundary between design intent and locally re-checked targets.
 
-5. Use [`file_sink_async(...)`](./file-sink-async.md) when constructing a file sink from an async event loop.
+5. Use [`file_sink_async(...)`](./file-sink-async.md) from `Nanaloveyuki/BitLogger/src-async` when constructing an `AsyncFileSink` in an async event loop. It is separate from the root synchronous `file_sink(...) -> FileSink` API.

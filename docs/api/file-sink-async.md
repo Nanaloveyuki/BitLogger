@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-async
 
-Create a `FileSink` from an async context. The constructor opens the file with the native `moonbitlang/async/fs` interface and keeps the same rotation, policy, and failure-counter surface as `file_sink(...)`.
+Create an `AsyncFileSink` from `Nanaloveyuki/BitLogger/src-async` in an async context. The sync root package intentionally does not expose this constructor or depend on the host async filesystem. The constructor opens the file with the native `moonbitlang/async/fs` interface and keeps the same rotation, policy, and failure-counter surface as `file_sink(...)`.
 
 ### Interface
 
@@ -24,7 +24,7 @@ pub async fn file_sink_async(
   auto_flush~ : Bool = true,
   rotation~ : FileRotation? = None,
   formatter~ : RecordFormatter = fn(rec) { format_text(rec) },
-) -> FileSink {}
+) -> AsyncFileSink {}
 ```
 
 #### input
@@ -37,14 +37,26 @@ pub async fn file_sink_async(
 
 #### output
 
-- `FileSink` - A file sink ready for use by an async logger or direct async sink writes.
+- `AsyncFileSink` - A file sink ready for async logging and explicit async writes.
 
 ### Explanation
 
-- Use this constructor when the caller is already running inside an async event loop.
-- File writes, flushes, file-size checks, renames, removals, and rotation reopening use the async filesystem path.
-- The returned sink implements `Sink::write_async(...)`; the synchronous `write(...)` surface remains available for synchronous callers.
+- Use this constructor when the caller is already running inside an async event loop; it opens through the async filesystem backend.
+- `Sink::write_async(...)` and `flush_async()` use async filesystem operations. The synchronous `write(...)` and `flush()` methods remain synchronous operations over the shared file state; they do not turn the root `FileSink` API into an async API.
+- Rotation and file maintenance performed by the async write path use the async filesystem backend.
 - On non-native targets, the sink follows the existing unavailable-backend behavior.
+
+### Deferred open
+
+Config-built async loggers (`build_async_logger(...)` and its application/library/parse variants) create their file sink with a deferred handle and wrap it in `AsyncRuntimeSink`. The descriptor is acquired by the first async write:
+
+- A deferred handle starts uninitialized and `file_available()` reports `true`, because the path is not yet known to be unusable.
+- The first async write performs the async open. If that open fails, `open_failures` is incremented, the unusable handle is cleared so `file_available()` becomes `false`, and the write itself is also counted in `write_failures`.
+- `flush_async()` on a deferred handle that was never written succeeds without touching the filesystem; it reports `false` and increments `flush_failures` once the handle is unavailable.
+
+### Reopen
+
+`AsyncFileSink::reopen*` are synchronous control operations over the shared file state. They install a deferred handle, so the file is reopened by the next async write rather than by the reopen call itself. This keeps the control surface identical to the root `FileSink` without turning `reopen` into an async API.
 
 ### How to Use
 
