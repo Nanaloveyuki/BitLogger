@@ -111,6 +111,23 @@ fn open_path_internal(
 }
 
 ///|
+/// `@utf8.encode` returns exactly `length()` bytes with no trailing zero, but
+/// the C file APIs take a NUL-terminated `const char *`. Copy into a buffer
+/// that carries the terminator explicitly; relying on adjacent heap bytes
+/// happens to work on Linux and reads garbage on macOS.
+#cfg(not(platform="windows"))
+fn c_path_internal(path : String) -> Bytes {
+  let encoded = @utf8.encode(path)
+  let length = encoded.length()
+  let terminated : FixedArray[Byte] = FixedArray::make(length + 1, b'\x00')
+  for index = 0; index < length; {
+    terminated[index] = encoded[index]
+    continue index + 1
+  }
+  terminated.unsafe_reinterpret_as_bytes()
+}
+
+///|
 /// POSIX open flags come from the C stub so O_CREAT/O_TRUNC/O_APPEND keep their
 /// real per-platform values instead of being guessed per target.
 #cfg(not(platform="windows"))
@@ -135,7 +152,7 @@ fn open_path_internal(
   read_only~ : Bool = false,
 ) -> Int32 {
   open_native(
-    @utf8.encode(path),
+    c_path_internal(path),
     open_flags_internal(
       if read_only {
         1
@@ -241,7 +258,7 @@ pub fn write_file_handle_internal(
 ///|
 #cfg(not(platform="windows"))
 pub fn file_exists_internal(path : String) -> Bool {
-  stat_native(@utf8.encode(path)) == 0
+  stat_native(c_path_internal(path)) == 0
 }
 
 ///|
@@ -294,7 +311,7 @@ pub fn file_size_i64_internal(handle : FileHandle) -> Int64 {
 ///|
 #cfg(not(platform="windows"))
 pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
-  rename_native(@utf8.encode(from_path), @utf8.encode(to_path)) == 0
+  rename_native(c_path_internal(from_path), c_path_internal(to_path)) == 0
 }
 
 ///|
@@ -306,7 +323,7 @@ pub fn rename_file_internal(from_path : String, to_path : String) -> Bool {
 ///|
 #cfg(not(platform="windows"))
 pub fn remove_file_internal(path : String) -> Bool {
-  !file_exists_internal(path) || remove_native(@utf8.encode(path)) == 0
+  !file_exists_internal(path) || remove_native(c_path_internal(path)) == 0
 }
 
 ///|
