@@ -111,27 +111,22 @@ fn open_path_internal(
 }
 
 ///|
-#cfg(platform="macos")
-fn open_path_internal(
-  path : String,
-  append : Bool,
-  truncate : Bool,
-  create~ : Bool = true,
-  read_only~ : Bool = false,
-) -> Int32 {
-  open_native(
-    @utf8.encode(path),
-    (if read_only { 0 } else { 1 }) |
-    0x1000000 |
-    (if create { 512 } else { 0 }) |
-    (if append { 8 } else { 0 }) |
-    (if truncate { 1024 } else { 0 }),
-    420,
-  )
-}
+/// POSIX open flags come from the C stub so O_CREAT/O_TRUNC/O_APPEND keep their
+/// real per-platform values instead of being guessed per target.
+#cfg(not(platform="windows"))
+extern "C" fn open_flags_internal(
+  read_only : Int32,
+  create : Int32,
+  append : Int32,
+  truncate : Int32,
+) -> Int32 = "moonbit_bitlogger_open_flags"
 
 ///|
-#cfg(all(not(platform="windows"), not(platform="macos")))
+#cfg(not(platform="windows"))
+extern "C" fn create_mode_internal() -> Int32 = "moonbit_bitlogger_create_mode"
+
+///|
+#cfg(not(platform="windows"))
 fn open_path_internal(
   path : String,
   append : Bool,
@@ -141,12 +136,29 @@ fn open_path_internal(
 ) -> Int32 {
   open_native(
     @utf8.encode(path),
-    (if read_only { 0 } else { 1 }) |
-    0x80000 |
-    (if create { 64 } else { 0 }) |
-    (if append { 1024 } else { 0 }) |
-    (if truncate { 512 } else { 0 }),
-    420,
+    open_flags_internal(
+      if read_only {
+        1
+      } else {
+        0
+      },
+      if create {
+        1
+      } else {
+        0
+      },
+      if append {
+        1
+      } else {
+        0
+      },
+      if truncate {
+        1
+      } else {
+        0
+      },
+    ),
+    create_mode_internal(),
   )
 }
 
@@ -179,7 +191,7 @@ fn write_bytes_internal(fd : Int32, content : Bytes) -> Int64 {
 ///|
 #cfg(platform="windows")
 fn write_bytes_internal(fd : Int32, content : Bytes) -> Int64 {
-  write_native_windows(fd, content, content.length().to_uint()).to_int64()
+  write_native_windows(fd, content, content.length().reinterpret_as_uint()).to_int64()
 }
 
 ///|

@@ -18,7 +18,7 @@ The documentation is organized around complete usage flows. Start with an execut
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.11.0
+moon add Nanaloveyuki/BitLogger@0.11.1
 ```
 
 ### 2. Import And Log
