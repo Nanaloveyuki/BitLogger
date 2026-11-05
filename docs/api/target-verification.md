@@ -2,7 +2,7 @@
 name: target-verification
 group: api
 category: verification
-update-time: 20261104
+update-time: 20261105
 description: Current release-facing local verification boundary for BitLogger multi-target support claims.
 key-word:
     - target
@@ -21,7 +21,7 @@ This note records the current release-facing local verification boundary for Bit
 | --- | --- | --- | --- | --- | --- |
 | `src` compile check | verified | verified | verified | verified | not locally verified |
 | `src-async` compile check | verified | verified | verified | verified | not locally verified |
-| `moon test` | verified in current local environment | verified | verified | verified | not run |
+| `moon test` | verified | verified | verified | verified | not run |
 | `moon test src-async` | verified | verified | verified | verified | not run |
 
 ### Explanation
@@ -30,8 +30,8 @@ Detailed rules explaining key parameters and behaviors
 
 - `verified` here means a local verification command was re-run successfully in the current environment.
 - `not locally verified` means the release should not imply fresh local confirmation even if the package is still designed for that target.
-- The 1.5.0(0.11.0) work re-ran strict `moon check` and `moon test` (`--deny-warn`) on `native`, `js`, `wasm`, and `wasm-gc`: root suite 319/312/230/312 and `src-async` 115/108/26/108.
-- `llvm` is currently experimental in practice for this release context and did not complete local verification in this environment; the toolchain is missing `prelude.mi` for that target.
+- The 1.5.1(0.11.1) work re-ran strict `moon check` and `moon test` (`--deny-warn`) on `native`, `js`, `wasm`, and `wasm-gc`: root suite 320/312/230/312 and `src-async` 115/108/26/108.
+- `llvm` is not verified here. The compiler reports that the LLVM backend is experimental and nightly-only, and the pinned stable toolchain does not ship the LLVM `prelude.mi` (`moon check --target llvm` fails while planning the build). The repository CI does not cover `llvm` either.
 - Async file coverage is native-only by target gating, because `moonbitlang/async/fs` file operations are native. The `src-async` non-native runs confirm compile and unavailable-backend behavior, not real file I/O.
 - Example-level limitations, such as `async fn main` entry support, are separate from the library-level compile matrix above.
 
