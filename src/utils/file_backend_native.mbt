@@ -11,7 +11,7 @@ pub struct FileHandle {
 ///|
 #cfg(not(platform="windows"))
 #borrow(path)
-extern "C" fn open_native(path : Bytes, flags : Int32, mode : Int32) -> Int32 = "open"
+extern "C" fn open_native(path : Bytes, flags : Int32, mode : Int32) -> Int32 = "moonbit_bitlogger_open"
 
 ///|
 #cfg(platform="windows")

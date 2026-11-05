@@ -1,6 +1,7 @@
 ///|
 /// The C file APIs read a NUL-terminated string. `@utf8.encode` returns exactly
 /// `length()` bytes, so the backend must add the terminator itself.
+#cfg(not(platform="windows"))
 test "c path buffers are NUL terminated and preserve UTF-8" {
   let path = "logs/同步-🌙.log"
   let raw = @utf8.encode(path)
