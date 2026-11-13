@@ -17,7 +17,7 @@ BitLogger 的文档按使用路径组织：先完成一个可运行的日志输�
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.11.1
+moon add Nanaloveyuki/BitLogger@0.11.2
 ```
 
 ### 2. 写入第一条结构化日志
@@ -55,7 +55,7 @@ fn main {
 ## 支持情况
 
 - `BitLogger` 当前在 CI 中检查/验证的目标是 `native`、`wasm`、`js`、`wasm-gc`
-- `bitlogger_async` 当前在 CI 中检查和测试 `native`、`wasm`、`js`、`wasm-gc`
+- `src-async` 及其 `utils` 只支持 `native`、`wasm`、`js`；`wasm-gc` 仅提供同步 `src` 日志。上游 `moonbitlang/async@0.22.9` 未实现 wasm-gc 运行时。旧 CI 的 wasm-gc 异步测试未实际执行，现已修正支持声明。
 - `llvm` 目前按实验性目标处理，当前环境未完成验证
 - 文件输出是 native 能力；跨端代码里建议先判断 `native_files_supported()`
 - `src-async` 可用，但示例 `examples/async_basic` 目前仍按 native 入口提供
@@ -82,7 +82,7 @@ fn main {
 
 ## 开发
 
-本地开发与 CI 由 `.moonbit-toolchain` 固定工具链归档 `0.10.19+97801ee1b`，安装对应的编译器、CLI 和 core：`moonc v0.10.19+97801ee1b (2026-10-30)`、`moon 0.1.20261029`。CLI 与编译器版本号不同；归档不可用时安装失败，不回退到 latest。
+本地开发与 CI 由 `.moonbit-toolchain` 固定工具链归档 `0.10.20+65efd5b93`，安装对应的编译器、CLI 和 core：`moonc v0.10.20+65efd5b93 (2026-11-05)`、`moon 0.1.20261104`。CLI 与编译器版本号不同；归档不可用时安装失败，不回退到 latest。
 
 在仓库根目录安装：
 
@@ -102,7 +102,7 @@ $env:MOONBIT_INSTALL_VERSION = (Get-Content .moonbit-toolchain -Raw).Trim()
 irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
 ```
 
-native 构建需要 C 工具链；Windows CI 使用 MSYS2 UCRT64 GCC 和 OpenSSL。异步依赖保持 `moonbitlang/async@0.22.4`，本次不升级第三方依赖。异步 native 测试和示例按现有 CI 在 Linux/macOS 运行。
+native 构建需要 C 工具链；Windows CI 使用 MSYS2 UCRT64 GCC 和 OpenSSL。依赖使用 `moonbitlang/async@0.22.9`、`moonbit-community/opentelemetry@0.1.8`、`moonbitstack/moonyaml@0.1.7` 与 `sujy123456/lunasieve@0.1.0`；显式约束 `moonbitlang/protobuf@0.2.0`，使 OpenTelemetry 的传递依赖也使用最新发布版本。异步 native 测试和示例按现有 CI 在 Linux/macOS 运行。
 
 在安装完成的 Bash 环境中执行主要验证；js 测试需要 Node.js，wasm/wasm-gc 测试使用随工具链安装的 moonrun：
 
@@ -112,6 +112,8 @@ moon info
 for target in native wasm wasm-gc js; do
   moon check --target "$target" --deny-warn
   moon test --target "$target" --deny-warn
+done
+for target in native wasm js; do
   moon check src-async --target "$target" --deny-warn
   moon test src-async --target "$target" --deny-warn
 done
@@ -120,7 +122,7 @@ for example in basic console_basic config_build presets text_formatter style_tag
 done
 ```
 
-native 集成测试会写入仓库内的 `logs/`；文件轮转示例会在工作目录生成 `bitlogger-example.log` 及轮转备份，因此这两个目录需要可写。完整 CI 流程见 [ci.yml](.github/workflows/ci.yml)。上述命令用于验证新工具链，不代表已经执行或通过；历史发布验证记录保持原样。
+native 集成测试会写入仓库内的 `logs/`；文件轮转示例会在工作目录生成 `bitlogger-example.log` 及轮转备份，因此这两个目录需要可写。完整 CI 流程见 [ci.yml](.github/workflows/ci.yml)。0.11.2 已在 Linux x86_64 上用固定工具链执行上述检查；native/js/wasm 完整测试为 320/312/312，异步包为 115/108/108，wasm-gc 的同步测试为 204。wasm-gc 不执行异步包测试；macOS/Windows 验证由 CI 提供。
 
 ### 0.9.2 - 2026-11-03
 

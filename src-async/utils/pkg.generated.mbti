@@ -3,18 +3,19 @@ package "Nanaloveyuki/BitLogger/src-async/utils"
 
 import {
   "Nanaloveyuki/BitLogger/src/config_model",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub fn async_logger_build_config_to_json(AsyncLoggerBuildConfig) -> Json
+pub fn async_logger_build_config_to_json(AsyncLoggerBuildConfig) -> @json.Json
 
-pub fn async_logger_config_to_json(AsyncLoggerConfig) -> Json
+pub fn async_logger_config_to_json(AsyncLoggerConfig) -> @json.Json
 
-pub fn async_logger_state_to_json(AsyncLoggerState) -> Json
+pub fn async_logger_state_to_json(AsyncLoggerState) -> @json.Json
 
 pub fn async_runtime_mode_label(AsyncRuntimeMode) -> String
 
-pub fn async_runtime_state_to_json(AsyncRuntimeState) -> Json
+pub fn async_runtime_state_to_json(AsyncRuntimeState) -> @json.Json
 
 pub fn compatibility_async_runtime_mode() -> AsyncRuntimeMode
 

@@ -18,7 +18,7 @@ The documentation is organized around complete usage flows. Start with an execut
 ```bash
 moon new log-demo
 cd log-demo
-moon add Nanaloveyuki/BitLogger@0.11.1
+moon add Nanaloveyuki/BitLogger@0.11.2
 ```
 
 ### 2. Import And Log
@@ -44,9 +44,10 @@ Continue with the [Examples guide](./examples/index.md): console fields, file ro
 
 ## Support Status
 
-- CI checks and tests `native`, `wasm`, `js`, and `wasm-gc` for the main `src` package and `src-async`
+- The synchronous `src` package supports `native`, `wasm`, `js`, and `wasm-gc`.
+- `src-async` and its `utils` package support `native`, `wasm`, and `js`. Upstream async 0.22.9 has no wasm-gc runtime. Earlier CI did not execute wasm-gc async tests; this release corrects that support claim.
 - `llvm` is still treated as experimental in the current release context and was not locally re-verified in the current environment
-- The source packages still declare `wasm` support alongside `native`, `llvm`, `js`, and `wasm-gc`; see [`target-verification.md`](./api/target-verification.md) for the current release-facing verification boundary
+- See [`target-verification.md`](./api/target-verification.md) for the current verification matrix and exact test counts
 - File output is a native capability; check `native_files_supported()` in cross-target code
 - `src-async` is available, while `examples/async_basic` is still shipped as a native entry example
 
@@ -74,7 +75,7 @@ Common entry points: `text_console(...)`, `file(...)`, `with_queue(...)`, `build
 
 ## Development
 
-`.moonbit-toolchain` pins the compiler archive to `0.10.19+97801ee1b` for local development and all MoonBit CI installations, including Windows. It installs the matching compiler, CLI, and core: `moonc v0.10.19+97801ee1b (2026-10-30)` and `moon 0.1.20261029`. The compiler and CLI have separate version numbers. Installation fails if the archive is unavailable; it does not fall back to latest.
+`.moonbit-toolchain` pins the compiler archive to `0.10.20+65efd5b93` for local development and all MoonBit CI installations, including Windows. It installs the matching compiler, CLI, and core: `moonc v0.10.20+65efd5b93 (2026-11-05)` and `moon 0.1.20261104`. The compiler and CLI have separate version numbers. Installation fails if the archive is unavailable; it does not fall back to latest.
 
 Install from the repository root:
 
@@ -88,6 +89,8 @@ moon update
 ```
 
 For PowerShell, set `$env:MOONBIT_INSTALL_VERSION = (Get-Content .moonbit-toolchain -Raw).Trim()` before running the [official Windows installer](https://cli.moonbitlang.com/install/powershell.ps1).
+
+Dependencies use `moonbitlang/async@0.22.9`, `moonbit-community/opentelemetry@0.1.8`, `moonbitstack/moonyaml@0.1.7`, and `sujy123456/lunasieve@0.1.0`. An explicit `moonbitlang/protobuf@0.2.0` constraint upgrades OpenTelemetry's transitive dependency to its latest published version.
 
 Native builds require a C toolchain; Windows CI installs MSYS2 UCRT64 GCC and OpenSSL. JavaScript tests require Node.js; wasm and wasm-gc tests use the toolchain's moonrun. Native async tests and the async example run on Linux/macOS in the existing CI matrix. Native integration tests write to the repository's `logs/`; the file-rotation example creates `bitlogger-example.log` and rotated backups in the working directory. Both directories must be writable.
 

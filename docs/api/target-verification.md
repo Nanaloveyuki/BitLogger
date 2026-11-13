@@ -2,7 +2,7 @@
 name: target-verification
 group: api
 category: verification
-update-time: 20261105
+update-time: 20261113
 description: Current release-facing local verification boundary for BitLogger multi-target support claims.
 key-word:
     - target
@@ -13,60 +13,38 @@ key-word:
 
 ## Target-verification
 
-This note records the current release-facing local verification boundary for BitLogger's multi-target claims. It is intentionally small: the goal is to separate design intent from what was actually re-checked in the current environment.
+Release 1.5.2 (0.11.2) was checked on Linux x86_64 with `moonc v0.10.20+65efd5b93 (2026-11-05)` and `moon 0.1.20261104`.
 
 ### Verification Matrix
 
 | Area | native | js | wasm | wasm-gc | llvm |
 | --- | --- | --- | --- | --- | --- |
-| `src` compile check | verified | verified | verified | verified | not locally verified |
-| `src-async` compile check | verified | verified | verified | verified | not locally verified |
-| `moon test` | verified | verified | verified | verified | not run |
-| `moon test src-async` | verified | verified | verified | verified | not run |
+| `src` strict compile check | verified | verified | verified | verified | not verified |
+| `src-async` strict compile check | verified | verified | verified | unsupported | unsupported |
+| Complete module tests | 320 passed | 312 passed | 312 passed | 204 synchronous tests passed | not run |
+| `src-async` tests | 115 passed | 108 passed | 108 passed | unsupported | unsupported |
 
-### Explanation
+### Runtime boundary
 
-Detailed rules explaining key parameters and behaviors
+`moonbitlang/async@0.22.9` explicitly lists wasm-gc as unsupported. A standalone module containing only `async test { @async.pause() }` ran zero tests with the earlier 0.22.4 dependency on the same compiler; the old successful test command did not verify async execution on wasm-gc. With 0.22.9, linking that unsupported runtime produces an invalid Scheduler reference cast.
 
-- `verified` here means a local verification command was re-run successfully in the current environment.
-- `not locally verified` means the release should not imply fresh local confirmation even if the package is still designed for that target.
-- The 1.5.1(0.11.1) work re-ran strict `moon check` and `moon test` (`--deny-warn`) on `native`, `js`, `wasm`, and `wasm-gc`: root suite 320/312/230/312 and `src-async` 115/108/26/108.
-- `llvm` is not verified here. The compiler reports that the LLVM backend is experimental and nightly-only, and the pinned stable toolchain does not ship the LLVM `prelude.mi` (`moon check --target llvm` fails while planning the build). The repository CI does not cover `llvm` either.
-- Async file coverage is native-only by target gating, because `moonbitlang/async/fs` file operations are native. The `src-async` non-native runs confirm compile and unavailable-backend behavior, not real file I/O.
-- Example-level limitations, such as `async fn main` entry support, are separate from the library-level compile matrix above.
+`src-async` and its `utils` package now declare `native+wasm+js`. The synchronous `src` packages retain wasm-gc support. `moon test --target wasm-gc` checks the synchronous suite and excludes the unsupported async packages; the default `moon test` also succeeds on the CLI's default wasm target; no supported-target async tests were removed. Native, js, and wasm continue to run their complete existing async suites.
+
+Async file I/O is native-only. JavaScript and wasm test the compatibility and unavailable-file-backend behavior. Eight native examples and the native release build also passed. macOS and Windows results come from the CI matrix, rather than this local Linux verification.
 
 ### Commands Used
 
-The current local verification evidence for this note is based on commands such as:
-
-```text
-moon test
-moon test --target js
-moon test --target wasm
-moon test --target wasm-gc
-moon check --target native
-moon check --target js
-moon check --target wasm
-moon check --target wasm-gc
-moon check src-async --target native
-moon check src-async --target js
-moon check src-async --target wasm
-moon check src-async --target wasm-gc
-moon test src-async --target native
-moon test src-async --target js
-moon test src-async --target wasm
-moon test src-async --target wasm-gc
+```sh
+moon fmt --check
+moon info
+for target in native js wasm wasm-gc; do
+  moon check --target "$target" --deny-warn
+  moon test --target "$target" --deny-warn
+done
+for target in native js wasm; do
+  moon check src-async --target "$target" --deny-warn
+  moon test src-async --target "$target" --deny-warn
+done
 ```
 
-### Error Case
-
-e.g.:
-- If a target is described as part of the design intent but not locally re-verified here, readers should not treat it as freshly confirmed release evidence.
-
-- If `llvm` toolchain support changes later, this page should be updated together with the relevant verification commands rather than silently relying on old wording.
-
-### Notes
-
-1. This page is a release-facing verification note, not a portability promise by itself.
-
-2. API pages that mention target-sensitive behavior should defer to this page when readers need the current verification boundary.
+LLVM remains unverified for synchronous logging: the pinned stable toolchain does not ship the required LLVM prelude. It is excluded from the declared async target set.

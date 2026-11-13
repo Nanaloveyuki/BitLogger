@@ -60,6 +60,7 @@ Portable-first note / 跨端优先说明:
 - `file(...)` / file sink 仍然是 native 敏感能力，跨端代码里应先做 `native_files_supported()` 判断
 - verified README targets currently center on `native`, `js`, `wasm`, and `wasm-gc`; treat `llvm` as experimental until it is locally re-verified with the required toolchain
 - 当前 README 的已验证目标以 `native`、`js`、`wasm`、`wasm-gc` 为准；`llvm` 在完成本地 toolchain 复核前应按实验性目标理解
+- The separate `src-async` and `src-async/utils` packages support only `native`, `wasm`, and `js`; wasm-gc uses synchronous logging only because upstream async does not provide its runtime.
 
 Project command note / 项目命令说明:
 

@@ -3,3 +3,6 @@ logs/
 *.db.*
 *.log
 *.log.*
+node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/

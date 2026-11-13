@@ -1,7 +1,8 @@
 ///|
+#derive(Debug)
 suberror FallibleWriteError {
   Failed(String)
-} derive(Debug)
+}
 
 ///|
 test "logger log_with returns writer errors unchanged" {

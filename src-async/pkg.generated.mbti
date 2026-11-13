@@ -8,17 +8,18 @@ import {
   "Nanaloveyuki/BitLogger/src/runtime",
   "Nanaloveyuki/BitLogger/src/sink_graph",
   "moonbitlang/async/aqueue",
+  "moonbitlang/core/json",
   "moonbitlang/core/ref",
 }
 
 // Values
 pub fn[S] async_logger(S, config? : @utils.AsyncLoggerConfig, min_level? : @core.Level, target? : String, flush? : (S) -> Unit raise) -> AsyncLogger[S]
 
-pub fn async_logger_build_config_to_json(@utils.AsyncLoggerBuildConfig) -> Json
+pub fn async_logger_build_config_to_json(@utils.AsyncLoggerBuildConfig) -> @json.Json
 
-pub fn async_logger_config_to_json(@utils.AsyncLoggerConfig) -> Json
+pub fn async_logger_config_to_json(@utils.AsyncLoggerConfig) -> @json.Json
 
-pub fn async_logger_state_to_json(@utils.AsyncLoggerState) -> Json
+pub fn async_logger_state_to_json(@utils.AsyncLoggerState) -> @json.Json
 
 pub fn async_runtime_mode() -> @utils.AsyncRuntimeMode
 
@@ -26,7 +27,7 @@ pub fn async_runtime_mode_label(@utils.AsyncRuntimeMode) -> String
 
 pub fn async_runtime_state() -> @utils.AsyncRuntimeState
 
-pub fn async_runtime_state_to_json(@utils.AsyncRuntimeState) -> Json
+pub fn async_runtime_state_to_json(@utils.AsyncRuntimeState) -> @json.Json
 
 pub fn async_runtime_supports_background_worker() -> Bool
 

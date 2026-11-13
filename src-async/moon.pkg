@@ -10,16 +10,18 @@ import {
   "moonbitlang/async/fs",
 }
 
+supported_targets = "native+wasm+js"
+
 warnings = "-25-29"
 
 options(
   targets: {
-    "async_logger_native.mbt": [ "native", "llvm" ],
-    "async_logger_stub.mbt": [ "js", "wasm", "wasm-gc" ],
-    "file_backend_native.mbt": [ "native", "llvm" ],
-    "file_backend_stub.mbt": [ "js", "wasm", "wasm-gc" ],
-    "async_native_file_integration_test.mbt": [ "native", "llvm" ],
-    "async_file_sink_test.mbt": [ "native", "llvm" ],
-    "sync_file_regression_test.mbt": [ "native", "llvm" ],
+    "async_logger_native.mbt": [ "native" ],
+    "async_logger_stub.mbt": [ "js", "wasm" ],
+    "file_backend_native.mbt": [ "native" ],
+    "file_backend_stub.mbt": [ "js", "wasm" ],
+    "async_native_file_integration_test.mbt": [ "native" ],
+    "async_file_sink_test.mbt": [ "native" ],
+    "sync_file_regression_test.mbt": [ "native" ],
   },
 )
