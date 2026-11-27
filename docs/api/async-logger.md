@@ -51,8 +51,7 @@ Detailed rules explaining key parameters and behaviors
 - `ApplicationAsyncLogger` and `ApplicationTextAsyncLogger` are only alias names over concrete `AsyncLogger[...]` shapes, so they keep the same lifecycle, queue, failure, and state helpers without adding a wrapper layer.
 - `LibraryAsyncLogger[S]` wraps an `AsyncLogger[S]` value instead of aliasing it. That library facade preserves queue-backed logging behavior, but it narrows the directly exposed helper surface until callers recover the full logger with `to_async_logger()`.
 - In non-native targets, the implementation uses compatibility behavior while keeping the same public surface.
-- `src-async` is designed for `native / llvm / js / wasm / wasm-gc`, but current release-facing local verification is stronger for `native / js / wasm / wasm-gc` than for `llvm`.
-- `llvm` should currently be read as experimental and locally unverified in this environment rather than as a stable checked target.
+- `src-async` uses `moonbitlang/core/async` on `native`, `js`, and `wasm`.
 - `flush` is used only when batch or shutdown policy wants explicit flushing.
 - The callback expresses attempted flush timing and failure, not a returned progress count contract.
 - If the supplied flush callback raises, worker failure state is recorded through `has_failed()` and `last_error()`.

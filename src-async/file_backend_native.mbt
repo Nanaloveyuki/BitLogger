@@ -3,7 +3,7 @@ type FileHandle = @file_utils.FileHandle
 
 ///|
 /// Async file handles are logical: every operation opens and closes its own
-/// descriptor through `moonbitlang/async/fs`, matching the synchronous backend.
+/// descriptor through `moonbitlang/core/async/fs`, matching the synchronous backend.
 async fn probe_open_file_handle_async_internal(
   path : String,
   append : Bool,
@@ -56,10 +56,7 @@ async fn write_file_handle_async_internal(
     if @file_utils.file_handle_append_internal(handle) {
       file.write(bytes)
     } else {
-      file.write_at(
-        bytes[:],
-        position=@file_utils.file_handle_position_internal(handle),
-      )
+      file.at(@file_utils.file_handle_position_internal(handle)).write(bytes)
       @file_utils.file_handle_advance_position_internal(
         handle,
         bytes.length().to_int64(),

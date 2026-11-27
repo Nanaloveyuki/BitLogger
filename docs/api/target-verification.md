@@ -2,7 +2,7 @@
 name: target-verification
 group: api
 category: verification
-update-time: 20261113
+update-time: 20261127
 description: Current release-facing local verification boundary for BitLogger multi-target support claims.
 key-word:
     - target
@@ -13,7 +13,7 @@ key-word:
 
 ## Target-verification
 
-Release 1.5.2 (0.11.2) was checked on Linux x86_64 with `moonc v0.10.20+65efd5b93 (2026-11-05)` and `moon 0.1.20261104`.
+The current checkout was checked on Linux x86_64 with `moonc v1.0.0-rc1+3c0520448` and `moon 0.1.20261126`.
 
 ### Verification Matrix
 
@@ -26,11 +26,9 @@ Release 1.5.2 (0.11.2) was checked on Linux x86_64 with `moonc v0.10.20+65efd5b9
 
 ### Runtime boundary
 
-`moonbitlang/async@0.22.9` explicitly lists wasm-gc as unsupported. A standalone module containing only `async test { @async.pause() }` ran zero tests with the earlier 0.22.4 dependency on the same compiler; the old successful test command did not verify async execution on wasm-gc. With 0.22.9, linking that unsupported runtime produces an invalid Scheduler reference cast.
+`src-async` and its `utils` package use `moonbitlang/core/async` on native, js, and wasm. The wasm-gc test command runs the synchronous suite.
 
-`src-async` and its `utils` package now declare `native+wasm+js`. The synchronous `src` packages retain wasm-gc support. `moon test --target wasm-gc` checks the synchronous suite and excludes the unsupported async packages; the default `moon test` also succeeds on the CLI's default wasm target; no supported-target async tests were removed. Native, js, and wasm continue to run their complete existing async suites.
-
-Async file I/O is native-only. JavaScript and wasm test the compatibility and unavailable-file-backend behavior. Eight native examples and the native release build also passed. macOS and Windows results come from the CI matrix, rather than this local Linux verification.
+Async file I/O is native-only. The JavaScript and wasm suites exercise async logging and the unavailable-file-backend behavior. The verification matrix records local Linux results.
 
 ### Commands Used
 

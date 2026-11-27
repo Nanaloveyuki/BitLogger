@@ -1,9 +1,13 @@
 import {
   "Nanaloveyuki/BitLogger/src" @lib,
   "Nanaloveyuki/BitLogger/src-async" @lib_async,
-  "moonbitlang/async",
+  "moonbitlang/core/async",
 }
 
 supported_targets = "+native"
 
 pkgtype(kind: "executable")
+
+options(
+  "allow-experimental-packages": true,
+)

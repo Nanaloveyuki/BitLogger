@@ -13,7 +13,7 @@ key-word:
 
 ## File-sink-async
 
-Create an `AsyncFileSink` from `Nanaloveyuki/BitLogger/src-async` in an async context. The sync root package intentionally does not expose this constructor or depend on the host async filesystem. The constructor opens the file with the native `moonbitlang/async/fs` interface and keeps the same rotation, policy, and failure-counter surface as `file_sink(...)`.
+Create an `AsyncFileSink` from `Nanaloveyuki/BitLogger/src-async` in an async context. The constructor opens the file with `moonbitlang/core/async/fs` on native and provides the same rotation, policy, and failure counters as `file_sink(...)`.
 
 ### Interface
 

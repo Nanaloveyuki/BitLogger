@@ -41,7 +41,7 @@ async test "synchronous native rotation observes sparse sizes above four GiB" {
       mode=@fs.WriteOnly,
       create_mode=@fs.CreateOrTruncate,
     )
-    file.write_at(b"x"[:], position=4294967296L)
+    file.at(4294967296L).write(b"x")
     file.close()
     let sink = @bitlogger.file_sink(
       path,

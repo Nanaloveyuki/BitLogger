@@ -8,8 +8,10 @@ Use the async package when a native application needs logging to run through an 
 import {
   "Nanaloveyuki/BitLogger/src" @log,
   "Nanaloveyuki/BitLogger/src-async" @async_log,
-  "moonbitlang/async",
+  "moonbitlang/core/async",
 }
+
+options("allow-experimental-packages": true)
 ```
 
 ## Build, Run, Then Shut Down

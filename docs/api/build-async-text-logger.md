@@ -45,7 +45,7 @@ Detailed rules explaining key parameters and behaviors
 - The async `flush_policy` still comes from `config.async_config`, but this text-specific builder does not supply the explicit `flush=fn(sink) { sink.flush() }` callback used by `build_async_logger(...)`.
 - In practice, `Batch` and `Shutdown` therefore only trigger the default no-op async flush callback on this path, while each record write still follows whatever immediate behavior `FormattedConsoleSink` already has on its own.
 - This helper is best suited to text-console output paths where callers want the concrete formatted sink type instead of `RuntimeSink`.
-- This async text path follows the same target story as the broader async library: `native / js / wasm / wasm-gc` have stronger local verification, while `llvm` remains experimental and locally unverified in this environment.
+- This builder supports the `src-async` targets `native`, `js`, and `wasm`.
 
 ### How to Use
 

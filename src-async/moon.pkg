@@ -5,9 +5,9 @@ import {
   "Nanaloveyuki/BitLogger/src-async/utils",
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/env",
-  "moonbitlang/async",
-  "moonbitlang/async/aqueue",
-  "moonbitlang/async/fs",
+  "moonbitlang/core/async",
+  "moonbitlang/core/async/aqueue",
+  "moonbitlang/core/async/fs",
 }
 
 supported_targets = "native+wasm+js"
@@ -15,6 +15,7 @@ supported_targets = "native+wasm+js"
 warnings = "-25-29"
 
 options(
+  "allow-experimental-packages": true,
   targets: {
     "async_logger_native.mbt": [ "native" ],
     "async_logger_stub.mbt": [ "js", "wasm" ],

@@ -1,12 +1,11 @@
 name = "Nanaloveyuki/BitLogger"
 
-version = "0.11.2"
+version = "0.12.0"
 
 import {
-  "moonbitlang/async@0.22.9",
   "moonbitlang/protobuf@0.2.0",
   "moonbit-community/opentelemetry@0.1.8",
-  "moonbitstack/moonyaml@0.1.7",
+  "moonbitstack/moonyaml@0.2.1",
   "sujy123456/lunasieve@0.1.0",
 }
 

@@ -46,9 +46,7 @@ Detailed rules explaining key parameters and behaviors
 - The returned logger exposes async state and sink-kind information through its async logger and `AsyncRuntimeSink` APIs.
 - File-backed runtime helpers are provided by the returned `AsyncRuntimeSink`, not by an exposed root `RuntimeSink` value.
 - Use `build_async_text_logger(...)` instead when you want the direct text-console async builder path with `FormattedConsoleSink` and without the sync runtime-sink construction layer.
-- The `src-async` library is designed to compile on `native / llvm / js / wasm / wasm-gc`, but runtime mode differs by backend.
-- Current local release-facing verification is explicit for `native / js / wasm / wasm-gc`.
-- `llvm` remains experimental and did not complete local verification in this environment.
+- `src-async` is verified on `native`, `js`, and `wasm`.
 - On non-native targets, the async library still compiles and exposes the same public surface through compatibility-mode behavior rather than native background-worker semantics.
 
 ### How to Use

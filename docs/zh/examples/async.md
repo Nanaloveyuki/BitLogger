@@ -8,8 +8,10 @@
 import {
   "Nanaloveyuki/BitLogger/src" @log,
   "Nanaloveyuki/BitLogger/src-async" @async_log,
-  "moonbitlang/async",
+  "moonbitlang/core/async",
 }
+
+options("allow-experimental-packages": true)
 ```
 
 ## 构建、运行、关闭
